@@ -1,0 +1,870 @@
+{
+  "language": "uk",
+  "pluralRule": "nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;",
+  "entries": [
+    {
+      "context": "",
+      "singular": " and one tab open",
+      "plural": "",
+      "translations": [
+        " і одна вкладка відкрита"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Effects</b>",
+      "plural": "",
+      "translations": [
+        "<b>Ефекти</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>General</b>",
+      "plural": "",
+      "translations": [
+        "<b>Загальне</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Keyboard compatibility</b>",
+      "plural": "",
+      "translations": [
+        "<b>Сумісність клавіатури</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Main Window Height</b>",
+      "plural": "",
+      "translations": [
+        "<b>Висота головного вікна</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Main Window Horizontal Alignment</b>",
+      "plural": "",
+      "translations": [
+        "<b>Вирівняти по горизонталі</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Main Window Width</b>",
+      "plural": "",
+      "translations": [
+        "<b>Ширина головного вікна</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Main Window</b>",
+      "plural": "",
+      "translations": [
+        "<b>Головне вікно</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Palette</b>",
+      "plural": "",
+      "translations": [
+        "<b>Палітра</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Placement</b>",
+      "plural": "",
+      "translations": [
+        "<b>Розміщення</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Quick Open</b>",
+      "plural": "",
+      "translations": [
+        "<b>Швидке відкриття</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Scroll</b>",
+      "plural": "",
+      "translations": [
+        "<b>Прокручувати</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Shell</b>",
+      "plural": "",
+      "translations": [
+        "<b>Оболонка</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<small><i><b>Note:</b> These options may cause some applications to behave incorrectly.  They are only here to allow you to work around certain applications and operating systems that expect different terminal behavior.</i></small>",
+      "plural": "",
+      "translations": [
+        "<small><i><b>Примітка:</b> Ці параметри можуть зламати коректну роботу певних програм. Вони тут лише для того, щоб ви могли підлаштувати поведінку термінала під певні програми та операційні системи.</i></small>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<span color=\"black\">Customize behavior and appearance of Guake!</span>",
+      "plural": "",
+      "translations": [
+        "<span color=\"black\">Налаштування поведінки та вигляду Guake!</span>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<span size=\"18000\" color=\"black\"><b>Guake properties</b></span>",
+      "plural": "",
+      "translations": [
+        "<span size=\"18000\" color=\"black\"><b>Властивості Guake</b></span>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<span size=\"18000\"><b>Guake properties</b></span>",
+      "plural": "",
+      "translations": [
+        "<span size=\"18000\"><b>Властивості Guake</b></span>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<user shell>",
+      "plural": "",
+      "translations": [
+        "<оболонка користувача>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "A problem happened when binding <b>%s</b> key.\nPlease use Guake Preferences dialog to choose another key",
+      "plural": "",
+      "translations": [
+        "Виникла проблема при спробі призначити клавіатурне скорочення <b>%s</b>. \nБудь ласка, скористайтесь діалогом налаштувань, щоб вибрати іншу гарячу клавішу"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "ASCII DEL\nEscape sequence\nControl-H",
+      "plural": "",
+      "translations": [
+        "ASCII DEL\nEscape послідовність\nControl-H"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "About Guake",
+      "plural": "",
+      "translations": [
+        "Про Guake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Action",
+      "plural": "",
+      "translations": [
+        "Дія"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Add a new tab",
+      "plural": "",
+      "translations": [
+        "Додати нову вкладку"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Always prompt on quit",
+      "plural": "",
+      "translations": [
+        "Завжди запитувати про вихід"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Appearance",
+      "plural": "",
+      "translations": [
+        "Зовнішній вигляд"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Background color",
+      "plural": "",
+      "translations": [
+        "Колір тла"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Background color:",
+      "plural": "",
+      "translations": [
+        "Колір тла:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Background image:",
+      "plural": "",
+      "translations": [
+        "Зображення тла:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Built-in schemes:",
+      "plural": "",
+      "translations": [
+        "Вбудовані схеми:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Choose some font",
+      "plural": "",
+      "translations": [
+        "Виберіть шрифт"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Clipboard",
+      "plural": "",
+      "translations": [
+        "Буфер обміну"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Close",
+      "plural": "",
+      "translations": [
+        "Зачинити"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Close Tab",
+      "plural": "",
+      "translations": [
+        "Зачинити вкладку"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Close tab",
+      "plural": "",
+      "translations": [
+        "Закрити вкладку"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Color palette:",
+      "plural": "",
+      "translations": [
+        "Палітра кольорів:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Compatibility",
+      "plural": "",
+      "translations": [
+        "Сумісність"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy",
+      "plural": "",
+      "translations": [
+        "Копіювати"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy text to clipboard",
+      "plural": "",
+      "translations": [
+        "Скопіювати текст до буфера обміну"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Customize behavior and appearance of Guake!",
+      "plural": "",
+      "translations": [
+        "Налаштування поведінки та вигляду Guake!"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Decrease transparency",
+      "plural": "",
+      "translations": [
+        "Зменшити прозорість"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Default interpreter:",
+      "plural": "",
+      "translations": [
+        "Типовий інтерпретатор:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Do you really want to quit Guake?",
+      "plural": "",
+      "translations": [
+        "Ви дійсно хочете вийти з Guake?"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Do you want to close the tab?",
+      "plural": "",
+      "translations": [
+        "Ви дійсно бажаєте закрити вкладку?"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Enable popup notifications on startup",
+      "plural": "",
+      "translations": [
+        "Увімкнути спливаюче сповіщення при запуску"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Error setting keybinding.",
+      "plural": "",
+      "translations": [
+        "Не вдалося створити прив’язку до клавіш."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Execute an arbitrary command in the selected tab.",
+      "plural": "",
+      "translations": [
+        "Виконати вказану команду у поточній вкладці."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Font color",
+      "plural": "",
+      "translations": [
+        "Колір тексту"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Font:",
+      "plural": "",
+      "translations": [
+        "Шрифт:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "General",
+      "plural": "",
+      "translations": [
+        "Загальне"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to next tab",
+      "plural": "",
+      "translations": [
+        "Перейти до наступної вкладки"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to previous tab",
+      "plural": "",
+      "translations": [
+        "Перейти до попередньої вкладки"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake Preferences",
+      "plural": "",
+      "translations": [
+        "Налаштування Guake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake Terminal",
+      "plural": "",
+      "translations": [
+        "Термінал Guake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake can not init!",
+      "plural": "",
+      "translations": [
+        "Guake не може ініціалізуватись!"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake is an easy to access\nterminal based on FPS games terminal",
+      "plural": "",
+      "translations": [
+        "Guake — термінал швидкого доступу\nродом з ігор жанру FPS"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake is now running,\npress <b>{!s}</b> to use it.",
+      "plural": "",
+      "translations": [
+        "Guake запущено,\nнатискайте <b>{!s}</b> для його виклику."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake!",
+      "plural": "",
+      "translations": [
+        "Guake!"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Hide on lose focus",
+      "plural": "",
+      "translations": [
+        "Ховатися при втраті фокусу"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Hides Guake main window",
+      "plural": "",
+      "translations": [
+        "Приховати головне вікно Guake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Increase transparency",
+      "plural": "",
+      "translations": [
+        "Збільшити прозорість"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Keyboard shortcuts",
+      "plural": "",
+      "translations": [
+        "Комбінації клавіш"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Navigation",
+      "plural": "",
+      "translations": [
+        "Навігація"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "New Tab",
+      "plural": "",
+      "translations": [
+        "Нова вкладка"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "On key stroke",
+      "plural": "",
+      "translations": [
+        "При натисненнях клавіш"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "On output",
+      "plural": "",
+      "translations": [
+        "При текстовому виводі"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Paste",
+      "plural": "",
+      "translations": [
+        "Вставити"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Paste text from clipboard",
+      "plural": "",
+      "translations": [
+        "Вставити текст з буфера обміну"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Place tabs on top",
+      "plural": "",
+      "translations": [
+        "Розташувати вкладки вгорі"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Prompt on close tab:",
+      "plural": "",
+      "translations": [
+        "Запитувати при закритті вкладки:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quit",
+      "plural": "",
+      "translations": [
+        "Вийти"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename",
+      "plural": "",
+      "translations": [
+        "Перейменувати"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename Tab",
+      "plural": "",
+      "translations": [
+        "Перейменувати вкладку"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename current tab",
+      "plural": "",
+      "translations": [
+        "Перейменувати поточну вкладку"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename tab",
+      "plural": "",
+      "translations": [
+        "Перейменувати вкладку"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Reset terminal",
+      "plural": "",
+      "translations": [
+        "Скинути термінал"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Return the selected tab index.",
+      "plural": "",
+      "translations": [
+        "Повернути індекс вибраної вкладки."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Save to File...",
+      "plural": "",
+      "translations": [
+        "Зберегти до файлу..."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Says to Guake go away =(",
+      "plural": "",
+      "translations": [
+        "Наказує Guake зникнути =("
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Scrollback lines:",
+      "plural": "",
+      "translations": [
+        "Рядків в історії прокручування:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Scrolling",
+      "plural": "",
+      "translations": [
+        "Прокручування"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shortcut",
+      "plural": "",
+      "translations": [
+        "Комбінація клавіш"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show scrollbar",
+      "plural": "",
+      "translations": [
+        "Показувати смужку прокрутки"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show tab bar",
+      "plural": "",
+      "translations": [
+        "Показувати панель вкладок"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show tray icon",
+      "plural": "",
+      "translations": [
+        "Показувати значок у системній таці"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shows Guake main window",
+      "plural": "",
+      "translations": [
+        "Показати головне вікно Guake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shows Guake preference window",
+      "plural": "",
+      "translations": [
+        "Показати вікно налаштувань Guake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shows Guake's about info",
+      "plural": "",
+      "translations": [
+        "Показати «Про Guake»"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Start fullscreen",
+      "plural": "",
+      "translations": [
+        "Запускати в повноекранному режимі"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Stay on top",
+      "plural": "",
+      "translations": [
+        "Триматися поверха"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Tab management",
+      "plural": "",
+      "translations": [
+        "Керування вкладками"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Terminal",
+      "plural": "",
+      "translations": [
+        "Термінал"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Text color:",
+      "plural": "",
+      "translations": [
+        "Колір тексту:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "The shortcut \"%s\" cannot be used because it will become impossible to type using this key.\n\nPlease try with a key such as Control, Alt or Shift at the same time.\n",
+      "plural": "",
+      "translations": [
+        "Не можна прив’язувати дії до комбінації клавіш „%s“, тому що це завадить набору з клавіатури.\n\nБудь ласка, спробуйте щось інше. Комбінування з клавішами Control, Alt або Shift може допомогти.\n"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "The shortcut \"%s\" is already in use.",
+      "plural": "",
+      "translations": [
+        "Комбінація „%s“ вже зайнята."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "There are no processes running",
+      "plural": "",
+      "translations": [
+        "Відсутні запущені процеси"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "There are {0} processes still running",
+      "plural": "",
+      "translations": [
+        "{0} процеси(ів) досі виконуються"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "There is a process still running",
+      "plural": "",
+      "translations": [
+        "Процес досі виконується"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle Fullscreen",
+      "plural": "",
+      "translations": [
+        "Перемикання повноекранного режиму"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle Guake visibility",
+      "plural": "",
+      "translations": [
+        "Показувати й ховати Guake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle transparency",
+      "plural": "",
+      "translations": [
+        "Перемкнути прозорість"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggles the visibility of the terminal window",
+      "plural": "",
+      "translations": [
+        "Перемикнути видимість головного вікна"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Transparency:",
+      "plural": "",
+      "translations": [
+        "Прозорість:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use the system fixed width font",
+      "plural": "",
+      "translations": [
+        "Використовувати системний моноширинний шрифт"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Backspace key generates:",
+      "plural": "",
+      "translations": [
+        "Клавіша _Backspace генерує:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Delete key generates:",
+      "plural": "",
+      "translations": [
+        "Клавіша _Delete генерує:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Open new tab in current directory",
+      "plural": "",
+      "translations": [
+        "_Нові вкладки відкриваються в тій же теці"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Reset Compatibility Options to Defaults",
+      "plural": "",
+      "translations": [
+        "_Скинути опції сумісності на типові"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Run command as a login shell",
+      "plural": "",
+      "translations": [
+        "_Запускати команду як оболонку входу"
+      ]
+    }
+  ]
+}

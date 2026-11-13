@@ -1,0 +1,590 @@
+{
+  "language": "pa",
+  "pluralRule": "nplurals=2; plural=n != 1;",
+  "entries": [
+    {
+      "context": "",
+      "singular": "<b>Effects</b>",
+      "plural": "",
+      "translations": [
+        "<b>ਪਰਭਾਵ</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>General</b>",
+      "plural": "",
+      "translations": [
+        "<b>ਆਮ</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Keyboard compatibility</b>",
+      "plural": "",
+      "translations": [
+        "<b>ਕੀਬੋਰਡ ਅਨੁਕੂਲਤਾ</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Main Window</b>",
+      "plural": "",
+      "translations": [
+        "<b>ਮੇਨ ਵਿੰਡੋ</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Palette</b>",
+      "plural": "",
+      "translations": [
+        "<b>ਰੰਗ-ਪੱਟੀ</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Scroll</b>",
+      "plural": "",
+      "translations": [
+        "<b>ਸਕਰੋਲ</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Shell</b>",
+      "plural": "",
+      "translations": [
+        "<b>ਸ਼ੈੱਲ</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<span color=\"black\">Customize behavior and appearance of Guake!</span>",
+      "plural": "",
+      "translations": [
+        "<span color=\"black\">ਗੁਆਕੀ ਦੀ ਰਵੱਈਆ ਤੇ ਦਿੱਖ ਬਦਲੋ</span>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<span size=\"18000\" color=\"black\"><b>Guake properties</b></span>",
+      "plural": "",
+      "translations": [
+        "<span size=\"18000\" color=\"black\"><b>ਗੁਆਕੀ ਵਿਸ਼ੇਸ਼ਤਾ</b></span>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<span size=\"18000\"><b>Guake properties</b></span>",
+      "plural": "",
+      "translations": [
+        "<span size=\"18000\"><b>ਗੁਆਕੀ ਵਿਸ਼ੇਸ਼ਤਾ</b></span>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<user shell>",
+      "plural": "",
+      "translations": [
+        "<user shell>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "ASCII DEL\nEscape sequence\nControl-H",
+      "plural": "",
+      "translations": [
+        "ASCII DEL\nEscape sequence\nControl-H"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "About Guake",
+      "plural": "",
+      "translations": [
+        "ਗੁਆਕੀ ਬਾਰੇ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Action",
+      "plural": "",
+      "translations": [
+        "ਐਕਸ਼ਨ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Appearance",
+      "plural": "",
+      "translations": [
+        "ਦਿੱਖ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Background color:",
+      "plural": "",
+      "translations": [
+        "ਬੈਕਗਰਾਊਂਡ ਰੰਗ:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Background image:",
+      "plural": "",
+      "translations": [
+        "ਬੈਕਗਰਾਊਂਡ ਚਿੱਤਰ:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Built-in schemes:",
+      "plural": "",
+      "translations": [
+        "ਬਿਲਟ-ਇਨ ਸਕੀਮ:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Choose some font",
+      "plural": "",
+      "translations": [
+        "ਕੁਝ ਫੋਟ ਚੁਣੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Clipboard",
+      "plural": "",
+      "translations": [
+        "ਕਲਿੱਪਬੋਰਡ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Close",
+      "plural": "",
+      "translations": [
+        "ਬੰਦ ਕਰੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Close Tab",
+      "plural": "",
+      "translations": [
+        "ਟੈਬ ਬੰਦ ਕਰੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Close tab",
+      "plural": "",
+      "translations": [
+        "ਟੈਬ ਬੰਦ ਕਰੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Color palette:",
+      "plural": "",
+      "translations": [
+        "ਰੰਗ ਪਲੇਅਟ:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Compatibility",
+      "plural": "",
+      "translations": [
+        "ਅਨੁਕੂਲਤਾ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy",
+      "plural": "",
+      "translations": [
+        "ਕਾਪੀ ਕਰੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy text to clipboard",
+      "plural": "",
+      "translations": [
+        "ਟੈਕਸਟ ਕਲਿੱਪਬੋਰਡ 'ਚ ਕਾਪੀ ਕਰੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Customize behavior and appearance of Guake!",
+      "plural": "",
+      "translations": [
+        "ਗੁਆਕੀ ਦੀ ਰਵੱਈਆ ਤੇ ਦਿੱਖ ਬਦਲੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Default interpreter:",
+      "plural": "",
+      "translations": [
+        "ਡਿਫਾਲਟ ਇੰਟਰਪਰੇਟਰ:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Enable popup notifications on startup",
+      "plural": "",
+      "translations": [
+        "ਸ਼ੁਰੂ ਸਮੇਂ ਪੋਪਅੱਪ ਨੋਟੀਫਿਕੇਸ਼ਨ ਦਿਓ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Error setting keybinding.",
+      "plural": "",
+      "translations": [
+        "ਸੈਟਿੰਗ ਕੀ-ਬਾਈਡਿੰਗ ਦੌਰਾਨ ਗਲਤੀ।"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Font:",
+      "plural": "",
+      "translations": [
+        "ਫੋਂਟ:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "General",
+      "plural": "",
+      "translations": [
+        "ਆਮ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to next tab",
+      "plural": "",
+      "translations": [
+        "ਅਗਲੀ ਟੈਬ ਉੱਤੇ ਜਾਓ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to previous tab",
+      "plural": "",
+      "translations": [
+        "ਪਿਛਲੀ ਟੈਬ ਉੱਤੇ ਜਾਓ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake Preferences",
+      "plural": "",
+      "translations": [
+        "ਗੁਆਕੀ ਪਸੰਦ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake Terminal",
+      "plural": "",
+      "translations": [
+        "ਗੁਆਕੀ ਟਰਮੀਨਲ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake is now running,\npress <b>{!s}</b> to use it.",
+      "plural": "",
+      "translations": [
+        "ਗੁਆਕੀ ਹੁਣ ਚੱਲ ਰਿਹਾ ਹੈ।\nਇਸ ਨੂੰ ਵਰਤਣ ਲਈ <b>{!s}</b> ਦੱਬੋ।"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake!",
+      "plural": "",
+      "translations": [
+        "ਗੁਆਕੀ!"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Hide on lose focus",
+      "plural": "",
+      "translations": [
+        "ਫੋਕਸ ਖਤਮ ਹੋਣ ਉੱਤੇ ਓਹਲੇ ਕਰੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Keyboard shortcuts",
+      "plural": "",
+      "translations": [
+        "ਕੀਬੋਰਡ ਸ਼ਾਰਟਕੱਟ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Navigation",
+      "plural": "",
+      "translations": [
+        "ਨੈਵੀਗੇਸ਼ਨ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "On key stroke",
+      "plural": "",
+      "translations": [
+        "ਕੁੰਜੀ ਦੱਬਣ ਉੱਤੇ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "On output",
+      "plural": "",
+      "translations": [
+        "ਆਉਟਪੁੱਟ ਉੱਤੇ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Paste",
+      "plural": "",
+      "translations": [
+        "ਚੇਪੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Paste text from clipboard",
+      "plural": "",
+      "translations": [
+        "ਕਲਿੱਪਬੋਰਡ 'ਚ ਟੈਕਸਟ ਚੇਪੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quit",
+      "plural": "",
+      "translations": [
+        "ਬਾਹਰ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename",
+      "plural": "",
+      "translations": [
+        "ਨਾਂ ਬਦਲੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename current tab",
+      "plural": "",
+      "translations": [
+        "ਮੌਜੂਦਾ ਟੈਬ ਦਾ ਨਾਂ ਬਦਲੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename tab",
+      "plural": "",
+      "translations": [
+        "ਟੈਬ ਨਾਂ ਬਦਲੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Return the selected tab index.",
+      "plural": "",
+      "translations": [
+        "ਚੁਣੇ ਟੈਬ ਇੰਡੈਕਸ ਉੱਤੇ ਵਾਪਸ ਜਾਉ।"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Says to Guake go away =(",
+      "plural": "",
+      "translations": [
+        "ਗੁਆਕੀ ਨੂੰ ਦੂਰ ਜਾਣ ਲਈ ਕਰੋ =("
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Scrollback lines:",
+      "plural": "",
+      "translations": [
+        "ਸਕਰੋਲਬੈਕ ਲਾਈਨਾਂ:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Scrolling",
+      "plural": "",
+      "translations": [
+        "ਸਕਰੋਲਿੰਗ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shortcut",
+      "plural": "",
+      "translations": [
+        "ਸ਼ਾਰਟਕੱਟ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show scrollbar",
+      "plural": "",
+      "translations": [
+        "ਸਕਰੋਲਬਾਰ ਵੇਖੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show tab bar",
+      "plural": "",
+      "translations": [
+        "ਟੈਬ ਪੱਟੀ ਵੇਖੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show tray icon",
+      "plural": "",
+      "translations": [
+        "ਟਰੇ ਆਈਕਾਨ ਵੇਖੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shows Guake preference window",
+      "plural": "",
+      "translations": [
+        "ਗੁਆਕੀ ਪਸੰਦ ਵਿੰਡੋ ਵੇਖੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shows Guake's about info",
+      "plural": "",
+      "translations": [
+        "ਗੁਆਕੀ ਬਾਰੇ ਜਾਣਕਾਰੀ ਵੇਖੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Stay on top",
+      "plural": "",
+      "translations": [
+        "ਹਮੇਸ਼ਾ ਉੱਤੇ ਰੱਖੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Tab management",
+      "plural": "",
+      "translations": [
+        "ਟੈਬ ਪਰਬੰਧ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Text color:",
+      "plural": "",
+      "translations": [
+        "ਟੈਕਸਟ ਰੰਗ:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "The shortcut \"%s\" is already in use.",
+      "plural": "",
+      "translations": [
+        "ਸ਼ਾਰਟਕੱਟ \"%s\" ਪਹਿਲਾਂ ਹੀ ਵਰਤੋਂ ਅਧੀਨ ਹੈ।"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle Fullscreen",
+      "plural": "",
+      "translations": [
+        "ਪੂਰੀ ਸਕਰੀਨ ਬਦਲੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle Guake visibility",
+      "plural": "",
+      "translations": [
+        "ਗੁਆਕੀ ਦਿੱਖ ਬਦਲੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggles the visibility of the terminal window",
+      "plural": "",
+      "translations": [
+        "ਟਰਮੀਨਲ ਵਿੰਡੋ ਦੀ ਦਿੱਖ ਬਦਲੋ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Transparency:",
+      "plural": "",
+      "translations": [
+        "ਟਰਾਂਸਪਰੇਸੀ:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use the system fixed width font",
+      "plural": "",
+      "translations": [
+        "ਸਿਸਟਮ ਸਥਿਰ ਚੌੜਾਈ ਫੋਂਟ ਵਰਤੋਂ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Backspace key generates:",
+      "plural": "",
+      "translations": [
+        "ਬੈਕਸਪੇ ਕੁੰਜੀ ਤਿਆਰ ਕਰੇ(_B):"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Open new tab in current directory",
+      "plural": "",
+      "translations": [
+        "ਮੌਜੂਦਾ ਡਾਇਰੈਕਟਰੀ ਵਿੱਚ ਨਵੀਂ ਟੈਬ ਖੋਲ੍ਹੋ(_O)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Reset Compatibility Options to Defaults",
+      "plural": "",
+      "translations": [
+        "ਅਨੁਕੂਲਤਾ ਚੋਣਾਂ ਡਿਫਾਲਟ ਲਈ ਮੁੜ-ਸੈੱਟ ਕਰੋ(_R)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Run command as a login shell",
+      "plural": "",
+      "translations": [
+        "ਕਮਾਂਡ ਲਾਗਇਨ ਸ਼ੈੱਲ ਵਜੋਂ ਚਲਾਓ(_R)"
+      ]
+    }
+  ]
+}

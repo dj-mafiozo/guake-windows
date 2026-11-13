@@ -1,0 +1,30 @@
+{
+  "language": "zh-TW",
+  "pluralRule": "nplurals=1; plural=0;",
+  "entries": [
+    {
+      "context": "",
+      "singular": "Enable verbose logging",
+      "plural": "",
+      "translations": [
+        "啟用詳細資訊記錄"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Put Guake in fullscreen mode",
+      "plural": "",
+      "translations": [
+        "使 Guake 進入全螢幕模式"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show Guake version number and exit",
+      "plural": "",
+      "translations": [
+        "顯示 Guake 版本號後退出"
+      ]
+    }
+  ]
+}

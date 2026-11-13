@@ -1,0 +1,2398 @@
+{
+  "language": "hu",
+  "pluralRule": "nplurals=2; plural=n != 1;",
+  "entries": [
+    {
+      "context": "",
+      "singular": " and one tab open",
+      "plural": "",
+      "translations": [
+        " és egy nyitott lap"
+      ]
+    },
+    {
+      "context": "",
+      "singular": " and {0} tabs open",
+      "plural": "",
+      "translations": [
+        " és {0} nyitott lap"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "0",
+      "plural": "",
+      "translations": [
+        "0"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Effects</b>",
+      "plural": "",
+      "translations": [
+        "<b>Effektek</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>General</b>",
+      "plural": "",
+      "translations": [
+        "<b>Általános</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Geometry</b>",
+      "plural": "",
+      "translations": [
+        "<b>Geometria</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Main Window Options</b>",
+      "plural": "",
+      "translations": [
+        "<b>Főablak beállításai</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Palette</b>",
+      "plural": "",
+      "translations": [
+        "<b>Paletta</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Placement</b>",
+      "plural": "",
+      "translations": [
+        "<b>Elhelyezkedés</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Scroll to Bottom</b>",
+      "plural": "",
+      "translations": [
+        "<b>Görgetés az aljára</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Scrollbar</b>",
+      "plural": "",
+      "translations": [
+        "<b>Gördítősáv</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<small><i><b>Note:</b> These options may cause some applications to behave incorrectly. They are only here to allow you to work around certain applications and operating systems that expect different terminal behavior.</i></small>",
+      "plural": "",
+      "translations": [
+        "<small><i><b>Megjegyzés:</b> Ezek a beállítások néhány alkalmazás esetén helytelen viselkedést okozhatnak. Csak azért vannak itt, hogy lehetővé tegyék számodra, hogy különböző alkalmazásokhoz és operációs rendszerekhez igazítsd a terminál viselkedését.</i></small>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<small><i>Use the following elements in the open editor command line:\n- <b>%(file_path)s</b>: path to the file that has been clicked\n- <b>%(line_number)s</b>: if your editor supports it, you can directly open the file to a given line number when found on the screen.\n\nFor example, use <b>subl %(file_path)s:%(line_number)s</b> for Sublime Text.\n</i></small>",
+      "plural": "",
+      "translations": [
+        "<small><i>Használja a következő elemeket a megnyitási parancssorban:\n- <b>%(file_path)s</b>: a kattintott fájl elérési útja\n- <b>%(line_number)s</b>: ha az Ön szerkesztője támogatja, közvetlenül megnyithatja a fájlt egy adott sorszámmal, amikor a képernyőn található.\n\nPéldául használja a <b>subl %(file_path)s:%(line_number)s</b> parancsot a Sublime Textben.\n</i></small>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<small>In this dialog you can attach your own command or script to various Guake events</small>",
+      "plural": "",
+      "translations": [
+        "<small>Ebben a párbeszédablakban saját parancsot vagy szkriptet csatolhatsz különböző Guake eseményekhez.</small>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<span size=\"18000\"><b>Guake properties</b></span>",
+      "plural": "",
+      "translations": [
+        "<span size=\"18000\"><b>Guake beállítások</b></span>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<user shell>",
+      "plural": "",
+      "translations": [
+        "<felhasználói héj>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "A problem happened when binding <b>%s</b> key.\nPlease use Guake Preferences dialog to choose another key",
+      "plural": "",
+      "translations": [
+        "Hiba történt a <b>%s</b> billentyűkombináció hozzárendelésekor.\nKérlek állíts be egy másikat a Guake beállítások panelen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "ASCII DEL",
+      "plural": "",
+      "translations": [
+        "ASCII DEL"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Abbreviated Path",
+      "plural": "",
+      "translations": [
+        "Rövidített elérési út"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Action",
+      "plural": "",
+      "translations": [
+        "Művelet"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Add a new tab.",
+      "plural": "",
+      "translations": [
+        "Új lap hozzáadása."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "All files",
+      "plural": "",
+      "translations": [
+        "Minden fájl"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Allow bold font",
+      "plural": "",
+      "translations": [
+        "Félkövér betűtípus engedélyezése"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Always",
+      "plural": "",
+      "translations": [
+        "Mindig"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Always prompt on quit",
+      "plural": "",
+      "translations": [
+        "Mindig rákérdezés kilépéskor"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Appear on display:",
+      "plural": "",
+      "translations": [
+        "Megjelenítés a kijelzőn:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Appear on mouse display",
+      "plural": "",
+      "translations": [
+        "Azon a kijelzőn jelenik meg, ahol az egér van"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Appear on the mouse display.",
+      "plural": "",
+      "translations": [
+        "Azon a kijelzőn jelenik meg, ahol az egér van."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Appearance",
+      "plural": "",
+      "translations": [
+        "Megjelenés"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Ask for confirmation when quitting Guake.",
+      "plural": "",
+      "translations": [
+        "Megerősítés kérése a Guake-ból való kilépésnél."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Audible bell",
+      "plural": "",
+      "translations": [
+        "Hangjelzés"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Automatically save session when the tabs has been modified",
+      "plural": "",
+      "translations": [
+        "Automatikusan mentse a munkamenetet, amikor a lapok módosultak"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Automatically save tabs session when changed",
+      "plural": "",
+      "translations": [
+        "Automatikusan mentse a lap munkamenetet, amikor módosultak"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Background image filename.",
+      "plural": "",
+      "translations": [
+        "Háttérkép fájlneve."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Background image layout mode.",
+      "plural": "",
+      "translations": [
+        "Háttérkép elrendezési módja."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Background image: ",
+      "plural": "",
+      "translations": [
+        "Háttérkép: "
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Background transparency.",
+      "plural": "",
+      "translations": [
+        "Háttérkép átlátszósága."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Backward",
+      "plural": "",
+      "translations": [
+        "Hátra"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Bing",
+      "plural": "",
+      "translations": [
+        "Bing"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Blink off",
+      "plural": "",
+      "translations": [
+        "Villogás kikapcsolva"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Blink on",
+      "plural": "",
+      "translations": [
+        "Villogás bekapcsolva"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Block",
+      "plural": "",
+      "translations": [
+        "Blokk"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Bold text is also bright (VTE >=0.52)",
+      "plural": "",
+      "translations": [
+        "A félkövér szöveg világos is (VTE>=0.52)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Bottom align window instead of top align",
+      "plural": "",
+      "translations": [
+        "Ablakok alsó igazítása felső helyett"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Built-in schemes:",
+      "plural": "",
+      "translations": [
+        "Beépített sémák:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Center",
+      "plural": "",
+      "translations": [
+        "Középre"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Choose some font",
+      "plural": "",
+      "translations": [
+        "Betűtípus kiválasztása"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Clipboard",
+      "plural": "",
+      "translations": [
+        "Vágólap"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Close",
+      "plural": "",
+      "translations": [
+        "Bezárás"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Close tab",
+      "plural": "",
+      "translations": [
+        "Lap bezárása"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Close terminal",
+      "plural": "",
+      "translations": [
+        "Terminál bezárása"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Close terminal.",
+      "plural": "",
+      "translations": [
+        "Terminál bezárása."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Closes the current tab.",
+      "plural": "",
+      "translations": [
+        "Bezárja az aktuális lapot."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Color palette:",
+      "plural": "",
+      "translations": [
+        "Színpaletta:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Color scheme name.",
+      "plural": "",
+      "translations": [
+        "Színséma neve."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Color scheme.",
+      "plural": "",
+      "translations": [
+        "Színséma."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Compatibility",
+      "plural": "",
+      "translations": [
+        "Egyéb"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Control-H",
+      "plural": "",
+      "translations": [
+        "Control-H"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy",
+      "plural": "",
+      "translations": [
+        "Másol"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy URL",
+      "plural": "",
+      "translations": [
+        "URL másolása"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy clipboard.",
+      "plural": "",
+      "translations": [
+        "Másolás vágólapra."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy on select",
+      "plural": "",
+      "translations": [
+        "Másolás kijelöléskor"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy text to clipboard",
+      "plural": "",
+      "translations": [
+        "Másolás vágólapra"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy the clipboard content.",
+      "plural": "",
+      "translations": [
+        "Vágólap tartalmát másolja."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy the selected text.",
+      "plural": "",
+      "translations": [
+        "A kiválasztott szöveg másolása."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Current search direction: Backward",
+      "plural": "",
+      "translations": [
+        "Aktuális keresési irány: Visszafelé"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Cursor blink mode:",
+      "plural": "",
+      "translations": [
+        "Kurzor villogásának módja:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Cursor shape of the terminal",
+      "plural": "",
+      "translations": [
+        "A terminál kurzorának alakja"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Cursor shape:",
+      "plural": "",
+      "translations": [
+        "Kurzor alakja:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Custom",
+      "plural": "",
+      "translations": [
+        "Egyéni"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Custom Commands",
+      "plural": "",
+      "translations": [
+        "Egyéni parancsok"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Custom Search:",
+      "plural": "",
+      "translations": [
+        "Egyéni kereső:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Custom search engine url to use",
+      "plural": "",
+      "translations": [
+        "Egyéni keresőmotor URL-je, amelyet használni szeretnél"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Customize behavior and appearance of Guake!",
+      "plural": "",
+      "translations": [
+        "Személyre szabhatod a Guake viselkedését és megjelenését!"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Decrease height",
+      "plural": "",
+      "translations": [
+        "Magasság csökkentése"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Decrease height.",
+      "plural": "",
+      "translations": [
+        "Magasság csökkentése."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Decrease the screen height.",
+      "plural": "",
+      "translations": [
+        "Csökkenti a ablak magasságát."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Decrease the terminal transparency.",
+      "plural": "",
+      "translations": [
+        "Csökkenti a terminál átlátszóságát."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Decrease transparency",
+      "plural": "",
+      "translations": [
+        "Átlátszóság csökkentése"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Decrease transparency.",
+      "plural": "",
+      "translations": [
+        "Átlátszóság csökkentése."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Default interpreter:",
+      "plural": "",
+      "translations": [
+        "Alapértelmezett héj:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Demo:",
+      "plural": "",
+      "translations": [
+        "Előnézet:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Displacement in pixels",
+      "plural": "",
+      "translations": [
+        "Elmozdítás pixelben"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Do you really want to quit Guake?",
+      "plural": "",
+      "translations": [
+        "Ki szeretne lépni a Guake-ből?"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Do you want to close the tab?",
+      "plural": "",
+      "translations": [
+        "Be szeretné zárni ezt a lapot?"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Do you want to reset custom colors for this tab?",
+      "plural": "",
+      "translations": [
+        "Szeretnéd visszaállítani az egyedi színeket ehhez a laphoz?"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "DuckDuckGo",
+      "plural": "",
+      "translations": [
+        "DuckDuckGo"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Editor command line:",
+      "plural": "",
+      "translations": [
+        "Szerkesztő parancssora:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Enable Quick Open when Ctrl+clicking on a filename in the terminal",
+      "plural": "",
+      "translations": [
+        "Engedélyezi a Gyors Megnyitást, amikor a fájlnévre kattint Ctrl+kattintással a terminálban"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Enable notification when restore tabs",
+      "plural": "",
+      "translations": [
+        "Értesítések engedélyezése a lapok helyreállításakor"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Enable popup notifications on startup",
+      "plural": "",
+      "translations": [
+        "Felugró üzenetek engedélyezése induláskor"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Error setting keybinding.",
+      "plural": "",
+      "translations": [
+        "Hiba a billentyűkiosztás alkalmazásával."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Execute an arbitrary command in a new tab.",
+      "plural": "",
+      "translations": [
+        "Egyéni parancs végrehajtása egy új lapon."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Extra features",
+      "plural": "",
+      "translations": [
+        "Extra funkciók"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Fifth tab.",
+      "plural": "",
+      "translations": [
+        "Ötödik lap."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Find",
+      "plural": "",
+      "translations": [
+        "Keresés"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Find...",
+      "plural": "",
+      "translations": [
+        "Keresés..."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "First tab.",
+      "plural": "",
+      "translations": [
+        "Első lap."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Font style.",
+      "plural": "",
+      "translations": [
+        "Betűstílus."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Font:",
+      "plural": "",
+      "translations": [
+        "Betűtípus:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Forward",
+      "plural": "",
+      "translations": [
+        "Előre"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Fourth tab.",
+      "plural": "",
+      "translations": [
+        "Negyedik lap."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Full Path",
+      "plural": "",
+      "translations": [
+        "Teljes elérési útvonal"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "GTK Theme name",
+      "plural": "",
+      "translations": [
+        "GTK témanév"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "GTK Theme:",
+      "plural": "",
+      "translations": [
+        "GTK téma:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "General",
+      "plural": "",
+      "translations": [
+        "Általános"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to eighth tab",
+      "plural": "",
+      "translations": [
+        "Ugrás a nyolcadik lapra"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to fifth tab",
+      "plural": "",
+      "translations": [
+        "Ugrás az ötödik lapra"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to first tab",
+      "plural": "",
+      "translations": [
+        "Ugrás az első lapra"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to fourth tab",
+      "plural": "",
+      "translations": [
+        "Ugrás a negyedik lapra"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to last tab",
+      "plural": "",
+      "translations": [
+        "Ugrás az utolsó lapra"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to next tab",
+      "plural": "",
+      "translations": [
+        "Következő lap"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to next tab (alternative)",
+      "plural": "",
+      "translations": [
+        "Következő lap (másodlagos billentyűzetkombináció)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to ninth tab",
+      "plural": "",
+      "translations": [
+        "Ugrás a kilencedik lapra"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to previous tab",
+      "plural": "",
+      "translations": [
+        "Előző lap"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to previous tab (alternative)",
+      "plural": "",
+      "translations": [
+        "Előző lap (másodlagos billentyűzetkombináció)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to second tab",
+      "plural": "",
+      "translations": [
+        "Ugrás a második lapra"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to seventh tab",
+      "plural": "",
+      "translations": [
+        "Ugrás a hetedik lapra"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to sixth tab",
+      "plural": "",
+      "translations": [
+        "Ugrás a hatodik lapra"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to tenth tab",
+      "plural": "",
+      "translations": [
+        "Ugrás a tizedik lapra"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to third tab",
+      "plural": "",
+      "translations": [
+        "Ugrás a harmadik lapra"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Google",
+      "plural": "",
+      "translations": [
+        "Google"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake Preferences",
+      "plural": "",
+      "translations": [
+        "Guake beállítások"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake Terminal",
+      "plural": "",
+      "translations": [
+        "Guake Terminál"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake is an easy to access\nterminal based on FPS games terminal",
+      "plural": "",
+      "translations": [
+        "A Guake egy könnyen hozzáférhető terminál,\nmely az FPS játékok mintáját követi"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake is now running,\npress <b>{!s}</b> to use it.",
+      "plural": "",
+      "translations": [
+        "A Guake fut,\na használathoz nyomja meg a(z) <b>{!s}</b> gombot."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake!",
+      "plural": "",
+      "translations": [
+        "Guake!"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Height:",
+      "plural": "",
+      "translations": [
+        "Magasság:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Hide on lose focus",
+      "plural": "",
+      "translations": [
+        "Fókusz elvesztésekor elrejtés"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Hide tab bar if there is only one tab",
+      "plural": "",
+      "translations": [
+        "Lapsáv elrejtése, ha csak egy lap van"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Hooks",
+      "plural": "",
+      "translations": [
+        "Horgok"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Horizontal Alignment:",
+      "plural": "",
+      "translations": [
+        "Vízszintes igazítás:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "I-Beam",
+      "plural": "",
+      "translations": [
+        "I-alakú"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "If true, when guake startup, it will restore tabs from previous session",
+      "plural": "",
+      "translations": [
+        "Ha be van jelölve, a Guake visszaállítja a lapokat az előző munkamenetből"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Increase height",
+      "plural": "",
+      "translations": [
+        "Magasság növelése"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Increase height.",
+      "plural": "",
+      "translations": [
+        "Magasság növelése."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Increase transparency",
+      "plural": "",
+      "translations": [
+        "Átlátszóság növelése"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Infinite scrolling",
+      "plural": "",
+      "translations": [
+        "Végtelen görgetés"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "JSON files",
+      "plural": "",
+      "translations": [
+        "JSON fájlok"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Keyboard shortcuts",
+      "plural": "",
+      "translations": [
+        "Gyorsbillentyűk"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Last Segment",
+      "plural": "",
+      "translations": [
+        "Utolsó rész"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Last tab.",
+      "plural": "",
+      "translations": [
+        "Utolsó lap."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Left",
+      "plural": "",
+      "translations": [
+        "Balra"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Line Height Scale (VTE >= 0.52)",
+      "plural": "",
+      "translations": [
+        "Sor magasság skálázása (VTE>=0.52)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Line Width Scale (VTE >= 0.52)",
+      "plural": "",
+      "translations": [
+        "Sor szélesség skálázása (VTE>=0.52)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Load settings from `cwd`/.guake.yml",
+      "plural": "",
+      "translations": [
+        "Beállítások betöltése a `cwd`/.guake.yml fájlból"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Load settings from guake.yml",
+      "plural": "",
+      "translations": [
+        "Beállítások betöltése a guake.yml fájlból"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Main Window",
+      "plural": "",
+      "translations": [
+        "Főablak"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move current tab left",
+      "plural": "",
+      "translations": [
+        "Aktuális lap áthelyezése balra"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move current tab right",
+      "plural": "",
+      "translations": [
+        "Aktuális lap áthelyezése jobbra"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Navigation",
+      "plural": "",
+      "translations": [
+        "Navigáció"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Neeva",
+      "plural": "",
+      "translations": [
+        "Neeva"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Never",
+      "plural": "",
+      "translations": [
+        "Soha"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "New Tab",
+      "plural": "",
+      "translations": [
+        "Új lap"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "New tab",
+      "plural": "",
+      "translations": [
+        "Új lap"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "New tab in current directory",
+      "plural": "",
+      "translations": [
+        "Új lap a jelenlegi könyvtárban"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "New tab in home directory",
+      "plural": "",
+      "translations": [
+        "Új lap a HOME könyvtárban"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Next tab (alternative)",
+      "plural": "",
+      "translations": [
+        "Következő lap (másodlagos billentyűzetkombináció)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Next tab.",
+      "plural": "",
+      "translations": [
+        "Új lap."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Ninth tab.",
+      "plural": "",
+      "translations": [
+        "Kilencedik lap."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Notify when restored the tabs",
+      "plural": "",
+      "translations": [
+        "Értesítés lapok helyreállításakor"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "On key stroke",
+      "plural": "",
+      "translations": [
+        "Billentyűkombináció lenyomásakor"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "On output",
+      "plural": "",
+      "translations": [
+        "Kimenetnél"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "On show.",
+      "plural": "",
+      "translations": [
+        "Megjelenítéskor."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "On show:",
+      "plural": "",
+      "translations": [
+        "Megjelenítéskor:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "On start:",
+      "plural": "",
+      "translations": [
+        "Elinduláskor:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Open URL under terminal cursor",
+      "plural": "",
+      "translations": [
+        "Kurzor alatt lévő URL megnyitása"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Open link...",
+      "plural": "",
+      "translations": [
+        "Link megnyitása..."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Paste",
+      "plural": "",
+      "translations": [
+        "Beilleszt"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Paste clipboard.",
+      "plural": "",
+      "translations": [
+        "Beillesztés vágólapról."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Paste text from clipboard",
+      "plural": "",
+      "translations": [
+        "Beillesztés vágólapról"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Paste the clipboard content.",
+      "plural": "",
+      "translations": [
+        "Vágólap tartalmának beillesztése."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Path to the default shell.",
+      "plural": "",
+      "translations": [
+        "Alapértelmezett héj útvonala."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Place tabs on top",
+      "plural": "",
+      "translations": [
+        "A lapokat helyezze felülre"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Prefer Dark Theme for GTK",
+      "plural": "",
+      "translations": [
+        "Sötét téma előnyben részesítése GTK-hoz"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Prefer dark theme",
+      "plural": "",
+      "translations": [
+        "Sötét téma előnyben részesítése"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Prefer the dark theme version of the theme if available",
+      "plural": "",
+      "translations": [
+        "A téma sötét verziójának előnyben részesítése, ha van ilyen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Prefer the system default theme",
+      "plural": "",
+      "translations": [
+        "A rendszer alapértelmezett témájának használata"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Previous tab (alternative)",
+      "plural": "",
+      "translations": [
+        "Előző lap (másodlagos billentyűzetkombináció)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Previous tab.",
+      "plural": "",
+      "translations": [
+        "Előző lap."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Prompt on close tab:",
+      "plural": "",
+      "translations": [
+        "Kérdés a lap bezárásakor:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Prompt when closing tabs.",
+      "plural": "",
+      "translations": [
+        "Kérdés lapok bezárásakor."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Prompt when quitting.",
+      "plural": "",
+      "translations": [
+        "Kérdés kilépéskor."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quick Open",
+      "plural": "",
+      "translations": [
+        "Gyors megnyitás"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quick Open...",
+      "plural": "",
+      "translations": [
+        "Gyors megnyitás..."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quick open in current terminal",
+      "plural": "",
+      "translations": [
+        "Gyors megnyitás az aktuális terminálban"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quick open is a feature allowing you to open a file directly into your favorite text editor by clicking on its filename when it appears in your terminal. See the list of currently supported text patterns used to extract filename below.",
+      "plural": "",
+      "translations": [
+        "A Gyors megnyitás egy olyan funkció, amely lehetővé teszi, hogy egy fájlt közvetlenül megnyiss egy kedvenc szövegszerkesztődben, amikor a fájlnévre kattintasz a terminálban. Az alábbiakban láthatod a jelenleg támogatott szövegmintákat, amelyeket a fájlnevek kinyerésére használunk."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quick open the file in the current terminal.",
+      "plural": "",
+      "translations": [
+        "Fájl gyors megnyitása az aktuális terminálban."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quit",
+      "plural": "",
+      "translations": [
+        "Kilépés"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quit Guake.",
+      "plural": "",
+      "translations": [
+        "Kilépés a Guake-ből."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename",
+      "plural": "",
+      "translations": [
+        "Átnevezés"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename current tab",
+      "plural": "",
+      "translations": [
+        "Lap átnevezése"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename current tab.",
+      "plural": "",
+      "translations": [
+        "Aktuális lap átnevezése."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename tab",
+      "plural": "",
+      "translations": [
+        "Lap átnevezése"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Reset",
+      "plural": "",
+      "translations": [
+        "Visszaállítás"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Reset custom colors",
+      "plural": "",
+      "translations": [
+        "Egyedi színek visszaállítása"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Reset terminal",
+      "plural": "",
+      "translations": [
+        "Terminál visszaállítása"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Restore Guake preferences from this file",
+      "plural": "",
+      "translations": [
+        "A Guake beállításainak visszaállítása ebből a fájlból"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Restore Tabs",
+      "plural": "",
+      "translations": [
+        "Lapok visszaállítása"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Restore previous session (tabs)",
+      "plural": "",
+      "translations": [
+        "Előző munkamenet visszaállítása (lapok)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Return the selected tab index.",
+      "plural": "",
+      "translations": [
+        "A kiválasztott lap indexének visszaadása."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Right",
+      "plural": "",
+      "translations": [
+        "Jobbra"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Save Tabs",
+      "plural": "",
+      "translations": [
+        "Lapok mentése"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Save content...",
+      "plural": "",
+      "translations": [
+        "Tartalom mentése..."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Save to...",
+      "plural": "",
+      "translations": [
+        "Mentés másként..."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Says to Guake go away =(",
+      "plural": "",
+      "translations": [
+        "Elbúcsúzás Guake-től =("
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Scale",
+      "plural": "",
+      "translations": [
+        "Méretezés"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Scroll on output",
+      "plural": "",
+      "translations": [
+        "Görgetés kimenetnél"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Scrollback lines:",
+      "plural": "",
+      "translations": [
+        "Sor megtartása:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Scrolling",
+      "plural": "",
+      "translations": [
+        "Görgetés"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search Engine:",
+      "plural": "",
+      "translations": [
+        "Keresőmotor:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search current selected text on the web",
+      "plural": "",
+      "translations": [
+        "A kijelölt szöveg keresése a web-en"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search engine to use",
+      "plural": "",
+      "translations": [
+        "Használandó keresőmotor"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search forward",
+      "plural": "",
+      "translations": [
+        "Keresés előre"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search on Web",
+      "plural": "",
+      "translations": [
+        "Keresés a web-en"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search on Web: '%s'",
+      "plural": "",
+      "translations": [
+        "Kijelölés keresése a web-en: '%s'"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search selected text on web",
+      "plural": "",
+      "translations": [
+        "Kijelölt szöveg keresése a web-en"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search terminal",
+      "plural": "",
+      "translations": [
+        "Terminál keresése"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Second tab.",
+      "plural": "",
+      "translations": [
+        "Második lap."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Select all",
+      "plural": "",
+      "translations": [
+        "Minden kijelölése"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Select all.",
+      "plural": "",
+      "translations": [
+        "Minden kiválasztása."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Sets the popup notifications visibility.",
+      "plural": "",
+      "translations": [
+        "Felugró üzenetek láthatóságának beállítása."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Seventh tab.",
+      "plural": "",
+      "translations": [
+        "Hetedik lap."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shell",
+      "plural": "",
+      "translations": [
+        "Héj (shell)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shortcut",
+      "plural": "",
+      "translations": [
+        "Gyorsbillentyű"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show scrollbar",
+      "plural": "",
+      "translations": [
+        "Görgetősáv megjelenítése"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show tab bar",
+      "plural": "",
+      "translations": [
+        "Lapsáv megjelenítése"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show tray icon",
+      "plural": "",
+      "translations": [
+        "Tálca ikon mutatása"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shows Guake preference window",
+      "plural": "",
+      "translations": [
+        "Guake beállításainak mutatása"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shows Guake's about info",
+      "plural": "",
+      "translations": [
+        "A Guake-ről"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shows the previous tab.",
+      "plural": "",
+      "translations": [
+        "Előző lap mutatása."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Sixth tab.",
+      "plural": "",
+      "translations": [
+        "Hatodik lap."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split management",
+      "plural": "",
+      "translations": [
+        "Felosztás kezelés"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split tab horizontal",
+      "plural": "",
+      "translations": [
+        "Lap vízszintes felosztása"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split tab horizontal.",
+      "plural": "",
+      "translations": [
+        "Lap vízszintes felosztása."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split tab vertical",
+      "plural": "",
+      "translations": [
+        "Lap függőleges felosztása"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split tab vertical.",
+      "plural": "",
+      "translations": [
+        "Lap függőleges felosztása."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split the selected tab horizontally. Optional input split percentage for the height.",
+      "plural": "",
+      "translations": [
+        "Vízszintesen felosztja a kiválasztott lapot. Opcionálisan megadható a magasság felosztás százaléka."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split the selected tab vertically. Optional input split percentage for the width.",
+      "plural": "",
+      "translations": [
+        "Függőlegesen felosztja a kiválasztott lapot. Opcionálisan megadható a szélesség felosztás százaléka."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split |",
+      "plural": "",
+      "translations": [
+        "Felosztás ｜"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split ―",
+      "plural": "",
+      "translations": [
+        "Felosztás ―"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Start Guake at login",
+      "plural": "",
+      "translations": [
+        "Guake indítása bejelentkezéskor"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Start fullscreen",
+      "plural": "",
+      "translations": [
+        "Indítás teljes képernyőn"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Start fullscreen.",
+      "plural": "",
+      "translations": [
+        "Teljes képernyőn indítás."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Startup & Tabs (Experiment)",
+      "plural": "",
+      "translations": [
+        "Indítás és lapok (Kísérlet)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Stay on top",
+      "plural": "",
+      "translations": [
+        "Mindig felül"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Stay on top.",
+      "plural": "",
+      "translations": [
+        "Maradjon mindig felül."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Stretch",
+      "plural": "",
+      "translations": [
+        "Nyújtás"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the eighth tab.",
+      "plural": "",
+      "translations": [
+        "Váltás a nyolcadik lapra."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the fifth tab.",
+      "plural": "",
+      "translations": [
+        "Váltás az ötödik lapra."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the first tab.",
+      "plural": "",
+      "translations": [
+        "Váltás az első lapra."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the fourth tab.",
+      "plural": "",
+      "translations": [
+        "Váltás a negyedik lapra."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the last tab.",
+      "plural": "",
+      "translations": [
+        "Váltás az utolsó lapra."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the ninth tab.",
+      "plural": "",
+      "translations": [
+        "Váltás a kilencedik lapra."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the second tab.",
+      "plural": "",
+      "translations": [
+        "Váltás a második lapra."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the seventh tab.",
+      "plural": "",
+      "translations": [
+        "Váltás a hetedik lapra."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the sixth tab.",
+      "plural": "",
+      "translations": [
+        "Váltás a hatodik lapra."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the tenth tab.",
+      "plural": "",
+      "translations": [
+        "Váltás a tizedik lapra."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the third tab.",
+      "plural": "",
+      "translations": [
+        "Váltás a harmadik lapra."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Tab management",
+      "plural": "",
+      "translations": [
+        "Lapok kezelése"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Terminal",
+      "plural": "",
+      "translations": [
+        "Terminál"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "The shortcut \"%s\" cannot be used because it will become impossible to type using this key.\n\nPlease try with a key such as Control, Alt or Shift at the same time.\n",
+      "plural": "",
+      "translations": [
+        "A gyorsbillentyű \"%s\" nem használható, ellehetetlenítené a gépelést. \n\nKérlek használj általános billentyűket mint a Control, Alt vagy Shift egyszerre.\n"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "The shortcut \"%s\" is already in use.",
+      "plural": "",
+      "translations": [
+        "A \"%s\" gyorsbillentyű már használatban van."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Third tab.",
+      "plural": "",
+      "translations": [
+        "Harmadik lap."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "This might not work on all shells, make sure that your shell supports the --login option",
+      "plural": "",
+      "translations": [
+        "Ez nem biztos, hogy minden parancsértelmezőnél működik, győződj meg arról, hogy a parancsértelmeződ támogatja a --login opciót"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Tile",
+      "plural": "",
+      "translations": [
+        "Mozaik"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "To change a shortcut simply click on its name.\nTo disable a shortcut, press the \"Backspace\" key.",
+      "plural": "",
+      "translations": [
+        "Billentyűkombináció megváltoztatásához kattintson egyszer az előzetesen megadott \"Gyorsbillentyű\"-re.\nBillentyűkombináció törléséhez nyomja meg a \"Backspace\" billentyűt."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle Fullscreen",
+      "plural": "",
+      "translations": [
+        "Teljes képernyő"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle Guake visibility",
+      "plural": "",
+      "translations": [
+        "Guake láthatóságának váltása"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle transparency",
+      "plural": "",
+      "translations": [
+        "Átlátszóság átkapcsolása"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle transparency.",
+      "plural": "",
+      "translations": [
+        "Átlátszóság átkapcsolása."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggles the visibility of the terminal window",
+      "plural": "",
+      "translations": [
+        "Az terminálablak láthatóságának váltása"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Transparency:",
+      "plural": "",
+      "translations": [
+        "Átlátszóság:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Underline",
+      "plural": "",
+      "translations": [
+        "Aláhúzás"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use default font",
+      "plural": "",
+      "translations": [
+        "Az alapértelmezett betűtípus használata"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use system default theme",
+      "plural": "",
+      "translations": [
+        "A rendszer alapértelmezett témájának használata"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use system default theme for GTK",
+      "plural": "",
+      "translations": [
+        "A rendszer alapértelmezett témájának használata GTK-hoz"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use the system fixed width font",
+      "plural": "",
+      "translations": [
+        "A rendszer rögzített szélességű betűtípusának használata"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use workspace-specific tab sets (requires restart, only work on X11)",
+      "plural": "",
+      "translations": [
+        "Munkaterület-specifikus lapkészletek használata (újraindítás szükséges, csak X11-en működik)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Width:",
+      "plural": "",
+      "translations": [
+        "Szélesség:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Window height.",
+      "plural": "",
+      "translations": [
+        "Ablak magasság."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Window horizontal alignment.",
+      "plural": "",
+      "translations": [
+        "Ablak vízszintes igazítása."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Window vertical alignment.",
+      "plural": "",
+      "translations": [
+        "Ablak vízszintes igazítása."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Window width.",
+      "plural": "",
+      "translations": [
+        "Ablak szélesség."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "With process running",
+      "plural": "",
+      "translations": [
+        "Futó folyamat esetén"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Yandex",
+      "plural": "",
+      "translations": [
+        "Yandex"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Zoom in",
+      "plural": "",
+      "translations": [
+        "Nagyítás"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Zoom in (alternative)",
+      "plural": "",
+      "translations": [
+        "Nagyítás (másodlagos billentyűzetkombináció)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Zoom in.",
+      "plural": "",
+      "translations": [
+        "Nagyítás."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Zoom out",
+      "plural": "",
+      "translations": [
+        "Kicsinyítés"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Zoom out.",
+      "plural": "",
+      "translations": [
+        "Kicsinyítés."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Backspace key generates:",
+      "plural": "",
+      "translations": [
+        "_Backspace működése:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Delete key generates:",
+      "plural": "",
+      "translations": [
+        "_Delete működése:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Open new tab in current directory",
+      "plural": "",
+      "translations": [
+        "Új lap megnyitása a _jelenlegi könyvtárban"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Play system alert sound on bell",
+      "plural": "",
+      "translations": [
+        "_Rendszerjelzés lejátszása a csengetésnél"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Reset Compatibility Options to Defaults",
+      "plural": "",
+      "translations": [
+        "_Kompatibilitási beállítások visszaállítása"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Run command as a login shell",
+      "plural": "",
+      "translations": [
+        "_Parancs futtatása bejelentkező héjban (login shell)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "eighth tab.",
+      "plural": "",
+      "translations": [
+        "Nyolcadik lap."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "www.google.com/search?q=<search is inserted here>",
+      "plural": "",
+      "translations": [
+        "www.google.com/search?q=<keresendő szöveg>"
+      ]
+    }
+  ]
+}

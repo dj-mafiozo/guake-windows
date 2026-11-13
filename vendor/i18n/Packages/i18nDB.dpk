@@ -1,0 +1,53 @@
+{------------------------------------------------------------------------------}
+{                                                                              }
+{  i18n Package                                                                }
+{  Internationalization and Localization for Delphi                            }
+{                                                                              }
+{ Copyright(c) Kambiz Khojasteh                                              }
+{  https://github.com/khojasteh/i18n                                           }
+{                                                                              }
+{------------------------------------------------------------------------------}
+
+Package i18nDB;
+
+{$R *.res}
+{$R *.otares}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$DESCRIPTION 'i18n Internationalization Components - DB Controls'}
+{$RUNONLY}
+{$IMPLICITBUILD ON}
+
+Requires
+ rtl,
+ i18n,
+ dbrtl,
+ vcldb;
+
+Contains
+ i18nDBDateCtrls In 'i18nDBDateCtrls.pas',
+ i18nDBCtrls     In 'i18nDBCtrls.pas';
+
+End.

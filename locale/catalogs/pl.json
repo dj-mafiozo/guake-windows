@@ -1,0 +1,2334 @@
+{
+  "language": "pl",
+  "pluralRule": "nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;",
+  "entries": [
+    {
+      "context": "",
+      "singular": " and one tab open",
+      "plural": "",
+      "translations": [
+        " i jest jedna otwarta karta"
+      ]
+    },
+    {
+      "context": "",
+      "singular": " and {0} tabs open",
+      "plural": "",
+      "translations": [
+        " i więcej kart jest otwartych: {0}"
+      ]
+    },
+    {
+      "context": "",
+      "singular": " on {0} workspaces",
+      "plural": "",
+      "translations": [
+        " na obszarach roboczych: {0}"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "0",
+      "plural": "",
+      "translations": [
+        "0"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Effects</b>",
+      "plural": "",
+      "translations": [
+        "<b>Efekty</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>General</b>",
+      "plural": "",
+      "translations": [
+        "<b>Ogólne</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Geometry</b>",
+      "plural": "",
+      "translations": [
+        "<b>Geometria</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Main Window Options</b>",
+      "plural": "",
+      "translations": [
+        "<b>Opcje głównego okna</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Palette</b>",
+      "plural": "",
+      "translations": [
+        "<b>Paleta</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Placement</b>",
+      "plural": "",
+      "translations": [
+        "<b>Umieszczenie</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Scroll to Bottom</b>",
+      "plural": "",
+      "translations": [
+        "<b>Przewijanie na dół</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Scrollbar</b>",
+      "plural": "",
+      "translations": [
+        "<b>Pasek przewijania</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<small><i><b>Note:</b> These options may cause some applications to behave incorrectly.  They are only here to allow you to work around certain applications and operating systems that expect different terminal behavior.</i></small>",
+      "plural": "",
+      "translations": [
+        "<small><i><b>Uwaga:</b> te opcje mogą spowodować nieprawidłowe zachowanie niektórych programów. Istnieją one wyłączenie w celu obejścia problemów z określonymi programami i systemami operacyjnymi, które oczekują innego zachowania terminala.</i></small>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<small><i><b>Note:</b> These options may cause some applications to behave incorrectly. They are only here to allow you to work around certain applications and operating systems that expect different terminal behavior.</i></small>",
+      "plural": "",
+      "translations": [
+        "<small><i><b>Uwaga:</b> te opcje mogą spowodować nieprawidłowe zachowanie niektórych programów. Istnieją one wyłączenie w celu obejścia problemów z określonymi programami i systemami operacyjnymi, które oczekują innego zachowania terminala.</i></small>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<small><i>Use the following elements in the open editor command line:\n- <b>%(file_path)s</b>: path to the file that has been clicked\n- <b>%(line_number)s</b>: if your editor supports it, you can directly open the file to a given line number when found on the screen.\n\nFor example, for sublime, use <b>subl %(file_path)s:%(line_number)s</b>\n</i></small>",
+      "plural": "",
+      "translations": [
+        "<small><i>Można używać następujących elementów w poleceniu otwierania edytora:\n • <b>%(file_path)s</b>: ścieżka do pliku, który został kliknięty\n • <b>%(line_number)s</b>: jeśli edytor to obsługuje, można otwierać plik na podanym wierszu, jeśli znajduje się na ekranie.\n\nNa przykład dla edytora sublime należy użyć <b>subl %(file_path)s:%(line_number)s</b>\n</i></small>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<small><i>Use the following elements in the open editor command line:\n- <b>%(file_path)s</b>: path to the file that has been clicked\n- <b>%(line_number)s</b>: if your editor supports it, you can directly open the file to a given line number when found on the screen.\n\nFor example, use <b>subl %(file_path)s:%(line_number)s</b> for Sublime Text.\n</i></small>",
+      "plural": "",
+      "translations": [
+        "<small><i>Można używać następujących elementów w poleceniu otwierania edytora:\n• <b>%(file_path)s</b>: ścieżka do pliku, który został kliknięty\n• <b>%(line_number)s</b>: jeśli edytor to obsługuje, można otwierać plik na podanym wierszu, jeśli znajduje się na ekranie.\n\nNa przykład dla edytora Sublime Text należy użyć <b>subl %(file_path)s:%(line_number)s</b>.\n</i></small>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<small>In this dialog you can attach your own command or script to various Guake events</small>",
+      "plural": "",
+      "translations": [
+        "<small>W tym oknie można dołączyć własne polecenie lub skrypt do różnych zdarzeń programu Guake</small>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<small>In this dialog you can attach your own command or script to various guake events</small>",
+      "plural": "",
+      "translations": [
+        "<small>W tym oknie można dołączyć własne polecenie lub skrypt do różnych zdarzeń programu Guake</small>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<span size=\"18000\"><b>Guake properties</b></span>",
+      "plural": "",
+      "translations": [
+        "<span size=\"18000\"><b>Właściwości programu Guake</b></span>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<user shell>",
+      "plural": "",
+      "translations": [
+        "<powłoka użytkownika>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "A problem happened when binding <b>%s</b> key.\nPlease use Guake Preferences dialog to choose another key",
+      "plural": "",
+      "translations": [
+        "Wystąpił problem podczas dowiązywania klawisza <b>%s</b>.\nProszę użyć okna preferencji programu Guake, aby wybrać inny klawisz"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "ASCII DEL",
+      "plural": "",
+      "translations": [
+        "ASCII DEL"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Abbreviated Path",
+      "plural": "",
+      "translations": [
+        "Skrócona ścieżka"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "About Guake",
+      "plural": "",
+      "translations": [
+        "O programie"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Action",
+      "plural": "",
+      "translations": [
+        "Działanie"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Add a new tab (with current directory set to NEW_TAB)",
+      "plural": "",
+      "translations": [
+        "Dodaje nową kartę (z bieżącym katalogiem ustawionym na NEW_TAB)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "All files",
+      "plural": "",
+      "translations": [
+        "Wszystkie pliki"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Allow bold font",
+      "plural": "",
+      "translations": [
+        "Zezwolenie na pogrubioną czcionkę"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Always",
+      "plural": "",
+      "translations": [
+        "Zawsze"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Always prompt on quit",
+      "plural": "",
+      "translations": [
+        "Potwierdzenie podczas kończenia działania"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Appear on display:",
+      "plural": "",
+      "translations": [
+        "Wyświetlanie na ekranie:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Appear on mouse display",
+      "plural": "",
+      "translations": [
+        "Wyświetlanie na ekranie z kursorem"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Appearance",
+      "plural": "",
+      "translations": [
+        "Wygląd"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Automatically save session when the tabs has been modified",
+      "plural": "",
+      "translations": [
+        "Automatyczne zapisywanie sesji po modyfikacji kart"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Background image: ",
+      "plural": "",
+      "translations": [
+        "Obraz tła: "
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Backward",
+      "plural": "",
+      "translations": [
+        "Wstecz"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Blink off",
+      "plural": "",
+      "translations": [
+        "Bez migania"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Blink on",
+      "plural": "",
+      "translations": [
+        "Miganie"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Block",
+      "plural": "",
+      "translations": [
+        "Blokowy"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Bold text is also bright",
+      "plural": "",
+      "translations": [
+        "Pogrubiony tekst jest także jasny"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Bold text is also bright (VTE >=0.52)",
+      "plural": "",
+      "translations": [
+        "Pogrubiony tekst jest także jasny (biblioteka VTE w wersji co najmniej 0.52)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Bottom align window instead of top align",
+      "plural": "",
+      "translations": [
+        "Okno na dole zamiast na górze"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Built-in schemes:",
+      "plural": "",
+      "translations": [
+        "Wbudowane schematy:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Center",
+      "plural": "",
+      "translations": [
+        "Na środku"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Change Guake palette scheme",
+      "plural": "",
+      "translations": [
+        "Zmienia schemat palety Guake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Choose some font",
+      "plural": "",
+      "translations": [
+        "Wybór czcionki"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Clipboard",
+      "plural": "",
+      "translations": [
+        "Schowek"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Close",
+      "plural": "",
+      "translations": [
+        "Zamknij"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Close Tab",
+      "plural": "",
+      "translations": [
+        "Zamknij kartę"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Close tab",
+      "plural": "",
+      "translations": [
+        "Zamknij kartę"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Close terminal",
+      "plural": "",
+      "translations": [
+        "Zamknij terminal"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Color palette:",
+      "plural": "",
+      "translations": [
+        "Paleta kolorów:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Compatibility",
+      "plural": "",
+      "translations": [
+        "Zgodność"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Configure your Guake sessions",
+      "plural": "",
+      "translations": [
+        "Konfiguracja sesji programu Guake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Control-H",
+      "plural": "",
+      "translations": [
+        "Ctrl-H"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy",
+      "plural": "",
+      "translations": [
+        "Skopiuj"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy URL",
+      "plural": "",
+      "translations": [
+        "Skopiuj adres URL"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy Url",
+      "plural": "",
+      "translations": [
+        "Skopiuj adres URL"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy on select",
+      "plural": "",
+      "translations": [
+        "Kopiowanie podczas zaznaczania"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy text to clipboard",
+      "plural": "",
+      "translations": [
+        "Skopiuj tekst do schowka"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Current search direction: Backward",
+      "plural": "",
+      "translations": [
+        "Obecny kierunek wyszukiwania: wstecz"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Cursor blink mode:",
+      "plural": "",
+      "translations": [
+        "Tryb migania kursora:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Cursor shape:",
+      "plural": "",
+      "translations": [
+        "Kształt kursora:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Custom",
+      "plural": "",
+      "translations": [
+        "Inne"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Custom Commands",
+      "plural": "",
+      "translations": [
+        "Inne polecenia"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Custom command file path:",
+      "plural": "",
+      "translations": [
+        "Inna ścieżka do pliku polecenia:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Customize behavior and appearance of Guake!",
+      "plural": "",
+      "translations": [
+        "Dostosowanie zachowania i wyglądu programu Guake!"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Decrease height",
+      "plural": "",
+      "translations": [
+        "Zmniejsz wysokość"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Decrease transparency",
+      "plural": "",
+      "translations": [
+        "Zmniejsz przezroczystość"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Default interpreter:",
+      "plural": "",
+      "translations": [
+        "Domyślna powłoka:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Demo:",
+      "plural": "",
+      "translations": [
+        "Demo:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Displacement in pixels",
+      "plural": "",
+      "translations": [
+        "Przesunięcie w pikselach"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Display as tab names:",
+      "plural": "",
+      "translations": [
+        "Nazwy kart:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Do not execute the start up script",
+      "plural": "",
+      "translations": [
+        "Bez wykonywania skryptu startowego"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Do you really want to quit Guake?",
+      "plural": "",
+      "translations": [
+        "Na pewno zakończyć program Guake?"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Do you want to close the tab?",
+      "plural": "",
+      "translations": [
+        "Zamknąć kartę?"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Do you want to reset custom colors for this tab?",
+      "plural": "",
+      "translations": [
+        "Przywrócić niestandardowe kolory dla tej karty?"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Editor command line:",
+      "plural": "",
+      "translations": [
+        "Polecenie edytora:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Enable Quick Open when Ctrl+clicking on a filename in the terminal",
+      "plural": "",
+      "translations": [
+        "Szybkie otwieranie po kliknięciu na nazwie pliku w terminalu przytrzymując klawisz Ctrl"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Enable notification when restore tabs",
+      "plural": "",
+      "translations": [
+        "Powiadomienie po przywróceniu kart"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Enable popup notifications on startup",
+      "plural": "",
+      "translations": [
+        "Wyskakujące powiadomienia podczas uruchamiania"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Enable verbose logging",
+      "plural": "",
+      "translations": [
+        "Włącza więcej komunikatów dziennika"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Error setting keybinding.",
+      "plural": "",
+      "translations": [
+        "Błąd podczas ustawiania dowiązania klawiszy."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Escape sequence",
+      "plural": "",
+      "translations": [
+        "Sekwencja Escape"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Execute an arbitrary command in the selected tab.",
+      "plural": "",
+      "translations": [
+        "Wykonuje podane polecenie w wybranej karcie."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Extra features",
+      "plural": "",
+      "translations": [
+        "Dodatkowe funkcje"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Find",
+      "plural": "",
+      "translations": [
+        "Znajdź"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Find...",
+      "plural": "",
+      "translations": [
+        "Znajdź…"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Focus terminal above",
+      "plural": "",
+      "translations": [
+        "Aktywacja terminala na górze"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Focus terminal below",
+      "plural": "",
+      "translations": [
+        "Aktywacja terminala na dole"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Focus terminal on the left",
+      "plural": "",
+      "translations": [
+        "Aktywacja terminala po lewej"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Focus terminal on the right",
+      "plural": "",
+      "translations": [
+        "Aktywacja terminala po prawej"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Follow GTK+ setting",
+      "plural": "",
+      "translations": [
+        "Ustawienie biblioteki GTK+"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Font:",
+      "plural": "",
+      "translations": [
+        "Czcionka:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Forward",
+      "plural": "",
+      "translations": [
+        "Dalej"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Full Path",
+      "plural": "",
+      "translations": [
+        "Pełna ścieżka"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "GTK Theme:",
+      "plural": "",
+      "translations": [
+        "Motyw biblioteki GTK:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "General",
+      "plural": "",
+      "translations": [
+        "Ogólne"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to eighth tab",
+      "plural": "",
+      "translations": [
+        "Przejdź do ósmej karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to fifth tab",
+      "plural": "",
+      "translations": [
+        "Przejdź do piątej karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to first tab",
+      "plural": "",
+      "translations": [
+        "Przejdź do pierwszej karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to fourth tab",
+      "plural": "",
+      "translations": [
+        "Przejdź do czwartej karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to last tab",
+      "plural": "",
+      "translations": [
+        "Przejdź do ostatniej karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to next tab",
+      "plural": "",
+      "translations": [
+        "Przejdź do następnej karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to ninth tab",
+      "plural": "",
+      "translations": [
+        "Przejdź do dziewiątej karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to previous tab",
+      "plural": "",
+      "translations": [
+        "Przejdź do poprzedniej karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to second tab",
+      "plural": "",
+      "translations": [
+        "Przejdź do drugiej karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to seventh tab",
+      "plural": "",
+      "translations": [
+        "Przejdź do siódmej karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to sixth tab",
+      "plural": "",
+      "translations": [
+        "Przejdź do szóstej karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to tenth tab",
+      "plural": "",
+      "translations": [
+        "Przejdź do dziesiątej karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to third tab",
+      "plural": "",
+      "translations": [
+        "Przejdź do trzeciej karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Gtk Theme:",
+      "plural": "",
+      "translations": [
+        "Motyw biblioteki GTK+:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake Preferences",
+      "plural": "",
+      "translations": [
+        "Preferencje programu Guake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake Terminal",
+      "plural": "",
+      "translations": [
+        "Terminal Guake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake is an easy to access\nterminal based on FPS games terminal",
+      "plural": "",
+      "translations": [
+        "Guake jest łatwo dostępnym\nterminalem opartym na grach FPS"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake is now running,\npress <b>{!s}</b> to use it.",
+      "plural": "",
+      "translations": [
+        "Program Guake jest teraz uruchomiony,\nnaciśnięcie <b>{!s}</b> go aktywuje."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake!",
+      "plural": "",
+      "translations": [
+        "Guake!"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Height:",
+      "plural": "",
+      "translations": [
+        "Wysokość:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Hide on lose focus",
+      "plural": "",
+      "translations": [
+        "Ukrycie po utracie aktywności"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Hide tab bar if there is only one tab",
+      "plural": "",
+      "translations": [
+        "Ukrywanie paska kart, kiedy jest tylko jedna karta"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Hide tabbar when fullscreen",
+      "plural": "",
+      "translations": [
+        "Ukrywanie paska kart w trybie pełnoekranowym"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Hides Guake main window",
+      "plural": "",
+      "translations": [
+        "Ukrywa główne okno programu Guake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Hooks",
+      "plural": "",
+      "translations": [
+        "Zaczepy"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Horizontal Alignment:",
+      "plural": "",
+      "translations": [
+        "Wyrównanie poziome:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "I-Beam",
+      "plural": "",
+      "translations": [
+        "Linia pionowa"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Increase height",
+      "plural": "",
+      "translations": [
+        "Zwiększ wysokość"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Increase transparency",
+      "plural": "",
+      "translations": [
+        "Zwiększ przezroczystość"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Infinite scrolling",
+      "plural": "",
+      "translations": [
+        "Nieograniczone przewijanie"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "JSON files",
+      "plural": "",
+      "translations": [
+        "Pliki JSON"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Keyboard shortcuts",
+      "plural": "",
+      "translations": [
+        "Skróty klawiszowe"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Last Segment",
+      "plural": "",
+      "translations": [
+        "Ostatni segment"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Left",
+      "plural": "",
+      "translations": [
+        "Po lewej"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Main Window",
+      "plural": "",
+      "translations": [
+        "Główne okno"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Match case",
+      "plural": "",
+      "translations": [
+        "Rozróżnianie małych i wielkich liter"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Max tab name length:",
+      "plural": "",
+      "translations": [
+        "Maksymalna długość nazwy karty:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move current tab left",
+      "plural": "",
+      "translations": [
+        "Przenieś bieżącą kartę w lewo"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move current tab right",
+      "plural": "",
+      "translations": [
+        "Przenieś bieżącą kartę w prawo"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move the terminal split handle down",
+      "plural": "",
+      "translations": [
+        "Przeniesienie uchwytu podziału terminala w dół"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move the terminal split handle left",
+      "plural": "",
+      "translations": [
+        "Przeniesienie uchwytu podziału terminala w lewo"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move the terminal split handle right",
+      "plural": "",
+      "translations": [
+        "Przeniesienie uchwytu podziału terminala w prawo"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move the terminal split handle up",
+      "plural": "",
+      "translations": [
+        "Przeniesienie uchwytu podziału terminala w górę"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Navigation",
+      "plural": "",
+      "translations": [
+        "Nawigacja"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Never",
+      "plural": "",
+      "translations": [
+        "Nigdy"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "New Tab",
+      "plural": "",
+      "translations": [
+        "Nowa karta"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "New tab",
+      "plural": "",
+      "translations": [
+        "Nowa karta"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "New tab in home directory",
+      "plural": "",
+      "translations": [
+        "Nowa karta w katalogu domowym"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "New tabs appear after the current tab",
+      "plural": "",
+      "translations": [
+        "Otwieranie nowych kart za bieżącą kartą"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "On key stroke",
+      "plural": "",
+      "translations": [
+        "Po wciśnięciu klawisza"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "On output",
+      "plural": "",
+      "translations": [
+        "Po wyjściu"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "On show:",
+      "plural": "",
+      "translations": [
+        "Podczas wyświetlania:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "On start:",
+      "plural": "",
+      "translations": [
+        "Podczas uruchamiania:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Open Link...",
+      "plural": "",
+      "translations": [
+        "Otwórz odnośnik…"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Open Link: {!s}",
+      "plural": "",
+      "translations": [
+        "Otwieranie odnośnika: {!s}"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Open Link: {!s}...",
+      "plural": "",
+      "translations": [
+        "Otwieranie odnośnika: {!s}…"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Open link...",
+      "plural": "",
+      "translations": [
+        "Otwórz odnośnik…"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Paste",
+      "plural": "",
+      "translations": [
+        "Wklej"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Paste text from clipboard",
+      "plural": "",
+      "translations": [
+        "Wklej tekst ze schowka"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Place tabs on top",
+      "plural": "",
+      "translations": [
+        "Karty na górze"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Please select a JSON file",
+      "plural": "",
+      "translations": [
+        "Proszę wybrać plik JSON"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Please select a json file",
+      "plural": "",
+      "translations": [
+        "Proszę wybrać plik JSON"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Prefer dark theme",
+      "plural": "",
+      "translations": [
+        "Ciemny motyw"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Prompt on close tab:",
+      "plural": "",
+      "translations": [
+        "Potwierdzenie podczas zamykania karty:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Put Guake in fullscreen mode",
+      "plural": "",
+      "translations": [
+        "Umieszcza program Guake w trybie pełnoekranowym"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Put Guake out from fullscreen mode",
+      "plural": "",
+      "translations": [
+        "Wyłącza tryb pełnoekranowy"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quick Open",
+      "plural": "",
+      "translations": [
+        "Szybkie otwieranie"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quick Open...",
+      "plural": "",
+      "translations": [
+        "Szybko otwórz…"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quick Open: {!s}",
+      "plural": "",
+      "translations": [
+        "Szybkie otwieranie: {!s}"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quick Open: {!s}...",
+      "plural": "",
+      "translations": [
+        "Szybkie otwieranie: {!s}…"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quick open in current terminal",
+      "plural": "",
+      "translations": [
+        "Szybkie otwieranie w bieżącym terminalu"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quick open is a feature allowing you to open a file directly into your favorite text editor by clicking on its filename when it appears in your terminal. See the list of currently supported text patterns used to extract filename below.",
+      "plural": "",
+      "translations": [
+        "Szybkie otwieranie jest funkcją umożliwiającą otwieranie plików bezpośrednio w wybranym edytorze tekstu przez kliknięcie nazwy pliku w terminalu. Poniżej znajduje się lista obecnie obsługiwanych wzorców używanych do wyodrębniania nazw plików."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quit",
+      "plural": "",
+      "translations": [
+        "Zakończ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Refocus if open",
+      "plural": "",
+      "translations": [
+        "Ponowna aktywacja, jeśli jest otwarty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename",
+      "plural": "",
+      "translations": [
+        "Zmień nazwę"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename Tab",
+      "plural": "",
+      "translations": [
+        "Zmień nazwę karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename current tab",
+      "plural": "",
+      "translations": [
+        "Zmień nazwę bieżącej karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename tab",
+      "plural": "",
+      "translations": [
+        "Zmiana nazwy karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename the current tab. Reset to default if TITLE is a single dash \"-\".",
+      "plural": "",
+      "translations": [
+        "Zmienia nazwę bieżącej karty. Przywraca domyślą, jeśli TITLE jest pojedynczym myślnikiem „-”."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename the specified tab by --tab-index. Reset to default if TITLE is a single dash \"-\".",
+      "plural": "",
+      "translations": [
+        "Zmienia nazwę karty podanej przez parametr --tab-index. Przywraca domyślą, jeśli TITLE jest pojedynczym myślnikiem „-”."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Reset custom colors",
+      "plural": "",
+      "translations": [
+        "Przywraca niestandardowe kolory"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Reset terminal",
+      "plural": "",
+      "translations": [
+        "Przywróć terminal"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Restore Guake preferences from this file",
+      "plural": "",
+      "translations": [
+        "Przywracanie preferencji programu Guake z tego pliku"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Restore Tabs",
+      "plural": "",
+      "translations": [
+        "Przywróć karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Restore previous session (tabs)",
+      "plural": "",
+      "translations": [
+        "Przywracanie poprzedniej sesji (kart)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Return the selected tab index.",
+      "plural": "",
+      "translations": [
+        "Wyświetla indeks wybranej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Return the selected tab label.",
+      "plural": "",
+      "translations": [
+        "Wyświetla etykietę wybranej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Return the selected terminal index.",
+      "plural": "",
+      "translations": [
+        "Wyświetla indeks wybranego terminala."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Right",
+      "plural": "",
+      "translations": [
+        "Po prawej"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Save Guake preferences to this filename",
+      "plural": "",
+      "translations": [
+        "Zapisywanie preferencji programu Guake do tego pliku"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Save Tabs",
+      "plural": "",
+      "translations": [
+        "Zapisz karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Save content...",
+      "plural": "",
+      "translations": [
+        "Zapisz zawartość…"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Save to File...",
+      "plural": "",
+      "translations": [
+        "Zapisz do pliku…"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Save to...",
+      "plural": "",
+      "translations": [
+        "Zapisanie do…"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Says to Guake go away =(",
+      "plural": "",
+      "translations": [
+        "Mówi programowi Guake, aby sobie poszedł =("
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Scale",
+      "plural": "",
+      "translations": [
+        "Skalowanie"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Scrollback lines:",
+      "plural": "",
+      "translations": [
+        "Przewijanie:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Scrolling",
+      "plural": "",
+      "translations": [
+        "Przewijanie"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search forward",
+      "plural": "",
+      "translations": [
+        "Wyszukiwanie naprzód"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search on Web",
+      "plural": "",
+      "translations": [
+        "Znajdź w Internecie"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search on Web (no selection)",
+      "plural": "",
+      "translations": [
+        "Wyszukiwanie w Internecie (bez zaznaczenia)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search on Web: '%s'",
+      "plural": "",
+      "translations": [
+        "Wyszukiwanie w Internecie: „%s”"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search select text on web",
+      "plural": "",
+      "translations": [
+        "Znajdź zaznaczony tekst w Internecie"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search selected text on web",
+      "plural": "",
+      "translations": [
+        "Znajdź zaznaczony tekst w Internecie"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search terminal",
+      "plural": "",
+      "translations": [
+        "Wyszukaj w terminalu"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Select a specific terminal in a split tab. Only useful with split terminals (TERMINAL_INDEX is the index of the tab)",
+      "plural": "",
+      "translations": [
+        "Wybiera podany terminal w podzielonej karcie. Przydatne tylko z podzielonymi terminalami (TERMINAL_INDEX jest indeksem karty)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Select a tab (SELECT_TAB is the index of the tab)",
+      "plural": "",
+      "translations": [
+        "Wybiera kartę (SELECT_TAB jest indeksem kart)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Set colors from settings.",
+      "plural": "",
+      "translations": [
+        "Ustawia kolory z ustawień."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Set colors of the current terminal from settings.",
+      "plural": "",
+      "translations": [
+        "Ustawia kolory bieżącego terminala z ustawień."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Set the hexadecimal (#rrggbb) background color of the current terminal.",
+      "plural": "",
+      "translations": [
+        "Ustawia szesnastkowy (#rrggbb) kolor tła bieżącego terminala."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Set the hexadecimal (#rrggbb) background color of the selected tab.",
+      "plural": "",
+      "translations": [
+        "Ustawia szesnastkowy (#rrggbb) kolor tła wybranej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Set the hexadecimal (#rrggbb) foreground color of the current terminal.",
+      "plural": "",
+      "translations": [
+        "Ustawia szesnastkowy (#rrggbb) kolor tekstu bieżącego terminala."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Set the hexadecimal (#rrggbb) foreground color of the selected tab.",
+      "plural": "",
+      "translations": [
+        "Ustawia szesnastkowy (#rrggbb) kolor tekstu wybranej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Set window title to current tab name",
+      "plural": "",
+      "translations": [
+        "Ustawianie tytułu okna na nazwę obecnej karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shell",
+      "plural": "",
+      "translations": [
+        "Powłoka"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shortcut",
+      "plural": "",
+      "translations": [
+        "Skrót"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show",
+      "plural": "",
+      "translations": [
+        "Wyświetl"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show Guake version number and exit",
+      "plural": "",
+      "translations": [
+        "Wyświetla wersję programu Guake i kończy działanie"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show and focus Guake window",
+      "plural": "",
+      "translations": [
+        "Wyświetl i aktywuj okno Guake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show close buttons for tabs",
+      "plural": "",
+      "translations": [
+        "Przyciski zamknięcia kart"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show scrollbar",
+      "plural": "",
+      "translations": [
+        "Pasek przewijania"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show support infomation",
+      "plural": "",
+      "translations": [
+        "Wyświetla informacje o pomocy"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show support infomations",
+      "plural": "",
+      "translations": [
+        "Wyświetla informacje wsparcia"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show support information",
+      "plural": "",
+      "translations": [
+        "Wyświetla informacje wsparcia"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show tab bar",
+      "plural": "",
+      "translations": [
+        "Pasek kart"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show tray icon",
+      "plural": "",
+      "translations": [
+        "Ikona obszaru powiadamiania"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shows Guake main window",
+      "plural": "",
+      "translations": [
+        "Wyświetla główne okno programu Guake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shows Guake preference window",
+      "plural": "",
+      "translations": [
+        "Wyświetla okno preferencji programu Guake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shows Guake's about info",
+      "plural": "",
+      "translations": [
+        "Wyświetla informacje o programie Guake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Specify the tab to rename. Default is 0. Can be used to select tab by UUID.",
+      "plural": "",
+      "translations": [
+        "Podaje kartę do zmiany nazwy. Domyślnie 0. Można używać do wybrania karty według UUID."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split  ",
+      "plural": "",
+      "translations": [
+        "Podziel  "
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split management",
+      "plural": "",
+      "translations": [
+        "Zarządzanie podziałem"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split tab horizontal",
+      "plural": "",
+      "translations": [
+        "Poziomy podział karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split tab vertical",
+      "plural": "",
+      "translations": [
+        "Pionowy podział karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split the selected tab horizontally.",
+      "plural": "",
+      "translations": [
+        "Dzieli wybraną kartę w poziomie."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split the selected tab vertically.",
+      "plural": "",
+      "translations": [
+        "Dzieli wybraną kartę w pionie."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split ―",
+      "plural": "",
+      "translations": [
+        "Podziel ―"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split ｜",
+      "plural": "",
+      "translations": [
+        "Podziel ｜"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Start Guake at login",
+      "plural": "",
+      "translations": [
+        "Uruchamianie programu Guake podczas logowania"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Start fullscreen",
+      "plural": "",
+      "translations": [
+        "Uruchamianie w trybie pełnoekranowym"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Startup & Tabs (Experiment)",
+      "plural": "",
+      "translations": [
+        "Uruchamianie i karty (eksperymentalne)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Stay on top",
+      "plural": "",
+      "translations": [
+        "Zawsze na wierzchu"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Stretch",
+      "plural": "",
+      "translations": [
+        "Rozciąganie"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Tab management",
+      "plural": "",
+      "translations": [
+        "Zarządzanie kartami"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Tabs session restore abort.\nYour session file ({session_filename}) missing schema_version as key",
+      "plural": "",
+      "translations": [
+        "Przerwano przywracanie sesji kart.\nPlik sesji ({session_filename}) nie ma schema_version jako klucz"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Tabs session restore abort.\nYour session file schema version is higher than current version ({session_file_schema_version} > {current_schema_version}).",
+      "plural": "",
+      "translations": [
+        "Przerwano przywracanie sesji kart.\nWersja schematu pliku sesji jest wyższa od obecnej wersji ({session_file_schema_version} > {current_schema_version})."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Terminal",
+      "plural": "",
+      "translations": [
+        "Terminal"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Terminal;Utility;",
+      "plural": "",
+      "translations": [
+        "Terminal;Utility;"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Text and Logs",
+      "plural": "",
+      "translations": [
+        "Pliki tekstowe i dzienniki"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "The shortcut \"%s\" cannot be used because it will become impossible to type using this key.\n\nPlease try with a key such as Control, Alt or Shift at the same time.\n",
+      "plural": "",
+      "translations": [
+        "Skrót „%s” nie może być używany, ponieważ niemożliwe będzie pisanie za pomocą tego klawisza.\n\nProszę spróbować z klawiszem takim jak Ctrl, Alt lub Shift w tym samym czasie.\n"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "The shortcut \"%s\" is already in use.",
+      "plural": "",
+      "translations": [
+        "Skrót „%s” jest już używany."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "There are no processes running",
+      "plural": "",
+      "translations": [
+        "Żaden proces nie jest uruchomiony"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "There are {0} processes still running",
+      "plural": "",
+      "translations": [
+        "Nadal uruchomione procesy: {0}"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "There is a process still running",
+      "plural": "",
+      "translations": [
+        "Jeden proces jest nadal uruchomiony"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "This might not work on all shells, make sure that your shell supports the --login option",
+      "plural": "",
+      "translations": [
+        "To może nie działać we wszystkich powłokach, proszę się upewnić, że używana powłoka obsługuje opcję --login"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Tile",
+      "plural": "",
+      "translations": [
+        "Kafelki"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "To change a shortcut simply click on its name.\nTo disable a shortcut, press the \"Backspace\" key.",
+      "plural": "",
+      "translations": [
+        "Klikając nazwę skrótu można go zmienić.\nNaciśnięcie klawisza „Backspace” wyłącza skrót."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle Fullscreen",
+      "plural": "",
+      "translations": [
+        "Przełącz pełny ekran"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle Guake visibility",
+      "plural": "",
+      "translations": [
+        "Przełącz widoczność terminala Guake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle Hide on Lose Focus",
+      "plural": "",
+      "translations": [
+        "Przełącz ukrycie po utracie aktywności"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle transparency",
+      "plural": "",
+      "translations": [
+        "Przełącz przezroczystość"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggles the visibility of the terminal window",
+      "plural": "",
+      "translations": [
+        "Przełącza widoczność okna terminala"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Transparency:",
+      "plural": "",
+      "translations": [
+        "Przezroczystość:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Underline",
+      "plural": "",
+      "translations": [
+        "Podkreślenie"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use VTE titles for tab names",
+      "plural": "",
+      "translations": [
+        "Tytuły VTE dla nazw kart"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use system default theme",
+      "plural": "",
+      "translations": [
+        "Domyślny motyw systemu"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use the command line in a Quake-like terminal",
+      "plural": "",
+      "translations": [
+        "Używanie wiersza poleceń w terminalu w stylu gry Quake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use the system fixed width font",
+      "plural": "",
+      "translations": [
+        "Systemowa czcionka o stałej szerokości"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use workspace-specific tab sets (requires restart)",
+      "plural": "",
+      "translations": [
+        "Używa zestawów kart dla konkretnych obszarów roboczych (wymaga ponownego uruchomienia)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use workspace-specific tab sets (requires restart, only work on X11)",
+      "plural": "",
+      "translations": [
+        "Używa zestawów kart dla konkretnych obszarów roboczych (wymaga ponownego uruchomienia, działa tylko w systemie X11)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Width:",
+      "plural": "",
+      "translations": [
+        "Szerokość:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "With process running",
+      "plural": "",
+      "translations": [
+        "Kiedy jest uruchomiony proces"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "You are going to restore *all* the tabs!\nwhich means all your terminals & pages will be replaced.\n\nDo you want to continue?",
+      "plural": "",
+      "translations": [
+        "Zostaną przywrócone *wszystkie* karty, co oznacza,\nże wszystkie obecne terminale i strony zostaną zastąpione.\n\nKontynuować?"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Your session.json file is broken, backup to {session_filename}.bak",
+      "plural": "",
+      "translations": [
+        "Plik session.json jest uszkodzony, kopia zapasowa w {session_filename}.bak"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Your session.json schema is broken, backup to {0}.bak,and error message has been saved to {0}.log.err",
+      "plural": "",
+      "translations": [
+        "Schemat session.json jest uszkodzony, kopia zapasowa w {0}.bak, a komunikat o błędzie został zapisany w {0}.log.err"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Your tabs has been restored!",
+      "plural": "",
+      "translations": [
+        "Przywrócono karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Your {session_filename} file is broken, backup to {session_filename}.bak",
+      "plural": "",
+      "translations": [
+        "Plik {session_filename} jest uszkodzony, kopia zapasowa w {session_filename}.bak"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Your {session_filename} schema is broken, backup to {0}.bak,and error message has been saved to {session_filename}.log.err",
+      "plural": "",
+      "translations": [
+        "Schemat {session_filename} jest uszkodzony, kopia zapasowa w {0}.bak, a komunikat o błędzie został zapisany w {session_filename}.log.err"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Your {session_filename} schema is broken, backup to {session_filename}.bak, and error message has been saved to {session_filename}.log.err.",
+      "plural": "",
+      "translations": [
+        "Schemat {session_filename} jest uszkodzony, kopia zapasowa w {session_filename}.bak, a komunikat o błędzie został zapisany w {session_filename}.log.err."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Your {session_filename} schema is broken, backup to {session_filename}.bak,and error message has been saved to {session_filename}.log.err.",
+      "plural": "",
+      "translations": [
+        "Schemat {session_filename} jest uszkodzony, kopia zapasowa w {session_filename}.bak, a komunikat o błędzie został zapisany w {session_filename}.log.err."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Zoom in",
+      "plural": "",
+      "translations": [
+        "Powiększ"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Zoom in (alternative)",
+      "plural": "",
+      "translations": [
+        "Powiększ (alternatywne)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Zoom out",
+      "plural": "",
+      "translations": [
+        "Pomniejsz"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Backspace key generates:",
+      "plural": "",
+      "translations": [
+        "Klawisz _Backspace generuje:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Delete key generates:",
+      "plural": "",
+      "translations": [
+        "Klawisz _Delete generuje:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Flash terminal on bell",
+      "plural": "",
+      "translations": [
+        "_Miganie terminalem jako dzwonek"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Open new tab in current directory",
+      "plural": "",
+      "translations": [
+        "_Otwieranie nowych kart w bieżącym katalogu"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Play system alert sound on bell",
+      "plural": "",
+      "translations": [
+        "Systemowy _dźwięk alarmu jako dzwonek"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Reset Compatibility Options to Defaults",
+      "plural": "",
+      "translations": [
+        "P_rzywróć domyślne opcje zgodności"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Run command as a login shell",
+      "plural": "",
+      "translations": [
+        "U_ruchamianie polecenia jako powłokę logowania"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "guake",
+      "plural": "",
+      "translations": [
+        "guake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "guake-indicator",
+      "plural": "",
+      "translations": [
+        "guake-indicator"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "guake-tray",
+      "plural": "",
+      "translations": [
+        "guake-tray"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,2694 @@
+{
+  "language": "fi",
+  "pluralRule": "nplurals=2; plural=(n != 1);",
+  "entries": [
+    {
+      "context": "",
+      "singular": " and one tab open",
+      "plural": "",
+      "translations": [
+        " ja yksi välilehti auki"
+      ]
+    },
+    {
+      "context": "",
+      "singular": " and {0} tabs open",
+      "plural": "",
+      "translations": [
+        " ja {0} välilehteä auki"
+      ]
+    },
+    {
+      "context": "",
+      "singular": " on {0} workspaces",
+      "plural": "",
+      "translations": [
+        " {0} työtilassa"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "0",
+      "plural": "",
+      "translations": [
+        "0"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "0 means no size limit",
+      "plural": "",
+      "translations": [
+        "0 tarkoittaa, että kokorajoitusta ei ole"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Effects</b>",
+      "plural": "",
+      "translations": [
+        "<b>Tehosteet</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>General</b>",
+      "plural": "",
+      "translations": [
+        "<b>Yleinen</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Geometry</b>",
+      "plural": "",
+      "translations": [
+        "<b>Geometria</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Keyboard compatibility</b>",
+      "plural": "",
+      "translations": [
+        "<b>Näppäimistöyhteensopivuus</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Main Window Height</b>",
+      "plural": "",
+      "translations": [
+        "<b>Pääikkunan korkeus</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Main Window Horizontal Alignment</b>",
+      "plural": "",
+      "translations": [
+        "<b>Pääikkunan vaakasuora suuntaus</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Main Window Options</b>",
+      "plural": "",
+      "translations": [
+        "<b>Pääikkunan asetukset</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Main Window Width</b>",
+      "plural": "",
+      "translations": [
+        "<b>Pääikkunan leveys</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Main Window</b>",
+      "plural": "",
+      "translations": [
+        "<b>Pääikkuna</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Palette</b>",
+      "plural": "",
+      "translations": [
+        "<b>Paletti</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Placement</b>",
+      "plural": "",
+      "translations": [
+        "<b>Sijoitus</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Quick Open</b>",
+      "plural": "",
+      "translations": [
+        "<b>Pika-avaus</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Scroll to Bottom</b>",
+      "plural": "",
+      "translations": [
+        "<b>Vieritä Loppuun</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Scroll</b>",
+      "plural": "",
+      "translations": [
+        "<b>Vieritä</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Scrollbar</b>",
+      "plural": "",
+      "translations": [
+        "<b>Rullauspalkki</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<b>Shell</b>",
+      "plural": "",
+      "translations": [
+        "<b>Komentotulkki</b>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<i><b>WARNING</b>: your system seems to have PCRE2 disabled for VTE, preventing application such as Guake to register \"matchers\" using regular expressions. Please contact your distribution to request a new version of VTE with PCRE2 enabled ! To use Quick Open, you <b>must select the text</b> before using Ctrl+click</i>.",
+      "plural": "",
+      "translations": [
+        "<i><b>VAROITUS</b>: järjestelmässäsi näyttää olevan PCRE2 pois käytöstä VTE:n osalta, mikä estää Guaken kaltaisia sovelluksia rekisteröimästä \"matchereita\" säännöllisten lausekkeiden avulla. Ota yhteyttä jakeluusi pyytääksesi uutta VTE-versiota, jossa PCRE2 on käytössä ! Jotta voit käyttää Quick Openia, sinun <b>pitää valita teksti</b> ennen Ctrl+napsautusta</i>."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<small><i><b>Note:</b> These options may cause some applications to behave incorrectly.  They are only here to allow you to work around certain applications and operating systems that expect different terminal behavior.</i></small>",
+      "plural": "",
+      "translations": [
+        "<small><i><b>Huomautus:</b> Nämä vaihtoehdot saattavat aiheuttaa joidenkin sovellusten virheellisen käyttäytymisen.  Ne ovat tässä vain siksi, että voit kiertää tiettyjä sovelluksia ja käyttöjärjestelmiä, jotka odottavat erilaista päätteen käyttäytymistä.</i></small>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<small><i><b>Note:</b> These options may cause some applications to behave incorrectly. They are only here to allow you to work around certain applications and operating systems that expect different terminal behavior.</i></small>",
+      "plural": "",
+      "translations": [
+        "<small><i><b>Huomautus:</b> Nämä vaihtoehdot saattavat aiheuttaa joidenkin sovellusten virheellisen käyttäytymisen.  Ne ovat tässä vain siksi, että voit kiertää tiettyjä sovelluksia ja käyttöjärjestelmiä, jotka odottavat erilaista päätteen käyttäytymistä.</i></small>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<small><i>Use the following elements in the open editor command line:\n - <b>%(file_path)s</b>: path to the file that has been clicked\n - <b>%(line_number)s</b>: if your editor supports it, you can directly open the file to a given line number when found on the screen.\n\nFor example, for sublime, use <b>subl %(file_path)s:%(line_number)s</b>\n</i></small>",
+      "plural": "",
+      "translations": [
+        "<small><i>Käytä seuraavia elementtejä avoimen editorin komentorivillä:\n - <b>%(file_path)s</b>: polku tiedostoon, jota on napsautettu.\n - <b>%(line_number)s</b>: jos editorisi tukee sitä, voit avata tiedoston suoraan annetulle rivinumerolle, jos se löytyy näytöltä.\n\nKäytä esimerkiksi sublimea varten <b>subl %(file_path)s:%(line_number)s</b>.\n</i></small>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<small><i>Use the following elements in the open editor command line:\n- <b>%(file_path)s</b>: path to the file that has been clicked\n- <b>%(line_number)s</b>: if your editor supports it, you can directly open the file to a given line number when found on the screen.\n\nFor example, for sublime, use <b>subl %(file_path)s:%(line_number)s</b>\n</i></small>",
+      "plural": "",
+      "translations": [
+        "<small><i>Käytä seuraavia elementtejä avoimen editorin komentorivillä:\n - <b>%(file_path)s</b>: polku tiedostoon, jota on napsautettu.\n - <b>%(line_number)s</b>: jos editorisi tukee sitä, voit avata tiedoston suoraan annetulle rivinumerolle, jos se löytyy näytöltä.\n\nKäytä esimerkiksi sublimea varten <b>subl %(file_path)s:%(line_number)s</b>.\n</i></small>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<small><i>Use the following elements in the open editor command line:\n- <b>%(file_path)s</b>: path to the file that has been clicked\n- <b>%(line_number)s</b>: if your editor supports it, you can directly open the file to a given line number when found on the screen.\n\nFor example, use <b>subl %(file_path)s:%(line_number)s</b> for Sublime Text.\n</i></small>",
+      "plural": "",
+      "translations": [
+        "<small><i>Käytä seuraavia elementtejä avoimen editorin komentorivillä:\n - <b>%(file_path)s</b>: polku tiedostoon, jota on napsautettu.\n - <b>%(line_number)s</b>: jos editorisi tukee sitä, voit avata tiedoston suoraan annetulle rivinumerolle, kun se löytyy näytöltä.\n\nKäytä esimerkiksi sublimea varten <b>subl %(file_path)s:%(line_number)s</b>.\n</i></small>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<small>In this dialog you can attach your own command or script to various Guake events</small>",
+      "plural": "",
+      "translations": [
+        "<small>Tässä dialogissa voit liittää oman komentosi tai skriptisi erilaisiin guake-tapahtumiin</small>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<small>In this dialog you can attach your own command or script to various guake events</small>",
+      "plural": "",
+      "translations": [
+        "<small>Tässä dialogissa voit liittää oman komentosi tai skriptisi erilaisiin guake-tapahtumiin</small>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<small>Quick open is a feature allowing you to open a file directly into your favorite text editor by clicking on its filename when it appears in your terminal. See the list of currently supported text patterns used to extract filename below.</small>",
+      "plural": "",
+      "translations": [
+        "<small>Pika-avaus on ominaisuus, jonka avulla voit avata tiedoston suoraan suosikkitekstieditoriin napsauttamalla sen tiedostonimeä, kun se ilmestyy päätteeseesi. Katso alla oleva luettelo tällä hetkellä tuetuista tekstikuvioista, joita käytetään tiedostonimen poimimiseen.</small>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<span color=\"black\">Customize behavior and appearance of Guake!</span>",
+      "plural": "",
+      "translations": [
+        "<span color=\"black\">Mukauta Guaken käyttäytymistä ja ulkonäköä!</span>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<span size=\"18000\" color=\"black\"><b>Guake properties</b></span>",
+      "plural": "",
+      "translations": [
+        "<span size=\"18000\" color=\"black\"><b>Guaken ominaisuudet</b></span>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<span size=\"18000\"><b>Guake properties</b></span>",
+      "plural": "",
+      "translations": [
+        "<span size=\"18000\"><b>Guaken ominaisuudet</b></span>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "<user shell>",
+      "plural": "",
+      "translations": [
+        "<kayttajan komentotulkki>"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "A problem happened when binding <b>%s</b> key.\nPlease use Guake Preferences dialog to choose another key",
+      "plural": "",
+      "translations": [
+        "Ongelma tapahtui, kun sidottiin <b>%s</b> -näppäintä.\nKäytä Guaken asetuksia valitaksesi toisen näppäimen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "ASCII DEL",
+      "plural": "",
+      "translations": [
+        "ASCII DEL"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "ASCII DEL\nEscape sequence\nControl-H",
+      "plural": "",
+      "translations": [
+        "ASCII DEL\nEscape sequence\nControl-H"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Abbreviated Path",
+      "plural": "",
+      "translations": [
+        "Lyhennetty Polku"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "About Guake",
+      "plural": "",
+      "translations": [
+        "Tietoja Guakesta"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Action",
+      "plural": "",
+      "translations": [
+        "Toiminto"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Add a new tab",
+      "plural": "",
+      "translations": [
+        "Lisää uusi välilehti"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Add a new tab (with current directory set to NEW_TAB)",
+      "plural": "",
+      "translations": [
+        "Lisää uusi välilehti (nykyisen hakemiston ollessa NEW_TAB)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "All files",
+      "plural": "",
+      "translations": [
+        "Kaikki tiedostot"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Allow bold font",
+      "plural": "",
+      "translations": [
+        "Salli lihavoitu fontti"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Always",
+      "plural": "",
+      "translations": [
+        "Aina"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Always prompt on quit",
+      "plural": "",
+      "translations": [
+        "Varmista aina lopetettaessa"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Appear on display:",
+      "plural": "",
+      "translations": [
+        "Ilmaannu näytölle:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Appear on mouse display",
+      "plural": "",
+      "translations": [
+        "Ilmaannu näytölle jossa hiiri on"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Appearance",
+      "plural": "",
+      "translations": [
+        "Ulkonäkö"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Automatically save session when the tabs has been modified",
+      "plural": "",
+      "translations": [
+        "Tallenna istunto automaattisesti, kun välilehtiä on muutettu"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Background color",
+      "plural": "",
+      "translations": [
+        "Taustan väri"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Background color:",
+      "plural": "",
+      "translations": [
+        "Taustan väri:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Background image:",
+      "plural": "",
+      "translations": [
+        "Taustakuva:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Background image: ",
+      "plural": "",
+      "translations": [
+        "Taustakuva: "
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Backward",
+      "plural": "",
+      "translations": [
+        "Edellinen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Blink off",
+      "plural": "",
+      "translations": [
+        "Vilkku pois päältä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Blink on",
+      "plural": "",
+      "translations": [
+        "Vilkku päälle"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Block",
+      "plural": "",
+      "translations": [
+        "Suorakulmio"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Block\nI-Beam\nUnderline",
+      "plural": "",
+      "translations": [
+        "Suorakulmio\nI-Palkki\nAlaviiva"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Bold text is also bright",
+      "plural": "",
+      "translations": [
+        "Lihavoitu teksti on myös vaaleaa"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Bold text is also bright (VTE >=0.52)",
+      "plural": "",
+      "translations": [
+        "Lihavoitu teksti on myös vaaleaa (VTE >=0.52)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Bottom align window instead of top align",
+      "plural": "",
+      "translations": [
+        "Kohdista ikkuna alhaalle ylhäälle kohdistamisen sijaan"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Built-in schemes:",
+      "plural": "",
+      "translations": [
+        "Sisäänrakennetut mallit:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Center",
+      "plural": "",
+      "translations": [
+        "Keskelle"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Change Guake palette scheme",
+      "plural": "",
+      "translations": [
+        "Vaihda Guaken palettimallia"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Choose some font",
+      "plural": "",
+      "translations": [
+        "Valitse jokin fontti"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Clipboard",
+      "plural": "",
+      "translations": [
+        "Leikepöytä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Close",
+      "plural": "",
+      "translations": [
+        "Sulje"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Close Tab",
+      "plural": "",
+      "translations": [
+        "Sulje Välilehti"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Close tab",
+      "plural": "",
+      "translations": [
+        "Sulje välilehti"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Close terminal",
+      "plural": "",
+      "translations": [
+        "Sulje pääte"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Color palette:",
+      "plural": "",
+      "translations": [
+        "Väripaletti:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Compatibility",
+      "plural": "",
+      "translations": [
+        "Yhteensopivuus"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Configure your Guake sessions",
+      "plural": "",
+      "translations": [
+        "Guake-istuntojen määrittäminen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Control-H",
+      "plural": "",
+      "translations": [
+        "Control-H"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy",
+      "plural": "",
+      "translations": [
+        "Kopioi"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy URL",
+      "plural": "",
+      "translations": [
+        "Kopio URL"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy Url",
+      "plural": "",
+      "translations": [
+        "Kopio Url"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy on select",
+      "plural": "",
+      "translations": [
+        "Kopio valittaessa"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy text to clipboard",
+      "plural": "",
+      "translations": [
+        "Kopio teksti leikepöydälle"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Current search direction: Backward",
+      "plural": "",
+      "translations": [
+        "Nykyinen hakusuunta: Taaksepäin"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Cursor blink mode:",
+      "plural": "",
+      "translations": [
+        "Kursorin vilkkuminen:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Cursor shape:",
+      "plural": "",
+      "translations": [
+        "Kursorin muoto:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Custom",
+      "plural": "",
+      "translations": [
+        "Mukautettu"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Custom Commands",
+      "plural": "",
+      "translations": [
+        "Mukautetut Komennot"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Custom command file path:",
+      "plural": "",
+      "translations": [
+        "Mukautetun komentotiedoston polku:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Custom command file path: ",
+      "plural": "",
+      "translations": [
+        "Mukautetun komentotiedoston polku: "
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Customize behavior and appearance of Guake!",
+      "plural": "",
+      "translations": [
+        "Mukauta Guaken käyttäytymistä ja ulkonäköä!"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Decrease height",
+      "plural": "",
+      "translations": [
+        "Vähennä korkeutta"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Decrease transparency",
+      "plural": "",
+      "translations": [
+        "Vähennä läpinäkyvyyttä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Default interpreter:",
+      "plural": "",
+      "translations": [
+        "Oletustulkki:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Demo:",
+      "plural": "",
+      "translations": [
+        "Demo:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Displacement in pixels",
+      "plural": "",
+      "translations": [
+        "Siirtymä pikseleinä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Display as tab names:",
+      "plural": "",
+      "translations": [
+        "Käytä välilehtien niminä:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Do not execute the start up script",
+      "plural": "",
+      "translations": [
+        "Älä suorita käynnistysskriptiä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Do you really want to quit Guake?",
+      "plural": "",
+      "translations": [
+        "Haluatko todella sulkea Guaken?"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Do you want to close the tab?",
+      "plural": "",
+      "translations": [
+        "Haluatko sulkea välilehden?"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Do you want to reset custom colors for this tab?",
+      "plural": "",
+      "translations": [
+        "Haluatko nollata mukautetut värit tälle välilehdelle?"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Editor command line:",
+      "plural": "",
+      "translations": [
+        "Editorin komentorivi:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Enable Quick Open when Ctrl+clicking on a filename in the terminal",
+      "plural": "",
+      "translations": [
+        "Ota Pika-avaus käyttöön, kun Ctrl+napsautat tiedostonimeä päätteessä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Enable notification when restore tabs",
+      "plural": "",
+      "translations": [
+        "Ota ilmoitus käyttöön, kun palautat välilehtiä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Enable popup notifications on startup",
+      "plural": "",
+      "translations": [
+        "Ota ponnahdusikkuna-ilmoitukset käyttöön käynnistyksen yhteydessä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Enable verbose logging",
+      "plural": "",
+      "translations": [
+        "Ota tarkka virheenkorjausloki käyttöön"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Error setting keybinding.",
+      "plural": "",
+      "translations": [
+        "Virhe näppäintä sidottaessa."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Escape sequence",
+      "plural": "",
+      "translations": [
+        "Escape sequence"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Execute an arbitrary command in the selected tab.",
+      "plural": "",
+      "translations": [
+        "Suorittaa mielivaltaisen komennon valitulla välilehdellä."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Extra features",
+      "plural": "",
+      "translations": [
+        "Lisäominaisuudet"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Find",
+      "plural": "",
+      "translations": [
+        "Etsi"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Find...",
+      "plural": "",
+      "translations": [
+        "Etsi..."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Focus terminal above",
+      "plural": "",
+      "translations": [
+        "Tarkenna ylläoleva pääte"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Focus terminal below",
+      "plural": "",
+      "translations": [
+        "Tarkenna allaoleva pääte"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Focus terminal on the left",
+      "plural": "",
+      "translations": [
+        "Tarkenna vasemmalla oleva pääte"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Focus terminal on the right",
+      "plural": "",
+      "translations": [
+        "Tarkenna oikealla oleva pääte"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Follow GTK+ setting",
+      "plural": "",
+      "translations": [
+        "Seuraa GTK+ -asetusta"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Follow GTK+ setting\nBlink on\nBlink off",
+      "plural": "",
+      "translations": [
+        "Seuraa GTK+-asetusta\nVilkku päälle\nVilkku pois päältä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Font color",
+      "plural": "",
+      "translations": [
+        "Tekstin väri"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Font:",
+      "plural": "",
+      "translations": [
+        "Fontti:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Forward",
+      "plural": "",
+      "translations": [
+        "Seuraava"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Full Path",
+      "plural": "",
+      "translations": [
+        "Koko Polku"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "GTK Theme:",
+      "plural": "",
+      "translations": [
+        "GTK-teema:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Gconf Error.\nHave you installed <b>guake.schemas</b> properly?",
+      "plural": "",
+      "translations": [
+        "Gconf-virhe.\nOletko asentanut kohteen <b>guake.schemas</b> oikein?"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "General",
+      "plural": "",
+      "translations": [
+        "Yleinen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to eighth tab",
+      "plural": "",
+      "translations": [
+        "Siirry kahdeksanteen välilehteen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to fifth tab",
+      "plural": "",
+      "translations": [
+        "Siirry viidenteen välilehteen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to first tab",
+      "plural": "",
+      "translations": [
+        "Siirry ensimmäiseen välilehteen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to fourth tab",
+      "plural": "",
+      "translations": [
+        "Siirry neljänteen välilehteen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to last tab",
+      "plural": "",
+      "translations": [
+        "Siirry viimeiseen välilehteen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to next tab",
+      "plural": "",
+      "translations": [
+        "Siirry seuraavaan välilehteen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to ninth tab",
+      "plural": "",
+      "translations": [
+        "Siirry yhdeksänteen välilehteen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to previous tab",
+      "plural": "",
+      "translations": [
+        "Siirry edelliseen välilehteen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to second tab",
+      "plural": "",
+      "translations": [
+        "Siirry toiseen välilehteen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to seventh tab",
+      "plural": "",
+      "translations": [
+        "Siirry seitsemänteen välilehteen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to sixth tab",
+      "plural": "",
+      "translations": [
+        "Siirry kuudenteen välilehteen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to tenth tab",
+      "plural": "",
+      "translations": [
+        "Siirry kymmenennelle välilehdelle"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Go to third tab",
+      "plural": "",
+      "translations": [
+        "Siirry kolmanteen välilehteen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Gtk Theme:",
+      "plural": "",
+      "translations": [
+        "GTK-teema:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake Preferences",
+      "plural": "",
+      "translations": [
+        "Guaken Asetukset"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake Terminal",
+      "plural": "",
+      "translations": [
+        "Guake Pääte"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake can not init!",
+      "plural": "",
+      "translations": [
+        "Guake ei pysty käynnistymään!"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake is an easy to access\nterminal based on FPS games terminal",
+      "plural": "",
+      "translations": [
+        "Guake on helppokäyttöinen\nFPS -pelien päätteisiin perustuva pääte"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake is now running,\npress <b>{!s}</b> to use it.",
+      "plural": "",
+      "translations": [
+        "Guake on nyt käynnissä,\npaina <b>{!s}</b> käyttääksesi sitä."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake!",
+      "plural": "",
+      "translations": [
+        "Guake!"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Height:",
+      "plural": "",
+      "translations": [
+        "Korkeus:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Here is the list of supported patterns: (to add your own, please contact the Guake's authors)",
+      "plural": "",
+      "translations": [
+        "Tässä on luettelo tuetuista kuvioista: (jos haluat lisätä oman kuvion, ota yhteyttä Guaken tekijöihin)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Hide on lose focus",
+      "plural": "",
+      "translations": [
+        "Piilota, kun ikkuna menettää fokuksen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Hide tab bar if there is only one tab",
+      "plural": "",
+      "translations": [
+        "Piilota välilehtipalkki, jos on vain yksi välilehti"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Hide tabbar when fullscreen",
+      "plural": "",
+      "translations": [
+        "Piilota välilehtipalkki koko näytön tilan aikana"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Hides Guake main window",
+      "plural": "",
+      "translations": [
+        "Piilottaa Guaken pääikkunan"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Hooks",
+      "plural": "",
+      "translations": [
+        "Koukut"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Horizontal Alignment:",
+      "plural": "",
+      "translations": [
+        "Pystysuora Suuntaus:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "I-Beam",
+      "plural": "",
+      "translations": [
+        "I-Palkki"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Increase height",
+      "plural": "",
+      "translations": [
+        "Lisää korkeutta"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Increase transparency",
+      "plural": "",
+      "translations": [
+        "Lisää läpinäkyvyyttä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Infinite scrolling",
+      "plural": "",
+      "translations": [
+        "Ääretön vieritys"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "JSON files",
+      "plural": "",
+      "translations": [
+        "JSON-tiedostot"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Keyboard shortcuts",
+      "plural": "",
+      "translations": [
+        "Pikanäppäimet"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Last Segment",
+      "plural": "",
+      "translations": [
+        "Viimeinen Osio"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Left",
+      "plural": "",
+      "translations": [
+        "Vasemmalle"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Main Window",
+      "plural": "",
+      "translations": [
+        "Pääikkuna"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Main Window Horizontal Alignment",
+      "plural": "",
+      "translations": [
+        "Pääikkunan vaakasuora suuntaus"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Match case",
+      "plural": "",
+      "translations": [
+        "Ota pienet/isot kirjaimet huomioon"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Max tab name length:",
+      "plural": "",
+      "translations": [
+        "Välilehtien nimien enimmäispituus:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move current tab left",
+      "plural": "",
+      "translations": [
+        "Siirrä nykyinen välilehti vasemmalle"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move current tab right",
+      "plural": "",
+      "translations": [
+        "Siirrä nykyinen välilehti oikealle"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move the terminal split handle down",
+      "plural": "",
+      "translations": [
+        "Siirrä päätteen jakokahvaa alaspäin"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move the terminal split handle left",
+      "plural": "",
+      "translations": [
+        "Siirrä päätteen jakokahvaa vasemmalle"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move the terminal split handle right",
+      "plural": "",
+      "translations": [
+        "Siirrä päätteen jakokahvaa oikealle"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move the terminal split handle up",
+      "plural": "",
+      "translations": [
+        "Siirrä päätteen jakokahvaa ylöspäin"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Navigation",
+      "plural": "",
+      "translations": [
+        "Navigaatio"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Never",
+      "plural": "",
+      "translations": [
+        "Ei koskaan"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Never\nWith process running\nAlways",
+      "plural": "",
+      "translations": [
+        "Ei koskaan\nKun prosesseja on vielä käynnissä\nAina"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "New Tab",
+      "plural": "",
+      "translations": [
+        "Uusi Välilehti"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "New tab",
+      "plural": "",
+      "translations": [
+        "Uusi välilehti"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "New tab in home directory",
+      "plural": "",
+      "translations": [
+        "Uusi välilehti kotikansiossa"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "New tabs appear after the current tab",
+      "plural": "",
+      "translations": [
+        "Uudet välilehdet näkyvät nykyisen välilehden jälkeen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "On key stroke",
+      "plural": "",
+      "translations": [
+        "Näppäinpainalluksen yhteydessä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "On output",
+      "plural": "",
+      "translations": [
+        "Ulostulon yhteydessä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "On show:",
+      "plural": "",
+      "translations": [
+        "Ikkunan ilmeentymisen yhteydessä:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "On start:",
+      "plural": "",
+      "translations": [
+        "Aloituksen yhteydessä:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Open Link...",
+      "plural": "",
+      "translations": [
+        "Avaa Linkki..."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Open Link: '{!s}...'",
+      "plural": "",
+      "translations": [
+        "Avaa Linkki: '{!s}...'"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Open Link: '{}...'",
+      "plural": "",
+      "translations": [
+        "Avaa Linkki '{}...'"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Open Link: {!s}",
+      "plural": "",
+      "translations": [
+        "Avaa Linkki: {!s}"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Open Link: {!s}...",
+      "plural": "",
+      "translations": [
+        "Avaa Linkki: {!s}..."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Open Link: {}",
+      "plural": "",
+      "translations": [
+        "Avaa Linkki: {}"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Open link...",
+      "plural": "",
+      "translations": [
+        "Avaa linkki..."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Paste",
+      "plural": "",
+      "translations": [
+        "Liitä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Paste text from clipboard",
+      "plural": "",
+      "translations": [
+        "Liitä teksti leikepöydältä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Path to a bash script that would be automatically executed when Guake starts, unless you specify --no-startup-script.\n\nThis would typically use the configuration by command line feature of Guake:\n\n#!/bin/bash\n\nsleep 5  # it is advised to wait a bit before Guake has been successfully started\n\nguake -r \"main\" -e \"cd ~/projects/myproject/main\"\nguake -r \"prod\" -e \"cd ~/projects/myproject/prod\"\n",
+      "plural": "",
+      "translations": [
+        "Polku bash-skriptiin, joka suoritetaan automaattisesti, kun Guake käynnistyy, ellet määritä --no-startup-script.\n\nTässä käytetään tyypillisesti Guaken komentorivin kautta tapahtuvaa konfigurointia:\n\n#!/bin/bash\n\nsleep 5  # on suositeltavaa odottaa hieman ennen kuin Guake on onnistuneesti käynnistetty\n\nguake -r \"main\" -e \"cd ~/projects/munprojekti/main\"\nguake -r \"prod\" -e \"cd ~/projects/munprojekti/prod\"\n"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Path to script executed on Guake start:",
+      "plural": "",
+      "translations": [
+        "Polku skriptiin, joka suoritetaan Guaken käynnistyessä:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Place tabs on top",
+      "plural": "",
+      "translations": [
+        "Sijoita välilehdet ikkunan päälle"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Please select a JSON file",
+      "plural": "",
+      "translations": [
+        "Valitse json-tiedosto"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Please select a json file",
+      "plural": "",
+      "translations": [
+        "Valitse json-tiedosto"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Prefer dark theme",
+      "plural": "",
+      "translations": [
+        "Suosi tummaa teemaa"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Prompt on close tab:",
+      "plural": "",
+      "translations": [
+        "Varmista välilehteä suljettaessa:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Put Guake in fullscreen mode",
+      "plural": "",
+      "translations": [
+        "Laita Guake koko näytön tilaan"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Put Guake out from fullscreen mode",
+      "plural": "",
+      "translations": [
+        "Laita Guake pois koko näytön tilasta"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quick Open",
+      "plural": "",
+      "translations": [
+        "Pika-avaus"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quick Open...",
+      "plural": "",
+      "translations": [
+        "Pika-avaa..."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quick Open: '{!s}...'",
+      "plural": "",
+      "translations": [
+        "Pika-avaa: '{!s}...'"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quick Open: {!s}",
+      "plural": "",
+      "translations": [
+        "Pika-avaa: '{!s}'"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quick Open: {!s}...",
+      "plural": "",
+      "translations": [
+        "Pika-avaa: {!s}..."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quick open in current terminal",
+      "plural": "",
+      "translations": [
+        "Pika-avaa nykyisessä päätteessä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quick open is a feature allowing you to open a file directly into your favorite text editor by clicking on its filename when it appears in your terminal. See the list of currently supported text patterns used to extract filename below.",
+      "plural": "",
+      "translations": [
+        "Pika-avaus on ominaisuus, jonka avulla voit avata tiedoston suoraan suosikkitekstieditoriin napsauttamalla sen tiedostonimeä, kun se ilmestyy päätteeseesi. Katso alla oleva luettelo tällä hetkellä tuetuista tekstikuvioista, joita käytetään tiedostonimen poimimiseen."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quit",
+      "plural": "",
+      "translations": [
+        "Lopeta"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Refocus if open",
+      "plural": "",
+      "translations": [
+        "Tarkenna uudelleen, jos auki"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename",
+      "plural": "",
+      "translations": [
+        "Uudelleennimeä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename Tab",
+      "plural": "",
+      "translations": [
+        "Uudelleennimeä Välilehti"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename current tab",
+      "plural": "",
+      "translations": [
+        "Nimeä nykyinen välilehti uudelleen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename tab",
+      "plural": "",
+      "translations": [
+        "Uudelleennimeä Välilehti"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename the current tab. Reset to default if TITLE is a single dash \"-\".",
+      "plural": "",
+      "translations": [
+        "Nimeä nykyinen välilehti uudelleen. Nollaa oletusarvoon, jos TITLE on yksi viiva \"-\"."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename the selected tab.",
+      "plural": "",
+      "translations": [
+        "Nimeä valittu välilehti uudelleen."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename the specified tab by --tab-index. Reset to default if TITLE is a single dash \"-\".",
+      "plural": "",
+      "translations": [
+        "Nimeä --tab-index:illä määritetty välilehti uudelleen. Nollaa oletusarvoon, jos TITLE on yksi viiva \"-\"."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename the specified tab. Reset to default if TITLE is a single dash \"-\".",
+      "plural": "",
+      "translations": [
+        "Nimeä määritetty välilehti uudelleen. Nollaa oletusarvoon, jos TITLE on yksi viiva \"-\"."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Reset custom colors",
+      "plural": "",
+      "translations": [
+        "Nollaa mukautetu värit"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Reset terminal",
+      "plural": "",
+      "translations": [
+        "Nollaa pääte"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Restore Guake preferences from this file",
+      "plural": "",
+      "translations": [
+        "Palauta Guaken asetukset tästä tiedostosta"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Restore Tabs",
+      "plural": "",
+      "translations": [
+        "Palauta Välilehdet"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Restore previous session (tabs)",
+      "plural": "",
+      "translations": [
+        "Palauta edellinen istunto (välilehdet)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Return the selected tab index.",
+      "plural": "",
+      "translations": [
+        "Palauttaa valitun välilehden indeksin."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Return the selected tab label.",
+      "plural": "",
+      "translations": [
+        "Palauttaa valitun välilehden etiketin."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Return the selected terminal index.",
+      "plural": "",
+      "translations": [
+        "Palauttaa valitun välilehden indeksin."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Right",
+      "plural": "",
+      "translations": [
+        "Oikealle"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Save Guake preferences to this filename",
+      "plural": "",
+      "translations": [
+        "Tallenna Guaken asetukset tähän tiedostoon"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Save Tabs",
+      "plural": "",
+      "translations": [
+        "Tallenna Välilehdet"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Save content...",
+      "plural": "",
+      "translations": [
+        "Tallenna sisältö..."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Save to File...",
+      "plural": "",
+      "translations": [
+        "Tallenna nimellä..."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Save to...",
+      "plural": "",
+      "translations": [
+        "Tallenna nimellä..."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Says to Guake go away =(",
+      "plural": "",
+      "translations": [
+        "Pyytää Guaken painumaan kuuseen =("
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Scale",
+      "plural": "",
+      "translations": [
+        "Skaalaa"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Scrollback lines:",
+      "plural": "",
+      "translations": [
+        "Scrollback-viivat:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Scrolling",
+      "plural": "",
+      "translations": [
+        "Vieritys"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search forward",
+      "plural": "",
+      "translations": [
+        "Etsi seuraava"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search on Web",
+      "plural": "",
+      "translations": [
+        "Etsi Verkosta"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search on Web (no selection)",
+      "plural": "",
+      "translations": [
+        "Etsi Verkosta (ei valintaa)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search on Web: '%s'",
+      "plural": "",
+      "translations": [
+        "Etsi Verkosta: '%s'"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search select text on web",
+      "plural": "",
+      "translations": [
+        "Etsi valittu teksti verkosta"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search selected text on web",
+      "plural": "",
+      "translations": [
+        "Etsi valittu teksti verkosta"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search terminal",
+      "plural": "",
+      "translations": [
+        "Etsi päätteestä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Select a specific terminal in a split tab. Only useful with split terminals (TERMINAL_INDEX is the index of the tab)",
+      "plural": "",
+      "translations": [
+        "Valitse tietty pääte jaetulla välilehdellä. Käyttökelpoinen vain jaettujen terminaalien kanssa (TERMINAL_INDEX on välilehden indeksi)."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Select a tab",
+      "plural": "",
+      "translations": [
+        "Valitse välilehti"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Select a tab (SELECT_TAB is the index of the tab)",
+      "plural": "",
+      "translations": [
+        "Valitse välilehti (SELECT_TAB on välilehden indeksi)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Set colors from settings.",
+      "plural": "",
+      "translations": [
+        "Aseta värit asetuksista."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Set colors of the current terminal from settings.",
+      "plural": "",
+      "translations": [
+        "Aseta nykyisen päätteen värit asetuksista."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Set the hexadecimal (#rrggbb) background color of the current terminal.",
+      "plural": "",
+      "translations": [
+        "Asettaa nykyisen välilehden heksadesimaalisen (#rrggbb) taustavärin."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Set the hexadecimal (#rrggbb) background color of the selected tab.",
+      "plural": "",
+      "translations": [
+        "Asettaa valitun välilehden heksadesimaalisen (#rrggbb) taustavärin."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Set the hexadecimal (#rrggbb) foreground color of the current terminal.",
+      "plural": "",
+      "translations": [
+        "Asettaa nykyisen välilehden heksadesimaalisen (#rrggbb) etualavärin."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Set the hexadecimal (#rrggbb) foreground color of the selected tab.",
+      "plural": "",
+      "translations": [
+        "Asettaa valitun välilehden heksadesimaalisen (#rrggbb) etualavärin."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Set window title to current tab name",
+      "plural": "",
+      "translations": [
+        "Aseta ikkunan otsikko nykyisen välilehden nimeksi"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shell",
+      "plural": "",
+      "translations": [
+        "Komentotulkki"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shortcut",
+      "plural": "",
+      "translations": [
+        "Pikanäppäin"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show",
+      "plural": "",
+      "translations": [
+        "Näytä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show Guake version number and exit",
+      "plural": "",
+      "translations": [
+        "Näytä julkaisuversio ja lopeta"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show and focus Guake window",
+      "plural": "",
+      "translations": [
+        "Näytä ja tarkenna Guake-ikkuna"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show close buttons for tabs",
+      "plural": "",
+      "translations": [
+        "Näytä välilehtien sulkupainikkeet"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show resizer",
+      "plural": "",
+      "translations": [
+        "Näytä koonmäärittäjä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show scrollbar",
+      "plural": "",
+      "translations": [
+        "Näytä vierityspalkki"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show support infomation",
+      "plural": "",
+      "translations": [
+        "Näytä tukitiedot"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show support infomations",
+      "plural": "",
+      "translations": [
+        "Näytä tukitiedot"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show support information",
+      "plural": "",
+      "translations": [
+        "Näytä tukitiedot"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show tab bar",
+      "plural": "",
+      "translations": [
+        "Näytä välilehtipalkki"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show tray icon",
+      "plural": "",
+      "translations": [
+        "Näytä tehtäväpalkin kuvake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shows Guake main window",
+      "plural": "",
+      "translations": [
+        "Näyttää Guaken pääikkunan"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shows Guake preference window",
+      "plural": "",
+      "translations": [
+        "Näyttää Guaken asetukset-ikkunan"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shows Guake's about info",
+      "plural": "",
+      "translations": [
+        "Näyttää tietoja Guakesta -ikkunan"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Specify the tab to rename. Default is 0.",
+      "plural": "",
+      "translations": [
+        "Määritä uudelleen nimettävä välilehti. Oletusarvo on 0."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Specify the tab to rename. Default is 0. Can be used to select tab by UUID.",
+      "plural": "",
+      "translations": [
+        "Määritä uudelleen nimettävä välilehti. Oletusarvo on 0. Voidaan valita myös välilehden UUID:n perusteella."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split  ",
+      "plural": "",
+      "translations": [
+        "Jaa "
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split management",
+      "plural": "",
+      "translations": [
+        "Jaon hallinta"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split tab horizontal",
+      "plural": "",
+      "translations": [
+        "Jaa välilehti vaakasuunnassa"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split tab vertical",
+      "plural": "",
+      "translations": [
+        "Jaa välilehti pystysuunnassa"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split the selected tab horizontally.",
+      "plural": "",
+      "translations": [
+        "Jaa valittu välilehti vaakasuoraan."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split the selected tab vertically.",
+      "plural": "",
+      "translations": [
+        "Jaa valittu välilehti pystysuoraan."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split ―",
+      "plural": "",
+      "translations": [
+        "Jaa ―"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split ｜",
+      "plural": "",
+      "translations": [
+        "Jaa ｜"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Start Guake at login",
+      "plural": "",
+      "translations": [
+        "Käynnistä Guake sisäänkirjautumisen yhteydessä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Start fullscreen",
+      "plural": "",
+      "translations": [
+        "Aloita koko näytön tilassa"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Startup & Tabs (Experiment)",
+      "plural": "",
+      "translations": [
+        "Käynnistys ja välilehdet (kokeiluvaiheessa)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Stay on top",
+      "plural": "",
+      "translations": [
+        "Pysy päällimmäisenä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Stretch",
+      "plural": "",
+      "translations": [
+        "Venytä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Tab management",
+      "plural": "",
+      "translations": [
+        "Välilehtien hallinta"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Tabs session restore abort.\nYour session file ({session_filename}) missing schema_version as key",
+      "plural": "",
+      "translations": [
+        "Välilehdet istunnon palauttamisen keskeytys.\nIstuntotiedostosta ({session_filename}) puuttuu avain schema_version"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Tabs session restore abort.\nYour session file schema version is higher than current version ({session_file_schema_version} > {current_schema_version}).",
+      "plural": "",
+      "translations": [
+        "Välilehdet istunnon palauttamisen keskeytys.\nIstuntotiedoston skeemaversio on suurempi kuin nykyinen versio ({session_file_schema_version} > {current_schema_version})."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Tango\nLinux console\nXTerm\nRxvt\nCustom\n",
+      "plural": "",
+      "translations": [
+        "Tango\nLinux-pääte\nXTerm\nRxvt\nOma\n"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Terminal",
+      "plural": "",
+      "translations": [
+        "Pääte"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Terminal;Utility;",
+      "plural": "",
+      "translations": [
+        "Pääte;Apuohjelma;"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Text and Logs",
+      "plural": "",
+      "translations": [
+        "Teksti ja Lokit"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Text color:",
+      "plural": "",
+      "translations": [
+        "Tekstin väri:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "The shortcut \"%s\" cannot be used because it will become impossible to type using this key.\n\nPlease try with a key such as Control, Alt or Shift at the same time.\n",
+      "plural": "",
+      "translations": [
+        "Pikanäppäintä \"%s\" ei voi käyttää, koska näppäimellä kirjoittamisesta tulisi mahdotonta.\n\nYritä käyttää samanaikaisesti jotain muuta näppäintä, kuten Control, Alt tai Shift.\n"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "The shortcut \"%s\" is already in use.",
+      "plural": "",
+      "translations": [
+        "Pikanäppäin \"%s\" on jo käytössä."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "There are no processes running",
+      "plural": "",
+      "translations": [
+        "Prosesseja ei ole käynnissä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "There are {0} processes still running",
+      "plural": "",
+      "translations": [
+        "{0} prosessia on vielä käynnissä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "There is a process still running",
+      "plural": "",
+      "translations": [
+        "Prosesseja on vielä käynnissä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "This might not work on all shells, make sure that your shell supports the --login option",
+      "plural": "",
+      "translations": [
+        "Tämä ei välttämättä toimi kaikilla komentotulkilla. Varmista, että komentotulkkisi tukee --login-vaihtoehtoa"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Tile",
+      "plural": "",
+      "translations": [
+        "Laatoita"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "To change a shortcut simply click on its name.\nTo disable a shortcut, press the \"Backspace\" key.",
+      "plural": "",
+      "translations": [
+        "Voit vaihtaa pikanäppäintä napsauttamalla sen nimeä.\nVoit poistaa pikanäppäimen käytöstä painamalla Backspace-näppäintä."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle Fullscreen",
+      "plural": "",
+      "translations": [
+        "Vaihda koko näytön tilaan"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle Guake visibility",
+      "plural": "",
+      "translations": [
+        "Guaken näkyvyyden vaihtaminen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle Hide on Lose Focus",
+      "plural": "",
+      "translations": [
+        "Vaihda näkyvyyttä, kun ikkuna menettää fokuksen"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle transparency",
+      "plural": "",
+      "translations": [
+        "Vaihda läpinäkyvyys pois / päälle"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggles the visibility of the terminal window",
+      "plural": "",
+      "translations": [
+        "Vaihtaa pääteikkunan näkyvyyden"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Transparency:",
+      "plural": "",
+      "translations": [
+        "Läpinäkyvyys:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Unable to bind global <b>%s</b> key",
+      "plural": "",
+      "translations": [
+        "Globaalia <b>%s</b> -näppäintä ei pystytä sitomaan"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Underline",
+      "plural": "",
+      "translations": [
+        "Alaviiva"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use VTE titles for tab names",
+      "plural": "",
+      "translations": [
+        "Käytä VTE-otsikoita välilehtien nimissä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use font and background color from the palette",
+      "plural": "",
+      "translations": [
+        "Käytä paletin fonttia ja taustaväriä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use system default theme",
+      "plural": "",
+      "translations": [
+        "Käytä järjestelmän oletusteemaa"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use the command line in a Quake-like terminal",
+      "plural": "",
+      "translations": [
+        "Käytä komentoriviä Quaken kaltaisessa päätelaitteessa"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use the system fixed width font",
+      "plural": "",
+      "translations": [
+        "Käytä järjestelmän kiinteän leveyden fonttia"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use workspace-specific tab sets (requires restart)",
+      "plural": "",
+      "translations": [
+        "Käytä työtilakohtaisia välilehtisarjoja (vaatii uudelleenkäynnistyksen)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use workspace-specific tab sets (requires restart, only work on X11)",
+      "plural": "",
+      "translations": [
+        "Työtilakohtaisten välilehtisarjojen käyttö (vaatii uudelleenkäynnistyksen, toimii vain X11:ssä)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Width:",
+      "plural": "",
+      "translations": [
+        "Leveys:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "With process running",
+      "plural": "",
+      "translations": [
+        "Kun prosesseja on vielä käynnissä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "You are going to restore *all* the tabs!\nwhich means all your terminals & pages will be replaced.\n\nDo you want to continue?",
+      "plural": "",
+      "translations": [
+        "Aiot palauttaa *kaikki* välilehdet!\nmikä tarkoittaa, että kaikki päätteesi ja välilehtesi korvataan.\n\nHaluatko jatkaa?"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Your session.json file is broken, backup to {session_filename}.bak",
+      "plural": "",
+      "translations": [
+        "\"session.json\"-tiedostosi on rikki, se varmuuskopioitiin tiedostoon {session_filename}.bak"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Your session.json schema is broken, backup to {0}.bak,and error message has been saved to {0}.log.err",
+      "plural": "",
+      "translations": [
+        "\"session.json\"-tiedostosi on rikki, se varmuuskopioitiin tiedostoon {0}.bak, ja virheilmoitus on tallennettu {0}.log.err -tiedostoon"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Your tabs has been restored!",
+      "plural": "",
+      "translations": [
+        "Välilehtesi on palautettu!"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Your {session_filename} file is broken, backup to {session_filename}.bak",
+      "plural": "",
+      "translations": [
+        "{session_filename} -tiedosto on rikki, varmuuskopioitiin tiedostoon {session_filename}.bak"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Your {session_filename} schema is broken, backup to {0}.bak,and error message has been saved to {session_filename}.log.err",
+      "plural": "",
+      "translations": [
+        "{session_filename}-skeemasi on rikki, varmuuskopioitiin tiedostoon {0}.bak, ja virheilmoitus tallennettin tiedostoon {session_filename}.log.err"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Your {session_filename} schema is broken, backup to {session_filename}.bak, and error message has been saved to {session_filename}.log.err.",
+      "plural": "",
+      "translations": [
+        "{session_filename}-skeemasi on rikki, varmuuskopioitiin tiedostoon {session_filename}.bak, ja virheilmoitus tallennettin tiedostoon {session_filename}.log.err."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Your {session_filename} schema is broken, backup to {session_filename}.bak,and error message has been saved to {session_filename}.log.err.",
+      "plural": "",
+      "translations": [
+        "{session_filename}-skeemasi on rikki, varmuuskopioitiin tiedostoon {session_filename}.bak, ja virheilmoitus tallennettin tiedostoon {session_filename}.log.err."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Zoom in",
+      "plural": "",
+      "translations": [
+        "Suurenna"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Zoom in (alternative)",
+      "plural": "",
+      "translations": [
+        "Suurenna (vaihtoehtoinen)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Zoom out",
+      "plural": "",
+      "translations": [
+        "Pienennä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Backspace key generates:",
+      "plural": "",
+      "translations": [
+        "_Backspace-näppäin tuottaa:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Delete key generates:",
+      "plural": "",
+      "translations": [
+        "_Delete-näppäin tuottaa:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Flash terminal on bell",
+      "plural": "",
+      "translations": [
+        "_Välkytä päätettä huomioäänen yhteydessä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Open new tab in current directory",
+      "plural": "",
+      "translations": [
+        "_Avaa uudet välilehdet nykyisessä sijainnissa"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Play system alert sound on bell",
+      "plural": "",
+      "translations": [
+        "_Soita järjestelmän ääni päätteen huomioäänen yhteydessä"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Reset Compatibility Options to Defaults",
+      "plural": "",
+      "translations": [
+        "_Palauta yhteensopivuusasetukset oletuksiin"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Run command as a login shell",
+      "plural": "",
+      "translations": [
+        "_Käynnistä komento sisäänkirjautumiskomentotulkkina"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "guake",
+      "plural": "",
+      "translations": [
+        "guake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "guake-indicator",
+      "plural": "",
+      "translations": [
+        "guake-ilmaisin"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "guake-tray",
+      "plural": "",
+      "translations": [
+        "guake-tehtäväpalkkikuvake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "http://guake.org",
+      "plural": "",
+      "translations": [
+        "http://guake.org"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "key binding error",
+      "plural": "",
+      "translations": [
+        "näppäinsidontavirhe"
+      ]
+    }
+  ]
+}
