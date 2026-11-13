@@ -25,11 +25,20 @@
 - Używaj submodułu `Src/Common` i `VersionU.pas` do odczytu wersji EXE. Nie kopiuj tej jednostki do projektu i nie modyfikuj submodułu przy zmianie wersji aplikacji.
 - Początek: 1.0.0.1. Każdy kolejny przebieg zwiększa build. Każdy commit zwiększa release. Nie zmieniaj major/minor i nigdy nie resetuj build.
 - Liczniki i tekstowe FileVersion/ProductVersion utrzymuj zgodne w konfiguracji MSBuild; nie twórz RC dla tych zasobów.
-- Zwiększenie release: tools/Update-Version.ps1 -Part Release. Kolejny przebieg i testy: tools/Test.ps1.
+- Zwiększenie release: Src/Tools/Update-Version.ps1 -Part Release. Kolejny przebieg i testy: Src/Tools/Test.ps1.
 - Twórz commity lokalne z naturalnym polskim opisem problemu, rozwiązania i testów, bez metainformacji o lokalnym commicie i braku push.
 
 ## Lokalizacja i diagnostyka
 
-- Lokalizację opieraj na vendor/i18n. Tłumaczenia przenoś z oryginalnych PO Guake, zachowując źródła, autorów, konteksty i liczbę mnogą. Odtwarzalny import: tools/Import-Translations.py.
-- Stacktrace zapewnia vendor/stacktrace. StackTrace musi być pierwszą jednostką DPR. Włącz stack frames i szczegółowy MAP. Nie loguj stosu bieżącego miejsca obsługi jako stosu miejsca powstania wyjątku: używaj Exception.StackTrace.
+- Lokalizację opieraj na Src/Vendor/i18n. Tłumaczenia przenoś z oryginalnych PO Guake, zachowując źródła, autorów, konteksty i liczbę mnogą. Odtwarzalny import: Src/Tools/Import-Translations.py.
+- Stacktrace zapewnia Src/Vendor/stacktrace. StackTrace musi być pierwszą jednostką DPR. Włącz stack frames i szczegółowy MAP. Nie loguj stosu bieżącego miejsca obsługi jako stosu miejsca powstania wyjątku: używaj Exception.StackTrace.
 - Logger nie może zastępować pierwotnego wyjątku błędem zapisu logu. Nazwy funkcji i numery linii wymagają aktualnych PDB wygenerowanych z MAP przez map2pdb.
+
+## Struktura ?r?de? i aktualno?? dokumentacji
+
+- Ca?y kod, projekty, testy, narz?dzia i ?r?d?owe dane aplikacji utrzymuj pod `Src/`, w podkatalogach odpowiadaj?cych ich roli. Projekt g??wny: `Src/guake.dpr` i `Src/guake.dproj`.
+- Formularze PAS/DFM nale?? do `Src/Forms/`; modu?y danych `dm*.pas` i `dm*.dfm` wy??cznie do `Src/DataModules/`.
+- Ustawienia dziel na rekordy hierarchiczne: General, Style.Font, Style.Background, Keybindings.Global, Keybindings.Local i Hooks. Osobna klasa zarz?dza INI, walidacj? i zapisem.
+- Umieszczaj `{$StackFrames On}` w pierwszej linii ka?dego PAS i DPR. Budowanie ma generowa? PDB z MAP przez map2pdb i dostarcza? PDB obok w?a?ciwego EXE, tak?e w paczkach.
+- Zachowaj w credits: `Copyright ? 2026 DJ M@fi0z0? - native Windows port` i `DJ M@fi0z0? <inz.germanista@gmail.com>`, obok oryginalnych autor?w i licencji.
+- Aktualizuj pliki Markdown razem ze zmianami kodu, uk?adu katalog?w, polece?, test?w i rzeczywistego zakresu funkcji. Usu? nieaktualne opisy zamiast dopisywa? sprzeczne uzupe?nienia.

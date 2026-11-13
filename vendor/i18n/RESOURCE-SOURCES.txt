@@ -1,9 +1,0 @@
-﻿Resource build inputs
-
-The original i18nFlags_16x11.rc references bitmap sources restored losslessly
-from the original BITMAP resources. Upstream licensing and attribution are
-unchanged. The flag RC paths use forward slashes for Windows RC escape handling.
-
-Only the custom flag resources are built by tools/Build-Resources.ps1.
-Package VersionInfo RC wrappers are intentionally omitted: MSBuild owns version
-and platform metadata. Compiled RES files are ignored build outputs.

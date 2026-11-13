@@ -1,0 +1,85 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{AF34D15A-08F1-4A13-9669-98C827FDACD8}</ProjectGuid>
+    <MainSource>guake.dpr</MainSource>
+    <Base>true</Base>
+    <Config Condition="'$(Config)'==''">Debug</Config>
+    <Platform Condition="'$(Platform)'==''">Win64</Platform>
+    <TargetedPlatforms>2</TargetedPlatforms>
+    <AppType>Application</AppType>
+    <FrameworkType>VCL</FrameworkType>
+    <ProjectVersion>18.4</ProjectVersion>
+    <DCC_Namespace>System;Winapi;System.Win;Xml;Data;Vcl;System;Winapi;System.Win;Xml;$(DCC_Namespace)</DCC_Namespace>
+    <DCC_UnitSearchPath>Vendor\i18n\Packages;Vendor\stacktrace\source;$(BDS)\source\DUnitX;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+    <DCC_IncludePath>$(BDS)\source\DUnitX;$(DCC_IncludePath)</DCC_IncludePath>
+    <DCC_ExeOutput>..\bin\Win64</DCC_ExeOutput>
+    <DCC_DcuOutput>..\.build\guake\$(Platform)\$(Config)</DCC_DcuOutput>
+    <DCC_DebugInformation>2</DCC_DebugInformation>
+    <DCC_Optimize>false</DCC_Optimize>
+    <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+    <VerInfo_MajorVer>1</VerInfo_MajorVer>
+    <VerInfo_MinorVer>0</VerInfo_MinorVer>
+    <VerInfo_Release>2</VerInfo_Release>
+    <VerInfo_Build>22</VerInfo_Build>
+    <VerInfo_Locale>1045</VerInfo_Locale>
+    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Guake dla Windows;FileVersion=1.0.2.22;InternalName=guake;OriginalFilename=guake.exe;ProductName=Guake dla Windows;ProductVersion=1.0.2.22</VerInfo_Keys>
+    <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
+    <DCC_MapFile>3</DCC_MapFile>
+    <PostBuildEvent>python "$(MSBuildProjectDirectory)\Tools\Build-Symbols.py" "$(MSBuildProjectDirectory)\..\bin\Win64\guake.map"</PostBuildEvent>
+    <PostBuildEventIgnoreExitCode>false</PostBuildEventIgnoreExitCode>
+    <DCC_ResourcePath>$(BDS)\lib\win64\release;$(DCC_ResourcePath)</DCC_ResourcePath>
+    <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
+  </PropertyGroup>
+  <ItemGroup>
+    <DelphiCompile Include="$(MainSource)">
+      <MainSource>MainSource</MainSource>
+    </DelphiCompile>
+    <DCCReference Include="Settings\Guake.Settings.pas" />
+    <DCCReference Include="Terminal\Guake.Shells.pas" />
+    <DCCReference Include="Common\VersionU.pas" />
+    <BuildConfiguration Include="Debug">
+      <Key>Debug</Key>
+      <CfgParent>Base</CfgParent>
+    </BuildConfiguration>
+    <DCCReference Include="Localization\Guake.Localization.pas" />
+    <DCCReference Include="Diagnostics\Guake.Logging.pas" />
+    <DCCReference Include="Vendor\stacktrace\source\StackTrace.pas" />
+    <DCCReference Include="Appearance\Guake.Palettes.pas" />
+    <DCCReference Include="Forms\frmPreferencesU.pas">
+      <Form>frmPreferences</Form>
+      <FormType>dfm</FormType>
+      <DesignClass>TForm</DesignClass>
+    </DCCReference>
+    <DCCReference Include="Forms\frmAboutU.pas">
+      <Form>frmAbout</Form>
+      <FormType>dfm</FormType>
+      <DesignClass>TForm</DesignClass>
+    </DCCReference>
+    <DCCReference Include="Forms\frmSearchU.pas">
+      <Form>frmSearch</Form>
+      <FormType>dfm</FormType>
+      <DesignClass>TForm</DesignClass>
+    </DCCReference>
+    <DCCReference Include="Forms\frmRenameU.pas">
+      <Form>frmRename</Form>
+      <FormType>dfm</FormType>
+      <DesignClass>TForm</DesignClass>
+    </DCCReference>
+    <DCCReference Include="Forms\frmConfirmU.pas">
+      <Form>frmConfirm</Form>
+      <FormType>dfm</FormType>
+      <DesignClass>TForm</DesignClass>
+    </DCCReference>
+    <DCCReference Include="Forms\frmMainU.pas">
+      <Form>frmMain</Form>
+      <FormType>dfm</FormType>
+      <DesignClass>TForm</DesignClass>
+    </DCCReference>
+    <DCCReference Include="DataModules\dmDialogsU.pas">
+      <Form>dmDialogs</Form>
+      <FormType>dfm</FormType>
+      <DesignClass>TDataModule</DesignClass>
+    </DCCReference>
+  </ItemGroup>
+  <Import Project="$(BDS)\Bin\CodeGear.Delphi.Targets" />
+</Project>

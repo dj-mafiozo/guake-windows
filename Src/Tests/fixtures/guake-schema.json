@@ -1,0 +1,1302 @@
+[
+  {
+    "section": "general",
+    "name": "schema-version",
+    "type": "s",
+    "default": "",
+    "summary": "Last used schema version",
+    "description": "If schema version is not equal to current guake version, the schema file is regenerated and this flag is set to the current guake version.",
+    "enum": "gskGeneralSchemaVersion",
+    "prop": "GeneralSchemaVersion"
+  },
+  {
+    "section": "general",
+    "name": "debug-mode",
+    "type": "b",
+    "default": "false",
+    "summary": "Enable debug mode",
+    "description": "When debug mode is enabled, logs are printed in the standard output where Guake as been launched",
+    "enum": "gskGeneralDebugMode",
+    "prop": "GeneralDebugMode"
+  },
+  {
+    "section": "general",
+    "name": "mouse-display",
+    "type": "b",
+    "default": "true",
+    "summary": "Appear on the mouse display.",
+    "description": "Appear on the mouse display. This overrides any setting in display_n.",
+    "enum": "gskGeneralMouseDisplay",
+    "prop": "GeneralMouseDisplay"
+  },
+  {
+    "section": "general",
+    "name": "display-n",
+    "type": "i",
+    "default": "0",
+    "summary": "Display to appear on.",
+    "description": "Display to appear on if the  mouse_display option is not set. If this is set to an invalid value (as in the case of removing a screen from a system), the invalid value is automatically updated to the current primary screen.",
+    "enum": "gskGeneralDisplayN",
+    "prop": "GeneralDisplayN"
+  },
+  {
+    "section": "general",
+    "name": "default-shell",
+    "type": "s",
+    "default": "",
+    "summary": "Path to the default shell.",
+    "description": "Path to the default shell. Set to empty to use default user shell. If invalid path is set here, guake will fallback to user shell.",
+    "enum": "gskGeneralDefaultShell",
+    "prop": "GeneralDefaultShell"
+  },
+  {
+    "section": "general",
+    "name": "restore-tabs-startup",
+    "type": "b",
+    "default": "true",
+    "summary": "Restore tabs when startup",
+    "description": "If true, when guake startup, it will restore tabs from previous session",
+    "enum": "gskGeneralRestoreTabsStartup",
+    "prop": "GeneralRestoreTabsStartup"
+  },
+  {
+    "section": "general",
+    "name": "restore-tabs-notify",
+    "type": "b",
+    "default": "true",
+    "summary": "Notify when restored the tabs",
+    "description": "If true, when guake restored the tabs, it will notify the user that the tabs has been restored",
+    "enum": "gskGeneralRestoreTabsNotify",
+    "prop": "GeneralRestoreTabsNotify"
+  },
+  {
+    "section": "general",
+    "name": "save-tabs-when-changed",
+    "type": "b",
+    "default": "true",
+    "summary": "Automatically save tabs session when changed",
+    "description": "If true, when tabs has changed (add / delete ...etc.), it will automatically saved the tabs session",
+    "enum": "gskGeneralSaveTabsWhenChanged",
+    "prop": "GeneralSaveTabsWhenChanged"
+  },
+  {
+    "section": "general",
+    "name": "load-guake-yml",
+    "type": "b",
+    "default": "true",
+    "summary": "Load settings from guake.yml",
+    "description": "If true, when a change in the cwd is detected settings are changed based on the content of the file `cwd`/.guake.yml",
+    "enum": "gskGeneralLoadGuakeYml",
+    "prop": "GeneralLoadGuakeYml"
+  },
+  {
+    "section": "general",
+    "name": "use-login-shell",
+    "type": "b",
+    "default": "false",
+    "summary": "Login shell",
+    "description": "If true, the commands in terminal will be executed in a login shell.",
+    "enum": "gskGeneralUseLoginShell",
+    "prop": "GeneralUseLoginShell"
+  },
+  {
+    "section": "general",
+    "name": "use-trayicon",
+    "type": "b",
+    "default": "true",
+    "summary": "Sets the tray visibility.",
+    "description": "When true tray is visible.",
+    "enum": "gskGeneralUseTrayicon",
+    "prop": "GeneralUseTrayicon"
+  },
+  {
+    "section": "general",
+    "name": "workspace-specific-tab-sets",
+    "type": "b",
+    "default": "false",
+    "summary": "Use workspace specific tab sets",
+    "description": "When true, each workspace gets their own set of tabs.",
+    "enum": "gskGeneralWorkspaceSpecificTabSets",
+    "prop": "GeneralWorkspaceSpecificTabSets"
+  },
+  {
+    "section": "general",
+    "name": "use-popup",
+    "type": "b",
+    "default": "true",
+    "summary": "Sets the popup notifications visibility.",
+    "description": "When true, popup notifications will be shown when Guake starts.",
+    "enum": "gskGeneralUsePopup",
+    "prop": "GeneralUsePopup"
+  },
+  {
+    "section": "general",
+    "name": "prompt-on-quit",
+    "type": "b",
+    "default": "true",
+    "summary": "Prompt when quitting.",
+    "description": "Ask for confirmation when quitting Guake.",
+    "enum": "gskGeneralPromptOnQuit",
+    "prop": "GeneralPromptOnQuit"
+  },
+  {
+    "section": "general",
+    "name": "prompt-on-close-tab",
+    "type": "i",
+    "default": "0",
+    "summary": "Prompt when closing tabs.",
+    "description": "0: Never 1: If process is running 2: Always.  Also prompts on quit.",
+    "enum": "gskGeneralPromptOnCloseTab",
+    "prop": "GeneralPromptOnCloseTab"
+  },
+  {
+    "section": "general",
+    "name": "search-engine",
+    "type": "i",
+    "default": "0",
+    "summary": "Search engine to use when using web search",
+    "description": "Search engine to use",
+    "enum": "gskGeneralSearchEngine",
+    "prop": "GeneralSearchEngine"
+  },
+  {
+    "section": "general",
+    "name": "custom-search-engine",
+    "type": "s",
+    "default": "",
+    "summary": "Search engine to use when using web search",
+    "description": "Custom search engine url to use",
+    "enum": "gskGeneralCustomSearchEngine",
+    "prop": "GeneralCustomSearchEngine"
+  },
+  {
+    "section": "general",
+    "name": "window-ontop",
+    "type": "b",
+    "default": "true",
+    "summary": "Stay on top.",
+    "description": "Makes guake window be on top of all other windows in the desktop.",
+    "enum": "gskGeneralWindowOntop",
+    "prop": "GeneralWindowOntop"
+  },
+  {
+    "section": "general",
+    "name": "window-refocus",
+    "type": "b",
+    "default": "false",
+    "summary": "Refocus window.",
+    "description": "Refocus window instead of closing.",
+    "enum": "gskGeneralWindowRefocus",
+    "prop": "GeneralWindowRefocus"
+  },
+  {
+    "section": "general",
+    "name": "tab-ontop",
+    "type": "b",
+    "default": "false",
+    "summary": "Tab on top.",
+    "description": "Makes tab bar on top of the Guake window. Per default, tabs appear below the terminal. Setting this to True will move the tab on top of the terminal. Requires a restart.",
+    "enum": "gskGeneralTabOntop",
+    "prop": "GeneralTabOntop"
+  },
+  {
+    "section": "general",
+    "name": "new-tab-after",
+    "type": "b",
+    "default": "false",
+    "summary": "New tabs appear after the current tab.",
+    "description": "Makes new tabs appear after the currently selected tab, instead of at the end.",
+    "enum": "gskGeneralNewTabAfter",
+    "prop": "GeneralNewTabAfter"
+  },
+  {
+    "section": "general",
+    "name": "window-losefocus",
+    "type": "b",
+    "default": "false",
+    "summary": "Determine if guake hides on lose focus.",
+    "description": "If this property is set as true, guake will be hidden when the main window lose the focus (when Alt+Tab be pressed for example).",
+    "enum": "gskGeneralWindowLosefocus",
+    "prop": "GeneralWindowLosefocus"
+  },
+  {
+    "section": "general",
+    "name": "lazy-losefocus",
+    "type": "b",
+    "default": "false",
+    "summary": "Delay hiding on losing focus.",
+    "description": "Momentarily delay hiding Guake when focus is lost and don't hide if focus is returned quickly, like when switching desktops or turning on certain IMEs.",
+    "enum": "gskGeneralLazyLosefocus",
+    "prop": "GeneralLazyLosefocus"
+  },
+  {
+    "section": "general",
+    "name": "window-tabbar",
+    "type": "b",
+    "default": "true",
+    "summary": "The tab bar visibility.",
+    "description": "When true, the tab bar is visible.",
+    "enum": "gskGeneralWindowTabbar",
+    "prop": "GeneralWindowTabbar"
+  },
+  {
+    "section": "general",
+    "name": "fullscreen-hide-tabbar",
+    "type": "b",
+    "default": "true",
+    "summary": "Hide tab bar when fullscreen",
+    "description": "When true, the tab bar will hide when is in fullscreen",
+    "enum": "gskGeneralFullscreenHideTabbar",
+    "prop": "GeneralFullscreenHideTabbar"
+  },
+  {
+    "section": "general",
+    "name": "hide-tabs-if-one-tab",
+    "type": "b",
+    "default": "false",
+    "summary": "Hide tab bar if there is only one tab",
+    "description": "When true, the tab bar will hide when there is only one tab",
+    "enum": "gskGeneralHideTabsIfOneTab",
+    "prop": "GeneralHideTabsIfOneTab"
+  },
+  {
+    "section": "general",
+    "name": "quick-open-enable",
+    "type": "b",
+    "default": "false",
+    "summary": "Enable Quick Open feature.",
+    "description": "If this property is set as true, guake will open a text editor when the user does a Ctrl+Click on a filename printed in the terminal.",
+    "enum": "gskGeneralQuickOpenEnable",
+    "prop": "GeneralQuickOpenEnable"
+  },
+  {
+    "section": "general",
+    "name": "quick-open-command-line",
+    "type": "s",
+    "default": "gedit %(file_path)s",
+    "summary": "Command line pattern to start a editor.",
+    "description": "This property gives the command line to execute when doing a Quick Open. You can enter the following python string pattern in it: '%(file_path)s' will be replaced with the full path to the captured filename, '%(line_number)s' will be replaced by the line number if found (set to the empty string otherwise).",
+    "enum": "gskGeneralQuickOpenCommandLine",
+    "prop": "GeneralQuickOpenCommandLine"
+  },
+  {
+    "section": "general",
+    "name": "quick-open-in-current-terminal",
+    "type": "b",
+    "default": "false",
+    "summary": "Quick open the file in the current terminal.",
+    "description": "If this property is set as true, guake will use the current terminal to execute the Quick open feature. Use if you want to inherit your terminal environment in your text editor",
+    "enum": "gskGeneralQuickOpenInCurrentTerminal",
+    "prop": "GeneralQuickOpenInCurrentTerminal"
+  },
+  {
+    "section": "general",
+    "name": "startup-script",
+    "type": "s",
+    "default": "",
+    "summary": "Startup script to execute when guake starts",
+    "description": "This property allows you to execute a startup bash script each time guake starts. You can configure your initial tab settings within this script. Please see the command line argument of guake ('guake --help') for complete help.",
+    "enum": "gskGeneralStartupScript",
+    "prop": "GeneralStartupScript"
+  },
+  {
+    "section": "general",
+    "name": "start-fullscreen",
+    "type": "b",
+    "default": "false",
+    "summary": "Start fullscreen.",
+    "description": "When true, the program will start in fullscreen mode.",
+    "enum": "gskGeneralStartFullscreen",
+    "prop": "GeneralStartFullscreen"
+  },
+  {
+    "section": "general",
+    "name": "start-at-login",
+    "type": "b",
+    "default": "false",
+    "summary": "Start when GNOME starts",
+    "description": "When true, the program will start upon GNOME login.",
+    "enum": "gskGeneralStartAtLogin",
+    "prop": "GeneralStartAtLogin"
+  },
+  {
+    "section": "general",
+    "name": "use-audible-bell",
+    "type": "b",
+    "default": "false",
+    "summary": "Audible bell",
+    "description": "If true, the system alert sound will be played on a bell character.",
+    "enum": "gskGeneralUseAudibleBell",
+    "prop": "GeneralUseAudibleBell"
+  },
+  {
+    "section": "general",
+    "name": "display-tab-activity",
+    "type": "b",
+    "default": "false",
+    "summary": "Highlight tabs with activity",
+    "description": "If true, the title of a background tab is highlighted when its terminal produces output, until the tab is selected.",
+    "enum": "gskGeneralDisplayTabActivity",
+    "prop": "GeneralDisplayTabActivity"
+  },
+  {
+    "section": "general",
+    "name": "tab-activity-new-tab-grace",
+    "type": "d",
+    "default": "3.0",
+    "summary": "Activity grace period for new tabs",
+    "description": "Number of seconds during which activity is ignored on a newly created tab, to avoid highlighting it because of its initial shell prompt.",
+    "enum": "gskGeneralTabActivityNewTabGrace",
+    "prop": "GeneralTabActivityNewTabGrace"
+  },
+  {
+    "section": "general",
+    "name": "tab-activity-focus-loss-grace",
+    "type": "d",
+    "default": "1.0",
+    "summary": "Activity grace period after losing focus",
+    "description": "Number of seconds during which activity is ignored on a tab right after it loses focus.",
+    "enum": "gskGeneralTabActivityFocusLossGrace",
+    "prop": "GeneralTabActivityFocusLossGrace"
+  },
+  {
+    "section": "general",
+    "name": "window-width",
+    "type": "i",
+    "default": "100",
+    "summary": "Window width.",
+    "description": "Percent of the screen that will be used by guake terminal horizontally.",
+    "enum": "gskGeneralWindowWidth",
+    "prop": "GeneralWindowWidth"
+  },
+  {
+    "section": "general",
+    "name": "window-height",
+    "type": "i",
+    "default": "50",
+    "summary": "Window height.",
+    "description": "Percent of the screen that will be used by guake terminal vertically.",
+    "enum": "gskGeneralWindowHeight",
+    "prop": "GeneralWindowHeight"
+  },
+  {
+    "section": "general",
+    "name": "window-horizontal-displacement",
+    "type": "i",
+    "default": "0",
+    "summary": "Horizontal window displacement.",
+    "description": "Displace the window horizontally by a given amount of pixels.",
+    "enum": "gskGeneralWindowHorizontalDisplacement",
+    "prop": "GeneralWindowHorizontalDisplacement"
+  },
+  {
+    "section": "general",
+    "name": "window-vertical-displacement",
+    "type": "i",
+    "default": "0",
+    "summary": "Vertical window displacement.",
+    "description": "Displace the window vertically by a given amount of pixels.",
+    "enum": "gskGeneralWindowVerticalDisplacement",
+    "prop": "GeneralWindowVerticalDisplacement"
+  },
+  {
+    "section": "general",
+    "name": "window-halignment",
+    "type": "i",
+    "default": "0",
+    "summary": "Window horizontal alignment.",
+    "description": "Place Guake at: 0: center, 1: left, 2: right",
+    "enum": "gskGeneralWindowHalignment",
+    "prop": "GeneralWindowHalignment"
+  },
+  {
+    "section": "general",
+    "name": "window-valignment",
+    "type": "i",
+    "default": "0",
+    "summary": "Window vertical alignment.",
+    "description": "Place Guake at: 0: top, 1: bottom",
+    "enum": "gskGeneralWindowValignment",
+    "prop": "GeneralWindowValignment"
+  },
+  {
+    "section": "general",
+    "name": "background-image-file",
+    "type": "s",
+    "default": "",
+    "summary": "Background image filename.",
+    "description": "When setup, the selected background image will show on guake",
+    "enum": "gskGeneralBackgroundImageFile",
+    "prop": "GeneralBackgroundImageFile"
+  },
+  {
+    "section": "general",
+    "name": "background-image-layout-mode",
+    "type": "i",
+    "default": "0",
+    "summary": "Background image layout mode.",
+    "description": "To select which layout mode want to use for background image.",
+    "enum": "gskGeneralBackgroundImageLayoutMode",
+    "prop": "GeneralBackgroundImageLayoutMode"
+  },
+  {
+    "section": "general",
+    "name": "use-scrollbar",
+    "type": "b",
+    "default": "true",
+    "summary": "Sets the scrollbar visibility.",
+    "description": "When true, scrollbar is visible.",
+    "enum": "gskGeneralUseScrollbar",
+    "prop": "GeneralUseScrollbar"
+  },
+  {
+    "section": "general",
+    "name": "history-size",
+    "type": "i",
+    "default": "1000",
+    "summary": "History Size.",
+    "description": "The number of scrollback lines to save in history.",
+    "enum": "gskGeneralHistorySize",
+    "prop": "GeneralHistorySize"
+  },
+  {
+    "section": "general",
+    "name": "infinite-history",
+    "type": "b",
+    "default": "false",
+    "summary": "Infinite scrolling",
+    "description": "Scrollback lines in history is infinite",
+    "enum": "gskGeneralInfiniteHistory",
+    "prop": "GeneralInfiniteHistory"
+  },
+  {
+    "section": "general",
+    "name": "scroll-output",
+    "type": "b",
+    "default": "false",
+    "summary": "Scroll on output",
+    "description": "If true, whenever there is new output in the terminal, it will scroll to the bottom.",
+    "enum": "gskGeneralScrollOutput",
+    "prop": "GeneralScrollOutput"
+  },
+  {
+    "section": "general",
+    "name": "scroll-keystroke",
+    "type": "b",
+    "default": "true",
+    "summary": "Scroll on keystroke",
+    "description": "If true and a key is pressed, the terminal is scrolled to the bottom.",
+    "enum": "gskGeneralScrollKeystroke",
+    "prop": "GeneralScrollKeystroke"
+  },
+  {
+    "section": "general",
+    "name": "use-default-font",
+    "type": "b",
+    "default": "true",
+    "summary": "Use default font",
+    "description": "If true, Guake will use the GNOME monospace default font.",
+    "enum": "gskGeneralUseDefaultFont",
+    "prop": "GeneralUseDefaultFont"
+  },
+  {
+    "section": "general",
+    "name": "use-vte-titles",
+    "type": "b",
+    "default": "true",
+    "summary": "Use terminal titles for tab naming",
+    "description": "Any terminal program can set the terminal's title via special escape sequences. Some shells (e.g. bash) display user's prompt there (though you can adjust that to any arbitrary text in bashrc or similar) and update it automatically as the prompt changes. So you can have easy automatically updating meaningful tab titles with this option turned on.",
+    "enum": "gskGeneralUseVteTitles",
+    "prop": "GeneralUseVteTitles"
+  },
+  {
+    "section": "general",
+    "name": "set-window-title",
+    "type": "b",
+    "default": "false",
+    "summary": "Set window title to current tab name",
+    "description": "If true, Guake will update its window title from the current tab name. It is useful when you work with applications that use windows title, (keepass, automatic time tracker apps)",
+    "enum": "gskGeneralSetWindowTitle",
+    "prop": "GeneralSetWindowTitle"
+  },
+  {
+    "section": "general",
+    "name": "compat-backspace",
+    "type": "s",
+    "default": "ascii-delete",
+    "summary": "Backspace Compatibility",
+    "description": "Defines the behavior of backspace key.",
+    "enum": "gskGeneralCompatBackspace",
+    "prop": "GeneralCompatBackspace"
+  },
+  {
+    "section": "general",
+    "name": "compat-delete",
+    "type": "s",
+    "default": "delete-sequence",
+    "summary": "Delete Compatibility",
+    "description": "Defines the behavior of delete key.",
+    "enum": "gskGeneralCompatDelete",
+    "prop": "GeneralCompatDelete"
+  },
+  {
+    "section": "general",
+    "name": "word-chars",
+    "type": "s",
+    "default": "-A-Za-z0-9,./?%&#:_~",
+    "summary": "Characters that are considered \"part of a word\"",
+    "description": "When selecting text by word, sequences of these characters are considered single words. Ranges can be given as \"A-Z\". Literal hyphen (not expressing a range) should be the first character given.",
+    "enum": "gskGeneralWordChars",
+    "prop": "GeneralWordChars"
+  },
+  {
+    "section": "general",
+    "name": "toolbar-visible-in-fullscreen",
+    "type": "b",
+    "default": "true",
+    "summary": "If the tabs bar must be visible in fullscreen",
+    "description": "Set it as false to enjoy guake's fullscreen.",
+    "enum": "gskGeneralToolbarVisibleInFullscreen",
+    "prop": "GeneralToolbarVisibleInFullscreen"
+  },
+  {
+    "section": "general",
+    "name": "focus-if-open",
+    "type": "b",
+    "default": "true",
+    "summary": "Give focus to guake if tab is opened (OBSOLETE).",
+    "description": "If the guake window is out of focus but open, enabling this will give it back the focus instead of closing the window.",
+    "enum": "gskGeneralFocusIfOpen",
+    "prop": "GeneralFocusIfOpen"
+  },
+  {
+    "section": "general",
+    "name": "custom-command-file",
+    "type": "s",
+    "default": "~/.config/guake/custom_command.json",
+    "summary": "Path to the default custom command json file.",
+    "description": "Path to the default custom command json file. If is blank or the json file is not in a proper format the terminal context menu will be built without custom commands. If the file is a valid json with recognized structure theterminak context menu will be built with the commands read inside.",
+    "enum": "gskGeneralCustomCommandFile",
+    "prop": "GeneralCustomCommandFile"
+  },
+  {
+    "section": "general",
+    "name": "open-tab-cwd",
+    "type": "b",
+    "default": "true",
+    "summary": "Open new tab in the current working directory",
+    "description": "Open new tab in the current working directory",
+    "enum": "gskGeneralOpenTabCwd",
+    "prop": "GeneralOpenTabCwd"
+  },
+  {
+    "section": "general",
+    "name": "max-tab-name-length",
+    "type": "i",
+    "default": "100",
+    "summary": "#TODO PORT max-tab-name-length",
+    "description": "#TODO PORT max-tab-name-length",
+    "enum": "gskGeneralMaxTabNameLength",
+    "prop": "GeneralMaxTabNameLength"
+  },
+  {
+    "section": "general",
+    "name": "display-tab-names",
+    "type": "i",
+    "default": "0",
+    "summary": "How to display tab names.",
+    "description": "Controls how the tab names are displayed. 0: Full Path, 1: Abbreviated Path, 2: Only display the last segment of the path",
+    "enum": "gskGeneralDisplayTabNames",
+    "prop": "GeneralDisplayTabNames"
+  },
+  {
+    "section": "general",
+    "name": "gtk-use-system-default-theme",
+    "type": "b",
+    "default": "true",
+    "summary": "Use system default theme for GTK",
+    "description": "Prefer the system default theme",
+    "enum": "gskGeneralGtkUseSystemDefaultTheme",
+    "prop": "GeneralGtkUseSystemDefaultTheme"
+  },
+  {
+    "section": "general",
+    "name": "gtk-theme-name",
+    "type": "s",
+    "default": "",
+    "summary": "GTK Theme name",
+    "description": "Name of the GTK theme to apply on Guake. If set to an empty string, let GTK use the default system theme",
+    "enum": "gskGeneralGtkThemeName",
+    "prop": "GeneralGtkThemeName"
+  },
+  {
+    "section": "general",
+    "name": "gtk-prefer-dark-theme",
+    "type": "b",
+    "default": "false",
+    "summary": "Prefer Dark Theme for GTK",
+    "description": "Prefer the dark theme version of the theme if available",
+    "enum": "gskGeneralGtkPreferDarkTheme",
+    "prop": "GeneralGtkPreferDarkTheme"
+  },
+  {
+    "section": "general",
+    "name": "tab-close-buttons",
+    "type": "b",
+    "default": "false",
+    "summary": "Show close buttons for tabs",
+    "description": "Show close buttons next to tab titles",
+    "enum": "gskGeneralTabCloseButtons",
+    "prop": "GeneralTabCloseButtons"
+  },
+  {
+    "section": "general",
+    "name": "copy-on-select",
+    "type": "b",
+    "default": "false",
+    "summary": "Copy selected text if enabled.",
+    "description": "Copy the selected text.",
+    "enum": "gskGeneralCopyOnSelect",
+    "prop": "GeneralCopyOnSelect"
+  },
+  {
+    "section": "style",
+    "name": "cursor-blink-mode",
+    "type": "i",
+    "default": "0",
+    "summary": "Cursor blink mode of the terminal",
+    "description": "Controls the blink mode of the cursor in the terminals. 0: Follow GTK+ setting, 1: Blink on, 2: Blink off",
+    "enum": "gskStyleCursorBlinkMode",
+    "prop": "StyleCursorBlinkMode"
+  },
+  {
+    "section": "style",
+    "name": "cursor-shape",
+    "type": "i",
+    "default": "0",
+    "summary": "Cursor shape of the terminal",
+    "description": "Controls the shape of the cursor in the terminals. 0: Block, 1: I-Beam, 2: Underline",
+    "enum": "gskStyleCursorShape",
+    "prop": "StyleCursorShape"
+  },
+  {
+    "section": "style.font",
+    "name": "style",
+    "type": "s",
+    "default": "Monospace 10",
+    "summary": "Font style.",
+    "description": "Font face and size that will be used in terminal.",
+    "enum": "gskStyleFontStyle",
+    "prop": "StyleFontStyle"
+  },
+  {
+    "section": "style.font",
+    "name": "palette",
+    "type": "s",
+    "default": "000000000000:#cccc00000000:#4e4e9a9a0606:#c4c4a0a00000:#34346565a4a4:#757550507b7b:#060698209a9a:#d3d3d7d7cfcf:#555557575353:#efef29292929:#8a8ae2e23434:#fcfce9e94f4f:#72729f9fcfcf:#adad7f7fa8a8:#3434e2e2e2e2:#eeeeeeeeecec:#ffffffffffff:#000000000000",
+    "summary": "Color scheme.",
+    "description": "Color scheme that will be used in terminal.",
+    "enum": "gskStyleFontPalette",
+    "prop": "StyleFontPalette"
+  },
+  {
+    "section": "style.font",
+    "name": "palette-name",
+    "type": "s",
+    "default": "Tango",
+    "summary": "Color scheme name.",
+    "description": "Color scheme name that will be used in terminal.",
+    "enum": "gskStyleFontPaletteName",
+    "prop": "StyleFontPaletteName"
+  },
+  {
+    "section": "style.font",
+    "name": "allow-bold",
+    "type": "b",
+    "default": "true",
+    "summary": "Allow displaying bold font in Guake terminal.",
+    "description": "When allow_bold is disabled, any text in Guake terminal intended to print as bold text will be instead rendered as normal text.",
+    "enum": "gskStyleFontAllowBold",
+    "prop": "StyleFontAllowBold"
+  },
+  {
+    "section": "style.font",
+    "name": "bold-is-bright",
+    "type": "b",
+    "default": "false",
+    "summary": "Use bright colors for bold text",
+    "description": "If true, text from the first 8 colors that is formatted as bold will also be switched to its bright variant (VTE >=0.52).",
+    "enum": "gskStyleFontBoldIsBright",
+    "prop": "StyleFontBoldIsBright"
+  },
+  {
+    "section": "style.font",
+    "name": "cell-height-scale",
+    "type": "d",
+    "default": "1.0",
+    "summary": "Set terminal's cell height scale to `scale` (VTE >= 0.52)",
+    "description": "This can be used to increase the line spacing. (The font's height is not affected.) Valid values go from 1.0 (default) to 2.0 (\"double spacing\").",
+    "enum": "gskStyleFontCellHeightScale",
+    "prop": "StyleFontCellHeightScale"
+  },
+  {
+    "section": "style.font",
+    "name": "cell-width-scale",
+    "type": "d",
+    "default": "1.0",
+    "summary": "Set terminal's cell width scale to `scale` (VTE >= 0.52)",
+    "description": "This can be used to increase the letter spacing. (The font's width is not affected.) Valid values go from 1.0 (default) to 2.0 (\"double spacing\").",
+    "enum": "gskStyleFontCellWidthScale",
+    "prop": "StyleFontCellWidthScale"
+  },
+  {
+    "section": "style.background",
+    "name": "transparency",
+    "type": "i",
+    "default": "90",
+    "summary": "Background transparency.",
+    "description": "Alpha that will be applied to the terminal background.",
+    "enum": "gskStyleBackgroundTransparency",
+    "prop": "StyleBackgroundTransparency"
+  },
+  {
+    "section": "keybindings.global",
+    "name": "show-hide",
+    "type": "s",
+    "default": "F12",
+    "summary": "Keybinding to show/hide guake.",
+    "description": "Global keybinding to allow user call guake from each place after it's opened without clicks.",
+    "enum": "gskKeybindingsGlobalShowHide",
+    "prop": "KeybindingsGlobalShowHide"
+  },
+  {
+    "section": "keybindings.global",
+    "name": "show-focus",
+    "type": "s",
+    "default": "",
+    "summary": "Keybinding to show and focus guake.",
+    "description": "Global keybinding to allow user call guake from each place after it's opened without clicks.",
+    "enum": "gskKeybindingsGlobalShowFocus",
+    "prop": "KeybindingsGlobalShowFocus"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "search-terminal",
+    "type": "s",
+    "default": "<Control><Shift>f",
+    "summary": "Search terminal",
+    "description": "Show search box to search text inside the terminal",
+    "enum": "gskKeybindingsLocalSearchTerminal",
+    "prop": "KeybindingsLocalSearchTerminal"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "quit",
+    "type": "s",
+    "default": "<Control><Shift>q",
+    "summary": "Quit",
+    "description": "Quit Guake.",
+    "enum": "gskKeybindingsLocalQuit",
+    "prop": "KeybindingsLocalQuit"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "new-tab",
+    "type": "s",
+    "default": "<Control><Shift>t",
+    "summary": "Add a new tab.",
+    "description": "Calls the function to add a new tab in guake window.",
+    "enum": "gskKeybindingsLocalNewTab",
+    "prop": "KeybindingsLocalNewTab"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "new-tab-home",
+    "type": "s",
+    "default": "<Control><Shift>h",
+    "summary": "Add a new tab in home directory.",
+    "description": "Calls the function to add a new home directory tab in guake window.",
+    "enum": "gskKeybindingsLocalNewTabHome",
+    "prop": "KeybindingsLocalNewTabHome"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "new-tab-cwd",
+    "type": "s",
+    "default": "<Super>t",
+    "summary": "Add a new tab in current directory.",
+    "description": "Calls the function to add a new tab in guake window, in the same directory as the current tab.",
+    "enum": "gskKeybindingsLocalNewTabCwd",
+    "prop": "KeybindingsLocalNewTabCwd"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "close-tab",
+    "type": "s",
+    "default": "<Control><Shift>w",
+    "summary": "Closes the current tab.",
+    "description": "Accelerator to active function that closes the current selected tab.",
+    "enum": "gskKeybindingsLocalCloseTab",
+    "prop": "KeybindingsLocalCloseTab"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "search-on-web",
+    "type": "s",
+    "default": "<Control><Shift>l",
+    "summary": "Search current selected text on the web",
+    "description": "Accelerator to active function that search on the web the current selected text on the terminal.",
+    "enum": "gskKeybindingsLocalSearchOnWeb",
+    "prop": "KeybindingsLocalSearchOnWeb"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "open-link-under-terminal-cursor",
+    "type": "s",
+    "default": "<Control><Shift>o",
+    "summary": "Open link under terminal cursor",
+    "description": "Accelerator to active function that opens the link (URL) under the current terminal cursor.",
+    "enum": "gskKeybindingsLocalOpenLinkUnderTerminalCursor",
+    "prop": "KeybindingsLocalOpenLinkUnderTerminalCursor"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "move-tab-left",
+    "type": "s",
+    "default": "<Control><Shift>Page_Up",
+    "summary": "Move left current tab",
+    "description": "Move the current tab to the left",
+    "enum": "gskKeybindingsLocalMoveTabLeft",
+    "prop": "KeybindingsLocalMoveTabLeft"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "move-tab-right",
+    "type": "s",
+    "default": "<Control><Shift>Page_Down",
+    "summary": "Move right current tab",
+    "description": "Move the current tab to the right",
+    "enum": "gskKeybindingsLocalMoveTabRight",
+    "prop": "KeybindingsLocalMoveTabRight"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "previous-tab",
+    "type": "s",
+    "default": "<Control>Page_Up",
+    "summary": "Previous tab.",
+    "description": "Shows the previous tab.",
+    "enum": "gskKeybindingsLocalPreviousTab",
+    "prop": "KeybindingsLocalPreviousTab"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "next-tab",
+    "type": "s",
+    "default": "<Control>Page_Down",
+    "summary": "Next tab.",
+    "description": "Shows the next tab.",
+    "enum": "gskKeybindingsLocalNextTab",
+    "prop": "KeybindingsLocalNextTab"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "previous-tab-alt",
+    "type": "s",
+    "default": "<Control><Shift>Tab",
+    "summary": "Previous tab (alternative)",
+    "description": "Alternate shortcut to show the previous tab.",
+    "enum": "gskKeybindingsLocalPreviousTabAlt",
+    "prop": "KeybindingsLocalPreviousTabAlt"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "next-tab-alt",
+    "type": "s",
+    "default": "<Control>Tab",
+    "summary": "Next tab (alternative)",
+    "description": "Alternate shortcut to show the next tab.",
+    "enum": "gskKeybindingsLocalNextTabAlt",
+    "prop": "KeybindingsLocalNextTabAlt"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "switch-tab1",
+    "type": "s",
+    "default": "<Control>F1",
+    "summary": "First tab.",
+    "description": "Switch to the first tab.",
+    "enum": "gskKeybindingsLocalSwitchTab1",
+    "prop": "KeybindingsLocalSwitchTab1"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "switch-tab2",
+    "type": "s",
+    "default": "<Control>F2",
+    "summary": "Second tab.",
+    "description": "Switch to the second tab.",
+    "enum": "gskKeybindingsLocalSwitchTab2",
+    "prop": "KeybindingsLocalSwitchTab2"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "switch-tab3",
+    "type": "s",
+    "default": "<Control>F3",
+    "summary": "Third tab.",
+    "description": "Switch to the third tab.",
+    "enum": "gskKeybindingsLocalSwitchTab3",
+    "prop": "KeybindingsLocalSwitchTab3"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "switch-tab4",
+    "type": "s",
+    "default": "<Control>F4",
+    "summary": "Fourth tab.",
+    "description": "Switch to the fourth tab.",
+    "enum": "gskKeybindingsLocalSwitchTab4",
+    "prop": "KeybindingsLocalSwitchTab4"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "switch-tab5",
+    "type": "s",
+    "default": "<Control>F5",
+    "summary": "Fifth tab.",
+    "description": "Switch to the fifth tab.",
+    "enum": "gskKeybindingsLocalSwitchTab5",
+    "prop": "KeybindingsLocalSwitchTab5"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "switch-tab6",
+    "type": "s",
+    "default": "<Control>F6",
+    "summary": "Sixth tab.",
+    "description": "Switch to the sixth tab.",
+    "enum": "gskKeybindingsLocalSwitchTab6",
+    "prop": "KeybindingsLocalSwitchTab6"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "switch-tab7",
+    "type": "s",
+    "default": "<Control>F7",
+    "summary": "Seventh tab.",
+    "description": "Switch to the seventh tab.",
+    "enum": "gskKeybindingsLocalSwitchTab7",
+    "prop": "KeybindingsLocalSwitchTab7"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "switch-tab8",
+    "type": "s",
+    "default": "<Control>F8",
+    "summary": "eighth tab.",
+    "description": "Switch to the eighth tab.",
+    "enum": "gskKeybindingsLocalSwitchTab8",
+    "prop": "KeybindingsLocalSwitchTab8"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "switch-tab9",
+    "type": "s",
+    "default": "<Control>F9",
+    "summary": "Ninth tab.",
+    "description": "Switch to the ninth tab.",
+    "enum": "gskKeybindingsLocalSwitchTab9",
+    "prop": "KeybindingsLocalSwitchTab9"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "switch-tab10",
+    "type": "s",
+    "default": "<Control>F10",
+    "summary": "Tenth tab.",
+    "description": "Switch to the tenth tab.",
+    "enum": "gskKeybindingsLocalSwitchTab10",
+    "prop": "KeybindingsLocalSwitchTab10"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "rename-current-tab",
+    "type": "s",
+    "default": "<Control><Shift>R",
+    "summary": "Rename current tab.",
+    "description": "Shows a dialog to rename the current tab.",
+    "enum": "gskKeybindingsLocalRenameCurrentTab",
+    "prop": "KeybindingsLocalRenameCurrentTab"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "zoom-in",
+    "type": "s",
+    "default": "<Control>plus",
+    "summary": "Zoom in.",
+    "description": "Increase the font size of the terminals.",
+    "enum": "gskKeybindingsLocalZoomIn",
+    "prop": "KeybindingsLocalZoomIn"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "zoom-in-alt",
+    "type": "s",
+    "default": "<Control>equal",
+    "summary": "Zoom in (alternative)",
+    "description": "Additional shortcut for zooming in.",
+    "enum": "gskKeybindingsLocalZoomInAlt",
+    "prop": "KeybindingsLocalZoomInAlt"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "zoom-out",
+    "type": "s",
+    "default": "<Control>minus",
+    "summary": "Zoom out.",
+    "description": "Decrease the font size of the terminals.",
+    "enum": "gskKeybindingsLocalZoomOut",
+    "prop": "KeybindingsLocalZoomOut"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "increase-height",
+    "type": "s",
+    "default": "<Control>Down",
+    "summary": "Increase height.",
+    "description": "Increase the screen height.",
+    "enum": "gskKeybindingsLocalIncreaseHeight",
+    "prop": "KeybindingsLocalIncreaseHeight"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "decrease-height",
+    "type": "s",
+    "default": "<Control>Up",
+    "summary": "Decrease height.",
+    "description": "Decrease the screen height.",
+    "enum": "gskKeybindingsLocalDecreaseHeight",
+    "prop": "KeybindingsLocalDecreaseHeight"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "increase-transparency",
+    "type": "s",
+    "default": "<Control><Shift>b",
+    "summary": "Increase transparency.",
+    "description": "Increase the terminal transparency.",
+    "enum": "gskKeybindingsLocalIncreaseTransparency",
+    "prop": "KeybindingsLocalIncreaseTransparency"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "decrease-transparency",
+    "type": "s",
+    "default": "<Control><Shift>n",
+    "summary": "Decrease transparency.",
+    "description": "Decrease the terminal transparency.",
+    "enum": "gskKeybindingsLocalDecreaseTransparency",
+    "prop": "KeybindingsLocalDecreaseTransparency"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "clipboard-copy",
+    "type": "s",
+    "default": "<Control><Shift>c",
+    "summary": "Copy clipboard.",
+    "description": "Copy the clipboard content.",
+    "enum": "gskKeybindingsLocalClipboardCopy",
+    "prop": "KeybindingsLocalClipboardCopy"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "clipboard-paste",
+    "type": "s",
+    "default": "<Control><Shift>v",
+    "summary": "Paste clipboard.",
+    "description": "Paste the clipboard content.",
+    "enum": "gskKeybindingsLocalClipboardPaste",
+    "prop": "KeybindingsLocalClipboardPaste"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "select-all",
+    "type": "s",
+    "default": "<Control><Shift>a",
+    "summary": "Select all.",
+    "description": "Select all contents of the currently active terminal.",
+    "enum": "gskKeybindingsLocalSelectAll",
+    "prop": "KeybindingsLocalSelectAll"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "toggle-fullscreen",
+    "type": "s",
+    "default": "F11",
+    "summary": "Toggle Fullscreen.",
+    "description": "Toggle main guake window fullscreen.",
+    "enum": "gskKeybindingsLocalToggleFullscreen",
+    "prop": "KeybindingsLocalToggleFullscreen"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "toggle-hide-on-lose-focus",
+    "type": "s",
+    "default": "<Control><Shift>F1",
+    "summary": "Toggle hide on lose focus.",
+    "description": "Toggle whether guake will hide when it loses focus.",
+    "enum": "gskKeybindingsLocalToggleHideOnLoseFocus",
+    "prop": "KeybindingsLocalToggleHideOnLoseFocus"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "reset-terminal",
+    "type": "s",
+    "default": "",
+    "summary": "Reset",
+    "description": "Reset terminal",
+    "enum": "gskKeybindingsLocalResetTerminal",
+    "prop": "KeybindingsLocalResetTerminal"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "toggle-transparency",
+    "type": "s",
+    "default": "<Control><Alt>T",
+    "summary": "Toggle transparency.",
+    "description": "Toggle the terminal transparency from the actual level to 100% and vice versa.",
+    "enum": "gskKeybindingsLocalToggleTransparency",
+    "prop": "KeybindingsLocalToggleTransparency"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "switch-tab-last",
+    "type": "s",
+    "default": "<Control>F12",
+    "summary": "Last tab.",
+    "description": "Switch to the last tab.",
+    "enum": "gskKeybindingsLocalSwitchTabLast",
+    "prop": "KeybindingsLocalSwitchTabLast"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "split-tab-vertical",
+    "type": "s",
+    "default": "<Super><Shift>comma",
+    "summary": "Split tab vertical.",
+    "description": "Split tab vertical.",
+    "enum": "gskKeybindingsLocalSplitTabVertical",
+    "prop": "KeybindingsLocalSplitTabVertical"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "split-tab-horizontal",
+    "type": "s",
+    "default": "<Super>minus",
+    "summary": "Split tab horizontal.",
+    "description": "Split tab horizontal.",
+    "enum": "gskKeybindingsLocalSplitTabHorizontal",
+    "prop": "KeybindingsLocalSplitTabHorizontal"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "close-terminal",
+    "type": "s",
+    "default": "<Super>x",
+    "summary": "Close terminal.",
+    "description": "Close the currently focused terminal.",
+    "enum": "gskKeybindingsLocalCloseTerminal",
+    "prop": "KeybindingsLocalCloseTerminal"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "focus-terminal-up",
+    "type": "s",
+    "default": "<Super><Shift>Up",
+    "summary": "Focus terminal above.",
+    "description": "Focus terminal above.",
+    "enum": "gskKeybindingsLocalFocusTerminalUp",
+    "prop": "KeybindingsLocalFocusTerminalUp"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "focus-terminal-down",
+    "type": "s",
+    "default": "<Super><Shift>Down",
+    "summary": "Focus terminal below.",
+    "description": "Focus terminal below.",
+    "enum": "gskKeybindingsLocalFocusTerminalDown",
+    "prop": "KeybindingsLocalFocusTerminalDown"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "focus-terminal-right",
+    "type": "s",
+    "default": "<Super><Shift>Right",
+    "summary": "Focus terminal on the right.",
+    "description": "Focus terminal on the right.",
+    "enum": "gskKeybindingsLocalFocusTerminalRight",
+    "prop": "KeybindingsLocalFocusTerminalRight"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "focus-terminal-left",
+    "type": "s",
+    "default": "<Super><Shift>Left",
+    "summary": "Focus terminal on the left.",
+    "description": "Focus terminal on the left.",
+    "enum": "gskKeybindingsLocalFocusTerminalLeft",
+    "prop": "KeybindingsLocalFocusTerminalLeft"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "move-terminal-split-up",
+    "type": "s",
+    "default": "",
+    "summary": "Move the terminal split handle up.",
+    "description": "Move the terminal split handle up.",
+    "enum": "gskKeybindingsLocalMoveTerminalSplitUp",
+    "prop": "KeybindingsLocalMoveTerminalSplitUp"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "move-terminal-split-down",
+    "type": "s",
+    "default": "",
+    "summary": "Move the terminal split handle down.",
+    "description": "Move the terminal split handle down.",
+    "enum": "gskKeybindingsLocalMoveTerminalSplitDown",
+    "prop": "KeybindingsLocalMoveTerminalSplitDown"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "move-terminal-split-left",
+    "type": "s",
+    "default": "",
+    "summary": "Move the terminal split handle left.",
+    "description": "Move the terminal split handle left.",
+    "enum": "gskKeybindingsLocalMoveTerminalSplitLeft",
+    "prop": "KeybindingsLocalMoveTerminalSplitLeft"
+  },
+  {
+    "section": "keybindings.local",
+    "name": "move-terminal-split-right",
+    "type": "s",
+    "default": "",
+    "summary": "Move the terminal split handle right.",
+    "description": "Move the terminal split handle right.",
+    "enum": "gskKeybindingsLocalMoveTerminalSplitRight",
+    "prop": "KeybindingsLocalMoveTerminalSplitRight"
+  },
+  {
+    "section": "hooks",
+    "name": "show",
+    "type": "s",
+    "default": "",
+    "summary": "On show.",
+    "description": "Run this script on show.",
+    "enum": "gskHooksShow",
+    "prop": "HooksShow"
+  }
+]

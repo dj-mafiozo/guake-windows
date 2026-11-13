@@ -1,13 +1,25 @@
 ﻿# Guake dla Windows
 
-Port Guake na Windows 64-bit: Delphi, VCL, natywne WinAPI i ConPTY. Celem jest pełna zgodność funkcji i wyglądu z Guake. Obecny stan to pierwsze moduły infrastruktury; aplikacja terminalowa nie jest jeszcze dostępna.
+Port Guake na Windows 64-bit w Delphi/VCL z natywnym WinAPI. Celem jest zgodność funkcji i wyglądu z Guake. Obecnie dostępne są ustawienia i formularze; backend ConPTY, emulator VT oraz Named Pipes pozostają do implementacji. Główne okno nie uruchamia jeszcze powłoki.
 
-- Ustawienia: osobna klasa `TGuakeSettings`, oparta na `TMemIniFile`.
-- Powłoki: profile CMD, Windows PowerShell, Bash i Zsh z git-sdk-64.
-- Docelowa komunikacja między procesami: Named Pipes.
-- Formularze: DFM; zasoby niestandardowe: RC; VersionInfo i manifest generowane przez MSBuild.
-- Odczyt wersji: submoduł `Src/Common`, jednostka `VersionU.pas`.
+Główny projekt: [Src/guake.dpr](Src/guake.dpr), [Src/guake.dproj](Src/guake.dproj). Cały kod, projekty, narzędzia i dane lokalizacji znajdują się pod `Src/`. Wyniki budowania trafiają do ignorowanego `bin/`, pliki pośrednie do `.build/`.
 
-Przed budowaniem zainicjuj submoduły: `git submodule update --init --recursive`. Testy dla Delphi 10.2: `powershell -NoProfile -ExecutionPolicy Bypass -File tools/Test.ps1`. Raport: `bin/tests/test-results.xml`. Każde wywołanie skryptu zwiększa build. Formatter i zasady repozytorium opisuje [AGENTS.md](AGENTS.md).
+- [Ustawienia](Src/Settings/Guake.Settings.pas): 130 kluczy z oryginalnego schematu, hierarchiczne rekordy i osobna klasa z `TMemIniFile`.
+- [Preferencje](Src/Forms/frmPreferencesU.pas): dziewięć zakładek z `prefs.glade`, zapis zmian, zależności kontrolek, skróty, 169 palet i dialogi plikowe.
+- [Formularze](Src/Forms): okno główne, preferencje, informacje o programie, wyszukiwanie, zmiana nazwy i potwierdzenia. [Moduły danych](Src/DataModules) zawierają komponenty dialogów plikowych.
+- [Lokalizacja](Src/Localization/README.md): 26 oryginalnych PO Guake, import przez GNU msgfmt, biblioteka `Src/Vendor/i18n`.
+- [Diagnostyka](Src/Diagnostics/Guake.Logging.pas): logowanie `Exception.StackTrace`, biblioteka `Src/Vendor/stacktrace`, MAP i PDB dla każdego EXE.
+- [Common](Src/Common/README.md): submoduł z odczytem wersji EXE przez `VersionU.pas`.
 
-Szczegóły zakresu, brakujące funkcje i zasady wersjonowania: [stan portu](docs/port-status.md). Inwentarz źródła: [guake-contract.json](docs/guake-contract.json).
+Budowanie i testy dla Delphi 10.2 (z katalogu repozytorium):
+
+```powershell
+git submodule update --init --recursive
+powershell -NoProfile -ExecutionPolicy Bypass -File Src/Tools/Test.ps1
+```
+
+Wymagane: Delphi Win64, Python 3 i `map2pdb.exe` w PATH. Każdy przebieg zwiększa build. Skrypt buduje projekt główny, DUnitX oraz podgląd formularzy; generuje i wiąże PDB z EXE. Raport: `bin/tests/test-results.xml`. Podglądy zakładek: `bin/tests/preferences-preview/`. Testy używają własnego katalogu tymczasowego pod `.build/`.
+
+Główny EXE: `bin/Win64/guake.exe`. Samodzielny edytor preferencji do sprawdzenia formularza: `bin/forms/GuakeFormsPreview.exe`. Edytor zapisuje ustawienia do `%APPDATA%/Guake/guake.ini`. Zbudowaną aplikację z PDB i lokalizacją można spakować przez `Src/Tools/Package.ps1`.
+
+[Stan portu i mapa formularzy](docs/port-status.md) opisują zakres działającego kodu i braki. [Inwentarz źródłowego Guake](docs/guake-contract.json) nie oznacza implementacji wszystkich wymienionych funkcji. [AGENTS.md](AGENTS.md) określa formatowanie, zasoby i wersjonowanie.
