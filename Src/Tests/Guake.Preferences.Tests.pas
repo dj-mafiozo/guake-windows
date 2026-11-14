@@ -31,6 +31,7 @@ Interface
     [Test]     Procedure DependenciesTrackSettings;
     [Test]     Procedure ResetOnlyCompatibility;
     [Test]     Procedure DuplicateShortcutIsRejected;
+    [Test]     Procedure CaptureGraveAndTilde;
     [Test]     Procedure FailedSavePreservesSharedSettings;
     [Test]     Procedure PaletteUpdatesAllColors;
     [Test]     Procedure RenderAllPreferencePages;
@@ -41,7 +42,7 @@ Interface
 Implementation
 
  Uses
-  System.Classes, System.IOUtils, System.JSON,
+  Winapi.Windows, System.Classes, System.IOUtils, System.JSON,
   Vcl.Forms, Vcl.Controls, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.Graphics, Vcl.Imaging.pngimage,
   Guake.Palettes, frmAboutU, frmSearchU, frmRenameU, frmConfirmU, dmDialogsU, frmMainU;
 
@@ -363,6 +364,24 @@ Implementation
       Assert.IsTrue(TFile.Exists(ChangeFileExt(ParamStr(0), '.pdb')));
      End;
    End;
+  End;
+
+/// <summary>Captures the OEM grave key and its shifted tilde form in the actual preferences grid.</summary>
+
+ Procedure TPreferencesTests.CaptureGraveAndTilde;
+  Var
+   Key : Word;
+  Begin
+   fForm.Bind(fSettings);
+   fForm.gridShortcuts.Row := 1;
+   fForm.ShortcutDblClick(Nil);
+   Key := VK_OEM_3;
+   fForm.ShortcutKeyDown(Nil, Key, []);
+   Assert.IsTrue(Pos('grave', fForm.gridShortcuts.Cells[1, 1]) > 0);
+   fForm.ShortcutDblClick(Nil);
+   Key := VK_OEM_3;
+   fForm.ShortcutKeyDown(Nil, Key, [ssShift]);
+   Assert.IsTrue(Pos('asciitilde', fForm.gridShortcuts.Cells[1, 1]) > 0);
   End;
 
 Initialization

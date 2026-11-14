@@ -31,15 +31,28 @@
     PopupMenu = terminalMenu
     TabOrder = 0
   end
-  object tabBar: TTabControl
+  object tabHost: TPanel
     Left = 0
     Top = 508
     Width = 1000
     Height = 32
     Align = alBottom
+    BevelOuter = bvNone
+    Color = clBtnFace
+    ParentBackground = False
+    DoubleBuffered = True
     TabOrder = 1
-    TabPosition = tpBottom
-    OnChange = TabChanged
+    object tabBar: TTabControl
+      Left = 0
+      Top = 0
+      Width = 1000
+      Height = 32
+      Align = alClient
+      DoubleBuffered = True
+      TabOrder = 0
+      TabPosition = tpBottom
+      OnChange = TabChanged
+    end
   end
   object trayIcon: TTrayIcon
     Hint = 'Guake Terminal'

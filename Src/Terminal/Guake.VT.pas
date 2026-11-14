@@ -383,7 +383,7 @@ Implementation
    If PrivateMode Or (Copy(fSequence, 1, 1) = '>') Then
     Delete(fSequence, 1, 1);
    Parts := StringReplace(fSequence, ':', ';', [rfReplaceAll]).Split([';']);
-   SetLength(Params, Length(Parts));
+   SetLength(Params, Max(1, Length(Parts)));
    For i      := 0 To High(Parts) Do
     Params[i] := StrToIntDef(Parts[i], 0);
    If Not CharInSet(Final, ['m', 'h', 'l']) Then

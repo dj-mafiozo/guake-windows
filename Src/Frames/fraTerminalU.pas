@@ -27,21 +27,22 @@ Interface
     Procedure RefreshTick     (Sender : TObject);
     Procedure FrameResize     (Sender : TObject);
    Private
-    fSession        : TTerminalSession;
-    fSettings       : TGuakeSettings;
-    fCellWidth      : Integer;
-    fCellHeight     : Integer;
-    fPalette        : Array[0..17] Of TColor;
-    fLastRevision   : Int64;
-    fOldMaximum     : Integer;
-    fSelectionStart : TPoint;
-    fSelectionEnd   : TPoint;
-    fSelecting      : Boolean;
-    fHasSelection   : Boolean;
-    fSuppressChar   : Boolean;
-    fSurrogate      : Char;
-    fOnActivate     : TNotifyEvent;
-    fOnShortcut     : TTerminalKeyEvent;
+    fSession           : TTerminalSession;
+    fSettings          : TGuakeSettings;
+    fCellWidth         : Integer;
+    fCellHeight        : Integer;
+    fPalette           : Array[0..17] Of TColor;
+    fLastRevision      : Int64;
+    fOldMaximum        : Integer;
+    fLastCursorVisible : Boolean;
+    fSelectionStart    : TPoint;
+    fSelectionEnd      : TPoint;
+    fSelecting         : Boolean;
+    fHasSelection      : Boolean;
+    fSuppressChar      : Boolean;
+    fSurrogate         : Char;
+    fOnActivate        : TNotifyEvent;
+    fOnShortcut        : TTerminalKeyEvent;
     Function  MouseCell   (x, y : Integer)                              : TPoint;
     Function  IsSelected  (x, y : Integer)                              : Boolean;
     Function  ResolveColor(Value : Integer; Foreground, Bold : Boolean) : TColor;
@@ -295,13 +296,16 @@ Implementation
 
  Procedure TfraTerminal.RefreshTick(Sender : TObject);
   Var
-   Maximum  : Integer;
-   Position : Integer;
-   Follow   : Boolean;
+   Maximum       : Integer;
+   Position      : Integer;
+   Follow        : Boolean;
+   Changed       : Boolean;
+   CursorVisible : Boolean;
   Begin
    If fSession = Nil Then
     Exit;
-   If fLastRevision <> fSession.Buffer.Revision Then
+   Changed := fLastRevision <> fSession.Buffer.Revision;
+   If Changed Then
     Begin
      Maximum  := Max(0, fSession.Buffer.TotalLines - fSession.Buffer.Rows);
      Follow   := (scroll.Position >= fOldMaximum) Or fSettings.General.ScrollOutput;
@@ -315,7 +319,11 @@ Implementation
      fOldMaximum        := Maximum;
      fLastRevision      := fSession.Buffer.Revision;
     End;
-   surface.Invalidate;
+   CursorVisible := Focused And fSession.Buffer.CursorVisible And Not fSession.Exited And
+   ((fSettings.Style.CursorBlinkMode = 2) Or ((GetTickCount64 Div 500) Mod 2 = 0));
+   If Changed Or (CursorVisible <> fLastCursorVisible) Then
+    surface.Invalidate;
+   fLastCursorVisible := CursorVisible;
   End;
 
  Procedure TfraTerminal.ScrollChanged(Sender : TObject);

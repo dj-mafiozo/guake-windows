@@ -18,6 +18,7 @@ Interface
     pollTimer         : TTimer;
     terminalHost      : TPanel;
     tabBar            : TTabControl;
+    tabHost           : TPanel;
     trayIcon          : TTrayIcon;
     trayMenu          : TPopupMenu;
     miPreferences     : TMenuItem;
@@ -172,10 +173,10 @@ Implementation
    Else
     FormStyle := fsNormal;
    If fSettings.General.TabOntop Then
-    tabBar.Align := alTop
+    tabHost.Align := alTop
    Else
-    tabBar.Align  := alBottom;
-   tabBar.Visible := fSettings.General.WindowTabbar And Not(fFullScreen And fSettings.General.FullscreenHideTabbar)
+    tabHost.Align  := alBottom;
+   tabHost.Visible := fSettings.General.WindowTabbar And Not(fFullScreen And fSettings.General.FullscreenHideTabbar)
    And Not(fSettings.General.HideTabsIfOneTab And (tabBar.Tabs.Count <= 1));
    AlphaBlend       := fSettings.Style.Background.Transparency < 100;
    AlphaBlendValue  := MulDiv(fSettings.Style.Background.Transparency, 255, 100);
@@ -430,12 +431,13 @@ Implementation
       Else If tabBar.Tabs[i] <> Title Then
        tabBar.Tabs[i] := Title;
      End;
-    tabBar.TabIndex := fController.ActiveIndex;
+    If tabBar.TabIndex <> fController.ActiveIndex Then
+     tabBar.TabIndex := fController.ActiveIndex;
     If fSettings.General.SetWindowTitle And (fController.ActiveTab <> Nil) Then
      Caption := fController.ActiveTab.Title
     Else
-     Caption       := 'Guake!';
-    tabBar.Visible := fSettings.General.WindowTabbar And Not(fFullScreen And fSettings.General.FullscreenHideTabbar)
+     Caption        := 'Guake!';
+    tabHost.Visible := fSettings.General.WindowTabbar And Not(fFullScreen And fSettings.General.FullscreenHideTabbar)
     And Not(fSettings.General.HideTabsIfOneTab And (fController.Count <= 1));
    Finally
     fUpdatingTabs := False;

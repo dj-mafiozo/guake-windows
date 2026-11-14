@@ -1,4 +1,4 @@
-﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectGuid>{972ACB47-F770-4B97-884F-699B771B5F19}</ProjectGuid>
     <MainSource>GuakeFormsPreview.dpr</MainSource>
@@ -29,10 +29,10 @@
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_MajorVer>1</VerInfo_MajorVer>
     <VerInfo_MinorVer>0</VerInfo_MinorVer>
-    <VerInfo_Release>5</VerInfo_Release>
-    <VerInfo_Build>40</VerInfo_Build>
+    <VerInfo_Release>6</VerInfo_Release>
+    <VerInfo_Build>41</VerInfo_Build>
     <VerInfo_Locale>1045</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Formularze Guake dla Windows;FileVersion=1.0.5.40;InternalName=GuakeFormsPreview;OriginalFilename=GuakeFormsPreview.exe;ProductName=Guake dla Windows;ProductVersion=1.0.5.40</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Formularze Guake dla Windows;FileVersion=1.0.6.41;InternalName=GuakeFormsPreview;OriginalFilename=GuakeFormsPreview.exe;ProductName=Guake dla Windows;ProductVersion=1.0.6.41</VerInfo_Keys>
     <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
     <DCC_MapFile>3</DCC_MapFile>
     <PostBuildEvent>python "$(MSBuildProjectDirectory)\..\Tools\Build-Symbols.py" "$(DCC_ExeOutput)\$(MSBuildProjectName).map"</PostBuildEvent>

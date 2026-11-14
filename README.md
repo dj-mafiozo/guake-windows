@@ -27,3 +27,5 @@ Główny EXE: `bin/Win64/guake.exe`. Samodzielny edytor preferencji do sprawdzen
 Jeżeli uruchomiona aplikacja blokuje docelowy EXE, można zweryfikować kompilację przez `Src/Tools/Test.ps1 -MainOutput .build/verified-main`. Ten parametr zmienia wyłącznie katalog wyjściowy aplikacji głównej. `Base` w IDE przechowuje wspólne opcje; do budowania wybierz `Debug` albo `Release`.
 
 Konflikt skrótu globalnego nie blokuje uruchomienia terminala. Szczegóły są widoczne w podpowiedzi ikony tray; zajętą kombinację można zmienić w preferencjach. Projekty używają `ResourceBuildDependsOn` do kompilacji zasobów, zgodnie ze starszym parserem MSBuild w Delphi.
+
+Skróty z klawiszem grave (U+0060) i tyldą (~) można przechwytywać w preferencjach; rozpoznawane są również te znaki zapisane bezpośrednio w INI. Sesje Bash/Zsh mają jawnie ustawiony typ terminala `xterm-256color`.

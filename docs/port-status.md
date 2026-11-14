@@ -68,7 +68,7 @@ Logger zapisuje klasę i treść wyjątku, jego oryginalny `Exception.StackTrace
 
 ## Weryfikacja i pozostały zakres
 
-49 testów DUnitX Win64 obejmuje wszystkie wartości domyślne schematu, zapis i odczyt rekordów, Double w polskich ustawieniach regionalnych, walidację, nieznane klucze, ładowanie DFM, zależności, natychmiastowy zapis, błędy zapisu, reset zgodności, konflikty skrótów, palety, wyszukiwanie, zapis tekstu, wszystkie katalogi tłumaczeń, Common i logowanie stosów. Raport i podglądy dziewięciu zakładek powstają w `bin/tests/`.
+53 testy DUnitX Win64 obejmują wszystkie wartości domyślne schematu, zapis i odczyt rekordów, Double w polskich ustawieniach regionalnych, walidację, nieznane klucze, ładowanie DFM, zależności, natychmiastowy zapis, błędy zapisu, reset zgodności, konflikty skrótów, palety, wyszukiwanie, zapis tekstu, wszystkie katalogi tłumaczeń, Common i logowanie stosów. Raport i podglądy dziewięciu zakładek powstają w `bin/tests/`.
 
 Działają backend ConPTY, przyrostowy parser UTF-8 i VT, renderer komórek oraz kontroler kart i podziałów. Testy uruchamiają CMD, PowerShell, Bash i Zsh, sprawdzają środowisko, zakończenie procesów, zamykanie przy dużym wyjściu i zachowanie zasobów przy błędach startu. Emulator wymaga dalszego uzupełniania zgodności VT, m.in. reflow i pełnej obsługi grafemów. Nadal brakuje odtwarzania sesji, Named Pipes i zgodnego CLI. Zapis opcji w preferencjach nie oznacza jeszcze działania ich efektów poza formularzem: np. automatycznego startu, hooków, Quick Open czy ustawień renderowania. Niezaimplementowane pozostają integracje systemowe i funkcje zależne od tych modułów. Kontrolka widocznego dzwonka pozostaje wyłączona, ponieważ nie ma odpowiadającego jej klucza w źródłowym schemacie.
 
@@ -97,3 +97,13 @@ Zajęty skrót globalny (błąd Windows 1409) nie przerywa startu terminala. Rej
 Wszystkie DPROJ dołączają BuildGuakeImages przez ResourceBuildDependsOn po imporcie standardowych targets. Nie używają BeforeTargets, którego starszy parser projektów Delphi nie rozpoznaje. Wszystkie trzy projekty przeszły odczyt przez Microsoft.Build.BuildEngine.Project, oprócz kompilacji współczesnym MSBuild. Kontrola odczytu nie zastępuje sprawdzenia zapisu z poziomu IDE.
 
 Wersja 1.0.5.40: 49/49 testów DUnitX, kompilacja wszystkich trzech projektów Win64 Debug, odczyt trzech DPROJ przez starszy Microsoft.Build.BuildEngine.Project i paczka `bin/guake-1.0.5.40-Win64.zip`. Test PowerShell czeka na pierwszy prompt PSReadLine i nie zapisuje historii użytkownika. Pomiar uchwytów po nieudanym starcie oddziela jednorazową inicjalizację obsługi symboli od kolejnych prób.
+
+## Odświeżanie, tylda i kolory terminala
+
+Widok terminala używa podwójnego buforowania ustawionego w DFM. Timer odświeżania unieważnia obraz dopiero po zmianie rewizji bufora albo widoczności kursora, zamiast przemalowywać całe pole co 100 ms. Aktualizacja tytułów nie ustawia ponownie niezmienionego indeksu karty. Pasek kart ma osobny panel w kolorze systemowym clBtnFace, niezależny od czarnego tła terminala.
+
+Skróty obsługują fizyczny klawisz VK_OEM_3: grave (U+0060), quoteleft i asciitilde (~), także z modyfikatorami. Edytor preferencji przechwytuje wariant zwykły i Shift; kontrola konfliktów porównuje rozpoznany klawisz i modyfikatory, więc równoważne zapisy nie omijają walidacji.
+
+Sesje Bash i Zsh otrzymują TERM=xterm-256color oraz COLORTERM=truecolor zamiast dziedziczyć przypadkowy typ terminala z procesu nadrzędnego. Pusty parametr SGR oznacza reset do domyślnych kolorów palety; działają też jawne kody 39/49. Kolory promptu pozostają zależne od danych wysyłanych przez powłokę i wybranej palety.
+
+Wersja 1.0.6.41: 53/53 testy DUnitX, kompilacje Win64 Debug i Release oraz pakiet `bin/guake-1.0.6.41-Win64.zip`. Nowe scenariusze obejmują przechwytywanie klawisza OEM w preferencjach, mapowanie literalnych znaków i nazw akceleratorów, reset kolorów SGR, rzeczywisty proces Zsh z kontrolą kolorów po resecie oraz brak unieważniania bezczynnego widoku. Podgląd offscreen: `bin/tests/terminal-preview.png`; nie zastępuje obserwacji płynności interaktywnej sesji.

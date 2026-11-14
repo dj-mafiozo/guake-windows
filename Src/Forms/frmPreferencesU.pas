@@ -258,7 +258,7 @@ Interface
 Implementation
 
  Uses
-  System.TypInfo, System.Math, System.StrUtils, Vcl.Themes, Guake.Palettes, Guake.Shells;
+  System.TypInfo, System.Math, System.StrUtils, Vcl.Themes, Guake.Palettes, Guake.Shells, Guake.Keybindings;
 
 {$R *.dfm}
 
@@ -916,8 +916,12 @@ Implementation
 
  Function CanonicalShortcut(Const Value : String) : String;
   Var
-   s : String;
+   s         : String;
+   Key       : Word;
+   Modifiers : Cardinal;
   Begin
+   If ParseAccelerator(Value, Key, Modifiers) Then
+    Exit(Format('%d:%d', [Key, Modifiers]));
    s      := LowerCase(Value);
    Result := '';
    If (Pos('<control>', s) > 0) Or (Pos('<primary>', s) > 0) Then
@@ -1020,6 +1024,11 @@ Implementation
          Name := 'plus'
         Else
          Name := 'equal';
+       VK_OEM_3 :
+        If ssShift In Shift Then
+         Name := 'asciitilde'
+        Else
+         Name := 'grave';
        VK_OEM_MINUS :
         Name := 'minus';
        VK_OEM_COMMA :

@@ -1,6 +1,9 @@
 ﻿object fraTerminal: TfraTerminal
   Width = 720
   Height = 360
+  Color = clBlack
+  ParentBackground = False
+  DoubleBuffered = True
   TabStop = True
   OnResize = FrameResize
   object surface: TPaintBox

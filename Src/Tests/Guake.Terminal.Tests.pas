@@ -27,6 +27,9 @@ Interface
     [Test] Procedure FailedStartDoesNotLeakHandles;
     [Test] Procedure ControllerTabsSplitsAndFailure;
     [Test] Procedure WindowsAccelerators;
+    [Test] Procedure DefaultColorsAfterPromptReset;
+    [Test] Procedure ZshUsesTerminalCapabilities;
+    [Test] Procedure IdleTerminalDoesNotRepaint;
     [Test] Procedure MainWindowCreatesTerminalAndSplitFrames;
     [Test] Procedure OccupiedGlobalShortcutDoesNotStopTerminal;
   End;
@@ -35,7 +38,7 @@ Implementation
 
  Uses
   Winapi.Windows, System.SysUtils, System.Classes, System.IOUtils,
-  frmMainU, Vcl.ComCtrls, Vcl.Controls, Guake.ConPTY, Guake.VT, Guake.Shells, Guake.Sessions, Guake.Settings, Guake.Keybindings;
+  frmMainU, fraTerminalU, Vcl.Graphics, Vcl.Imaging.pngimage, Vcl.ComCtrls, Vcl.Controls, Guake.ConPTY, Guake.VT, Guake.Shells, Guake.Sessions, Guake.Settings, Guake.Keybindings;
 
  Type
   TTabControlAccess = Class(TTabControl)
@@ -324,6 +327,14 @@ Implementation
    Key       : Word;
    Modifiers : Cardinal;
   Begin
+   Assert.IsTrue(ParseAccelerator('`', Key, Modifiers));
+   Assert.AreEqual(Integer(VK_OEM_3), Integer(Key));
+   Assert.AreEqual(0, Integer(Modifiers));
+   Assert.IsTrue(ParseAccelerator('~', Key, Modifiers));
+   Assert.AreEqual(Integer(VK_OEM_3), Integer(Key));
+   Assert.AreEqual(Integer(MOD_SHIFT), Integer(Modifiers));
+   Assert.IsTrue(MatchAccelerator('<Control>grave', VK_OEM_3, [ssCtrl]));
+   Assert.IsTrue(MatchAccelerator('<Alt>asciitilde', VK_OEM_3, [ssAlt, ssShift]));
    Assert.IsTrue(ParseAccelerator('<Control><Shift>t', Key, Modifiers));
    Assert.AreEqual(Ord('T'), Integer(Key));
    Assert.AreEqual(Integer(MOD_CONTROL Or MOD_SHIFT), Integer(Modifiers));
@@ -411,6 +422,132 @@ Implementation
     End;
    Finally
     UnregisterHotKey(0, OccupiedId);
+   End;
+  End;
+
+/// <summary>SGR with no arguments and explicit default colors must end the colored prompt.</summary>
+
+ Procedure TTerminalTests.DefaultColorsAfterPromptReset;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(40, 3);
+   Try
+    Buffer.FeedText(#27'[32mGREEN' + #27'[m% white');
+    Assert.AreEqual(2, Buffer.Cell[0, 0].Foreground);
+    Assert.AreEqual( -1, Buffer.Cell[5, 0].Foreground);
+    Assert.AreEqual( -2, Buffer.Cell[5, 0].Background);
+    Buffer.FeedText(#27'[32;41mX' + #27'[39;49mY');
+    Assert.AreEqual( -1, Buffer.Cell[13, 0].Foreground);
+    Assert.AreEqual( -2, Buffer.Cell[13, 0].Background);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Unix shells receive terminal capabilities even when the parent process uses TERM=dumb.</summary>
+
+ Procedure TTerminalTests.ZshUsesTerminalCapabilities;
+  Var
+   Settings : TGuakeSettings;
+   Profile  : TShellProfile;
+   Session  : TTerminalSession;
+   Deadline : UInt64;
+   x        : Integer;
+   y        : Integer;
+   Fore     : Integer;
+   Back     : Integer;
+  Begin
+   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Try
+    Profile           := TShellProfile.Resolve(gsZsh);
+    Profile.Arguments := '-d -f -c ' + QuoteProcessArgument('printf "%s:%s " "$TERM" "$COLORTERM"; print -n -P ''%F{green}USER%f %% WHITE''');
+    Session           := TTerminalSession.Create(Profile, GetCurrentDir, Settings);
+    Try
+     Deadline := GetTickCount64 + 15000;
+     Repeat
+      Session.Poll;
+      If Session.Exited Then
+       Break;
+      Sleep(10);
+     Until GetTickCount64 >= Deadline;
+     Assert.IsTrue(Session.Exited);
+     Assert.IsTrue(Pos('xterm-256color:truecolor', Session.Buffer.Text) > 0, Session.Buffer.Text);
+     Assert.IsTrue(Pos('% WHITE', Session.Buffer.Text) > 0, Session.Buffer.Text);
+     For y  := 0 To Session.Buffer.TotalLines - 1 Do
+      For x := 0 To Session.Buffer.Columns - 1 Do
+       If (Session.Buffer.Cell[x, y].Text = '%') Or (Session.Buffer.Cell[x, y].Text = 'W') Then
+        Begin
+         Fore := Session.Buffer.Cell[x, y].Foreground;
+         Back := Session.Buffer.Cell[x, y].Background;
+         Assert.IsTrue((Fore = -1) Or (Fore = 7) Or (Fore = 15), 'Prompt reset did not restore white text');
+         Assert.IsTrue((Back = -2) Or (Back = 0), 'Prompt reset did not restore black background');
+        End;
+
+    Finally
+     Session.Free;
+    End;
+   Finally
+    Settings.Free;
+   End;
+  End;
+
+/// <summary>Idle refreshes do not invalidate the view; exports an offscreen terminal and tab-strip preview.</summary>
+
+ Procedure TTerminalTests.IdleTerminalDoesNotRepaint;
+  Var
+   Settings : TGuakeSettings;
+   Main     : TfrmMain;
+   Frame    : TfraTerminal;
+   Bitmap   : TBitmap;
+   Image    : TPngImage;
+   Output   : String;
+  Begin
+   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Try
+    Settings.General.DefaultShell         := 'cmd';
+    Settings.General.UseTrayicon          := False;
+    Settings.General.WindowTabbar         := True;
+    Settings.General.HideTabsIfOneTab     := False;
+    Settings.Keybindings.Global.ShowHide  := 'disabled';
+    Settings.Keybindings.Global.ShowFocus := 'disabled';
+    Settings.Style.CursorBlinkMode        := 2;
+    Main                                  := TfrmMain.Create(Nil);
+    Try
+     Main.Bind(Settings);
+     Main.StartTerminal;
+     Main.SetBounds(0, 0, 1000, 500);
+     Main.tabHost.HandleNeeded;
+     Main.tabBar.HandleNeeded;
+     Frame := Main.ActiveTerminalFrame;
+     Frame.HandleNeeded;
+     Frame.Session.Buffer.FeedText(#27'[2J' + #27'[H' + #27'[32mUSER' + #27'[m % white on black');
+     Frame.RefreshTick(Nil);
+     ValidateRect(Frame.Handle, Nil);
+     Frame.RefreshTick(Nil);
+     Assert.IsFalse(GetUpdateRect(Frame.Handle, Nil, False), 'Idle timer invalidated the terminal');
+     Assert.AreEqual(Integer(clBtnFace), Integer(Main.tabHost.Color));
+     Bitmap := TBitmap.Create;
+     Image  := TPngImage.Create;
+     Try
+      Bitmap.PixelFormat := pf24bit;
+      Bitmap.SetSize(Main.Width, Main.Height);
+      Main.PaintTo(Bitmap.Canvas.Handle, 0, 0);
+      Assert.IsTrue(Main.tabHost.Visible);
+      // Hidden native child windows need an explicit paint in an offscreen preview.
+      Main.tabHost.PaintTo(Bitmap.Canvas.Handle, Main.tabHost.Left, Main.tabHost.Top);
+      Image.Assign(Bitmap);
+      Output := TPath.Combine(ExtractFilePath(ParamStr(0)), 'terminal-preview.png');
+      Image.SaveToFile(Output);
+     Finally
+      Image.Free;
+      Bitmap.Free;
+     End;
+    Finally
+     Main.Free;
+    End;
+   Finally
+    Settings.Free;
    End;
   End;
 

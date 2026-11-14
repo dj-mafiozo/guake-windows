@@ -153,6 +153,8 @@ Implementation
      Begin
       Sdk                           := TPath.GetFullPath(TPath.Combine(ExtractFileDir(Profile.Executable), '..\..'));
       Env.Values['MSYSTEM']         := 'MINGW64';
+      Env.Values['TERM']            := 'xterm-256color';
+      Env.Values['COLORTERM']       := 'truecolor';
       Env.Values['CHERE_INVOKING']  := '1';
       Env.Values['PATH']            := TPath.Combine(Sdk, 'usr\bin') + ';' + TPath.Combine(Sdk, 'mingw64\bin') + ';' + GetEnvironmentVariable('PATH');
       Env.Values['MSYS2_PATH_TYPE'] := 'inherit';

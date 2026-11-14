@@ -47,6 +47,13 @@ Implementation
      Else
       Exit;
     End;
+   If (s = '`') Or (s = 'grave') Or (s = 'quoteleft') Then
+    Key := VK_OEM_3
+   Else If (s = '~') Or (s = 'asciitilde') Then
+    Begin
+     Key       := VK_OEM_3;
+     Modifiers := Modifiers Or MOD_SHIFT;
+    End;
    If Length(s) = 1 Then
     Begin
      If CharInSet(s[1], ['a'..'z']) Then
