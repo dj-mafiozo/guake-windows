@@ -30,6 +30,7 @@ Interface
     [Test] Procedure DefaultColorsAfterPromptReset;
     [Test] Procedure ZshUsesTerminalCapabilities;
     [Test] Procedure IdleTerminalDoesNotRepaint;
+    [Test] Procedure ReferenceMenusAndTabChooser;
     [Test] Procedure MainWindowCreatesTerminalAndSplitFrames;
     [Test] Procedure OccupiedGlobalShortcutDoesNotStopTerminal;
   End;
@@ -543,6 +544,48 @@ Implementation
       Image.Free;
       Bitmap.Free;
      End;
+    Finally
+     Main.Free;
+    End;
+   Finally
+    Settings.Free;
+   End;
+  End;
+
+/// <summary>Chooses tabs by stable identity and checks the source terminal and tab context menus.</summary>
+
+ Procedure TTerminalTests.ReferenceMenusAndTabChooser;
+  Var
+   Settings : TGuakeSettings;
+   Main     : TfrmMain;
+  Begin
+   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Try
+    Settings.General.DefaultShell         := 'cmd';
+    Settings.General.UseTrayicon          := False;
+    Settings.Keybindings.Global.ShowHide  := 'disabled';
+    Settings.Keybindings.Global.ShowFocus := 'disabled';
+    Main                                  := TfrmMain.Create(Nil);
+    Try
+     Main.Bind(Settings);
+     Main.StartTerminal;
+     Assert.IsTrue(Main.btnAddTab.Enabled);
+     Assert.IsTrue(Main.btnTabList.Enabled);
+     Assert.IsTrue(Main.miTrayNewTab.Enabled);
+     Main.Controller.ActiveTab.Name := 'one';
+     Main.AddTabClick(Nil);
+     Main.Controller.ActiveTab.Name := 'two';
+     Main.TabListPopup(Nil);
+     Assert.AreEqual(2, Main.tabListMenu.Items.Count);
+     Assert.IsTrue(Main.tabListMenu.Items[1].Checked);
+     Main.tabListMenu.Items[0].Click;
+     Assert.AreEqual(0, Main.Controller.ActiveIndex);
+     Main.TerminalMenuPopup(Nil);
+     Assert.IsTrue(Main.miSaveTerminal.Parent = Main.terminalMenu.Items);
+     Assert.AreEqual(4, Main.tabMenu.Items.Count);
+     Assert.IsTrue(Main.miResetTerminal.Enabled);
+     Assert.IsFalse(Main.miQuickOpen.Enabled);
+     Assert.IsFalse(Main.miSaveTabs.Enabled);
     Finally
      Main.Free;
     End;

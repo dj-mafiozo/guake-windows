@@ -42,6 +42,22 @@
     ParentBackground = False
     DoubleBuffered = True
     TabOrder = 1
+    object btnTabList: TButton
+      Align = alRight
+      Width = 28
+      Caption = '▾'
+      Enabled = False
+      TabOrder = 2
+      OnClick = TabListClick
+    end
+    object btnAddTab: TButton
+      Align = alRight
+      Width = 28
+      Caption = '+'
+      Enabled = False
+      TabOrder = 1
+      OnClick = AddTabClick
+    end
     object tabBar: TTabControl
       Left = 0
       Top = 0
@@ -51,6 +67,7 @@
       DoubleBuffered = True
       TabOrder = 0
       TabPosition = tpBottom
+      PopupMenu = tabMenu
       OnChange = TabChanged
     end
   end
@@ -64,6 +81,25 @@
   object trayMenu: TPopupMenu
     Left = 88
     Top = 40
+    object miTrayNewTab: TMenuItem
+      Caption = 'Nowa karta'
+      Enabled = False
+      OnClick = AddTabClick
+    end
+    object miTraySeparator1: TMenuItem
+      Caption = '-'
+    end
+    object miSaveTabs: TMenuItem
+      Caption = 'Zapisz karty'
+      Enabled = False
+    end
+    object miRestoreTabs: TMenuItem
+      Caption = 'Przywróć karty'
+      Enabled = False
+    end
+    object miTraySeparator2: TMenuItem
+      Caption = '-'
+    end
     object miPreferences: TMenuItem
       Caption = 'Preferencje'
       OnClick = PreferencesClick
@@ -81,34 +117,10 @@
     end
   end
   object terminalMenu: TPopupMenu
-    Left = 136
-    Top = 40
-    object miNewTab: TMenuItem
-      Caption = 'Nowa karta'
-      Enabled = False
-      OnClick = CommandClick
-    end
-    object miCloseTab: TMenuItem
-      Tag = 1
-      Caption = 'Zamknij kartę'
-      Enabled = False
-      OnClick = CommandClick
-    end
-    object miSplitHorizontal: TMenuItem
-      Tag = 2
-      Caption = 'Podziel w poziomie'
-      Enabled = False
-      OnClick = CommandClick
-    end
-    object miSplitVertical: TMenuItem
-      Tag = 3
-      Caption = 'Podziel w pionie'
-      Enabled = False
-      OnClick = CommandClick
-    end
+    OnPopup = TerminalMenuPopup
     object miCopy: TMenuItem
       Tag = 4
-      Caption = 'Kopiuj'
+      Caption = 'Skopiuj'
       Enabled = False
       OnClick = CommandClick
     end
@@ -118,12 +130,112 @@
       Enabled = False
       OnClick = CommandClick
     end
-    object miSearch: TMenuItem
-      Tag = 6
-      Caption = 'Szukaj'
+    object miTerminalSeparator1: TMenuItem
+      Caption = '-'
+    end
+    object miFullscreen: TMenuItem
+      Caption = 'Przełącz pełny ekran'
+      OnClick = TerminalActionClick
+    end
+    object miTerminalSeparator2: TMenuItem
+      Caption = '-'
+    end
+    object miSplitHorizontal: TMenuItem
+      Tag = 2
+      Caption = 'Podziel —'
       Enabled = False
       OnClick = CommandClick
     end
+    object miSplitVertical: TMenuItem
+      Tag = 3
+      Caption = 'Podziel |'
+      Enabled = False
+      OnClick = CommandClick
+    end
+    object miCloseTerminal: TMenuItem
+      Tag = 1
+      Caption = 'Zamknij terminal'
+      OnClick = TerminalActionClick
+    end
+    object miTerminalSeparator3: TMenuItem
+      Caption = '-'
+    end
+    object miSaveTerminal: TMenuItem
+      Tag = 4
+      Caption = 'Zapisz zawartość...'
+      OnClick = TerminalActionClick
+    end
+    object miResetTerminal: TMenuItem
+      Tag = 2
+      Caption = 'Przywróć terminal'
+      OnClick = TerminalActionClick
+    end
+    object miTerminalSeparator4: TMenuItem
+      Caption = '-'
+    end
+    object miOpenLink: TMenuItem
+      Caption = 'Otwórz odnośnik...'
+      Enabled = False
+    end
+    object miSearchWeb: TMenuItem
+      Caption = 'Znajdź w Internecie'
+      Enabled = False
+    end
+    object miQuickOpen: TMenuItem
+      Caption = 'Szybko otwórz...'
+      Enabled = False
+    end
+    object miSearch: TMenuItem
+      Tag = 6
+      Caption = 'Szukaj'
+      Visible = False
+      Enabled = False
+      OnClick = CommandClick
+    end
+    object miTerminalSeparator5: TMenuItem
+      Caption = '-'
+    end
+    object miTerminalPreferences: TMenuItem
+      Caption = 'Preferencje'
+      OnClick = PreferencesClick
+    end
+    object miTerminalAbout: TMenuItem
+      Caption = 'O programie'
+      OnClick = AboutClick
+    end
+    object miTerminalSeparator6: TMenuItem
+      Caption = '-'
+    end
+    object miTerminalQuit: TMenuItem
+      Caption = 'Zakończ'
+      OnClick = QuitClick
+    end
+  end
+  object tabMenu: TPopupMenu
+    OnPopup = TabMenuPopup
+    object miNewTab: TMenuItem
+      Caption = 'Nowa karta'
+      Enabled = False
+      OnClick = CommandClick
+    end
+    object miRenameTab: TMenuItem
+      Tag = 3
+      Caption = 'Zmień nazwę'
+      OnClick = TerminalActionClick
+    end
+    object miRestoreTabColors: TMenuItem
+      Caption = 'Przywróć niestandardowe kolory'
+      Enabled = False
+    end
+    object miCloseTab: TMenuItem
+      Tag = 1
+      Caption = 'Zamknij'
+      Enabled = False
+      OnClick = CommandClick
+    end
+  end
+  object tabListMenu: TPopupMenu
+    OnPopup = TabListPopup
   end
   object pollTimer: TTimer
     Enabled = False

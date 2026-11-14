@@ -37,6 +37,8 @@ Interface
     [Test]     Procedure RenderAllPreferencePages;
     [Test]     Procedure OtherFormsLoadAndSearchWorks;
     [Test]     Procedure SymbolicStackUsesMatchingPdb;
+    [Test]     Procedure SidebarSelectsReferencePages;
+    [Test]     Procedure AboutDetailsSlideUp;
   End;
 
 Implementation
@@ -382,6 +384,71 @@ Implementation
    Key := VK_OEM_3;
    fForm.ShortcutKeyDown(Nil, Key, [ssShift]);
    Assert.IsTrue(Pos('asciitilde', fForm.gridShortcuts.Cells[1, 1]) > 0);
+  End;
+
+/// <summary>Verifies the reference sidebar against all existing DFM pages and the original logo.</summary>
+
+ Procedure TPreferencesTests.SidebarSelectsReferencePages;
+  Var
+   Index : Integer;
+  Begin
+   fForm.Bind(fSettings);
+   Assert.AreEqual(9, fForm.navPages.Items.Count);
+   Assert.IsNotNull(fForm.imgHeader.Picture.Graphic);
+   For Index := 0 To 8 Do
+    Begin
+     Assert.IsFalse(fForm.pages.pages[Index].TabVisible);
+     fForm.navPages.ItemIndex := Index;
+     fForm.NavigationClick(Nil);
+     Assert.AreEqual(Index, fForm.pages.ActivePageIndex);
+     Assert.AreEqual(fForm.pages.pages[Index].Caption, fForm.navPages.Items[Index]);
+    End;
+  End;
+
+/// <summary>Credits and GPL details rise from the lower edge and collapse back to the compact summary.</summary>
+
+ Procedure TPreferencesTests.AboutDetailsSlideUp;
+  Var
+   Dialog    : TfrmAbout;
+   Localizer : TGuakeLocalization;
+   Bottom    : Integer;
+  Begin
+   Localizer := TGuakeLocalization.Create;
+   Dialog    := TfrmAbout.Create(Nil);
+   Try
+    Localizer.Load(TPath.GetFullPath(TPath.Combine(ExtractFilePath(ParamStr(0)), '..\..\Src\Localization\catalogs\pl.json')));
+    Dialog.Localize(Localizer);
+    Assert.AreEqual('Zasługi', Dialog.btnCredits.Caption);
+    Assert.AreEqual('Licencja', Dialog.btnLicense.Caption);
+    Assert.IsFalse(Dialog.pnlDetails.Visible);
+    Dialog.CreditsClick(Nil);
+    Assert.IsTrue(Dialog.animationTimer.Enabled);
+    Assert.AreEqual(0, Dialog.pnlDetails.Height);
+    Sleep(80);
+    Dialog.AnimationTick(Nil);
+    Assert.IsTrue(Dialog.pnlDetails.Height > 0);
+    Assert.IsTrue(Dialog.pnlDetails.Height <= MulDiv(208, Dialog.PixelsPerInch, 96));
+    Bottom := Dialog.pnlDetails.Top + Dialog.pnlDetails.Height;
+    Sleep(140);
+    Dialog.AnimationTick(Nil);
+    Assert.IsFalse(Dialog.animationTimer.Enabled);
+    Assert.AreEqual(Bottom, Dialog.pnlDetails.Top + Dialog.pnlDetails.Height);
+    Assert.IsTrue(Pos('Copyright © 2026 DJ M@fi0z0™ - native Windows port', Dialog.memoCredits.Text) > 0);
+    Dialog.LicenseClick(Nil);
+    Assert.IsTrue(Dialog.memoLicense.Visible);
+    Assert.IsFalse(Dialog.memoCredits.Visible);
+    Sleep(220);
+    Dialog.AnimationTick(Nil);
+    Assert.IsTrue(Pos('GNU General Public', Dialog.memoLicense.Text) > 0);
+    Dialog.LicenseClick(Nil);
+    Sleep(220);
+    Dialog.AnimationTick(Nil);
+    Assert.IsFalse(Dialog.pnlDetails.Visible);
+    Assert.IsTrue(Dialog.lblVersion.Visible);
+   Finally
+    Dialog.Free;
+    Localizer.Free;
+   End;
   End;
 
 Initialization

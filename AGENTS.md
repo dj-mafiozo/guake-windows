@@ -43,3 +43,9 @@
 - Zachowaj w credits: `Copyright © 2026 DJ M@fi0z0™ - native Windows port` i `DJ M@fi0z0™ <inz.germanista@gmail.com>`, obok oryginalnych autorów i licencji.
 - Aktualizuj pliki Markdown razem ze zmianami kodu, układu katalogów, poleceń, testów i rzeczywistego zakresu funkcji. Usuń nieaktualne opisy zamiast dopisywać sprzeczne uzupełnienia.
 - W DPROJ używaj list zależności targets, np. ResourceBuildDependsOn, zamiast BeforeTargets i AfterTargets nierozpoznawanych przez starszy parser IDE.
+
+## Wzorzec wizualny
+
+- Oprócz lokalnych źródeł Guake korzystaj ze zrzutów Manjaro opisanych w `docs/visual-reference.md`. Aktualizuj opis wzorca i `docs/port-status.md` razem z interfejsem.
+- W oknie informacji panel autorów i licencji wysuwa się od dołu. Zachowuj animację istniejących kontrolek DFM zamiast zastępować ją samym przełączaniem Visible.
+- Nieaktywne pozycje menu nie oznaczają zaimplementowanych funkcji. W dokumentacji rozróżniaj odtworzenie układu od działania zapisu sesji, Quick Open i pozostałych integracji.

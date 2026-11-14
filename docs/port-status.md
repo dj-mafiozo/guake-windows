@@ -10,7 +10,9 @@ Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d
 | `Src/Settings` | Klasa ustawień i hierarchia rekordów |
 | `Src/Forms` | Statyczne formularze PAS/DFM |
 | `Src/DataModules` | Moduły danych PAS/DFM, standardowe dialogi plikowe |
-| `Src/Terminal` | Profile CMD, Windows PowerShell, Bash i Zsh |
+| `Src/Terminal` | ConPTY, przyrostowy parser VT/UTF-8, sesje, karty, podziały i profile powłok |
+| `Src/Frames` | Widoki terminala i podziałów z DFM |
+| `Src/Resources` | Oryginalne pixmapy i niestandardowe RC |
 | `Src/Appearance` | 169 palet przeniesionych z Guake |
 | `Src/Localization` | Warstwa lokalizacji, oryginalne PO i katalogi wynikowe |
 | `Src/Diagnostics` | Logger wyjątków |
@@ -49,7 +51,7 @@ Domyślne `General.DefaultShell` jest puste, zgodnie ze schematem Guake. Wybór 
 | `dialogs.py`: PromptQuitDialog, PromptResetColorsDialog | `Src/Forms/frmConfirmU.pas/.dfm` |
 | `dialogs.py`: SaveTerminalDialog | `Src/DataModules/dmDialogsU.pas/.dfm` |
 
-Preferencje zachowują dziewięć zakładek i grupy ustawień. Zapis odbywa się od razu, tak jak w Guake. Kandydat konfiguracji jest walidowany i zapisywany przed zmianą obiektu współdzielonego z aplikacją; nieudany zapis nie podmienia jego danych. Działają zależności kontrolek, wybór powłoki i monitora, palety z podglądem kolorów, font i obraz tła, skróty z wykrywaniem konfliktów oraz reset wyłącznie opcji zgodności. Trzy przyciski wyrównania odpowiadają radiobuttonom z Glade. Układ używa natywnych kontrolek VCL i przewijanych stron; nie jest to jeszcze potwierdzona zgodność wizualna piksel w piksel.
+Preferencje zachowują dziewięć kategorii i grupy ustawień; wybór strony odbywa się przez lewy pasek nawigacji. Zapis odbywa się od razu, tak jak w Guake. Kandydat konfiguracji jest walidowany i zapisywany przed zmianą obiektu współdzielonego z aplikacją; nieudany zapis nie podmienia jego danych. Działają zależności kontrolek, wybór powłoki i monitora, palety z podglądem kolorów, font i obraz tła, skróty z wykrywaniem konfliktów oraz reset wyłącznie opcji zgodności. Trzy przyciski wyrównania odpowiadają radiobuttonom z Glade. Układ używa natywnych kontrolek VCL i przewijanych stron; nie jest to jeszcze potwierdzona zgodność wizualna piksel w piksel.
 
 Wyszukiwanie obsługuje tekst, regex, kierunek, wielkość liter, zawijanie i zdarzenie wyniku. Indeksy wyniku są liczone od 1. Dialog zapisu przyjmuje tekst od kontrolera terminala i zapisuje UTF-8. Dialog informacji zachowuje logo, autorów, tłumaczy i licencję źródła oraz wpisy portu Windows:
 
@@ -68,7 +70,7 @@ Logger zapisuje klasę i treść wyjątku, jego oryginalny `Exception.StackTrace
 
 ## Weryfikacja i pozostały zakres
 
-53 testy DUnitX Win64 obejmują wszystkie wartości domyślne schematu, zapis i odczyt rekordów, Double w polskich ustawieniach regionalnych, walidację, nieznane klucze, ładowanie DFM, zależności, natychmiastowy zapis, błędy zapisu, reset zgodności, konflikty skrótów, palety, wyszukiwanie, zapis tekstu, wszystkie katalogi tłumaczeń, Common i logowanie stosów. Raport i podglądy dziewięciu zakładek powstają w `bin/tests/`.
+56 testów DUnitX Win64 obejmuje wszystkie wartości domyślne schematu, zapis i odczyt rekordów, Double w polskich ustawieniach regionalnych, walidację, nieznane klucze, ładowanie DFM, zależności, natychmiastowy zapis, błędy zapisu, reset zgodności, konflikty skrótów, palety, wyszukiwanie, zapis tekstu, wszystkie katalogi tłumaczeń, Common i logowanie stosów. Raport i podglądy dziewięciu zakładek powstają w `bin/tests/`.
 
 Działają backend ConPTY, przyrostowy parser UTF-8 i VT, renderer komórek oraz kontroler kart i podziałów. Testy uruchamiają CMD, PowerShell, Bash i Zsh, sprawdzają środowisko, zakończenie procesów, zamykanie przy dużym wyjściu i zachowanie zasobów przy błędach startu. Emulator wymaga dalszego uzupełniania zgodności VT, m.in. reflow i pełnej obsługi grafemów. Nadal brakuje odtwarzania sesji, Named Pipes i zgodnego CLI. Zapis opcji w preferencjach nie oznacza jeszcze działania ich efektów poza formularzem: np. automatycznego startu, hooków, Quick Open czy ustawień renderowania. Niezaimplementowane pozostają integracje systemowe i funkcje zależne od tych modułów. Kontrolka widocznego dzwonka pozostaje wyłączona, ponieważ nie ma odpowiadającego jej klucza w źródłowym schemacie.
 
@@ -107,3 +109,11 @@ Skróty obsługują fizyczny klawisz VK_OEM_3: grave (U+0060), quoteleft i ascii
 Sesje Bash i Zsh otrzymują TERM=xterm-256color oraz COLORTERM=truecolor zamiast dziedziczyć przypadkowy typ terminala z procesu nadrzędnego. Pusty parametr SGR oznacza reset do domyślnych kolorów palety; działają też jawne kody 39/49. Kolory promptu pozostają zależne od danych wysyłanych przez powłokę i wybranej palety.
 
 Wersja 1.0.6.41: 53/53 testy DUnitX, kompilacje Win64 Debug i Release oraz pakiet `bin/guake-1.0.6.41-Win64.zip`. Nowe scenariusze obejmują przechwytywanie klawisza OEM w preferencjach, mapowanie literalnych znaków i nazw akceleratorów, reset kolorów SGR, rzeczywisty proces Zsh z kontrolą kolorów po resecie oraz brak unieważniania bezczynnego widoku. Podgląd offscreen: `bin/tests/terminal-preview.png`; nie zastępuje obserwacji płynności interaktywnej sesji.
+
+## Wzorzec Manjaro i bieżące zmiany interfejsu
+
+[Wzorzec wizualny](visual-reference.md) opisuje przekazane zrzuty Guake na Manjaro i mapowanie na DFM. Preferencje mają nagłówek z oryginalną ikoną i lewy pasek dziewięciu kategorii. Okno informacji rozdziela podsumowanie, autorów i GPL; panel szczegółów wysuwa się od dołu. Zmniejszono dialog zmiany nazwy i uporządkowano potwierdzenie zamknięcia.
+
+Menu terminala i karty są oddzielne. Dodano zapis zawartości przez istniejący moduł dialogów, przyciski nowej karty i wyboru sesji oraz listę wskazującą aktywną kartę. Menu tray uwzględnia kolejność ze źródła. Nieaktywne funkcje pozostają oznaczone w opisie wzorca; nie deklarujemy pełnej zgodności funkcjonalnej ani wizualnej.
+
+Wersja 1.0.7.42: 56/56 testów DUnitX, kompilacje Win64 Debug i Release, kontrola animowanego panelu autorów/GPL, lewej nawigacji i przełączania kart po trwałym identyfikatorze. Uzupełnienia napisów Windows są osobnym PO w `Src/Localization/port`; oryginalne PO pozostają bez zmian. Pakiet: `bin/guake-1.0.7.42-Win64.zip`.

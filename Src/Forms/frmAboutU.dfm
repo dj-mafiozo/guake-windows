@@ -3,8 +3,8 @@
   Top = 0
   BorderStyle = bsDialog
   Caption = 'O programie Guake'
-  ClientHeight = 570
-  ClientWidth = 620
+  ClientHeight = 382
+  ClientWidth = 430
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -16,10 +16,10 @@
   PixelsPerInch = 96
   TextHeight = 15
   object imgLogo: TImage
-    Left = 24
+    Left = 183
     Top = 16
-    Width = 72
-    Height = 72
+    Width = 64
+    Height = 48
     Center = True
     Picture.Data = {
       0954506E67496D61676589504E470D0A1A0A0000000D49484452000000300000
@@ -132,178 +132,244 @@
     Stretch = True
   end
   object lblProduct: TLabel
-    Left = 112
-    Top = 22
-    Width = 165
-    Height = 32
-    Caption = 'Guake Terminal'
+    Left = 16
+    Top = 76
+    Width = 398
+    Height = 24
+    Caption = 'Guake'
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clWindowText
-    Font.Height = -24
+    Font.Height = -16
     Font.Name = 'Segoe UI'
-    Font.Style = []
+    Font.Style = [fsBold]
     ParentFont = False
+    AutoSize = False
+    Alignment = taCenter
   end
   object lblVersion: TLabel
-    Left = 112
-    Top = 62
-    Width = 3
-    Height = 15
+    Left = 16
+    Top = 104
+    Width = 398
+    Height = 18
+    AutoSize = False
+    Alignment = taCenter
   end
   object lblDescription: TLabel
-    Left = 24
-    Top = 94
-    Width = 572
-    Height = 50
+    Left = 16
+    Top = 130
+    Width = 398
+    Height = 40
     AutoSize = False
     Caption = 'Guake — łatwo dostępny terminal inspirowany konsolami gier FPS.'
     WordWrap = True
+    Alignment = taCenter
   end
-  object btnWebsite: TButton
-    Left = 24
-    Top = 152
-    Width = 260
-    Height = 28
+  object btnWebsite: TLabel
+    Left = 16
+    Top = 176
+    Width = 398
+    Height = 20
     Caption = 'https://guake.github.io'
-    TabOrder = 0
     OnClick = WebsiteClick
+    AutoSize = False
+    Alignment = taCenter
+    Cursor = crHandPoint
+    Font.Color = clHotLight
+    Font.Style = [fsUnderline]
+    ParentFont = False
   end
-  object memoCredits: TMemo
-    Left = 24
-    Top = 194
-    Width = 484
-    Height = 306
-    Lines.Strings = (
-      'Copyright © 2026 DJ M@fi0z0™ - native Windows port'
-      'DJ M@fi0z0™ <inz.germanista@gmail.com>'
-      ''
-      'Copyright 2013-2018 Gaetan Semet'
-      'Copyright 2007-2010 Lincoln de Sousa'
-      'Copyright 2007 Gabriel Falcão'
-      ''
-      'Gaetan Semet <gaetan@xeberon.net>'
-      'Lincoln de Sousa <lincoln@guake.org>'
-      'Pierre-Yves Chibon (Pingou) <pingou@guake.org>'
-      'Aleksandar Krsteski (SnapShot) <aleksandar@guake.org>'
-      ''
-      'Contributors:'
-      'Louie Lu (mlouielu) <git@louie.lu>'
-      'Mario Aichinger (aichingm) <aichingm@gmail.com>'
-      'Maxim Ivanov (ulidtko) <ulidtko@gmail.com>'
-      'Adonis K. (adonisk) <aklp08@gmail.com>'
-      ''
-      'Past Contributors:'
-      'Gabriel Falcão <gabriel@guake-terminal.org>'
-      '    '
-      ''
-      'Catalan:'
-      'Raül Cambeiro <xrulet@gmail.com>'
-      'Croatian:'
-      'gogo <trebelnik2@gmail.com>'
-      'Chinese (Simplified):'
-      '甘露(Gan Lu) <rhythm.gan@gmail.com>'
-      '吴新宇(Xinyu Ng) <wuxinyumrx@gmail.com>'
-      '庄秋彬(zqb-all) <zhuangqiubin@gmail.com>'
-      'Czech:'
-      'Daniel Milde <daniel@milde.cz>'
-      'Martin Lukeš <martin.meridius@gmail.com>'
-      'Pavel Borecki <pavel.borecki@gmail.com>'
-      'Dutch:'
-      'Robert van Drunen <r.j.m.vandrunen@gmail.com>'
-      'Heimen Stoffels <vistausss@outlook.com>'
-      'Farsi:'
-      'Kasra Keshavarz <kasra545@gmail.com>'
-      'French:'
-      'Benjamin Danon <benjamin@sphax3d.org>'
-      'Gaetan Semet <gaetan@xeberon.net>'
-      'Pablo Martin-Gomez <pablo.martin-gomez@laposte.net>'
-      'Pierre-Yves Chibon <pingou@pingoured.fr>'
-      'Sylvestre Ledru <sylvestre@debian.org>'
-      'Thomas Canniot <mrtom@fedoraproject.org>'
-      'Galician:'
-      'Antón Meixome <meixome@certima.net>'
-      'osl <tecnicosl@uvigo.es>'
-      'German:'
-      'Frank Dietrich <bits_n_bytes@gmx.de>'
-      'Mario Aichinger <aichingm@gmail.com>'
-      'Markus Majer <mm@mpathy.de>'
-      'Roman Zimmer <hello@roman-zimmer.app>'
-      'Greek:'
-      'Μαριμπής Αβραάμ <makism@venus.cs.teicrete.gr>'
-      'Hungarian:'
-      'Dávid Horváth <chronos.hun@gmail.com>'
-      'Péter Trombitás <trombipeti@gmail.com>'
-      'Indonesian'
-      'operamaniac <rizkiaulia.r@gmail.com>'
-      'Italian:'
-      'Giulio De Pasquale <depasquale.giulio@gmail.com>'
-      'Marco Leogrande <dark.knight.ita@gmail.com>'
-      'Japanese:'
-      'Nishio Futoshi <futoshi@momonga-linux.org>'
-      'IWAI, Masaharu <iwaim.sub@gmail.com>'
-      'Korean:'
-      'Nessun Kim <nessunkim@gmail.com>'
-      'Sangwoo Joo <sangwoojoo@naver.com>'
-      'Norwegian:'
-      'Håvard Havdal <haavard@havdal.net>'
-      'Punjabi:'
-      'A S Alam <aalam@users.sf.net>'
-      'Polish:'
-      'Mieszko Ślusarczyk <mieszkoslusarczyk@gmail.com>'
-      'Piotr Drąg <piotrdrag@gmail.com>'
-      'Portuguese (Brazil):'
-      'Djavan Fagundes <djavan@comum.org>'
-      'Gabriel Falcão <gabriel@guake-terminal.org>'
-      'Lincoln de Sousa <lincoln@guake.org>'
-      'Matheus Manoel <matheus.manoel@usp.br>'
-      'Russian:'
-      'Igor <f2404@yandex.ru>'
-      'igorsub <igor6130@gmail.com>'
-      'Ivan Komaritsyn <vantu5z@mail.ru>'
-      'Pavel Alexeev <Pahan@Hubbitus.spb.su>'
-      'Spanish:'
-      'Adolfo González Blázquez <code@infinicode.org>'
-      'Dante Bravo <dbravo.iessabadell@gmail.com>'
-      'Diego Martinez <dmartinezc@gmail.com>'
-      'Ricardo Hermosilla <ra.hermosillac@gmail.com>'
-      'Swedish:'
-      'Daniel Nylander <po@danielnylander.se>'
-      'Morgan Antonsson <morgan.antonsson@gmail.com>'
-      'Turkish:'
-      'Berk Demirkır <perq87@gmail.com>'
-      'Ukrainian:'
-      'Сергій Дубик <dubyk@ukr.net>'
-      'Максим Іванов <ulidtko@gmail.com>'
-      '    '
-      ''
-      'Guake is free software; you can redistribute it and/or'
-      'modify it under the terms of the GNU General Public'
-      'License as published by the Free Software Foundation;'
-      'either version 2 of the License, or (at your option) any'
-      'later version.'
-      ''
-      'Guake is distributed in the hope that it will be useful, but'
-      'WITHOUT ANY WARRANTY; without even the implied'
-      'warranty of MERCHANTABILITY or FITNESS FOR A'
-      'PARTICULAR PURPOSE.  See the GNU General Public'
-      'License for more details.'
-      ''
-      'You should have received a copy of the GNU General'
-      'Public License along with Guake; if not, write to the Free'
-      'Software Foundation, Inc., 51 Franklin St, Fifth Floor,'
-      'Boston, MA  02110-1301 USA')
-    ReadOnly = True
-    ScrollBars = ssVertical
-    TabOrder = 1
+  object lblCopyright: TLabel
+    Left = 16
+    Top = 206
+    Width = 398
+    Height = 120
+    AutoSize = False
+    Alignment = taCenter
+    WordWrap = True
+    Caption = 'Copyright © 2026 DJ M@fi0z0™ - native Windows port'#13#10'DJ M@fi0z0™ <inz.germanista@gmail.com>'#13#10'Copyright 2013-2018 Gaetan Semet'#13#10'Copyright 2007-2010 Lincoln de Sousa'#13#10'Copyright 2007 Gabriel Falcão'
+  end
+  object btnCredits: TButton
+    Left = 16
+    Top = 342
+    Width = 90
+    Height = 28
+    Caption = 'Zasługi'
+    OnClick = CreditsClick
+    TabOrder = 0
+  end
+  object btnLicense: TButton
+    Left = 114
+    Top = 342
+    Width = 90
+    Height = 28
+    Caption = 'Licencja'
+    OnClick = LicenseClick
+    TabOrder = 3
+  end
+  object pnlDetails: TPanel
+    Left = 16
+    Top = 326
+    Width = 398
+    Height = 0
+    BevelOuter = bvNone
+    Visible = False
+    TabOrder = 5
+    object memoCredits: TMemo
+      Left = 0
+      Top = 0
+      Width = 398
+      Height = 208
+      Lines.Strings = (
+        'Copyright © 2026 DJ M@fi0z0™ - native Windows port'
+        'DJ M@fi0z0™ <inz.germanista@gmail.com>'
+        ''
+        'Copyright 2013-2018 Gaetan Semet'
+        'Copyright 2007-2010 Lincoln de Sousa'
+        'Copyright 2007 Gabriel Falcão'
+        ''
+        'Gaetan Semet <gaetan@xeberon.net>'
+        'Lincoln de Sousa <lincoln@guake.org>'
+        'Pierre-Yves Chibon (Pingou) <pingou@guake.org>'
+        'Aleksandar Krsteski (SnapShot) <aleksandar@guake.org>'
+        ''
+        'Contributors:'
+        'Louie Lu (mlouielu) <git@louie.lu>'
+        'Mario Aichinger (aichingm) <aichingm@gmail.com>'
+        'Maxim Ivanov (ulidtko) <ulidtko@gmail.com>'
+        'Adonis K. (adonisk) <aklp08@gmail.com>'
+        ''
+        'Past Contributors:'
+        'Gabriel Falcão <gabriel@guake-terminal.org>'
+        '    '
+        ''
+        'Catalan:'
+        'Raül Cambeiro <xrulet@gmail.com>'
+        'Croatian:'
+        'gogo <trebelnik2@gmail.com>'
+        'Chinese (Simplified):'
+        '甘露(Gan Lu) <rhythm.gan@gmail.com>'
+        '吴新宇(Xinyu Ng) <wuxinyumrx@gmail.com>'
+        '庄秋彬(zqb-all) <zhuangqiubin@gmail.com>'
+        'Czech:'
+        'Daniel Milde <daniel@milde.cz>'
+        'Martin Lukeš <martin.meridius@gmail.com>'
+        'Pavel Borecki <pavel.borecki@gmail.com>'
+        'Dutch:'
+        'Robert van Drunen <r.j.m.vandrunen@gmail.com>'
+        'Heimen Stoffels <vistausss@outlook.com>'
+        'Farsi:'
+        'Kasra Keshavarz <kasra545@gmail.com>'
+        'French:'
+        'Benjamin Danon <benjamin@sphax3d.org>'
+        'Gaetan Semet <gaetan@xeberon.net>'
+        'Pablo Martin-Gomez <pablo.martin-gomez@laposte.net>'
+        'Pierre-Yves Chibon <pingou@pingoured.fr>'
+        'Sylvestre Ledru <sylvestre@debian.org>'
+        'Thomas Canniot <mrtom@fedoraproject.org>'
+        'Galician:'
+        'Antón Meixome <meixome@certima.net>'
+        'osl <tecnicosl@uvigo.es>'
+        'German:'
+        'Frank Dietrich <bits_n_bytes@gmx.de>'
+        'Mario Aichinger <aichingm@gmail.com>'
+        'Markus Majer <mm@mpathy.de>'
+        'Roman Zimmer <hello@roman-zimmer.app>'
+        'Greek:'
+        'Μαριμπής Αβραάμ <makism@venus.cs.teicrete.gr>'
+        'Hungarian:'
+        'Dávid Horváth <chronos.hun@gmail.com>'
+        'Péter Trombitás <trombipeti@gmail.com>'
+        'Indonesian'
+        'operamaniac <rizkiaulia.r@gmail.com>'
+        'Italian:'
+        'Giulio De Pasquale <depasquale.giulio@gmail.com>'
+        'Marco Leogrande <dark.knight.ita@gmail.com>'
+        'Japanese:'
+        'Nishio Futoshi <futoshi@momonga-linux.org>'
+        'IWAI, Masaharu <iwaim.sub@gmail.com>'
+        'Korean:'
+        'Nessun Kim <nessunkim@gmail.com>'
+        'Sangwoo Joo <sangwoojoo@naver.com>'
+        'Norwegian:'
+        'Håvard Havdal <haavard@havdal.net>'
+        'Punjabi:'
+        'A S Alam <aalam@users.sf.net>'
+        'Polish:'
+        'Mieszko Ślusarczyk <mieszkoslusarczyk@gmail.com>'
+        'Piotr Drąg <piotrdrag@gmail.com>'
+        'Portuguese (Brazil):'
+        'Djavan Fagundes <djavan@comum.org>'
+        'Gabriel Falcão <gabriel@guake-terminal.org>'
+        'Lincoln de Sousa <lincoln@guake.org>'
+        'Matheus Manoel <matheus.manoel@usp.br>'
+        'Russian:'
+        'Igor <f2404@yandex.ru>'
+        'igorsub <igor6130@gmail.com>'
+        'Ivan Komaritsyn <vantu5z@mail.ru>'
+        'Pavel Alexeev <Pahan@Hubbitus.spb.su>'
+        'Spanish:'
+        'Adolfo González Blázquez <code@infinicode.org>'
+        'Dante Bravo <dbravo.iessabadell@gmail.com>'
+        'Diego Martinez <dmartinezc@gmail.com>'
+        'Ricardo Hermosilla <ra.hermosillac@gmail.com>'
+        'Swedish:'
+        'Daniel Nylander <po@danielnylander.se>'
+        'Morgan Antonsson <morgan.antonsson@gmail.com>'
+        'Turkish:'
+        'Berk Demirkır <perq87@gmail.com>'
+        'Ukrainian:'
+        'Сергій Дубик <dubyk@ukr.net>'
+        'Максим Іванов <ulidtko@gmail.com>'
+        '    '
+        '')
+      ReadOnly = True
+      ScrollBars = ssVertical
+      TabOrder = 1
+      Visible = False
+      Align = alClient
+    end
+    object memoLicense: TMemo
+      Left = 0
+      Top = 0
+      Width = 398
+      Height = 208
+      Lines.Strings = (
+        'Guake is free software; you can redistribute it and/or'
+        'modify it under the terms of the GNU General Public'
+        'License as published by the Free Software Foundation;'
+        'either version 2 of the License, or (at your option) any'
+        'later version.'
+        ''
+        'Guake is distributed in the hope that it will be useful, but'
+        'WITHOUT ANY WARRANTY; without even the implied'
+        'warranty of MERCHANTABILITY or FITNESS FOR A'
+        'PARTICULAR PURPOSE.  See the GNU General Public'
+        'License for more details.'
+        ''
+        'You should have received a copy of the GNU General'
+        'Public License along with Guake; if not, write to the Free'
+        'Software Foundation, Inc., 51 Franklin St, Fifth Floor,'
+        'Boston, MA  02110-1301 USA')
+      ReadOnly = True
+      ScrollBars = ssVertical
+      TabOrder = 2
+      Visible = False
+      Align = alClient
+    end
   end
   object btnClose: TButton
-    Left = 496
-    Top = 522
+    Left = 314
+    Top = 342
     Width = 100
     Height = 28
     Cancel = True
     Caption = 'Zamknij'
     ModalResult = 8
-    TabOrder = 2
+    TabOrder = 4
+  end
+  object animationTimer: TTimer
+    Enabled = False
+    Interval = 15
+    OnTimer = AnimationTick
   end
 end

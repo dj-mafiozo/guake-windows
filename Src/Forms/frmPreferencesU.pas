@@ -15,6 +15,12 @@ Interface
 
  Type
   TfrmPreferences = Class(TForm)
+    pnlHeader            : TPanel;
+    imgHeader            : TImage;
+    lblHeaderTitle       : TLabel;
+    lblHeaderDescription : TLabel;
+    navPages             : TListBox;
+
     pnlFooter                       : TPanel;
     btnClose                        : TButton;
     pages                           : TPageControl;
@@ -214,6 +220,9 @@ Interface
     dlgCustomCommands                : TOpenDialog;
     dlgFont                          : TFontDialog;
     appEvents                        : TApplicationEvents;
+    Procedure NavigationClick        (Sender : TObject);
+    Procedure NavigationDrawItem     (Control : TWinControl; Index : Integer; Rect : TRect; State : TOwnerDrawState);
+    Procedure PagesChanged           (Sender : TObject);
     Procedure FormCreate             (Sender : TObject);
     Procedure FormDestroy            (Sender : TObject);
     Procedure FormClose              (Sender : TObject; Var Action : TCloseAction);
@@ -258,11 +267,13 @@ Interface
 Implementation
 
  Uses
-  System.TypInfo, System.Math, System.StrUtils, Vcl.Themes, Guake.Palettes, Guake.Shells, Guake.Keybindings;
+  System.TypInfo, System.Math, System.StrUtils, Vcl.Themes, Guake.Palettes, Guake.Shells, Guake.Keybindings, Guake.Resources;
 
 {$R *.dfm}
 
  Procedure TfrmPreferences.Localize;
+  Var
+   varIndex : Integer;
   Begin
    ctlAlignLeft.Caption                    := Translate('Left');
    ctlAlignCenter.Caption                  := Translate('Center');
@@ -411,6 +422,12 @@ Implementation
    ctlDeleteBindingCombobox.Items[0]       := Translate('ASCII DEL');
    ctlDeleteBindingCombobox.Items[1]       := Translate('Escape sequence');
    ctlDeleteBindingCombobox.Items[2]       := Translate('Control-H');
+   lblHeaderTitle.Caption                  := Translate('<span size="18000"><b>Guake properties</b></span>');
+   lblHeaderDescription.Caption            := Translate('Customize behavior and appearance of Guake!');
+   navPages.Items.Clear;
+   For varIndex := 0 To pages.PageCount - 1 Do
+    navPages.Items.Add(pages.Pages[varIndex].Caption);
+   PagesChanged(Nil);
   End;
 
  Function PlainCaption(Const Value : String) : String;
@@ -441,13 +458,41 @@ Implementation
    Result  := PlainCaption(Result);
   End;
 
+/// <summary>Selects DFM-defined preference pages through the sidebar shown by the original Guake.</summary>
+
+ Procedure TfrmPreferences.NavigationClick(Sender : TObject);
+  Begin
+   If navPages.ItemIndex >= 0 Then
+    pages.ActivePageIndex := navPages.ItemIndex;
+  End;
+
+ Procedure TfrmPreferences.PagesChanged(Sender : TObject);
+  Begin
+   navPages.ItemIndex := pages.ActivePageIndex;
+   navPages.Invalidate;
+  End;
+
+ Procedure TfrmPreferences.NavigationDrawItem(Control : TWinControl; Index : Integer; Rect : TRect; State : TOwnerDrawState);
+  Begin
+   If odSelected In State Then
+    navPages.Canvas.Brush.Color := clWindow
+   Else
+    navPages.Canvas.Brush.Color := clBtnFace;
+   navPages.Canvas.FillRect(Rect);
+   navPages.Canvas.Font.Assign(Font);
+   navPages.Canvas.Font.Color := clWindowText;
+   DrawText(navPages.Canvas.Handle, PChar(navPages.Items[Index]), -1, Rect, DT_SINGLELINE Or DT_VCENTER Or DT_CENTER Or DT_END_ELLIPSIS);
+  End;
+
  Procedure TfrmPreferences.FormCreate(Sender : TObject);
   Var
    i         : Integer;
    StyleName : String;
   Begin
-   fLoading := True;
-   For i    := 0 To GuakePaletteCount - 1 Do
+   LoadGuakeImage(imgHeader, 'GUAKE_GUAKE_48');
+   navPages.ItemIndex := 0;
+   fLoading           := True;
+   For i              := 0 To GuakePaletteCount - 1 Do
     ctlPaletteName.Items.Add(GuakePaletteName(i));
    ctlPaletteName.Items.Add('Custom');
    For StyleName In TStyleManager.StyleNames Do

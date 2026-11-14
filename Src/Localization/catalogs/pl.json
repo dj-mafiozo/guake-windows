@@ -2329,6 +2329,22 @@
       "translations": [
         "guake-tray"
       ]
+    },
+    {
+      "context": "",
+      "singular": "Credits",
+      "plural": "",
+      "translations": [
+        "Zasługi"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "License",
+      "plural": "",
+      "translations": [
+        "Licencja"
+      ]
     }
   ]
 }

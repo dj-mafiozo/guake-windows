@@ -1,6 +1,6 @@
 ﻿object frmRename: TfrmRename
   Caption = 'Zmiana nazwy karty'
-  ClientWidth = 440
+  ClientWidth = 320
   ClientHeight = 118
   Font.Name = 'Segoe UI'
   Font.Height = -12
@@ -11,22 +11,22 @@
   object edtName: TEdit
     Left = 16
     Top = 16
-    Width = 408
+    Width = 288
     Height = 25
   end
   object btnCancel: TButton
-    Left = 212
+    Left = 112
     Top = 72
-    Width = 100
+    Width = 80
     Height = 28
     Caption = 'Anuluj'
     Cancel = True
     ModalResult = 2
   end
   object btnOK: TButton
-    Left = 324
+    Left = 224
     Top = 72
-    Width = 100
+    Width = 80
     Height = 28
     Caption = 'OK'
     Default = True

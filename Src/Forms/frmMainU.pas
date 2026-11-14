@@ -6,7 +6,7 @@ Interface
 
  Uses
   System.SysUtils, System.Classes, System.Generics.Collections, Winapi.Windows, Winapi.Messages,
-  Vcl.Forms, Vcl.Controls, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.Menus,
+  Vcl.Forms, Vcl.Controls, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.Menus, Vcl.StdCtrls,
   Guake.Settings, Guake.Localization, Guake.Logging, Guake.Sessions, fraTerminalU, frmSearchU;
 
  Type
@@ -15,37 +15,71 @@ Interface
   TGuakeCommandEvent = Procedure(Sender : TObject; Command : TGuakeWindowCommand) Of Object;
 
   TfrmMain = Class(TForm)
-    pollTimer         : TTimer;
-    terminalHost      : TPanel;
-    tabBar            : TTabControl;
-    tabHost           : TPanel;
-    trayIcon          : TTrayIcon;
-    trayMenu          : TPopupMenu;
-    miPreferences     : TMenuItem;
-    miAbout           : TMenuItem;
-    miSeparator       : TMenuItem;
-    miQuit            : TMenuItem;
-    terminalMenu      : TPopupMenu;
-    miNewTab          : TMenuItem;
-    miCloseTab        : TMenuItem;
-    miSplitHorizontal : TMenuItem;
-    miSplitVertical   : TMenuItem;
-    miCopy            : TMenuItem;
-    miPaste           : TMenuItem;
-    miSearch          : TMenuItem;
-    Procedure FormCreate      (Sender : TObject);
-    Procedure FormShow        (Sender : TObject);
-    Procedure PreferencesClick(Sender : TObject);
-    Procedure AboutClick      (Sender : TObject);
-    Procedure QuitClick       (Sender : TObject);
-    Procedure CommandClick    (Sender : TObject);
-    Procedure TrayDblClick    (Sender : TObject);
-    Procedure FormDeactivate  (Sender : TObject);
-    Procedure FormClose       (Sender : TObject; Var Action : TCloseAction);
-    Procedure FormDestroy     (Sender : TObject);
-    Procedure PollTerminal    (Sender : TObject);
-    Procedure TabChanged      (Sender : TObject);
-    Procedure TabDoubleClick  (Sender : TObject);
+    pollTimer             : TTimer;
+    terminalHost          : TPanel;
+    tabBar                : TTabControl;
+    tabHost               : TPanel;
+    trayIcon              : TTrayIcon;
+    trayMenu              : TPopupMenu;
+    miPreferences         : TMenuItem;
+    miAbout               : TMenuItem;
+    miSeparator           : TMenuItem;
+    miQuit                : TMenuItem;
+    terminalMenu          : TPopupMenu;
+    miNewTab              : TMenuItem;
+    miCloseTab            : TMenuItem;
+    miSplitHorizontal     : TMenuItem;
+    miSplitVertical       : TMenuItem;
+    miCopy                : TMenuItem;
+    miPaste               : TMenuItem;
+    miSearch              : TMenuItem;
+    tabMenu               : TPopupMenu;
+    miFullscreen          : TMenuItem;
+    miCloseTerminal       : TMenuItem;
+    miSaveTerminal        : TMenuItem;
+    miResetTerminal       : TMenuItem;
+    miTerminalSeparator1  : TMenuItem;
+    miTerminalSeparator2  : TMenuItem;
+    miTerminalSeparator3  : TMenuItem;
+    miTerminalSeparator4  : TMenuItem;
+    miTerminalSeparator5  : TMenuItem;
+    miTerminalSeparator6  : TMenuItem;
+    miOpenLink            : TMenuItem;
+    miSearchWeb           : TMenuItem;
+    miQuickOpen           : TMenuItem;
+    miTerminalPreferences : TMenuItem;
+    miTerminalAbout       : TMenuItem;
+    miTerminalQuit        : TMenuItem;
+    miRenameTab           : TMenuItem;
+    miRestoreTabColors    : TMenuItem;
+    btnAddTab             : TButton;
+    btnTabList            : TButton;
+    tabListMenu           : TPopupMenu;
+    miTrayNewTab          : TMenuItem;
+    miSaveTabs            : TMenuItem;
+    miRestoreTabs         : TMenuItem;
+    miTraySeparator1      : TMenuItem;
+    miTraySeparator2      : TMenuItem;
+    Procedure AddTabClick        (Sender : TObject);
+    Procedure TabListClick       (Sender : TObject);
+    Procedure TabListPopup       (Sender : TObject);
+    Procedure SelectListedTab    (Sender : TObject);
+    Procedure TerminalActionClick(Sender : TObject);
+    Procedure TerminalMenuPopup  (Sender : TObject);
+    Procedure TabMenuPopup       (Sender : TObject);
+    Procedure FormCreate         (Sender : TObject);
+    Procedure FormShow           (Sender : TObject);
+    Procedure PreferencesClick   (Sender : TObject);
+    Procedure AboutClick         (Sender : TObject);
+    Procedure QuitClick          (Sender : TObject);
+    Procedure CommandClick       (Sender : TObject);
+    Procedure TrayDblClick       (Sender : TObject);
+    Procedure FormDeactivate     (Sender : TObject);
+    Procedure FormClose          (Sender : TObject; Var Action : TCloseAction);
+    Procedure FormDestroy        (Sender : TObject);
+    Procedure PollTerminal       (Sender : TObject);
+    Procedure TabChanged         (Sender : TObject);
+    Procedure TabDoubleClick     (Sender : TObject);
    Private
     fController   : TTerminalController;
     fViews        : TDictionary<TTerminalSession, TfraTerminal>;
@@ -100,6 +134,13 @@ Implementation
   TTabControlAccess = Class(TTabControl)
   End;
 
+/// <summary>Data-dependent menu row that keeps tab identity separate from user-visible hints.</summary>
+
+  TTabListItem = Class(TMenuItem)
+   Public
+    TabId : String;
+  End;
+
 {$R *.dfm}
 
 /// <summary>Connects the inherited double-click event without streaming an unpublished DFM property.</summary>
@@ -126,9 +167,31 @@ Implementation
    fLog       := Log;
    If Localizer <> Nil Then
     Begin
-     miPreferences.Caption := Localizer.Text('Preferences');
-     miAbout.Caption       := Localizer.Text('About');
-     miQuit.Caption        := Localizer.Text('Quit');
+     miPreferences.Caption         := Localizer.Text('Preferences');
+     miCopy.Caption                := Localizer.Text('Copy');
+     miPaste.Caption               := Localizer.Text('Paste');
+     miFullscreen.Caption          := Localizer.Text('Toggle Fullscreen');
+     miSplitHorizontal.Caption     := Localizer.Text('Split ―');
+     miSplitVertical.Caption       := Localizer.Text('Split |');
+     miCloseTerminal.Caption       := Localizer.Text('Close terminal');
+     miSaveTerminal.Caption        := Localizer.Text('Save content...');
+     miResetTerminal.Caption       := Localizer.Text('Reset terminal');
+     miOpenLink.Caption            := Localizer.Text('Open link...');
+     miSearchWeb.Caption           := Localizer.Text('Search on Web');
+     miQuickOpen.Caption           := Localizer.Text('Quick Open...');
+     miTerminalPreferences.Caption := Localizer.Text('Preferences');
+     miTerminalAbout.Caption       := Localizer.Text('About');
+     miTerminalQuit.Caption        := Localizer.Text('Quit');
+     miNewTab.Caption              := Localizer.Text('New tab');
+     miTrayNewTab.Caption          := Localizer.Text('New tab');
+     miRenameTab.Caption           := Localizer.Text('Rename');
+     miRestoreTabColors.Caption    := Localizer.Text('Reset custom colors');
+     miCloseTab.Caption            := Localizer.Text('Close');
+     miSaveTabs.Caption            := Localizer.Text('Save Tabs');
+     miRestoreTabs.Caption         := Localizer.Text('Restore Tabs');
+
+     miAbout.Caption := Localizer.Text('About');
+     miQuit.Caption  := Localizer.Text('Quit');
     End;
    ApplySettings;
   End;
@@ -246,12 +309,124 @@ Implementation
   End;
 
  Procedure TfrmMain.SetOnCommand(Const Value : TGuakeCommandEvent);
-  Var
-   i : Integer;
   Begin
-   fOnCommand                     := Value;
-   For i                          := 0 To terminalMenu.Items.Count - 1 Do
-    terminalMenu.Items[i].Enabled := Assigned(Value);
+   fOnCommand                := Value;
+   miNewTab.Enabled          := Assigned(Value);
+   miCloseTab.Enabled        := Assigned(Value);
+   miSplitHorizontal.Enabled := Assigned(Value);
+   miSplitVertical.Enabled   := Assigned(Value);
+   miCopy.Enabled            := Assigned(Value);
+   miPaste.Enabled           := Assigned(Value);
+   miSearch.Enabled          := Assigned(Value);
+  End;
+
+/// <summary>Updates context actions from the active session without enabling unimplemented integrations.</summary>
+
+ Procedure TfrmMain.AddTabClick(Sender : TObject);
+  Begin
+   ExecuteTerminalAction(gskKeybindingsLocalNewTab);
+  End;
+
+ Procedure TfrmMain.TabListClick(Sender : TObject);
+  Var
+   Point : TPoint;
+  Begin
+   Point.x := 0;
+   Point.y := btnTabList.Height;
+   Point   := btnTabList.ClientToScreen(Point);
+   tabListMenu.Popup(Point.x, Point.y);
+  End;
+
+/// <summary>Builds only the data-dependent tab list and selects by stable tab identity.</summary>
+
+ Procedure TfrmMain.TabListPopup(Sender : TObject);
+  Var
+   Index : Integer;
+   Item  : TTabListItem;
+  Begin
+   tabListMenu.Items.Clear;
+   If fController = Nil Then
+    Exit;
+   For Index := 0 To fController.Count - 1 Do
+    Begin
+     Item           := TTabListItem.Create(tabListMenu);
+     Item.Caption   := StringReplace(fController.Tabs[Index].Title, '&', '&&', [rfReplaceAll]);
+     Item.TabId     := fController.Tabs[Index].Id;
+     Item.RadioItem := True;
+     Item.Checked   := Index = fController.ActiveIndex;
+     Item.OnClick   := SelectListedTab;
+     tabListMenu.Items.Add(Item);
+    End;
+  End;
+
+ Procedure TfrmMain.SelectListedTab(Sender : TObject);
+  Var
+   Index : Integer;
+  Begin
+   If fController = Nil Then
+    Exit;
+   For Index := 0 To fController.Count - 1 Do
+    If fController.Tabs[Index].Id = TTabListItem(Sender).TabId Then
+     Begin
+      fController.SelectTab(Index);
+      Exit;
+     End;
+  End;
+
+ Procedure TfrmMain.TerminalMenuPopup(Sender : TObject);
+  Var
+   Frame : TfraTerminal;
+  Begin
+   Frame                   := ActiveTerminalFrame;
+   miCopy.Enabled          := (Frame <> Nil) And (Frame.SelectedText <> '');
+   miPaste.Enabled         := (Frame <> Nil) And IsClipboardFormatAvailable(CF_UNICODETEXT);
+   miFullscreen.Enabled    := fController <> Nil;
+   miFullscreen.Checked    := fFullScreen;
+   miCloseTerminal.Enabled := Frame <> Nil;
+   miSaveTerminal.Enabled  := Frame <> Nil;
+   miResetTerminal.Enabled := Frame <> Nil;
+  End;
+
+ Procedure TfrmMain.TabMenuPopup(Sender : TObject);
+  Var
+   Point : TPoint;
+   Index : Integer;
+  Begin
+   If fController = Nil Then
+    Exit;
+   Point := tabBar.ScreenToClient(Mouse.CursorPos);
+   Index := tabBar.IndexOfTabAt(Point.x, Point.y);
+   If Index >= 0 Then
+    fController.SelectTab(Index);
+   miRenameTab.Enabled := fController.ActiveTab <> Nil;
+  End;
+
+ Procedure TfrmMain.TerminalActionClick(Sender : TObject);
+  Var
+   Dialogs : TdmDialogs;
+  Begin
+   If fController = Nil Then
+    Exit;
+   Case TMenuItem(Sender).Tag Of
+    0 :
+     ExecuteTerminalAction(gskKeybindingsLocalToggleFullscreen);
+    1 :
+     ExecuteTerminalAction(gskKeybindingsLocalCloseTerminal);
+    2 :
+     ExecuteTerminalAction(gskKeybindingsLocalResetTerminal);
+    3 :
+     ExecuteTerminalAction(gskKeybindingsLocalRenameCurrentTab);
+    4 :
+     If fController.ActiveSession <> Nil Then
+      Begin
+       Dialogs := TdmDialogs.Create(Self);
+       Try
+        Dialogs.SaveTerminal(fController.ActiveSession.Buffer.Text, Handle);
+       Finally
+        Dialogs.Free;
+       End;
+      End;
+   End;
   End;
 
  Procedure TfrmMain.ToggleVisibility;
@@ -325,6 +500,9 @@ Implementation
     RegisterGlobalHotkeys;
     pollTimer.Enabled         := True;
     miNewTab.Enabled          := True;
+    btnAddTab.Enabled         := True;
+    btnTabList.Enabled        := True;
+    miTrayNewTab.Enabled      := True;
     miCloseTab.Enabled        := True;
     miSplitHorizontal.Enabled := True;
     miSplitVertical.Enabled   := True;
@@ -349,6 +527,12 @@ Implementation
      UnregisterHotKey(Handle, 1);
      UnregisterHotKey(Handle, 2);
     End;
+   If btnAddTab <> Nil Then
+    btnAddTab.Enabled := False;
+   If btnTabList <> Nil Then
+    btnTabList.Enabled := False;
+   If miTrayNewTab <> Nil Then
+    miTrayNewTab.Enabled := False;
    ClearTerminalViews;
    FreeAndNil(fViews);
    FreeAndNil(fController);

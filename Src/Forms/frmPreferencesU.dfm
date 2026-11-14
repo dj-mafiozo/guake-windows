@@ -3,9 +3,9 @@
   Top = 0
   Caption = 'Preferencje programu Guake'
   ClientHeight = 740
-  ClientWidth = 960
+  ClientWidth = 1180
   Constraints.MinHeight = 640
-  Constraints.MinWidth = 860
+  Constraints.MinWidth = 1100
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -17,6 +17,53 @@
   OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 15
+  object pnlHeader: TPanel
+    Align = alTop
+    Height = 92
+    BevelOuter = bvNone
+    TabOrder = 2
+    object imgHeader: TImage
+      Left = 20
+      Top = 22
+      Width = 48
+      Height = 48
+      Proportional = True
+      Center = True
+    end
+    object lblHeaderTitle: TLabel
+      Left = 84
+      Top = 21
+      Caption = 'Właściwości programu Guake'
+      Font.Height = -24
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object lblHeaderDescription: TLabel
+      Left = 84
+      Top = 54
+      Caption = 'Dostosowanie zachowania i wyglądu programu Guake!'
+    end
+  end
+  object navPages: TListBox
+    Align = alLeft
+    Width = 160
+    BorderStyle = bsNone
+    ItemHeight = 50
+    Style = lbOwnerDrawFixed
+    TabOrder = 3
+    OnClick = NavigationClick
+    OnDrawItem = NavigationDrawItem
+    Items.Strings = (
+      'Ogólne'
+      'Główne okno'
+      'Powłoka'
+      'Przewijanie'
+      'Wygląd'
+      'Skróty klawiszowe'
+      'Szybkie otwieranie'
+      'Zaczepy'
+      'Zgodność')
+  end
   object pnlFooter: TPanel
     Width = 960
     Align = alBottom
@@ -39,9 +86,11 @@
     Height = 692
     Align = alClient
     ActivePage = tabGeneral
+    OnChange = PagesChanged
     MultiLine = True
     TabOrder = 0
     object tabGeneral: TTabSheet
+      TabVisible = False
       ExplicitWidth = 952
       ExplicitHeight = 640
       Caption = 'Ogólne'
@@ -427,6 +476,7 @@
       end
     end
     object tabMainWindow: TTabSheet
+      TabVisible = False
       ExplicitWidth = 952
       ExplicitHeight = 640
       Caption = 'Główne okno'
@@ -846,6 +896,7 @@
       end
     end
     object tabShell: TTabSheet
+      TabVisible = False
       ExplicitWidth = 952
       ExplicitHeight = 640
       Caption = 'Powłoka'
@@ -928,6 +979,7 @@
       end
     end
     object tabScrolling: TTabSheet
+      TabVisible = False
       ExplicitWidth = 952
       ExplicitHeight = 640
       Caption = 'Przewijanie'
@@ -1028,6 +1080,7 @@
       end
     end
     object tabAppearance: TTabSheet
+      TabVisible = False
       ExplicitWidth = 952
       ExplicitHeight = 640
       Caption = 'Wygląd'
@@ -1679,6 +1732,7 @@
       end
     end
     object tabKeyboard: TTabSheet
+      TabVisible = False
       ExplicitWidth = 952
       ExplicitHeight = 640
       Caption = 'Skróty klawiszowe'
@@ -1718,6 +1772,7 @@
       end
     end
     object tabQuickOpen: TTabSheet
+      TabVisible = False
       ExplicitWidth = 952
       ExplicitHeight = 640
       Caption = 'Szybkie otwieranie'
@@ -1801,6 +1856,7 @@
       end
     end
     object tabHooks: TTabSheet
+      TabVisible = False
       ExplicitWidth = 952
       ExplicitHeight = 640
       Caption = 'Zaczepy'
@@ -1861,6 +1917,7 @@
       end
     end
     object tabCompatibility: TTabSheet
+      TabVisible = False
       ExplicitWidth = 952
       ExplicitHeight = 640
       Caption = 'Zgodność'

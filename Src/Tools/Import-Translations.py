@@ -1,7 +1,8 @@
 ﻿"""Compile upstream PO files with GNU gettext; export lossless runtime messages.
 
 No fuzzy or obsolete translations are promoted. Sources and translator credits
-remain in locale/po. The runtime builds a vendor/i18n TTranslationCatalog, using
+remain in Localization/po; native additions are in Localization/port.
+The runtime builds a vendor/i18n TTranslationCatalog, using
 the library itself to produce its legacy text identifiers.
 """
 import argparse
@@ -54,6 +55,13 @@ def main():
     output.mkdir(parents=True, exist_ok=True)
     for source in sorted((root / 'Localization' / 'po').glob('*.po')):
         catalog = convert(source, args.msgfmt)
+        supplement = root / 'Localization' / 'port' / source.name
+        if supplement.is_file():
+            additions = convert(supplement, args.msgfmt)
+            identities = {(e['context'], e['singular'], e['plural']) for e in catalog['entries']}
+            catalog['entries'].extend(e for e in additions['entries']
+                                      if (e['context'], e['singular'], e['plural']) not in identities)
+
         destination = output / (source.stem + '.json')
         destination.write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
         print(f'{source.stem}: {len(catalog["entries"])}')
