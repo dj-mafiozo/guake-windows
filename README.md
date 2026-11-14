@@ -25,3 +25,5 @@ Główny EXE: `bin/Win64/guake.exe`. Samodzielny edytor preferencji do sprawdzen
 [Stan portu i mapa formularzy](docs/port-status.md) opisują zakres działającego kodu i braki. [Inwentarz źródłowego Guake](docs/guake-contract.json) nie oznacza implementacji wszystkich wymienionych funkcji. [AGENTS.md](AGENTS.md) określa formatowanie, zasoby i wersjonowanie.
 
 Jeżeli uruchomiona aplikacja blokuje docelowy EXE, można zweryfikować kompilację przez `Src/Tools/Test.ps1 -MainOutput .build/verified-main`. Ten parametr zmienia wyłącznie katalog wyjściowy aplikacji głównej. `Base` w IDE przechowuje wspólne opcje; do budowania wybierz `Debug` albo `Release`.
+
+Konflikt skrótu globalnego nie blokuje uruchomienia terminala. Szczegóły są widoczne w podpowiedzi ikony tray; zajętą kombinację można zmienić w preferencjach. Projekty używają `ResourceBuildDependsOn` do kompilacji zasobów, zgodnie ze starszym parserem MSBuild w Delphi.

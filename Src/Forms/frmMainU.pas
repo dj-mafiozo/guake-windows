@@ -52,6 +52,7 @@ Interface
     fSearch       : TfrmSearch;
     fUpdatingTabs : Boolean;
     fPolling      : Boolean;
+    fHotkeyErrors : String;
     Procedure ClearTerminalViews;
     Procedure ControllerChanged(Sender : TObject);
     Procedure RenderTerminalTree;
@@ -80,6 +81,8 @@ Interface
     Procedure ExecuteTerminalAction(Action : TGuakeSetting);
     Function  ActiveTerminalFrame : TfraTerminal;
     Property Controller : TTerminalController Read fController;
+    /// <summary>Registration failures for unavailable global shortcuts; terminal startup remains operational.</summary>
+    Property HotkeyErrors : String Read fHotkeyErrors;
     Procedure Bind         (Settings : TGuakeSettings; Localizer : TGuakeLocalization = Nil; Log : TGuakeLog = Nil);
     Procedure ApplySettings;
     Procedure ToggleVisibility;
@@ -513,19 +516,38 @@ Implementation
    End;
   End;
 
+/// <summary>Registers each shortcut independently; unavailable shortcuts are reported without stopping sessions.</summary>
+
  Procedure TfrmMain.RegisterGlobalHotkeys;
-  Var
-   Key       : Word;
-   Modifiers : Cardinal;
+
+   Procedure RegisterShortcut(Id : Integer; Const Shortcut : String);
+    Var
+     Key       : Word;
+     Modifiers : Cardinal;
+     Error     : Cardinal;
+     Detail    : String;
+    Begin
+     If Not ParseAccelerator(Shortcut, Key, Modifiers) Then
+      Exit;
+     If RegisterHotKey(Handle, Id, Modifiers Or $4000, Key) Then
+      Exit;
+     Error  := GetLastError;
+     Detail := Format('%s (%d): %s', [Shortcut, Error, SysErrorMessage(Error)]);
+     If fHotkeyErrors <> '' Then
+      fHotkeyErrors := fHotkeyErrors + sLineBreak;
+     fHotkeyErrors  := fHotkeyErrors + Detail;
+     OutputDebugString(PChar('Guake: global shortcut unavailable: ' + Detail));
+    End;
+
   Begin
    UnregisterHotKey(Handle, 1);
    UnregisterHotKey(Handle, 2);
-   If ParseAccelerator(fSettings.Keybindings.Global.ShowHide, Key, Modifiers) Then
-    If Not RegisterHotKey(Handle, 1, Modifiers Or $4000, Key) Then
-     RaiseLastOSError;
-   If ParseAccelerator(fSettings.Keybindings.Global.ShowFocus, Key, Modifiers) Then
-    If Not RegisterHotKey(Handle, 2, Modifiers Or $4000, Key) Then
-     RaiseLastOSError;
+   fHotkeyErrors := '';
+   RegisterShortcut(1, fSettings.Keybindings.Global.ShowHide);
+   RegisterShortcut(2, fSettings.Keybindings.Global.ShowFocus);
+   trayIcon.Hint := 'Guake Terminal';
+   If fHotkeyErrors <> '' Then
+    trayIcon.Hint := trayIcon.Hint + sLineBreak + fHotkeyErrors;
   End;
 
  Procedure TfrmMain.WMHotKey(Var Message : TMessage);

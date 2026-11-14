@@ -68,7 +68,7 @@ Logger zapisuje klasę i treść wyjątku, jego oryginalny `Exception.StackTrace
 
 ## Weryfikacja i pozostały zakres
 
-48 testów DUnitX Win64 obejmują wszystkie wartości domyślne schematu, zapis i odczyt rekordów, Double w polskich ustawieniach regionalnych, walidację, nieznane klucze, ładowanie DFM, zależności, natychmiastowy zapis, błędy zapisu, reset zgodności, konflikty skrótów, palety, wyszukiwanie, zapis tekstu, wszystkie katalogi tłumaczeń, Common i logowanie stosów. Raport i podglądy dziewięciu zakładek powstają w `bin/tests/`.
+49 testów DUnitX Win64 obejmuje wszystkie wartości domyślne schematu, zapis i odczyt rekordów, Double w polskich ustawieniach regionalnych, walidację, nieznane klucze, ładowanie DFM, zależności, natychmiastowy zapis, błędy zapisu, reset zgodności, konflikty skrótów, palety, wyszukiwanie, zapis tekstu, wszystkie katalogi tłumaczeń, Common i logowanie stosów. Raport i podglądy dziewięciu zakładek powstają w `bin/tests/`.
 
 Działają backend ConPTY, przyrostowy parser UTF-8 i VT, renderer komórek oraz kontroler kart i podziałów. Testy uruchamiają CMD, PowerShell, Bash i Zsh, sprawdzają środowisko, zakończenie procesów, zamykanie przy dużym wyjściu i zachowanie zasobów przy błędach startu. Emulator wymaga dalszego uzupełniania zgodności VT, m.in. reflow i pełnej obsługi grafemów. Nadal brakuje odtwarzania sesji, Named Pipes i zgodnego CLI. Zapis opcji w preferencjach nie oznacza jeszcze działania ich efektów poza formularzem: np. automatycznego startu, hooków, Quick Open czy ustawień renderowania. Niezaimplementowane pozostają integracje systemowe i funkcje zależne od tych modułów. Kontrolka widocznego dzwonka pozostaje wyłączona, ponieważ nie ma odpowiadającego jej klucza w źródłowym schemacie.
 
@@ -89,3 +89,11 @@ Wersja 1.0.3.38: 48/48 testów DUnitX, kompilacja Win64 Debug i Release, generow
 Dwuklik karty jest podłączany przez TTabControlAccess w FormCreate. DFM przechowuje wyłącznie publikowane zdarzenie OnCreate. Test sprawdza przypisanie OnDblClick po wczytaniu formularza. Konwersja MAP do PDB nie używa już opcji -bind i nie modyfikuje EXE; porównanie SHA-256 przed i po konwersji jest obowiązkową kontrolą skryptu. Test odczytu symbolicznego stosu przeszedł także z osobnym PDB. Wcześniejszy wariant Debug po modyfikacji przez -bind został zablokowany przez Windows kodem 225.
 
 Wersja 1.0.4.39: 48/48 testów DUnitX, ponowne kompilacje Win64 Debug i Release oraz poprawny odczyt wersji obu EXE po utworzeniu osobnych PDB. Zwykły build nie zmienił numerów ani DPROJ. Pakiet `bin/guake-1.0.4.39-Win64.zip` zawiera EXE, PDB, tłumaczenia i licencje.
+
+## Konflikty skrótów i zgodność MSBuild
+
+Zajęty skrót globalny (błąd Windows 1409) nie przerywa startu terminala. Rejestracja obu skrótów odbywa się niezależnie; dostępny skrót nadal działa. Informacja o błędzie zawiera kombinację klawiszy i kod systemowy, trafia do podpowiedzi ikony tray i OutputDebugString. Kolejna rejestracja po zmianie ustawień ponawia próbę i usuwa nieaktualny komunikat. Test rezerwuje rzeczywisty skrót WinAPI, sprawdza start CMD mimo konfliktu, drugi skrót oraz ponowną rejestrację po zwolnieniu klawisza.
+
+Wszystkie DPROJ dołączają BuildGuakeImages przez ResourceBuildDependsOn po imporcie standardowych targets. Nie używają BeforeTargets, którego starszy parser projektów Delphi nie rozpoznaje. Wszystkie trzy projekty przeszły odczyt przez Microsoft.Build.BuildEngine.Project, oprócz kompilacji współczesnym MSBuild. Kontrola odczytu nie zastępuje sprawdzenia zapisu z poziomu IDE.
+
+Wersja 1.0.5.40: 49/49 testów DUnitX, kompilacja wszystkich trzech projektów Win64 Debug, odczyt trzech DPROJ przez starszy Microsoft.Build.BuildEngine.Project i paczka `bin/guake-1.0.5.40-Win64.zip`. Test PowerShell czeka na pierwszy prompt PSReadLine i nie zapisuje historii użytkownika. Pomiar uchwytów po nieudanym starcie oddziela jednorazową inicjalizację obsługi symboli od kolejnych prób.

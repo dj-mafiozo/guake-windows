@@ -1,4 +1,4 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectGuid>{D89B14E5-2626-4137-8F3C-0223FD9F2086}</ProjectGuid>
     <MainSource>GuakeTests.dpr</MainSource>
@@ -29,10 +29,10 @@
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_MajorVer>1</VerInfo_MajorVer>
     <VerInfo_MinorVer>0</VerInfo_MinorVer>
-    <VerInfo_Release>4</VerInfo_Release>
-    <VerInfo_Build>39</VerInfo_Build>
+    <VerInfo_Release>5</VerInfo_Release>
+    <VerInfo_Build>40</VerInfo_Build>
     <VerInfo_Locale>1045</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Testy Guake dla Windows;FileVersion=1.0.4.39;InternalName=GuakeTests;OriginalFilename=GuakeTests.exe;ProductName=Guake dla Windows;ProductVersion=1.0.4.39</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Testy Guake dla Windows;FileVersion=1.0.5.40;InternalName=GuakeTests;OriginalFilename=GuakeTests.exe;ProductName=Guake dla Windows;ProductVersion=1.0.5.40</VerInfo_Keys>
     <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
     <DCC_MapFile>3</DCC_MapFile>
     <PostBuildEvent>python "$(MSBuildProjectDirectory)\..\Tools\Build-Symbols.py" "$(DCC_ExeOutput)\$(MSBuildProjectName).map"</PostBuildEvent>
@@ -125,7 +125,10 @@
     </BuildConfiguration>
   </ItemGroup>
   <Import Project="$(BDS)\Bin\CodeGear.Delphi.Targets" />
-  <Target Name="BuildGuakeImages" BeforeTargets="_PasCoreCompile">
+  <PropertyGroup>
+    <ResourceBuildDependsOn>BuildGuakeImages;$(ResourceBuildDependsOn)</ResourceBuildDependsOn>
+  </PropertyGroup>
+  <Target Name="BuildGuakeImages">
     <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\Tools\Build-Resources.ps1&quot;" />
   </Target>
   <ProjectExtensions>

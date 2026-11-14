@@ -28,6 +28,7 @@ Interface
     [Test] Procedure ControllerTabsSplitsAndFailure;
     [Test] Procedure WindowsAccelerators;
     [Test] Procedure MainWindowCreatesTerminalAndSplitFrames;
+    [Test] Procedure OccupiedGlobalShortcutDoesNotStopTerminal;
   End;
 
 Implementation
@@ -213,12 +214,15 @@ Implementation
    Case Kind Of
     gsBash       : Profile.Arguments := '--noprofile --norc -i';
     gsZsh        : Profile.Arguments := '-d -f -i';
-    gsPowerShell : Profile.Arguments := '-NoLogo -NoProfile';
+    gsPowerShell : Profile.Arguments := '-NoLogo -NoProfile -NoExit -Command "Set-PSReadLineOption -HistorySaveStyle SaveNothing"';
    End;
    Buffer := TTerminalBuffer.Create(120, 30, 2000);
    Try
     Session := TConPtySession.Create(Profile.Executable, Profile.Arguments, GetCurrentDir, 120, 30);
     Try
+     // Wait until PSReadLine has initialized before sending the command.
+     If Kind = gsPowerShell Then
+      Assert.IsTrue(WaitForText(Session, Buffer, 'PS ' + GetCurrentDir + '>', 60000), Buffer.Text);
      Session.SendText(Command + #13);
      Assert.IsTrue(WaitForText(Session, Buffer, 'CONPTY-' + 'READY'), Buffer.Text);
      Session.Resize(100, 25);
@@ -266,6 +270,8 @@ Implementation
    After  : Cardinal;
    i      : Integer;
   Begin
+   // Initialize lazy exception symbol infrastructure before measuring repeated failed starts.
+   Assert.WillRaise(Procedure Var Session : TConPtySession; Begin Session := TConPtySession.Create('C:\missing-guake-shell.exe', '', '', 80, 24); Session.Free; End, EFileNotFoundException);
    GetProcessHandleCount(GetCurrentProcess, Before);
    For i                                                                   := 1 To 10 Do
     Assert.WillRaise(Procedure Var Session : TConPtySession; Begin Session := TConPtySession.Create('C:\missing-guake-shell.exe', '', '', 80, 24); Session.Free; End, EFileNotFoundException);
@@ -358,6 +364,53 @@ Implementation
     End;
    Finally
     Settings.Free;
+   End;
+  End;
+
+/// <summary>Reserves an actual Windows hotkey, checks partial registration and retries after releasing the conflict.</summary>
+
+ Procedure TTerminalTests.OccupiedGlobalShortcutDoesNotStopTerminal;
+  Const
+   OccupiedId = $B110;
+   ProbeId    = $B111;
+   Modifiers  = MOD_CONTROL Or MOD_ALT Or MOD_SHIFT;
+  Var
+   Settings : TGuakeSettings;
+   Main     : TfrmMain;
+  Begin
+   Assert.IsTrue(RegisterHotKey(0, OccupiedId, Modifiers, VK_F24), 'Cannot reserve the test hotkey');
+   Try
+    Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+    Try
+     Settings.General.DefaultShell         := 'cmd';
+     Settings.General.UseTrayicon          := False;
+     Settings.Keybindings.Global.ShowHide  := '<Control><Alt><Shift>F24';
+     Settings.Keybindings.Global.ShowFocus := '<Control><Alt><Shift>F23';
+     Main                                  := TfrmMain.Create(Nil);
+     Try
+      Main.Bind(Settings);
+      Main.StartTerminal;
+      Assert.AreEqual(1, Main.Controller.Count);
+      Assert.IsTrue(Main.pollTimer.Enabled);
+      Assert.IsTrue(Pos('1409', Main.HotkeyErrors) > 0, Main.HotkeyErrors);
+      Assert.IsTrue(Pos('F24', Main.trayIcon.Hint) > 0, Main.trayIcon.Hint);
+      Assert.IsFalse(RegisterHotKey(0, ProbeId, Modifiers, VK_F23), 'The other shortcut was not registered');
+      Main.StopTerminal;
+      UnregisterHotKey(0, OccupiedId);
+      Main.StartTerminal;
+      Assert.AreEqual('', Main.HotkeyErrors);
+      Assert.AreEqual('Guake Terminal', Main.trayIcon.Hint);
+      Main.StopTerminal;
+      Assert.IsTrue(RegisterHotKey(0, ProbeId, Modifiers, VK_F24), 'Shortcut was not released');
+     Finally
+      UnregisterHotKey(0, ProbeId);
+      Main.Free;
+     End;
+    Finally
+     Settings.Free;
+    End;
+   Finally
+    UnregisterHotKey(0, OccupiedId);
    End;
   End;
 

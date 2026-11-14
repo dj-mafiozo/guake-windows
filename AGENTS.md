@@ -34,11 +34,12 @@
 - Stacktrace zapewnia Src/Vendor/stacktrace. StackTrace musi być pierwszą jednostką DPR. Włącz stack frames i szczegółowy MAP. Nie loguj stosu bieżącego miejsca obsługi jako stosu miejsca powstania wyjątku: używaj Exception.StackTrace.
 - Logger nie może zastępować pierwotnego wyjątku błędem zapisu logu. Nazwy funkcji i numery linii wymagają aktualnych PDB wygenerowanych z MAP przez map2pdb.
 
-## Struktura ?r?de? i aktualno?? dokumentacji
+## Struktura źródeł i aktualność dokumentacji
 
-- Ca?y kod, projekty, testy, narz?dzia i ?r?d?owe dane aplikacji utrzymuj pod `Src/`, w podkatalogach odpowiadaj?cych ich roli. Projekt g??wny: `Src/guake.dpr` i `Src/guake.dproj`.
-- Formularze PAS/DFM nale?? do `Src/Forms/`; modu?y danych `dm*.pas` i `dm*.dfm` wy??cznie do `Src/DataModules/`.
-- Ustawienia dziel na rekordy hierarchiczne: General, Style.Font, Style.Background, Keybindings.Global, Keybindings.Local i Hooks. Osobna klasa zarz?dza INI, walidacj? i zapisem.
-- Umieszczaj `{$StackFrames On}` w pierwszej linii ka?dego PAS i DPR. Budowanie ma generowa? PDB z MAP przez map2pdb i dostarcza? PDB obok w?a?ciwego EXE, tak?e w paczkach.
-- Zachowaj w credits: `Copyright ? 2026 DJ M@fi0z0? - native Windows port` i `DJ M@fi0z0? <inz.germanista@gmail.com>`, obok oryginalnych autor?w i licencji.
-- Aktualizuj pliki Markdown razem ze zmianami kodu, uk?adu katalog?w, polece?, test?w i rzeczywistego zakresu funkcji. Usu? nieaktualne opisy zamiast dopisywa? sprzeczne uzupe?nienia.
+- Cały kod, projekty, testy, narzędzia i źródłowe dane aplikacji utrzymuj pod `Src/`, w podkatalogach odpowiadających ich roli. Projekt główny: `Src/guake.dpr` i `Src/guake.dproj`.
+- Formularze PAS/DFM należą do `Src/Forms/`; moduły danych `dm*.pas` i `dm*.dfm` wyłącznie do `Src/DataModules/`.
+- Ustawienia dziel na rekordy hierarchiczne: General, Style.Font, Style.Background, Keybindings.Global, Keybindings.Local i Hooks. Osobna klasa zarządza INI, walidacją i zapisem.
+- Umieszczaj `{$StackFrames On}` w pierwszej linii każdego PAS i DPR. Budowanie ma generować PDB z MAP przez map2pdb i dostarczać PDB obok właściwego EXE, także w paczkach.
+- Zachowaj w credits: `Copyright © 2026 DJ M@fi0z0™ - native Windows port` i `DJ M@fi0z0™ <inz.germanista@gmail.com>`, obok oryginalnych autorów i licencji.
+- Aktualizuj pliki Markdown razem ze zmianami kodu, układu katalogów, poleceń, testów i rzeczywistego zakresu funkcji. Usuń nieaktualne opisy zamiast dopisywać sprzeczne uzupełnienia.
+- W DPROJ używaj list zależności targets, np. ResourceBuildDependsOn, zamiast BeforeTargets i AfterTargets nierozpoznawanych przez starszy parser IDE.
