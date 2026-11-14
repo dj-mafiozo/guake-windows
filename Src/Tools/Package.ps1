@@ -1,8 +1,8 @@
 ﻿[CmdletBinding()]
-param()
+param([string]$OutputDirectory)
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
-$output = Join-Path $repo 'bin\Win64'
+$output = if ($OutputDirectory) { [IO.Path]::GetFullPath($OutputDirectory) } else { Join-Path $repo 'bin\Win64' }
 foreach ($name in @('guake.exe','guake.pdb')) {
     if (!(Test-Path -LiteralPath (Join-Path $output $name))) { throw "Missing $name; build the Win64 project first." }
 }

@@ -31,6 +31,7 @@ Interface
     [Test] Procedure ZshUsesTerminalCapabilities;
     [Test] Procedure IdleTerminalDoesNotRepaint;
     [Test] Procedure ReferenceMenusAndTabChooser;
+    [Test] Procedure BackgroundImageLayoutsAndRemoval;
     [Test] Procedure MainWindowCreatesTerminalAndSplitFrames;
     [Test] Procedure OccupiedGlobalShortcutDoesNotStopTerminal;
   End;
@@ -38,7 +39,7 @@ Interface
 Implementation
 
  Uses
-  Winapi.Windows, System.SysUtils, System.Classes, System.IOUtils,
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, System.IOUtils,
   frmMainU, fraTerminalU, Vcl.Graphics, Vcl.Imaging.pngimage, Vcl.ComCtrls, Vcl.Controls, Guake.ConPTY, Guake.VT, Guake.Shells, Guake.Sessions, Guake.Settings, Guake.Keybindings;
 
  Type
@@ -558,6 +559,8 @@ Implementation
   Var
    Settings : TGuakeSettings;
    Main     : TfrmMain;
+   Handled  : Boolean;
+   Msg      : TMsg;
   Begin
    Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
    Try
@@ -570,6 +573,7 @@ Implementation
      Main.Bind(Settings);
      Main.StartTerminal;
      Assert.IsTrue(Main.btnAddTab.Enabled);
+     Assert.IsFalse(Main.btnAddTab.Glyph.Empty);
      Assert.IsTrue(Main.btnTabList.Enabled);
      Assert.IsTrue(Main.miTrayNewTab.Enabled);
      Main.Controller.ActiveTab.Name := 'one';
@@ -582,8 +586,20 @@ Implementation
      Assert.AreEqual(0, Main.Controller.ActiveIndex);
      Main.TerminalMenuPopup(Nil);
      Assert.IsTrue(Main.miSaveTerminal.Parent = Main.terminalMenu.Items);
-     Assert.AreEqual(4, Main.tabMenu.Items.Count);
+     Assert.AreEqual(5, Main.tabMenu.Items.Count);
      Assert.IsTrue(Main.miResetTerminal.Enabled);
+     Assert.AreEqual(4, Main.miNewShellTab.Count);
+     Main.miNewCmd.Click;
+     Assert.AreEqual(3, Main.Controller.Count);
+     Assert.AreEqual(Integer(gsCmd), Integer(Main.Controller.ActiveSession.Profile.Kind));
+     Settings.Keybindings.Local.NewTabCmd := '<Control><Alt>F23';
+     Handled                              := False;
+     Main.ActiveTerminalFrame.OnShortcut(Main.ActiveTerminalFrame, VK_F23, [ssCtrl, ssAlt], Handled);
+     Assert.IsTrue(Handled);
+     Assert.IsTrue(PeekMessage(Msg, Main.Handle, WM_APP, $BFFF, PM_REMOVE));
+     DispatchMessage(Msg);
+     Assert.AreEqual(4, Main.Controller.Count);
+     Assert.AreEqual(Integer(gsCmd), Integer(Main.Controller.ActiveSession.Profile.Kind));
      Assert.IsFalse(Main.miQuickOpen.Enabled);
      Assert.IsFalse(Main.miSaveTabs.Enabled);
     Finally
@@ -591,6 +607,83 @@ Implementation
     End;
    Finally
     Settings.Free;
+   End;
+  End;
+
+/// <summary>Renders a known two-color image in every layout and verifies removal and failure fallback.</summary>
+
+ Procedure TTerminalTests.BackgroundImageLayoutsAndRemoval;
+  Var
+   Settings : TGuakeSettings;
+   Main     : TfrmMain;
+   Frame    : TfraTerminal;
+   Source   : TBitmap;
+   Target   : TBitmap;
+   FileName : String;
+   Mode     : Integer;
+  Begin
+   FileName := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName + '.bmp');
+   Source   := TBitmap.Create;
+   Target   := TBitmap.Create;
+   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Try
+    Source.PixelFormat := pf24bit;
+    Source.SetSize(2, 1);
+    Source.Canvas.Pixels[0, 0] := clRed;
+    Source.Canvas.Pixels[1, 0] := clBlue;
+    Source.SaveToFile(FileName);
+    Target.PixelFormat := pf24bit;
+    Target.SetSize(10, 10);
+    Settings.General.BackgroundImageFile := FileName;
+    Main                                 := TfrmMain.Create(Nil);
+    Try
+     Frame        := TfraTerminal.Create(Main.terminalHost);
+     Frame.Parent := Main.terminalHost;
+     For Mode     := 0 To 3 Do
+      Begin
+       Settings.General.BackgroundImageLayoutMode := Mode;
+       Frame.Bind(Nil, Settings);
+       Frame.DrawBackground(Target.Canvas, Rect(0, 0, 10, 10));
+       Case Mode Of
+        0 :
+         Begin
+          Assert.AreEqual(Integer(clRed), Integer(Target.Canvas.Pixels[0, 0]));
+          Assert.AreEqual(Integer(clRed), Integer(Target.Canvas.Pixels[0, 3]));
+         End;
+        1 :
+         Begin
+          Assert.AreEqual(Integer(clRed), Integer(Target.Canvas.Pixels[0, 8]));
+          Assert.AreEqual(Integer(clBlue), Integer(Target.Canvas.Pixels[1, 8]));
+         End;
+        2 :
+         Begin
+          Assert.AreEqual(Integer(clBlack), Integer(Target.Canvas.Pixels[0, 0]));
+          Assert.AreEqual(Integer(clRed), Integer(Target.Canvas.Pixels[4, 4]));
+          Assert.AreEqual(Integer(clBlue), Integer(Target.Canvas.Pixels[5, 4]));
+         End;
+        3 :
+         Begin
+          Assert.AreEqual(Integer(clRed), Integer(Target.Canvas.Pixels[0, 0]));
+          Assert.AreEqual(Integer(clBlue), Integer(Target.Canvas.Pixels[9, 9]));
+         End;
+       End;
+      End;
+     Settings.General.BackgroundImageFile := '';
+     Frame.ApplySettings;
+     Frame.DrawBackground(Target.Canvas, Rect(0, 0, 10, 10));
+     Assert.AreEqual(Integer(clBlack), Integer(Target.Canvas.Pixels[4, 4]));
+     Settings.General.BackgroundImageFile := FileName + '.missing';
+     Frame.ApplySettings;
+     Frame.DrawBackground(Target.Canvas, Rect(0, 0, 10, 10));
+     Assert.AreEqual(Integer(clBlack), Integer(Target.Canvas.Pixels[4, 4]));
+    Finally
+     Main.Free;
+    End;
+   Finally
+    Settings.Free;
+    Target.Free;
+    Source.Free;
+    TFile.Delete(FileName);
    End;
   End;
 

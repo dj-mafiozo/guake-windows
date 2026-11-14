@@ -70,7 +70,7 @@ Logger zapisuje klasę i treść wyjątku, jego oryginalny `Exception.StackTrace
 
 ## Weryfikacja i pozostały zakres
 
-56 testów DUnitX Win64 obejmuje wszystkie wartości domyślne schematu, zapis i odczyt rekordów, Double w polskich ustawieniach regionalnych, walidację, nieznane klucze, ładowanie DFM, zależności, natychmiastowy zapis, błędy zapisu, reset zgodności, konflikty skrótów, palety, wyszukiwanie, zapis tekstu, wszystkie katalogi tłumaczeń, Common i logowanie stosów. Raport i podglądy dziewięciu zakładek powstają w `bin/tests/`.
+59 testów DUnitX Win64 obejmuje wszystkie wartości domyślne schematu, zapis i odczyt rekordów, Double w polskich ustawieniach regionalnych, walidację, nieznane klucze, ładowanie DFM, zależności, natychmiastowy zapis, błędy zapisu, reset zgodności, konflikty skrótów, palety, wyszukiwanie, zapis tekstu, wszystkie katalogi tłumaczeń, Common i logowanie stosów. Raport i podglądy dziewięciu zakładek powstają w `bin/tests/`.
 
 Działają backend ConPTY, przyrostowy parser UTF-8 i VT, renderer komórek oraz kontroler kart i podziałów. Testy uruchamiają CMD, PowerShell, Bash i Zsh, sprawdzają środowisko, zakończenie procesów, zamykanie przy dużym wyjściu i zachowanie zasobów przy błędach startu. Emulator wymaga dalszego uzupełniania zgodności VT, m.in. reflow i pełnej obsługi grafemów. Nadal brakuje odtwarzania sesji, Named Pipes i zgodnego CLI. Zapis opcji w preferencjach nie oznacza jeszcze działania ich efektów poza formularzem: np. automatycznego startu, hooków, Quick Open czy ustawień renderowania. Niezaimplementowane pozostają integracje systemowe i funkcje zależne od tych modułów. Kontrolka widocznego dzwonka pozostaje wyłączona, ponieważ nie ma odpowiadającego jej klucza w źródłowym schemacie.
 
@@ -117,3 +117,15 @@ Wersja 1.0.6.41: 53/53 testy DUnitX, kompilacje Win64 Debug i Release oraz pakie
 Menu terminala i karty są oddzielne. Dodano zapis zawartości przez istniejący moduł dialogów, przyciski nowej karty i wyboru sesji oraz listę wskazującą aktywną kartę. Menu tray uwzględnia kolejność ze źródła. Nieaktywne funkcje pozostają oznaczone w opisie wzorca; nie deklarujemy pełnej zgodności funkcjonalnej ani wizualnej.
 
 Wersja 1.0.7.42: 56/56 testów DUnitX, kompilacje Win64 Debug i Release, kontrola animowanego panelu autorów/GPL, lewej nawigacji i przełączania kart po trwałym identyfikatorze. Uzupełnienia napisów Windows są osobnym PO w `Src/Localization/port`; oryginalne PO pozostają bez zmian. Pakiet: `bin/guake-1.0.7.42-Win64.zip`.
+
+## Obraz tła, przewijanie i karty konkretnych powłok
+
+Renderer wczytuje wybrany obraz tła, zachowuje go w pamięci i rysuje pod komórkami z domyślnym tłem. Działają cztery układy: skalowanie proporcjonalne z kadrowaniem (jak w źródłowym BackgroundImageManager), kafelki, środek i rozciąganie. Usunięcie pliku z ustawień przywraca kolor palety; brak lub błąd pliku nie przerywa pracy terminala. PNG, JPEG, BMP i GIF są obsługiwane przez VCL; animowanie GIF nie jest zaimplementowane.
+
+Kółko myszy przewija stronę pod kursorem, z uwzględnieniem częściowych kroków i systemowej liczby wierszy. Kontrolki z własnym przewijaniem otrzymują zdarzenie zamiast strony. Obszar pod kategoriami ma systemowe tło, bez białego pustego pola.
+
+Do 130 kluczy oryginalnego schematu dodano cztery rozszerzenia Windows w `keybindings.local`: `new-tab-zsh`, `new-tab-bash`, `new-tab-cmd` i `new-tab-powershell`. Są też osobnymi polami rekordu `Keybindings.Local`. Wszystkie domyślnie mają wartość `disabled`. Nowe karty można otwierać przez podmenu powłok, a przypisane skróty działają lokalnie wewnątrz Guake. Zachowano numerację wcześniejszych kluczy i tagów DFM.
+
+Polskie uzupełnienia PO obejmują brakujące etykiety, opisy działań, podpowiedzi ustawień i nowe powłoki. Oryginalne katalogi PO pozostają bez zmian. Przyciski paska kart są TSpeedButton, a statyczny Glyph jest odtwarzalnie wyprowadzany z `Src/Resources/add_tab.png`.
+
+Wersja 1.0.8.43: 59/59 testów DUnitX, kompilacje Win64 Debug i Release oraz normalny EXE w `bin/Win64`. Testy obejmują wszystkie układy obrazu, jego usunięcie i brak pliku, częściowe kroki kółka, cztery odrębne skróty z zapisem INI oraz utworzenie karty CMD przez menu i kolejkę akcji skrótu. Sprawdzenie `Update-AddTabGlyph.ps1 -Check` potwierdza zgodność Glyph z PNG. Pakiet: `bin/guake-1.0.8.43-Win64.zip`.

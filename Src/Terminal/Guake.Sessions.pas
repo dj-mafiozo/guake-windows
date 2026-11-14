@@ -386,19 +386,31 @@ Implementation
    If Shell <> '' Then
     Begin
      If SameText(Shell, 'cmd') Then
-      Profile := TShellProfile.Resolve(gsCmd)
+      Profile := TShellProfile.Resolve(gsCmd, fSettings.ReadString('windows', 'git-sdk-root', 'C:\git-sdk-64'))
      Else If SameText(Shell, 'powershell') Then
-      Profile := TShellProfile.Resolve(gsPowerShell)
+      Profile := TShellProfile.Resolve(gsPowerShell, fSettings.ReadString('windows', 'git-sdk-root', 'C:\git-sdk-64'))
      Else If SameText(Shell, 'bash') Then
-      Profile := TShellProfile.Resolve(gsBash)
+      Profile := TShellProfile.Resolve(gsBash, fSettings.ReadString('windows', 'git-sdk-root', 'C:\git-sdk-64'))
      Else If SameText(Shell, 'zsh') Then
-      Profile := TShellProfile.Resolve(gsZsh)
+      Profile := TShellProfile.Resolve(gsZsh, fSettings.ReadString('windows', 'git-sdk-root', 'C:\git-sdk-64'))
      Else
       Begin
        Profile.Executable := Shell;
        Profile.Arguments  := '';
       End;
     End;
+   Case Profile.Kind Of
+    gsBash :
+     If fSettings.General.UseLoginShell Then
+      Profile.Arguments := '--login -i'
+     Else
+      Profile.Arguments := '-i';
+    gsZsh :
+     If fSettings.General.UseLoginShell Then
+      Profile.Arguments := '-l -i'
+     Else
+      Profile.Arguments := '-i';
+   End;
    Target := Directory;
    If (Target = '') And fSettings.General.OpenTabCwd And (ActiveSession <> Nil) Then
     Target := ActiveSession.Directory;

@@ -6,7 +6,7 @@ Interface
 
  Uses
   System.SysUtils, System.Classes, System.Generics.Collections, Winapi.Windows, Winapi.Messages,
-  Vcl.Forms, Vcl.Controls, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.Menus, Vcl.StdCtrls,
+  Vcl.Forms, Vcl.Controls, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.Menus, Vcl.StdCtrls, Vcl.Buttons,
   Guake.Settings, Guake.Localization, Guake.Logging, Guake.Sessions, fraTerminalU, frmSearchU;
 
  Type
@@ -52,14 +52,20 @@ Interface
     miTerminalQuit        : TMenuItem;
     miRenameTab           : TMenuItem;
     miRestoreTabColors    : TMenuItem;
-    btnAddTab             : TButton;
-    btnTabList            : TButton;
+    btnAddTab             : TSpeedButton;
+    btnTabList            : TSpeedButton;
     tabListMenu           : TPopupMenu;
     miTrayNewTab          : TMenuItem;
     miSaveTabs            : TMenuItem;
     miRestoreTabs         : TMenuItem;
     miTraySeparator1      : TMenuItem;
     miTraySeparator2      : TMenuItem;
+    miNewShellTab         : TMenuItem;
+    miNewZsh              : TMenuItem;
+    miNewBash             : TMenuItem;
+    miNewCmd              : TMenuItem;
+    miNewPowerShell       : TMenuItem;
+    Procedure ShellTabClick      (Sender : TObject);
     Procedure AddTabClick        (Sender : TObject);
     Procedure TabListClick       (Sender : TObject);
     Procedure TabListPopup       (Sender : TObject);
@@ -183,6 +189,7 @@ Implementation
      miTerminalAbout.Caption       := Localizer.Text('About');
      miTerminalQuit.Caption        := Localizer.Text('Quit');
      miNewTab.Caption              := Localizer.Text('New tab');
+     miNewShellTab.Caption         := Localizer.Text('New tab with shell');
      miTrayNewTab.Caption          := Localizer.Text('New tab');
      miRenameTab.Caption           := Localizer.Text('Rename');
      miRestoreTabColors.Caption    := Localizer.Text('Reset custom colors');
@@ -321,6 +328,13 @@ Implementation
   End;
 
 /// <summary>Updates context actions from the active session without enabling unimplemented integrations.</summary>
+
+/// <summary>Uses the same action dispatch for shell-specific menu items and keyboard shortcuts.</summary>
+
+ Procedure TfrmMain.ShellTabClick(Sender : TObject);
+  Begin
+   ExecuteTerminalAction(TGuakeSetting(Ord(gskKeybindingsLocalNewTabZsh) + TMenuItem(Sender).Tag));
+  End;
 
  Procedure TfrmMain.AddTabClick(Sender : TObject);
   Begin
@@ -783,6 +797,14 @@ Implementation
     Exit;
    Frame := ActiveTerminalFrame;
    Case Action Of
+    gskKeybindingsLocalNewTabZsh :
+     fController.NewTab('', 'zsh');
+    gskKeybindingsLocalNewTabBash :
+     fController.NewTab('', 'bash');
+    gskKeybindingsLocalNewTabCmd :
+     fController.NewTab('', 'cmd');
+    gskKeybindingsLocalNewTabPowerShell :
+     fController.NewTab('', 'powershell');
     gskKeybindingsLocalNewTab, gskKeybindingsLocalNewTabCwd :
      Begin
       ClearTerminalViews;

@@ -39,6 +39,8 @@ Interface
     [Test]     Procedure SymbolicStackUsesMatchingPdb;
     [Test]     Procedure SidebarSelectsReferencePages;
     [Test]     Procedure AboutDetailsSlideUp;
+    [Test]     Procedure WheelScrollsPreferencePage;
+    [Test]     Procedure ShellShortcutsPersistAndTranslate;
   End;
 
 Implementation
@@ -87,7 +89,7 @@ Implementation
    Root := TJSONObject.ParseJSONValue(TFile.ReadAllText(Path, TEncoding.UTF8));
    Try
     Entries := Root As TJSONArray;
-    Assert.AreEqual(Entries.Count, Ord(High(TGuakeSetting)) + 1);
+    Assert.AreEqual(Entries.Count + 4, Ord(High(TGuakeSetting)) + 1);
     For Entry In Entries Do
      Begin
       Assert.IsTrue(TGuakeSettings.FindKey(Entry.GetValue<String>('section'), Entry.GetValue<String>('name'), k));
@@ -447,6 +449,58 @@ Implementation
     Assert.IsTrue(Dialog.lblVersion.Visible);
    Finally
     Dialog.Free;
+    Localizer.Free;
+   End;
+  End;
+
+/// <summary>Routes full and partial wheel steps to the hovered page while leaving the shortcut grid alone.</summary>
+
+ Procedure TPreferencesTests.WheelScrollsPreferencePage;
+  Var
+   Lines : Cardinal;
+  Begin
+   fForm.Bind(fSettings);
+   fForm.HandleNeeded;
+   fForm.scrollGeneral.VertScrollBar.Range    := 2000;
+   fForm.scrollGeneral.VertScrollBar.Position := 0;
+   Assert.IsTrue(fForm.ScrollPageAt(fForm.ctlRestoreTabsStartup, -60));
+   Assert.AreEqual(0, fForm.scrollGeneral.VertScrollBar.Position);
+   Assert.IsTrue(fForm.ScrollPageAt(fForm.ctlRestoreTabsStartup, -60));
+   Lines := 3;
+   SystemParametersInfo(SPI_GETWHEELSCROLLLINES, 0, @Lines, 0);
+   If Lines <> 0 Then
+    Assert.IsTrue(fForm.scrollGeneral.VertScrollBar.Position > 0);
+   Assert.IsTrue(fForm.ScrollPageAt(fForm.ctlRestoreTabsStartup, 120));
+   Assert.AreEqual(0, fForm.scrollGeneral.VertScrollBar.Position);
+   Assert.IsFalse(fForm.ScrollPageAt(fForm.gridShortcuts, -120));
+   Assert.AreEqual(Integer(clBtnFace), Integer(fForm.navPages.Color));
+  End;
+
+/// <summary>Four independently configurable shell actions survive INI reload and have Polish descriptions.</summary>
+
+ Procedure TPreferencesTests.ShellShortcutsPersistAndTranslate;
+  Var
+   Key       : TGuakeSetting;
+   Localizer : TGuakeLocalization;
+   Value     : String;
+  Begin
+   fForm.Bind(fSettings);
+   For Key := gskKeybindingsLocalNewTabZsh To gskKeybindingsLocalNewTabPowerShell Do
+    Begin
+     Assert.AreEqual('disabled', fSettings.GetValue(Key));
+     Value := '<Control><Alt>F' + IntToStr(21 + Ord(Key) - Ord(gskKeybindingsLocalNewTabZsh));
+     fForm.SetShortcut(Key, Value);
+    End;
+   fSettings.Reload;
+   For Key := gskKeybindingsLocalNewTabZsh To gskKeybindingsLocalNewTabPowerShell Do
+    Assert.AreEqual('<Control><Alt>F' + IntToStr(21 + Ord(Key) - Ord(gskKeybindingsLocalNewTabZsh)), fSettings.GetValue(Key));
+   Localizer := TGuakeLocalization.Create;
+   Try
+    Localizer.Load(TPath.GetFullPath(TPath.Combine(ExtractFilePath(ParamStr(0)), '..\..\Src\Localization\catalogs\pl.json')));
+    For Key := gskKeybindingsLocalNewTabZsh To gskKeybindingsLocalNewTabPowerShell Do
+     Assert.IsTrue(Pos('Nowa karta', Localizer.Text(TGuakeSettings.Definition(Key).Summary)) = 1);
+    Assert.AreEqual('Wyróżniaj karty z aktywnością', Localizer.Text('Highlight tabs with activity'));
+   Finally
     Localizer.Free;
    End;
   End;

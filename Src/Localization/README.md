@@ -9,3 +9,5 @@ W czasie działania `Guake.Localization.pas` buduje `TTranslationCatalog` z `Src
 `Src/Tools/Test.ps1` kopiuje katalogi obok EXE do `locale/catalogs`. Obecne punkty startowe ładują polski katalog. Sam formularz preferencji może otrzymać dowolny załadowany `TGuakeLocalization`; automatyczny wybór języka wymaga dalszej integracji.
 
 `port/` zawiera osobne uzupełnienia PO dla interfejsu Windows, np. napisy Zasługi i Licencja dostarczane w Linuksie przez GTK. Import scala brakujące wpisy przez ten sam GNU msgfmt i vendor/i18n; zachowuje pierwszeństwo oryginalnych tłumaczeń i nie zmienia plików w `po/`.
+
+Uzupełnienia polskie obejmują również brakujące etykiety i podpowiedzi schematu oraz cztery działania otwierania kart konkretnych powłok. Nazwy programów i wartości liczbowe pozostają bez tłumaczenia.

@@ -12,7 +12,7 @@ Wnętrza stron wymagają jeszcze dalszego dopasowania odstępów, grupowania i p
 
 Jasny pasek kart ma przyciski nowej karty i listy otwartych kart po prawej. Lista powstaje z bieżących sesji, wskazuje aktywną kartę i wybiera po jej trwałym identyfikatorze. Windows używa natywnego menu zamiast popovera GTK z trójkątnym wskaźnikiem.
 
-Menu karty: Nowa karta, Zmień nazwę, Przywróć niestandardowe kolory, Zamknij. Reset indywidualnych kolorów pozostaje nieaktywny, dopóki port nie przechowuje palety dla konkretnej karty.
+Menu karty: Nowa karta, Nowa karta z powłoką (rozszerzenie Windows), Zmień nazwę, Przywróć niestandardowe kolory, Zamknij. Reset indywidualnych kolorów pozostaje nieaktywny, dopóki port nie przechowuje palety dla konkretnej karty.
 
 Menu terminala zachowuje kolejność kopiowania i wklejania, pełnego ekranu, podziałów, zamknięcia terminala, zapisu zawartości, resetu, integracji odnośników i Quick Open oraz preferencji, informacji i zakończenia programu. Zapis zawartości korzysta z dialogu DFM w `Src/DataModules`. Integracje odnośników, wyszukiwania internetowego i Quick Open pozostają nieaktywne do implementacji ich obsługi.
 
@@ -27,3 +27,9 @@ Zmiana nazwy karty to pojedyncze pole tekstowe z Anuluj i OK. Potwierdzenie zamk
 ## Weryfikacja
 
 Scenariusze DUnitX sprawdzają przechodzenie między kategoriami, obecność oryginalnej ikony, stany animowanego panelu, zachowanie praw autorskich i GPL, kontekst poleceń oraz wybór karty przez jej identyfikator. Podglądy stron preferencji znajdują się w `bin/tests/preferences-preview`. Ostateczna zgodność wizualna i płynność animacji wymagają także obserwacji interaktywnej aplikacji Windows.
+
+## Dalsze zrzuty skrótów i zmiany Windows
+
+Zrzuty rozwiniętych i zwiniętych grup pokazują siedem sekcji: Ogólne, Zarządzanie kartami, Zarządzanie podziałem, Nawigacja, Wygląd, Schowek i Dodatkowe funkcje. Bieżący edytor portu pozostaje płaską tabelą; przeniesienie grupowania i zwijania jest nadal do wykonania.
+
+Obszar pod kategoriami ma ten sam kolor co pasek nawigacji. Przyciski nowej karty i listy kart są TSpeedButton; ikona nowej karty pochodzi z `Src/Resources/add_tab.png`, a jej dane bitmapowe są w DFM. Podmenu powłok i cztery osobne skróty są dodatkiem Windows do pokazanego menu oryginalnego Guake.

@@ -4,7 +4,7 @@ Port Guake na Windows 64-bit w Delphi/VCL z natywnym WinAPI. Celem jest zgodnoś
 
 Główny projekt: [Src/guake.dpr](Src/guake.dpr), [Src/guake.dproj](Src/guake.dproj). Cały kod, projekty, narzędzia i dane lokalizacji znajdują się pod `Src/`. Wyniki budowania trafiają do ignorowanego `bin/`, pliki pośrednie do `.build/`.
 
-- [Ustawienia](Src/Settings/Guake.Settings.pas): 130 kluczy z oryginalnego schematu, hierarchiczne rekordy i osobna klasa z `TMemIniFile`.
+- [Ustawienia](Src/Settings/Guake.Settings.pas): 130 kluczy z oryginalnego schematu i cztery skróty powłok dla Windows, hierarchiczne rekordy i osobna klasa z `TMemIniFile`.
 - [Preferencje](Src/Forms/frmPreferencesU.pas): dziewięć kategorii z lewym paskiem nawigacji według `prefs.glade`, zapis zmian, zależności kontrolek, skróty, 169 palet i dialogi plikowe.
 - [Formularze](Src/Forms): okno główne, preferencje, informacje o programie, wyszukiwanie, zmiana nazwy i potwierdzenia. [Moduły danych](Src/DataModules) zawierają komponenty dialogów plikowych.
 - [Lokalizacja](Src/Localization/README.md): 26 oryginalnych PO Guake i osobne uzupełnienia portu Windows, import przez GNU msgfmt, biblioteka `Src/Vendor/i18n`.
@@ -24,10 +24,14 @@ Główny EXE: `bin/Win64/guake.exe`. Samodzielny edytor preferencji do sprawdzen
 
 [Stan portu i mapa formularzy](docs/port-status.md) opisują zakres działającego kodu i braki. [Inwentarz źródłowego Guake](docs/guake-contract.json) nie oznacza implementacji wszystkich wymienionych funkcji. [AGENTS.md](AGENTS.md) określa formatowanie, zasoby i wersjonowanie.
 
-Jeżeli uruchomiona aplikacja blokuje docelowy EXE, można zweryfikować kompilację przez `Src/Tools/Test.ps1 -MainOutput .build/verified-main`. Ten parametr zmienia wyłącznie katalog wyjściowy aplikacji głównej. `Base` w IDE przechowuje wspólne opcje; do budowania wybierz `Debug` albo `Release`.
+Jeżeli uruchomiona aplikacja blokuje docelowy EXE, można zweryfikować kompilację przez `Src/Tools/Test.ps1 -MainOutput .build/verified-main`. Ten parametr zmienia katalog wyjściowy EXE, PDB i lokalizacji aplikacji głównej. Paczkę z takiego katalogu tworzy `Src/Tools/Package.ps1 -OutputDirectory .build/verified-main`. `Base` w IDE przechowuje wspólne opcje; do budowania wybierz `Debug` albo `Release`.
 
 Konflikt skrótu globalnego nie blokuje uruchomienia terminala. Szczegóły są widoczne w podpowiedzi ikony tray; zajętą kombinację można zmienić w preferencjach. Projekty używają `ResourceBuildDependsOn` do kompilacji zasobów, zgodnie ze starszym parserem MSBuild w Delphi.
 
 Skróty z klawiszem grave (U+0060) i tyldą (~) można przechwytywać w preferencjach; rozpoznawane są również te znaki zapisane bezpośrednio w INI. Sesje Bash/Zsh mają jawnie ustawiony typ terminala `xterm-256color`.
 
 [Wzorzec interfejsu na Manjaro](docs/visual-reference.md) opisuje układ ze zrzutów oryginalnego Guake, mapowanie na formularze DFM i pozostałe różnice.
+
+Obraz tła terminala obsługuje PNG, JPEG, BMP i statyczny GIF: skalowanie z zachowaniem proporcji i kadrowaniem, kafelkowanie, wyśrodkowanie i rozciąganie. Jawne kolory tła aplikacji terminalowych i zaznaczenie pozostają nieprzezroczyste.
+
+Menu karty zawiera wybór Zsh, Bash, CMD i PowerShell. Każda powłoka ma własne działanie w preferencjach skrótów; domyślnie skróty są wyłączone. Są to skróty lokalne działające w terminalu Guake. Etykiety i podpowiedzi uzupełnia polski katalog portu Windows.

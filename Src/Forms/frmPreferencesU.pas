@@ -220,6 +220,9 @@ Interface
     dlgCustomCommands                : TOpenDialog;
     dlgFont                          : TFontDialog;
     appEvents                        : TApplicationEvents;
+    Procedure ApplicationMessage(Var Msg : TMsg; Var Handled : Boolean);
+    /// <summary>Routes wheel input to the scroll box under the pointer while preserving partial wheel steps.</summary>
+    Function  ScrollPageAt           (Control : TControl; Delta : Integer) : Boolean;
     Procedure NavigationClick        (Sender : TObject);
     Procedure NavigationDrawItem     (Control : TWinControl; Index : Integer; Rect : TRect; State : TOwnerDrawState);
     Procedure PagesChanged           (Sender : TObject);
@@ -244,6 +247,8 @@ Interface
     fLog               : TGuakeLog;
     fLoading           : Boolean;
     fCapturingShortcut : Boolean;
+    fWheelRemainder    : Integer;
+    fWheelTarget       : TScrollBox;
     fShortcutKeys      : TArray<TGuakeSetting>;
     fOnSettingsChanged : TNotifyEvent;
     Function  Translate   (Const Source : String)                   : String;
@@ -460,6 +465,65 @@ Implementation
 
 /// <summary>Selects DFM-defined preference pages through the sidebar shown by the original Guake.</summary>
 
+ Procedure TfrmPreferences.ApplicationMessage(Var Msg : TMsg; Var Handled : Boolean);
+  Var
+   Control : TWinControl;
+   Point   : TPoint;
+  Begin
+   If Handled Or (Msg.Message <> WM_MOUSEWHEEL) Or Not Visible Then
+    Exit;
+   Point.X := SmallInt(LoWord(Msg.lParam));
+   Point.Y := SmallInt(HiWord(Msg.lParam));
+   Control := FindVCLWindow(Point);
+   If (Control = Nil) Or (GetParentForm(Control) <> Self) Then
+    Exit;
+   If (Control Is TCustomComboBox) Or (Control Is TCustomListBox) Or
+   (Control Is TCustomGrid) Or (Control Is TCustomMemo) Or (Control Is TSpinEdit) Then
+    Begin
+     Msg.hwnd := Control.Handle;
+     Exit;
+    End;
+   Handled := ScrollPageAt(Control, SmallInt(HiWord(Msg.wParam)));
+  End;
+
+ Function TfrmPreferences.ScrollPageAt(Control : TControl; Delta : Integer) : Boolean;
+  Var
+   Box      : TScrollBox;
+   Lines    : Cardinal;
+   Steps    : Integer;
+   Distance : Integer;
+  Begin
+   Result := False;
+   If (Control = Nil) Or (GetParentForm(Control) <> Self) Then
+    Exit;
+   If (Control Is TCustomComboBox) Or (Control Is TCustomListBox) Or
+   (Control Is TCustomGrid) Or (Control Is TCustomMemo) Or (Control Is TSpinEdit) Then
+    Exit;
+   While (Control <> Nil) And Not(Control Is TScrollBox) Do
+    Control := Control.Parent;
+   If Control = Nil Then
+    Exit;
+   Box := TScrollBox(Control);
+   If Box.VertScrollBar.Range <= Box.ClientHeight Then
+    Exit;
+   If fWheelTarget <> Box Then
+    Begin
+     fWheelTarget    := Box;
+     fWheelRemainder := 0;
+    End;
+   Inc(fWheelRemainder, Delta);
+   Steps           := fWheelRemainder Div WHEEL_DELTA;
+   fWheelRemainder := fWheelRemainder Mod WHEEL_DELTA;
+   Lines           := 3;
+   SystemParametersInfo(SPI_GETWHEELSCROLLLINES, 0, @Lines, 0);
+   If Lines = Cardinal( -1) Then
+    Distance := Box.ClientHeight
+   Else
+    Distance                  := Integer(Lines) * (Abs(Font.Height) + 4);
+   Box.VertScrollBar.Position := Box.VertScrollBar.Position - Steps * Distance;
+   Result                     := True;
+  End;
+
  Procedure TfrmPreferences.NavigationClick(Sender : TObject);
   Begin
    If navPages.ItemIndex >= 0 Then
@@ -542,9 +606,10 @@ Implementation
       c := Components[i];
       If Not(c Is TControl) Or (c.Tag <= 0) Or (c.Tag > Ord(High(TGuakeSetting)) + 1) Then
        Continue;
-      k     := TGuakeSetting(c.Tag - 1);
-      d     := TGuakeSettings.Definition(k);
-      Value := fSettings.GetValue(k);
+      k                := TGuakeSetting(c.Tag - 1);
+      d                := TGuakeSettings.Definition(k);
+      TControl(c).Hint := Translate(d.Description);
+      Value            := fSettings.GetValue(k);
       If c Is TRadioButton Then
        TRadioButton(c).Checked := StrToInt(Value) = TRadioButton(c).HelpContext
       Else If c Is TCheckBox Then

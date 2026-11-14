@@ -14,3 +14,819 @@ msgstr "Zasługi"
 
 msgid "License"
 msgstr "Licencja"
+
+msgid "#TODO PORT max-tab-name-length"
+msgstr "Maksymalna długość nazwy karty"
+
+msgid "About"
+msgstr "O programie"
+
+msgid "Activity grace period after losing focus"
+msgstr "Okres ignorowania aktywności po utracie fokusu"
+
+msgid "Activity grace period for new tabs"
+msgstr "Okres ignorowania aktywności nowych kart"
+
+msgid "Add a new tab in current directory."
+msgstr "Otwórz nową kartę w bieżącym katalogu."
+
+msgid "Add a new tab in home directory."
+msgstr "Otwórz nową kartę w katalogu domowym."
+
+msgid "Add a new tab."
+msgstr "Otwórz nową kartę."
+
+msgid "Allow displaying bold font in Guake terminal."
+msgstr "Zezwalaj na pogrubiony tekst w terminalu Guake."
+
+msgid "Appear on the mouse display."
+msgstr "Wyświetlaj na monitorze z kursorem myszy."
+
+msgid "Audible bell"
+msgstr "Dzwonek systemowy"
+
+msgid "Automatically save tabs session when changed"
+msgstr "Automatycznie zapisuj sesję po zmianie kart"
+
+msgid "Background"
+msgstr "Tło"
+
+msgid "Background image filename."
+msgstr "Ścieżka obrazu tła."
+
+msgid "Background image layout mode."
+msgstr "Sposób wyświetlania obrazu tła."
+
+msgid "Background image layout:"
+msgstr "Sposób wyświetlania obrazu tła:"
+
+msgid "Background image:"
+msgstr "Obraz tła:"
+
+msgid "Background transparency."
+msgstr "Przezroczystość tła."
+
+msgid "Backspace Compatibility"
+msgstr "Zgodność klawisza Backspace"
+
+msgid "Cancel"
+msgstr "Anuluj"
+
+msgid "Characters that are considered \"part of a word\""
+msgstr "Znaki traktowane jako część słowa"
+
+msgid "Close terminal."
+msgstr "Zamknij terminal."
+
+msgid "Closes the current tab."
+msgstr "Zamknij bieżącą kartę."
+
+msgid "Color scheme name."
+msgstr "Nazwa schematu kolorów."
+
+msgid "Color scheme."
+msgstr "Schemat kolorów."
+
+msgid "Command line pattern to start a editor."
+msgstr "Wzorzec polecenia uruchamiającego edytor."
+
+msgid "Copy clipboard."
+msgstr "Kopiuj do schowka."
+
+msgid "Copy selected text if enabled."
+msgstr "Kopiuj zaznaczony tekst."
+
+msgid "Cursor blink mode of the terminal"
+msgstr "Tryb migania kursora terminala"
+
+msgid "Cursor shape of the terminal"
+msgstr "Kształt kursora terminala"
+
+msgid "Custom Search:"
+msgstr "Własna wyszukiwarka:"
+
+msgid "Decrease height."
+msgstr "Zmniejsz wysokość."
+
+msgid "Decrease transparency."
+msgstr "Zmniejsz przezroczystość."
+
+msgid "Delay hiding on losing focus."
+msgstr "Opóźnij ukrycie po utracie aktywności."
+
+msgid "Delete Compatibility"
+msgstr "Zgodność klawisza Delete"
+
+msgid "Determine if guake hides on lose focus."
+msgstr "Ukrywaj Guake po utracie aktywności."
+
+msgid "Display to appear on."
+msgstr "Monitor, na którym pojawia się okno."
+
+msgid "Enable Quick Open feature."
+msgstr "Włącz szybkie otwieranie plików."
+
+msgid "Enable debug mode"
+msgstr "Włącz tryb debugowania"
+
+msgid "Fifth tab."
+msgstr "Piąta karta."
+
+msgid "First tab."
+msgstr "Pierwsza karta."
+
+msgid "Focus terminal above."
+msgstr "Aktywuj terminal powyżej."
+
+msgid "Focus terminal below."
+msgstr "Aktywuj terminal poniżej."
+
+msgid "Focus terminal on the left."
+msgstr "Aktywuj terminal po lewej."
+
+msgid "Focus terminal on the right."
+msgstr "Aktywuj terminal po prawej."
+
+msgid "Font style."
+msgstr "Styl czcionki."
+
+msgid "Foreground"
+msgstr "Tekst"
+
+msgid "Fourth tab."
+msgstr "Czwarta karta."
+
+msgid "GTK Theme name"
+msgstr "Nazwa motywu GTK"
+
+msgid "Give focus to guake if tab is opened (OBSOLETE)."
+msgstr "Aktywuj Guake po otwarciu karty (przestarzałe)."
+
+msgid "Hide tab bar when fullscreen"
+msgstr "Ukrywaj pasek kart na pełnym ekranie"
+
+msgid "Highlight tabs with activity"
+msgstr "Wyróżniaj karty z aktywnością"
+
+msgid "History Size."
+msgstr "Rozmiar historii."
+
+msgid "Horizontal displacement in pixels:"
+msgstr "Przesunięcie poziome w pikselach:"
+
+msgid "Horizontal window displacement."
+msgstr "Poziome przesunięcie okna."
+
+msgid "How to display tab names."
+msgstr "Sposób wyświetlania nazw kart."
+
+msgid "If the tabs bar must be visible in fullscreen"
+msgstr "Widoczność paska kart na pełnym ekranie"
+
+msgid "Ignore activity after losing focus for (seconds):"
+msgstr "Ignoruj aktywność po utracie fokusu przez (sekundy):"
+
+msgid "Ignore activity on new tabs for (seconds):"
+msgstr "Ignoruj aktywność nowych kart przez (sekundy):"
+
+msgid "Increase height."
+msgstr "Zwiększ wysokość."
+
+msgid "Increase transparency."
+msgstr "Zwiększ przezroczystość."
+
+msgid "Keybinding to show and focus guake."
+msgstr "Skrót wyświetlający i aktywujący Guake."
+
+msgid "Keybinding to show/hide guake."
+msgstr "Skrót przełączający widoczność Guake."
+
+msgid "Last tab."
+msgstr "Ostatnia karta."
+
+msgid "Last used schema version"
+msgstr "Ostatnio używana wersja schematu"
+
+msgid "Lazy hide on lose focus"
+msgstr "Opóźnione ukrycie po utracie aktywności"
+
+msgid "Line Height Scale (VTE >= 0.52)"
+msgstr "Skala wysokości wiersza (VTE >= 0.52)"
+
+msgid "Line Width Scale (VTE >= 0.52)"
+msgstr "Skala szerokości znaku (VTE >= 0.52)"
+
+msgid "Load settings from `cwd`/.guake.yml"
+msgstr "Wczytuj ustawienia z pliku .guake.yml w bieżącym katalogu"
+
+msgid "Load settings from guake.yml"
+msgstr "Wczytuj ustawienia z guake.yml"
+
+msgid "Login shell"
+msgstr "Powłoka logowania"
+
+msgid "Move left current tab"
+msgstr "Przenieś bieżącą kartę w lewo"
+
+msgid "Move right current tab"
+msgstr "Przenieś bieżącą kartę w prawo"
+
+msgid "Move the terminal split handle down."
+msgstr "Przesuń granicę podziału terminala w dół."
+
+msgid "Move the terminal split handle left."
+msgstr "Przesuń granicę podziału terminala w lewo."
+
+msgid "Move the terminal split handle right."
+msgstr "Przesuń granicę podziału terminala w prawo."
+
+msgid "Move the terminal split handle up."
+msgstr "Przesuń granicę podziału terminala w górę."
+
+msgid "New Bash tab"
+msgstr "Nowa karta Bash"
+
+msgid "New CMD tab"
+msgstr "Nowa karta CMD"
+
+msgid "New PowerShell tab"
+msgstr "Nowa karta PowerShell"
+
+msgid "New Zsh tab"
+msgstr "Nowa karta Zsh"
+
+msgid "New tab with shell"
+msgstr "Nowa karta z powłoką"
+
+msgid "New tabs appear after the current tab."
+msgstr "Otwieraj nowe karty za bieżącą kartą."
+
+msgid "Next tab (alternative)"
+msgstr "Następna karta (alternatywnie)"
+
+msgid "Next tab."
+msgstr "Następna karta."
+
+msgid "Ninth tab."
+msgstr "Dziewiąta karta."
+
+msgid "No"
+msgstr "Nie"
+
+msgid "Notify when restored the tabs"
+msgstr "Powiadom po przywróceniu kart"
+
+msgid "On show."
+msgstr "Podczas wyświetlania."
+
+msgid "Open link under terminal cursor"
+msgstr "Otwórz odnośnik pod kursorem terminala"
+
+msgid "Open new tab in the current working directory"
+msgstr "Otwieraj nowe karty w bieżącym katalogu roboczym"
+
+msgid "Paste clipboard."
+msgstr "Wklej ze schowka."
+
+msgid "Path to the default custom command json file."
+msgstr "Ścieżka domyślnego pliku poleceń JSON."
+
+msgid "Path to the default shell."
+msgstr "Ścieżka domyślnej powłoki."
+
+msgid "Prefer Dark Theme for GTK"
+msgstr "Preferuj ciemny motyw GTK"
+
+msgid "Preferences"
+msgstr "Preferencje"
+
+msgid "Press a key combination"
+msgstr "Naciśnij kombinację klawiszy"
+
+msgid "Previous tab (alternative)"
+msgstr "Poprzednia karta (alternatywnie)"
+
+msgid "Previous tab."
+msgstr "Poprzednia karta."
+
+msgid "Prompt when closing tabs."
+msgstr "Potwierdzaj zamknięcie kart."
+
+msgid "Prompt when quitting."
+msgstr "Potwierdzaj zakończenie programu."
+
+msgid "Quick open is a feature allowing you to open a file directly into your favorite text editor by clicking on its filename when it appears in your terminal."
+msgstr "Szybkie otwieranie umożliwia otwarcie pliku w wybranym edytorze po kliknięciu jego nazwy w terminalu."
+
+msgid "Quick open the file in the current terminal."
+msgstr "Otwieraj plik w bieżącym terminalu."
+
+msgid "Refocus window."
+msgstr "Ponownie aktywuj okno."
+
+msgid "Rename current tab."
+msgstr "Zmień nazwę bieżącej karty."
+
+msgid "Reset"
+msgstr "Przywróć"
+
+msgid "Restore tabs when startup"
+msgstr "Przywracaj karty podczas uruchamiania"
+
+msgid "Scroll on keystroke"
+msgstr "Przewijaj po naciśnięciu klawisza"
+
+msgid "Scroll on output"
+msgstr "Przewijaj po pojawieniu się tekstu"
+
+msgid "Search Engine:"
+msgstr "Wyszukiwarka:"
+
+msgid "Search current selected text on the web"
+msgstr "Wyszukaj zaznaczony tekst w Internecie"
+
+msgid "Search engine to use when using web search"
+msgstr "Wyszukiwarka używana do wyszukiwania w Internecie"
+
+msgid "Second tab."
+msgstr "Druga karta."
+
+msgid "Select all."
+msgstr "Zaznacz wszystko."
+
+msgid "Set terminal's cell height scale to `scale` (VTE >= 0.52)"
+msgstr "Skala wysokości komórki terminala (VTE >= 0.52)"
+
+msgid "Set terminal's cell width scale to `scale` (VTE >= 0.52)"
+msgstr "Skala szerokości komórki terminala (VTE >= 0.52)"
+
+msgid "Sets the popup notifications visibility."
+msgstr "Wyświetlanie powiadomień."
+
+msgid "Sets the scrollbar visibility."
+msgstr "Widoczność paska przewijania."
+
+msgid "Sets the tray visibility."
+msgstr "Widoczność ikony tray."
+
+msgid "Seventh tab."
+msgstr "Siódma karta."
+
+msgid "Shortcut already in use"
+msgstr "Ten skrót jest już przypisany"
+
+msgid "Sixth tab."
+msgstr "Szósta karta."
+
+msgid "Split tab horizontal."
+msgstr "Podziel kartę w poziomie."
+
+msgid "Split tab vertical."
+msgstr "Podziel kartę w pionie."
+
+msgid "Split |"
+msgstr "Podziel |"
+
+msgid "Start fullscreen."
+msgstr "Uruchamiaj w trybie pełnoekranowym."
+
+msgid "Start when GNOME starts"
+msgstr "Uruchamiaj przy starcie GNOME"
+
+msgid "Startup script to execute when guake starts"
+msgstr "Skrypt uruchamiany podczas startu Guake"
+
+msgid "Stay on top."
+msgstr "Zawsze na wierzchu."
+
+msgid "Tab on top."
+msgstr "Karty na górze."
+
+msgid "Tenth tab."
+msgstr "Dziesiąta karta."
+
+msgid "The tab bar visibility."
+msgstr "Widoczność paska kart."
+
+msgid "Third tab."
+msgstr "Trzecia karta."
+
+msgid "To change a shortcut simply click on its name."
+msgstr "Kliknij nazwę skrótu, aby go zmienić."
+
+msgid "Toggle Fullscreen."
+msgstr "Przełącz pełny ekran."
+
+msgid "Toggle hide on lose focus."
+msgstr "Przełącz ukrywanie po utracie aktywności."
+
+msgid "Toggle transparency."
+msgstr "Przełącz przezroczystość."
+
+msgid "Use bright colors for bold text"
+msgstr "Używaj jasnych kolorów dla pogrubionego tekstu"
+
+msgid "Use default font"
+msgstr "Używaj domyślnej czcionki"
+
+msgid "Use system default theme for GTK"
+msgstr "Używaj domyślnego motywu systemu"
+
+msgid "Use terminal titles for tab naming"
+msgstr "Używaj tytułów terminala jako nazw kart"
+
+msgid "Use workspace specific tab sets"
+msgstr "Używaj osobnych zestawów kart dla obszarów roboczych"
+
+msgid "Vertical displacement in pixels:"
+msgstr "Przesunięcie pionowe w pikselach:"
+
+msgid "Vertical window displacement."
+msgstr "Pionowe przesunięcie okna."
+
+msgid "Window height."
+msgstr "Wysokość okna."
+
+msgid "Window horizontal alignment."
+msgstr "Wyrównanie poziome okna."
+
+msgid "Window vertical alignment."
+msgstr "Wyrównanie pionowe okna."
+
+msgid "Window width."
+msgstr "Szerokość okna."
+
+msgid "Yes"
+msgstr "Tak"
+
+msgid "Zoom in."
+msgstr "Powiększ."
+
+msgid "Zoom out."
+msgstr "Pomniejsz."
+
+msgid "_Word characters:"
+msgstr "Znaki należące do słowa:"
+
+msgid "eighth tab."
+msgstr "Ósma karta."
+
+msgid "0: Never 1: If process is running 2: Always.  Also prompts on quit."
+msgstr "0: Nigdy. 1: Gdy działa proces. 2: Zawsze. Dotyczy także kończenia programu."
+
+msgid "Accelerator to active function that closes the current selected tab."
+msgstr "Skrót zamykający bieżącą kartę."
+
+msgid "Accelerator to active function that opens the link (URL) under the current terminal cursor."
+msgstr "Skrót otwierający odnośnik URL pod kursorem terminala."
+
+msgid "Accelerator to active function that search on the web the current selected text on the terminal."
+msgstr "Skrót wyszukujący w Internecie tekst zaznaczony w terminalu."
+
+msgid "Additional shortcut for zooming in."
+msgstr "Dodatkowy skrót powiększania czcionki."
+
+msgid "Alpha that will be applied to the terminal background."
+msgstr "Poziom krycia tła terminala."
+
+msgid "Alternate shortcut to show the next tab."
+msgstr "Dodatkowy skrót przejścia do następnej karty."
+
+msgid "Alternate shortcut to show the previous tab."
+msgstr "Dodatkowy skrót przejścia do poprzedniej karty."
+
+msgid "Any terminal program can set the terminal's title via special escape sequences. Some shells (e.g. bash) display user's prompt there (though you can adjust that to any arbitrary tex"
+msgstr "Programy terminalowe mogą zmieniać tytuł terminala za pomocą sekwencji sterujących. Powłoki, np. Bash, mogą umieszczać tam informacje o bieżącej sesji."
+
+msgid "Appear on the mouse display. This overrides any setting in display_n."
+msgstr "Wyświetlaj okno na monitorze z kursorem myszy. Ta opcja ma pierwszeństwo przed wybranym numerem monitora."
+
+msgid "Ask for confirmation when quitting Guake."
+msgstr "Pytaj o potwierdzenie zakończenia programu Guake."
+
+msgid "Calls the function to add a new home directory tab in guake window."
+msgstr "Otwórz nową kartę w katalogu domowym."
+
+msgid "Calls the function to add a new tab in guake window, in the same directory as the current tab."
+msgstr "Otwórz nową kartę w katalogu bieżącej karty."
+
+msgid "Calls the function to add a new tab in guake window."
+msgstr "Otwórz nową kartę w oknie Guake."
+
+msgid "Close the currently focused terminal."
+msgstr "Zamknij aktywny terminal."
+
+msgid "Color scheme name that will be used in terminal."
+msgstr "Nazwa schematu kolorów używanego w terminalu."
+
+msgid "Color scheme that will be used in terminal."
+msgstr "Schemat kolorów używany w terminalu."
+
+msgid "Controls how the tab names are displayed. 0: Full Path, 1: Abbreviated Path, 2: Only display the last segment of the path"
+msgstr "Sposób wyświetlania nazw kart: 0 — pełna ścieżka, 1 — skrócona ścieżka, 2 — ostatni element ścieżki."
+
+msgid "Controls the blink mode of the cursor in the terminals. 0: Follow GTK+ setting, 1: Blink on, 2: Blink off"
+msgstr "Tryb migania kursora: 0 — ustawienie systemowe GTK+, 1 — włączone, 2 — wyłączone."
+
+msgid "Controls the shape of the cursor in the terminals. 0: Block, 1: I-Beam, 2: Underline"
+msgstr "Kształt kursora: 0 — blokowy, 1 — pionowa kreska, 2 — podkreślenie."
+
+msgid "Copy the clipboard content."
+msgstr "Skopiuj zawartość schowka."
+
+msgid "Copy the selected text."
+msgstr "Skopiuj zaznaczony tekst."
+
+msgid "Custom search engine url to use"
+msgstr "Adres URL własnej wyszukiwarki."
+
+msgid "Decrease the font size of the terminals."
+msgstr "Zmniejsz rozmiar czcionki terminala."
+
+msgid "Decrease the screen height."
+msgstr "Zmniejsz wysokość okna."
+
+msgid "Decrease the terminal transparency."
+msgstr "Zmniejsz przezroczystość terminala."
+
+msgid "Defines the behavior of backspace key."
+msgstr "Określa działanie klawisza Backspace."
+
+msgid "Defines the behavior of delete key."
+msgstr "Określa działanie klawisza Delete."
+
+msgid "Displace the window horizontally by a given amount of pixels."
+msgstr "Przesuń okno w poziomie o podaną liczbę pikseli."
+
+msgid "Displace the window vertically by a given amount of pixels."
+msgstr "Przesuń okno w pionie o podaną liczbę pikseli."
+
+msgid "Display to appear on if the  mouse_display option is not set. If this is set to an invalid value (as in the case of removing a screen from a system), the invalid value is automatically updated to the current primary screen."
+msgstr "Monitor używany, gdy wyłączono wybór monitora z kursorem. Nieprawidłowy numer, np. po odłączeniu monitora, jest zastępowany numerem monitora głównego."
+
+msgid "Font face and size that will be used in terminal."
+msgstr "Krój i rozmiar czcionki terminala."
+
+msgid "Global keybinding to allow user call guake from each place after it's opened without clicks."
+msgstr "Globalny skrót wywołujący uruchomione Guake z dowolnego programu bez używania myszy."
+
+msgid "If schema version is not equal to current guake version, the schema file is regenerated and this flag is set to the current guake version."
+msgstr "Jeżeli wersja schematu różni się od wersji Guake, schemat jest odtwarzany, a znacznik otrzymuje bieżącą wersję programu."
+
+msgid "If the guake window is out of focus but open, enabling this will give it back the focus instead of closing the window."
+msgstr "Jeżeli okno Guake jest otwarte, ale nieaktywne, przywróć mu aktywność zamiast je ukrywać."
+
+msgid "If this property is set as true, guake will be hidden when the main window lose the focus (when Alt+Tab be pressed for example)."
+msgstr "Ukrywaj okno Guake po utracie aktywności, np. po naciśnięciu Alt+Tab."
+
+msgid "If this property is set as true, guake will open a text editor when the user does a Ctrl+Click on a filename printed in the terminal."
+msgstr "Otwieraj edytor tekstu po kliknięciu nazwy pliku w terminalu z przytrzymanym klawiszem Ctrl."
+
+msgid "If this property is set as true, guake will use the current terminal to execute the Quick open feature. Use if you want to inherit your terminal environment in your text editor"
+msgstr "Uruchamiaj szybkie otwieranie w bieżącym terminalu, aby edytor odziedziczył jego środowisko."
+
+msgid "If true and a key is pressed, the terminal is scrolled to the bottom."
+msgstr "Po naciśnięciu klawisza przewijaj terminal na dół."
+
+msgid "If true, Guake will update its window title from the current tab name. It is useful when you work with applications that use windows title, (keepass, automatic time tracker apps)"
+msgstr "Ustawiaj tytuł okna według bieżącej karty. Ułatwia to integrację z programami rozpoznającymi tytuły okien, np. KeePass i rejestratorami czasu."
+
+msgid "If true, Guake will use the GNOME monospace default font."
+msgstr "Używaj domyślnej systemowej czcionki o stałej szerokości."
+
+msgid "If true, text from the first 8 colors that is formatted as bold will also be switched to its bright variant (VTE >=0.52)."
+msgstr "Pogrubiony tekst używający pierwszych ośmiu kolorów otrzymuje również ich jasny wariant (VTE >= 0.52)."
+
+msgid "If true, the commands in terminal will be executed in a login shell."
+msgstr "Uruchamiaj polecenia terminala w powłoce logowania."
+
+msgid "If true, the system alert sound will be played on a bell character."
+msgstr "Odtwarzaj dźwięk systemowy po odebraniu znaku dzwonka."
+
+msgid "If true, the title of a background tab is highlighted when its terminal produces output, until the tab is selected."
+msgstr "Wyróżniaj tytuł nieaktywnej karty, gdy pojawia się w niej tekst, aż do wybrania tej karty."
+
+msgid "If true, when a change in the cwd is detected settings are changed based on the content of the file `cwd`/.guake.yml"
+msgstr "Po zmianie bieżącego katalogu wczytuj ustawienia z jego pliku .guake.yml."
+
+msgid "If true, when guake restored the tabs, it will notify the user that the tabs has been restored"
+msgstr "Pokazuj powiadomienie po przywróceniu kart."
+
+msgid "If true, when guake startup, it will restore tabs from previous session"
+msgstr "Przy uruchomieniu przywracaj karty z poprzedniej sesji."
+
+msgid "If true, when tabs has changed (add / delete ...etc.), it will automatically saved the tabs session"
+msgstr "Automatycznie zapisuj sesję po zmianie kart, np. dodaniu lub zamknięciu."
+
+msgid "If true, whenever there is new output in the terminal, it will scroll to the bottom."
+msgstr "Przewijaj na dół po pojawieniu się nowego tekstu w terminalu."
+
+msgid "Increase the font size of the terminals."
+msgstr "Zwiększ rozmiar czcionki terminala."
+
+msgid "Increase the screen height."
+msgstr "Zwiększ wysokość okna."
+
+msgid "Increase the terminal transparency."
+msgstr "Zwiększ przezroczystość terminala."
+
+msgid "Makes guake window be on top of all other windows in the desktop."
+msgstr "Utrzymuj okno Guake nad pozostałymi oknami pulpitu."
+
+msgid "Makes new tabs appear after the currently selected tab, instead of at the end."
+msgstr "Otwieraj nowe karty za bieżącą kartą zamiast na końcu listy."
+
+msgid "Makes tab bar on top of the Guake window. Per default, tabs appear below the terminal. Setting this to True will move the tab on top of the terminal. Requires a restart."
+msgstr "Umieść pasek kart nad terminalem. Domyślnie znajduje się pod nim. Według źródłowego Guake zmiana wymaga ponownego uruchomienia."
+
+msgid "Momentarily delay hiding Guake when focus is lost and don't hide if focus is returned quickly, like when switching desktops or turning on certain IMEs."
+msgstr "Krótko opóźniaj ukrywanie po utracie aktywności i anuluj je, gdy fokus szybko powróci, np. podczas przełączania pulpitów lub używania edytora metod wprowadzania."
+
+msgid "Move the current tab to the left"
+msgstr "Przenieś bieżącą kartę w lewo."
+
+msgid "Move the current tab to the right"
+msgstr "Przenieś bieżącą kartę w prawo."
+
+msgid "Name of the GTK theme to apply on Guake. If set to an empty string, let GTK use the default system theme"
+msgstr "Nazwa motywu GTK używanego przez Guake. Pusta nazwa oznacza domyślny motyw systemowy."
+
+msgid "Number of seconds during which activity is ignored on a newly created tab, to avoid highlighting it because of its initial shell prompt."
+msgstr "Liczba sekund ignorowania aktywności nowej karty, aby początkowy prompt powłoki nie powodował jej wyróżnienia."
+
+msgid "Number of seconds during which activity is ignored on a tab right after it loses focus."
+msgstr "Liczba sekund ignorowania aktywności karty po utracie przez nią fokusu."
+
+msgid "Open a new tab with the Bash shell."
+msgstr "Otwórz nową kartę z powłoką Bash."
+
+msgid "Open a new tab with the Cmd shell."
+msgstr "Otwórz nową kartę z powłoką CMD."
+
+msgid "Open a new tab with the PowerShell shell."
+msgstr "Otwórz nową kartę z powłoką PowerShell."
+
+msgid "Open a new tab with the Zsh shell."
+msgstr "Otwórz nową kartę z powłoką Zsh."
+
+msgid "Paste the clipboard content."
+msgstr "Wklej zawartość schowka."
+
+msgid "Path to the default custom command json file. If is blank or the json file is not in a proper format the terminal context menu will be built without custom commands. If the file is"
+msgstr "Ścieżka pliku JSON z własnymi poleceniami. Pusta ścieżka lub nieprawidłowy format pliku powoduje pominięcie własnych poleceń w menu terminala."
+
+msgid "Path to the default shell. Set to empty to use default user shell. If invalid path is set here, guake will fallback to user shell."
+msgstr "Ścieżka domyślnej powłoki. Pusta wartość oznacza powłokę użytkownika; źródłowe Guake wraca do niej również przy nieprawidłowej ścieżce."
+
+msgid "Percent of the screen that will be used by guake terminal horizontally."
+msgstr "Procent szerokości ekranu zajmowany przez terminal Guake."
+
+msgid "Percent of the screen that will be used by guake terminal vertically."
+msgstr "Procent wysokości ekranu zajmowany przez terminal Guake."
+
+msgid "Place Guake at: 0: center, 1: left, 2: right"
+msgstr "Wyrównanie poziome okna: 0 — środek, 1 — lewa strona, 2 — prawa strona."
+
+msgid "Place Guake at: 0: top, 1: bottom"
+msgstr "Położenie okna: 0 — u góry, 1 — u dołu."
+
+msgid "Prefer the dark theme version of the theme if available"
+msgstr "Preferuj ciemny wariant motywu, jeżeli jest dostępny."
+
+msgid "Prefer the system default theme"
+msgstr "Preferuj domyślny motyw systemu."
+
+msgid "Quit Guake."
+msgstr "Zakończ Guake."
+
+msgid "Refocus window instead of closing."
+msgstr "Przywróć aktywność okna zamiast je zamykać."
+
+msgid "Run this script on show."
+msgstr "Uruchom ten skrypt podczas wyświetlania okna."
+
+msgid "Scrollback lines in history is infinite"
+msgstr "Przechowuj nieograniczoną liczbę wierszy historii przewijania."
+
+msgid "Search engine to use"
+msgstr "Wyszukiwarka używana do wyszukiwania."
+
+msgid "Select all contents of the currently active terminal."
+msgstr "Zaznacz całą zawartość aktywnego terminala."
+
+msgid "Set it as false to enjoy guake's fullscreen."
+msgstr "Wyłącz tę opcję, aby korzystać z pełnego ekranu Guake."
+
+msgid "Show close buttons next to tab titles"
+msgstr "Pokazuj przyciski zamykania obok tytułów kart."
+
+msgid "Show search box to search text inside the terminal"
+msgstr "Pokaż pole wyszukiwania tekstu w terminalu."
+
+msgid "Shows a dialog to rename the current tab."
+msgstr "Pokaż dialog zmiany nazwy bieżącej karty."
+
+msgid "Shows the next tab."
+msgstr "Przejdź do następnej karty."
+
+msgid "Shows the previous tab."
+msgstr "Przejdź do poprzedniej karty."
+
+msgid "Switch to the eighth tab."
+msgstr "Przejdź do ósmej karty."
+
+msgid "Switch to the fifth tab."
+msgstr "Przejdź do piątej karty."
+
+msgid "Switch to the first tab."
+msgstr "Przejdź do pierwszej karty."
+
+msgid "Switch to the fourth tab."
+msgstr "Przejdź do czwartej karty."
+
+msgid "Switch to the last tab."
+msgstr "Przejdź do ostatniej karty."
+
+msgid "Switch to the ninth tab."
+msgstr "Przejdź do dziewiątej karty."
+
+msgid "Switch to the second tab."
+msgstr "Przejdź do drugiej karty."
+
+msgid "Switch to the seventh tab."
+msgstr "Przejdź do siódmej karty."
+
+msgid "Switch to the sixth tab."
+msgstr "Przejdź do szóstej karty."
+
+msgid "Switch to the tenth tab."
+msgstr "Przejdź do dziesiątej karty."
+
+msgid "Switch to the third tab."
+msgstr "Przejdź do trzeciej karty."
+
+msgid "The number of scrollback lines to save in history."
+msgstr "Liczba wierszy historii przewijania przechowywanych w pamięci."
+
+msgid "This can be used to increase the letter spacing. (The font's width is not affected.) Valid values go from 1.0 (default) to 2.0 (\"double spacing\")."
+msgstr "Zwiększaj odstępy między znakami bez zmiany szerokości czcionki. Zakres od 1,0 do 2,0, gdzie 2,0 oznacza podwójny odstęp."
+
+msgid "This can be used to increase the line spacing. (The font's height is not affected.) Valid values go from 1.0 (default) to 2.0 (\"double spacing\")."
+msgstr "Zwiększaj odstępy między wierszami bez zmiany wysokości czcionki. Zakres od 1,0 do 2,0, gdzie 2,0 oznacza podwójny odstęp."
+
+msgid "This property allows you to execute a startup bash script each time guake starts. You can configure your initial tab settings within this script. Please see the command line argument of guake ('guake --help') for complete help."
+msgstr "Uruchamiaj skrypt Bash przy każdym starcie Guake. Skrypt może ustawiać początkowe karty. Dalsze informacje zawiera pomoc guake --help."
+
+msgid "This property gives the command line to execute when doing a Quick Open. You can enter the following python string pattern in it: '%(file_path)s' will be replaced with the full pat"
+msgstr "Polecenie szybkiego otwierania. Znacznik %(file_path)s oznacza pełną ścieżkę pliku, a %(line_number)s — numer wiersza."
+
+msgid "To select which layout mode want to use for background image."
+msgstr "Wybierz sposób wyświetlania obrazu tła."
+
+msgid "Toggle main guake window fullscreen."
+msgstr "Przełącz tryb pełnoekranowy głównego okna Guake."
+
+msgid "Toggle the terminal transparency from the actual level to 100% and vice versa."
+msgstr "Przełącz przezroczystość między bieżącą wartością a pełnym kryciem."
+
+msgid "Toggle whether guake will hide when it loses focus."
+msgstr "Przełącz ukrywanie okna po utracie aktywności."
+
+msgid "When allow_bold is disabled, any text in Guake terminal intended to print as bold text will be instead rendered as normal text."
+msgstr "Po wyłączeniu pogrubienia tekst żądający pogrubionej czcionki jest wyświetlany zwykłą czcionką."
+
+msgid "When debug mode is enabled, logs are printed in the standard output where Guake as been launched"
+msgstr "W trybie debugowania informacje trafiają na standardowe wyjście procesu uruchamiającego Guake."
+
+msgid "When selecting text by word, sequences of these characters are considered single words. Ranges can be given as \"A-Z\". Literal hyphen (not expressing a range) should be the first character given."
+msgstr "Przy zaznaczaniu słów ciągi tych znaków są traktowane jako jedno słowo. Można używać zakresów, np. A-Z. Dosłowny myślnik należy umieścić na początku."
+
+msgid "When setup, the selected background image will show on guake"
+msgstr "Wybrany obraz jest wyświetlany jako tło terminala Guake."
+
+msgid "When true tray is visible."
+msgstr "Pokazuj ikonę tray."
+
+msgid "When true, each workspace gets their own set of tabs."
+msgstr "Każdy obszar roboczy ma własny zestaw kart."
+
+msgid "When true, popup notifications will be shown when Guake starts."
+msgstr "Pokazuj powiadomienia podczas uruchamiania Guake."
+
+msgid "When true, scrollbar is visible."
+msgstr "Pokazuj pasek przewijania."
+
+msgid "When true, the program will start in fullscreen mode."
+msgstr "Uruchamiaj program w trybie pełnoekranowym."
+
+msgid "When true, the program will start upon GNOME login."
+msgstr "Uruchamiaj program po zalogowaniu do GNOME."
+
+msgid "When true, the tab bar is visible."
+msgstr "Pokazuj pasek kart."
+
+msgid "When true, the tab bar will hide when is in fullscreen"
+msgstr "Ukrywaj pasek kart w trybie pełnoekranowym."
+
+msgid "When true, the tab bar will hide when there is only one tab"
+msgstr "Ukrywaj pasek kart, jeżeli otwarta jest tylko jedna karta."

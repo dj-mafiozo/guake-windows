@@ -145,7 +145,11 @@ Interface
     gskKeybindingsLocalMoveTerminalSplitDown,
     gskKeybindingsLocalMoveTerminalSplitLeft,
     gskKeybindingsLocalMoveTerminalSplitRight,
-    gskHooksShow
+    gskHooksShow,
+    gskKeybindingsLocalNewTabZsh,
+    gskKeybindingsLocalNewTabBash,
+    gskKeybindingsLocalNewTabCmd,
+    gskKeybindingsLocalNewTabPowerShell
    );
 {FLD-}
 
@@ -262,6 +266,10 @@ Interface
    NewTab                      : String;
    NewTabHome                  : String;
    NewTabCwd                   : String;
+   NewTabZsh                   : String;
+   NewTabBash                  : String;
+   NewTabCmd                   : String;
+   NewTabPowerShell            : String;
    CloseTab                    : String;
    SearchOnWeb                 : String;
    OpenLinkUnderTerminalCursor : String;
@@ -341,7 +349,7 @@ Interface
     Destructor     Destroy; Override;
     /// <summary>Returns the user-specific configuration file under APPDATA.</summary>
     Class Function DefaultFileName : String; Static;
-    /// <summary>Returns the original schema key, type, default and validation metadata.</summary>
+    /// <summary>Returns original schema or native Windows extension metadata.</summary>
     Class Function Definition(Key : TGuakeSetting) : TGuakeSettingDefinition; Static;
     /// <summary>Resolves an INI section and name to a typed schema identifier.</summary>
     Class Function FindKey(Const Section, Name : String; Out Key : TGuakeSetting) : Boolean; Static;
@@ -509,7 +517,11 @@ Implementation
     (Section: 'keybindings.local';  Key: 'move-terminal-split-down';        DefaultValue: '';                                                                                                                                                                                                                                                                Summary: 'Move the terminal split handle down.';                       Description: 'Move the terminal split handle down.';                                                                                                                                                                                                                                                                                                                                Kind: skString;  HasRange: False; Minimum: 0; Maximum: 0),
     (Section: 'keybindings.local';  Key: 'move-terminal-split-left';        DefaultValue: '';                                                                                                                                                                                                                                                                Summary: 'Move the terminal split handle left.';                       Description: 'Move the terminal split handle left.';                                                                                                                                                                                                                                                                                                                                Kind: skString;  HasRange: False; Minimum: 0; Maximum: 0),
     (Section: 'keybindings.local';  Key: 'move-terminal-split-right';       DefaultValue: '';                                                                                                                                                                                                                                                                Summary: 'Move the terminal split handle right.';                      Description: 'Move the terminal split handle right.';                                                                                                                                                                                                                                                                                                                               Kind: skString;  HasRange: False; Minimum: 0; Maximum: 0),
-    (Section: 'hooks';              Key: 'show';                            DefaultValue: '';                                                                                                                                                                                                                                                                Summary: 'On show.';                                                   Description: 'Run this script on show.';                                                                                                                                                                                                                                                                                                                                            Kind: skString;  HasRange: False; Minimum: 0; Maximum: 0)
+    (Section: 'hooks';              Key: 'show';                            DefaultValue: '';                                                                                                                                                                                                                                                                Summary: 'On show.';                                                   Description: 'Run this script on show.';                                                                                                                                                                                                                                                                                                                                            Kind: skString;  HasRange: False; Minimum: 0; Maximum: 0),
+    (Section: 'keybindings.local';  Key: 'new-tab-zsh';                     DefaultValue: 'disabled';                                                                                                                                                                                                                                                        Summary: 'New Zsh tab';                                                Description: 'Open a new tab with the Zsh shell.';                                                                                                                                                                                                                                                                                                                                  Kind: skString;  HasRange: False; Minimum: 0; Maximum: 0),
+    (Section: 'keybindings.local';  Key: 'new-tab-bash';                    DefaultValue: 'disabled';                                                                                                                                                                                                                                                        Summary: 'New Bash tab';                                               Description: 'Open a new tab with the Bash shell.';                                                                                                                                                                                                                                                                                                                                 Kind: skString;  HasRange: False; Minimum: 0; Maximum: 0),
+    (Section: 'keybindings.local';  Key: 'new-tab-cmd';                     DefaultValue: 'disabled';                                                                                                                                                                                                                                                        Summary: 'New CMD tab';                                                Description: 'Open a new tab with the Cmd shell.';                                                                                                                                                                                                                                                                                                                                  Kind: skString;  HasRange: False; Minimum: 0; Maximum: 0),
+    (Section: 'keybindings.local';  Key: 'new-tab-powershell';              DefaultValue: 'disabled';                                                                                                                                                                                                                                                        Summary: 'New PowerShell tab';                                         Description: 'Open a new tab with the PowerShell shell.';                                                                                                                                                                                                                                                                                                                           Kind: skString;  HasRange: False; Minimum: 0; Maximum: 0)
    );
 {FLD-}
 
@@ -777,6 +789,10 @@ End;
     gskKeybindingsLocalNewTab                      : Result := Keybindings.Local.NewTab;
     gskKeybindingsLocalNewTabHome                  : Result := Keybindings.Local.NewTabHome;
     gskKeybindingsLocalNewTabCwd                   : Result := Keybindings.Local.NewTabCwd;
+    gskKeybindingsLocalNewTabZsh                   : Result := Keybindings.Local.NewTabZsh;
+    gskKeybindingsLocalNewTabBash                  : Result := Keybindings.Local.NewTabBash;
+    gskKeybindingsLocalNewTabCmd                   : Result := Keybindings.Local.NewTabCmd;
+    gskKeybindingsLocalNewTabPowerShell            : Result := Keybindings.Local.NewTabPowerShell;
     gskKeybindingsLocalCloseTab                    : Result := Keybindings.Local.CloseTab;
     gskKeybindingsLocalSearchOnWeb                 : Result := Keybindings.Local.SearchOnWeb;
     gskKeybindingsLocalOpenLinkUnderTerminalCursor : Result := Keybindings.Local.OpenLinkUnderTerminalCursor;
@@ -914,6 +930,10 @@ End;
     gskKeybindingsLocalNewTab                      : Keybindings.Local.NewTab := Value;
     gskKeybindingsLocalNewTabHome                  : Keybindings.Local.NewTabHome := Value;
     gskKeybindingsLocalNewTabCwd                   : Keybindings.Local.NewTabCwd := Value;
+    gskKeybindingsLocalNewTabZsh                   : Keybindings.Local.NewTabZsh := Value;
+    gskKeybindingsLocalNewTabBash                  : Keybindings.Local.NewTabBash := Value;
+    gskKeybindingsLocalNewTabCmd                   : Keybindings.Local.NewTabCmd := Value;
+    gskKeybindingsLocalNewTabPowerShell            : Keybindings.Local.NewTabPowerShell := Value;
     gskKeybindingsLocalCloseTab                    : Keybindings.Local.CloseTab := Value;
     gskKeybindingsLocalSearchOnWeb                 : Keybindings.Local.SearchOnWeb := Value;
     gskKeybindingsLocalOpenLinkUnderTerminalCursor : Keybindings.Local.OpenLinkUnderTerminalCursor := Value;

@@ -25,7 +25,8 @@ foreach ($project in @('Src\Tests\GuakeTests.dproj','Src\Tests\GuakeFormsPreview
 $locale = Join-Path $repo 'bin\forms\locale\catalogs'
 New-Item -ItemType Directory -Force -Path $locale | Out-Null
 Copy-Item -Path (Join-Path $repo 'Src\Localization\catalogs\*.json') -Destination $locale -Force
-Copy-Item -LiteralPath (Join-Path $repo 'bin\forms\locale') -Destination (Join-Path $repo 'bin\Win64') -Recurse -Force
+$applicationOutput = if ($MainOutput) { $MainOutput } else { Join-Path $repo 'bin\Win64' }
+Copy-Item -LiteralPath (Join-Path $repo 'bin\forms\locale') -Destination $applicationOutput -Recurse -Force
 $testTemp = Join-Path $repo '.build\test-temp'
 New-Item -ItemType Directory -Force -Path $testTemp | Out-Null
 $previousTemp = $env:TEMP

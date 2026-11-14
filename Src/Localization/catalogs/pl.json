@@ -2332,6 +2332,398 @@
     },
     {
       "context": "",
+      "singular": "#TODO PORT max-tab-name-length",
+      "plural": "",
+      "translations": [
+        "Maksymalna długość nazwy karty"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "0: Never 1: If process is running 2: Always.  Also prompts on quit.",
+      "plural": "",
+      "translations": [
+        "0: Nigdy. 1: Gdy działa proces. 2: Zawsze. Dotyczy także kończenia programu."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "About",
+      "plural": "",
+      "translations": [
+        "O programie"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Accelerator to active function that closes the current selected tab.",
+      "plural": "",
+      "translations": [
+        "Skrót zamykający bieżącą kartę."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Accelerator to active function that opens the link (URL) under the current terminal cursor.",
+      "plural": "",
+      "translations": [
+        "Skrót otwierający odnośnik URL pod kursorem terminala."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Accelerator to active function that search on the web the current selected text on the terminal.",
+      "plural": "",
+      "translations": [
+        "Skrót wyszukujący w Internecie tekst zaznaczony w terminalu."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Activity grace period after losing focus",
+      "plural": "",
+      "translations": [
+        "Okres ignorowania aktywności po utracie fokusu"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Activity grace period for new tabs",
+      "plural": "",
+      "translations": [
+        "Okres ignorowania aktywności nowych kart"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Add a new tab in current directory.",
+      "plural": "",
+      "translations": [
+        "Otwórz nową kartę w bieżącym katalogu."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Add a new tab in home directory.",
+      "plural": "",
+      "translations": [
+        "Otwórz nową kartę w katalogu domowym."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Add a new tab.",
+      "plural": "",
+      "translations": [
+        "Otwórz nową kartę."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Additional shortcut for zooming in.",
+      "plural": "",
+      "translations": [
+        "Dodatkowy skrót powiększania czcionki."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Allow displaying bold font in Guake terminal.",
+      "plural": "",
+      "translations": [
+        "Zezwalaj na pogrubiony tekst w terminalu Guake."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Alpha that will be applied to the terminal background.",
+      "plural": "",
+      "translations": [
+        "Poziom krycia tła terminala."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Alternate shortcut to show the next tab.",
+      "plural": "",
+      "translations": [
+        "Dodatkowy skrót przejścia do następnej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Alternate shortcut to show the previous tab.",
+      "plural": "",
+      "translations": [
+        "Dodatkowy skrót przejścia do poprzedniej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Any terminal program can set the terminal's title via special escape sequences. Some shells (e.g. bash) display user's prompt there (though you can adjust that to any arbitrary tex",
+      "plural": "",
+      "translations": [
+        "Programy terminalowe mogą zmieniać tytuł terminala za pomocą sekwencji sterujących. Powłoki, np. Bash, mogą umieszczać tam informacje o bieżącej sesji."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Appear on the mouse display.",
+      "plural": "",
+      "translations": [
+        "Wyświetlaj na monitorze z kursorem myszy."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Appear on the mouse display. This overrides any setting in display_n.",
+      "plural": "",
+      "translations": [
+        "Wyświetlaj okno na monitorze z kursorem myszy. Ta opcja ma pierwszeństwo przed wybranym numerem monitora."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Ask for confirmation when quitting Guake.",
+      "plural": "",
+      "translations": [
+        "Pytaj o potwierdzenie zakończenia programu Guake."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Audible bell",
+      "plural": "",
+      "translations": [
+        "Dzwonek systemowy"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Automatically save tabs session when changed",
+      "plural": "",
+      "translations": [
+        "Automatycznie zapisuj sesję po zmianie kart"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Background",
+      "plural": "",
+      "translations": [
+        "Tło"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Background image filename.",
+      "plural": "",
+      "translations": [
+        "Ścieżka obrazu tła."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Background image layout mode.",
+      "plural": "",
+      "translations": [
+        "Sposób wyświetlania obrazu tła."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Background image layout:",
+      "plural": "",
+      "translations": [
+        "Sposób wyświetlania obrazu tła:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Background image:",
+      "plural": "",
+      "translations": [
+        "Obraz tła:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Background transparency.",
+      "plural": "",
+      "translations": [
+        "Przezroczystość tła."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Backspace Compatibility",
+      "plural": "",
+      "translations": [
+        "Zgodność klawisza Backspace"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Calls the function to add a new home directory tab in guake window.",
+      "plural": "",
+      "translations": [
+        "Otwórz nową kartę w katalogu domowym."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Calls the function to add a new tab in guake window, in the same directory as the current tab.",
+      "plural": "",
+      "translations": [
+        "Otwórz nową kartę w katalogu bieżącej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Calls the function to add a new tab in guake window.",
+      "plural": "",
+      "translations": [
+        "Otwórz nową kartę w oknie Guake."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Cancel",
+      "plural": "",
+      "translations": [
+        "Anuluj"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Characters that are considered \"part of a word\"",
+      "plural": "",
+      "translations": [
+        "Znaki traktowane jako część słowa"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Close terminal.",
+      "plural": "",
+      "translations": [
+        "Zamknij terminal."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Close the currently focused terminal.",
+      "plural": "",
+      "translations": [
+        "Zamknij aktywny terminal."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Closes the current tab.",
+      "plural": "",
+      "translations": [
+        "Zamknij bieżącą kartę."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Color scheme name that will be used in terminal.",
+      "plural": "",
+      "translations": [
+        "Nazwa schematu kolorów używanego w terminalu."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Color scheme name.",
+      "plural": "",
+      "translations": [
+        "Nazwa schematu kolorów."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Color scheme that will be used in terminal.",
+      "plural": "",
+      "translations": [
+        "Schemat kolorów używany w terminalu."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Color scheme.",
+      "plural": "",
+      "translations": [
+        "Schemat kolorów."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Command line pattern to start a editor.",
+      "plural": "",
+      "translations": [
+        "Wzorzec polecenia uruchamiającego edytor."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Controls how the tab names are displayed. 0: Full Path, 1: Abbreviated Path, 2: Only display the last segment of the path",
+      "plural": "",
+      "translations": [
+        "Sposób wyświetlania nazw kart: 0 — pełna ścieżka, 1 — skrócona ścieżka, 2 — ostatni element ścieżki."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Controls the blink mode of the cursor in the terminals. 0: Follow GTK+ setting, 1: Blink on, 2: Blink off",
+      "plural": "",
+      "translations": [
+        "Tryb migania kursora: 0 — ustawienie systemowe GTK+, 1 — włączone, 2 — wyłączone."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Controls the shape of the cursor in the terminals. 0: Block, 1: I-Beam, 2: Underline",
+      "plural": "",
+      "translations": [
+        "Kształt kursora: 0 — blokowy, 1 — pionowa kreska, 2 — podkreślenie."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy clipboard.",
+      "plural": "",
+      "translations": [
+        "Kopiuj do schowka."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy selected text if enabled.",
+      "plural": "",
+      "translations": [
+        "Kopiuj zaznaczony tekst."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy the clipboard content.",
+      "plural": "",
+      "translations": [
+        "Skopiuj zawartość schowka."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Copy the selected text.",
+      "plural": "",
+      "translations": [
+        "Skopiuj zaznaczony tekst."
+      ]
+    },
+    {
+      "context": "",
       "singular": "Credits",
       "plural": "",
       "translations": [
@@ -2340,10 +2732,1794 @@
     },
     {
       "context": "",
+      "singular": "Cursor blink mode of the terminal",
+      "plural": "",
+      "translations": [
+        "Tryb migania kursora terminala"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Cursor shape of the terminal",
+      "plural": "",
+      "translations": [
+        "Kształt kursora terminala"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Custom Search:",
+      "plural": "",
+      "translations": [
+        "Własna wyszukiwarka:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Custom search engine url to use",
+      "plural": "",
+      "translations": [
+        "Adres URL własnej wyszukiwarki."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Decrease height.",
+      "plural": "",
+      "translations": [
+        "Zmniejsz wysokość."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Decrease the font size of the terminals.",
+      "plural": "",
+      "translations": [
+        "Zmniejsz rozmiar czcionki terminala."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Decrease the screen height.",
+      "plural": "",
+      "translations": [
+        "Zmniejsz wysokość okna."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Decrease the terminal transparency.",
+      "plural": "",
+      "translations": [
+        "Zmniejsz przezroczystość terminala."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Decrease transparency.",
+      "plural": "",
+      "translations": [
+        "Zmniejsz przezroczystość."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Defines the behavior of backspace key.",
+      "plural": "",
+      "translations": [
+        "Określa działanie klawisza Backspace."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Defines the behavior of delete key.",
+      "plural": "",
+      "translations": [
+        "Określa działanie klawisza Delete."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Delay hiding on losing focus.",
+      "plural": "",
+      "translations": [
+        "Opóźnij ukrycie po utracie aktywności."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Delete Compatibility",
+      "plural": "",
+      "translations": [
+        "Zgodność klawisza Delete"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Determine if guake hides on lose focus.",
+      "plural": "",
+      "translations": [
+        "Ukrywaj Guake po utracie aktywności."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Displace the window horizontally by a given amount of pixels.",
+      "plural": "",
+      "translations": [
+        "Przesuń okno w poziomie o podaną liczbę pikseli."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Displace the window vertically by a given amount of pixels.",
+      "plural": "",
+      "translations": [
+        "Przesuń okno w pionie o podaną liczbę pikseli."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Display to appear on if the  mouse_display option is not set. If this is set to an invalid value (as in the case of removing a screen from a system), the invalid value is automatically updated to the current primary screen.",
+      "plural": "",
+      "translations": [
+        "Monitor używany, gdy wyłączono wybór monitora z kursorem. Nieprawidłowy numer, np. po odłączeniu monitora, jest zastępowany numerem monitora głównego."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Display to appear on.",
+      "plural": "",
+      "translations": [
+        "Monitor, na którym pojawia się okno."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Enable Quick Open feature.",
+      "plural": "",
+      "translations": [
+        "Włącz szybkie otwieranie plików."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Enable debug mode",
+      "plural": "",
+      "translations": [
+        "Włącz tryb debugowania"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Fifth tab.",
+      "plural": "",
+      "translations": [
+        "Piąta karta."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "First tab.",
+      "plural": "",
+      "translations": [
+        "Pierwsza karta."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Focus terminal above.",
+      "plural": "",
+      "translations": [
+        "Aktywuj terminal powyżej."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Focus terminal below.",
+      "plural": "",
+      "translations": [
+        "Aktywuj terminal poniżej."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Focus terminal on the left.",
+      "plural": "",
+      "translations": [
+        "Aktywuj terminal po lewej."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Focus terminal on the right.",
+      "plural": "",
+      "translations": [
+        "Aktywuj terminal po prawej."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Font face and size that will be used in terminal.",
+      "plural": "",
+      "translations": [
+        "Krój i rozmiar czcionki terminala."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Font style.",
+      "plural": "",
+      "translations": [
+        "Styl czcionki."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Foreground",
+      "plural": "",
+      "translations": [
+        "Tekst"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Fourth tab.",
+      "plural": "",
+      "translations": [
+        "Czwarta karta."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "GTK Theme name",
+      "plural": "",
+      "translations": [
+        "Nazwa motywu GTK"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Give focus to guake if tab is opened (OBSOLETE).",
+      "plural": "",
+      "translations": [
+        "Aktywuj Guake po otwarciu karty (przestarzałe)."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Global keybinding to allow user call guake from each place after it's opened without clicks.",
+      "plural": "",
+      "translations": [
+        "Globalny skrót wywołujący uruchomione Guake z dowolnego programu bez używania myszy."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Hide tab bar when fullscreen",
+      "plural": "",
+      "translations": [
+        "Ukrywaj pasek kart na pełnym ekranie"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Highlight tabs with activity",
+      "plural": "",
+      "translations": [
+        "Wyróżniaj karty z aktywnością"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "History Size.",
+      "plural": "",
+      "translations": [
+        "Rozmiar historii."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Horizontal displacement in pixels:",
+      "plural": "",
+      "translations": [
+        "Przesunięcie poziome w pikselach:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Horizontal window displacement.",
+      "plural": "",
+      "translations": [
+        "Poziome przesunięcie okna."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "How to display tab names.",
+      "plural": "",
+      "translations": [
+        "Sposób wyświetlania nazw kart."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "If schema version is not equal to current guake version, the schema file is regenerated and this flag is set to the current guake version.",
+      "plural": "",
+      "translations": [
+        "Jeżeli wersja schematu różni się od wersji Guake, schemat jest odtwarzany, a znacznik otrzymuje bieżącą wersję programu."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "If the guake window is out of focus but open, enabling this will give it back the focus instead of closing the window.",
+      "plural": "",
+      "translations": [
+        "Jeżeli okno Guake jest otwarte, ale nieaktywne, przywróć mu aktywność zamiast je ukrywać."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "If the tabs bar must be visible in fullscreen",
+      "plural": "",
+      "translations": [
+        "Widoczność paska kart na pełnym ekranie"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "If this property is set as true, guake will be hidden when the main window lose the focus (when Alt+Tab be pressed for example).",
+      "plural": "",
+      "translations": [
+        "Ukrywaj okno Guake po utracie aktywności, np. po naciśnięciu Alt+Tab."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "If this property is set as true, guake will open a text editor when the user does a Ctrl+Click on a filename printed in the terminal.",
+      "plural": "",
+      "translations": [
+        "Otwieraj edytor tekstu po kliknięciu nazwy pliku w terminalu z przytrzymanym klawiszem Ctrl."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "If this property is set as true, guake will use the current terminal to execute the Quick open feature. Use if you want to inherit your terminal environment in your text editor",
+      "plural": "",
+      "translations": [
+        "Uruchamiaj szybkie otwieranie w bieżącym terminalu, aby edytor odziedziczył jego środowisko."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "If true and a key is pressed, the terminal is scrolled to the bottom.",
+      "plural": "",
+      "translations": [
+        "Po naciśnięciu klawisza przewijaj terminal na dół."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "If true, Guake will update its window title from the current tab name. It is useful when you work with applications that use windows title, (keepass, automatic time tracker apps)",
+      "plural": "",
+      "translations": [
+        "Ustawiaj tytuł okna według bieżącej karty. Ułatwia to integrację z programami rozpoznającymi tytuły okien, np. KeePass i rejestratorami czasu."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "If true, Guake will use the GNOME monospace default font.",
+      "plural": "",
+      "translations": [
+        "Używaj domyślnej systemowej czcionki o stałej szerokości."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "If true, text from the first 8 colors that is formatted as bold will also be switched to its bright variant (VTE >=0.52).",
+      "plural": "",
+      "translations": [
+        "Pogrubiony tekst używający pierwszych ośmiu kolorów otrzymuje również ich jasny wariant (VTE >= 0.52)."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "If true, the commands in terminal will be executed in a login shell.",
+      "plural": "",
+      "translations": [
+        "Uruchamiaj polecenia terminala w powłoce logowania."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "If true, the system alert sound will be played on a bell character.",
+      "plural": "",
+      "translations": [
+        "Odtwarzaj dźwięk systemowy po odebraniu znaku dzwonka."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "If true, the title of a background tab is highlighted when its terminal produces output, until the tab is selected.",
+      "plural": "",
+      "translations": [
+        "Wyróżniaj tytuł nieaktywnej karty, gdy pojawia się w niej tekst, aż do wybrania tej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "If true, when a change in the cwd is detected settings are changed based on the content of the file `cwd`/.guake.yml",
+      "plural": "",
+      "translations": [
+        "Po zmianie bieżącego katalogu wczytuj ustawienia z jego pliku .guake.yml."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "If true, when guake restored the tabs, it will notify the user that the tabs has been restored",
+      "plural": "",
+      "translations": [
+        "Pokazuj powiadomienie po przywróceniu kart."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "If true, when guake startup, it will restore tabs from previous session",
+      "plural": "",
+      "translations": [
+        "Przy uruchomieniu przywracaj karty z poprzedniej sesji."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "If true, when tabs has changed (add / delete ...etc.), it will automatically saved the tabs session",
+      "plural": "",
+      "translations": [
+        "Automatycznie zapisuj sesję po zmianie kart, np. dodaniu lub zamknięciu."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "If true, whenever there is new output in the terminal, it will scroll to the bottom.",
+      "plural": "",
+      "translations": [
+        "Przewijaj na dół po pojawieniu się nowego tekstu w terminalu."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Ignore activity after losing focus for (seconds):",
+      "plural": "",
+      "translations": [
+        "Ignoruj aktywność po utracie fokusu przez (sekundy):"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Ignore activity on new tabs for (seconds):",
+      "plural": "",
+      "translations": [
+        "Ignoruj aktywność nowych kart przez (sekundy):"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Increase height.",
+      "plural": "",
+      "translations": [
+        "Zwiększ wysokość."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Increase the font size of the terminals.",
+      "plural": "",
+      "translations": [
+        "Zwiększ rozmiar czcionki terminala."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Increase the screen height.",
+      "plural": "",
+      "translations": [
+        "Zwiększ wysokość okna."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Increase the terminal transparency.",
+      "plural": "",
+      "translations": [
+        "Zwiększ przezroczystość terminala."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Increase transparency.",
+      "plural": "",
+      "translations": [
+        "Zwiększ przezroczystość."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Keybinding to show and focus guake.",
+      "plural": "",
+      "translations": [
+        "Skrót wyświetlający i aktywujący Guake."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Keybinding to show/hide guake.",
+      "plural": "",
+      "translations": [
+        "Skrót przełączający widoczność Guake."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Last tab.",
+      "plural": "",
+      "translations": [
+        "Ostatnia karta."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Last used schema version",
+      "plural": "",
+      "translations": [
+        "Ostatnio używana wersja schematu"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Lazy hide on lose focus",
+      "plural": "",
+      "translations": [
+        "Opóźnione ukrycie po utracie aktywności"
+      ]
+    },
+    {
+      "context": "",
       "singular": "License",
       "plural": "",
       "translations": [
         "Licencja"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Line Height Scale (VTE >= 0.52)",
+      "plural": "",
+      "translations": [
+        "Skala wysokości wiersza (VTE >= 0.52)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Line Width Scale (VTE >= 0.52)",
+      "plural": "",
+      "translations": [
+        "Skala szerokości znaku (VTE >= 0.52)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Load settings from `cwd`/.guake.yml",
+      "plural": "",
+      "translations": [
+        "Wczytuj ustawienia z pliku .guake.yml w bieżącym katalogu"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Load settings from guake.yml",
+      "plural": "",
+      "translations": [
+        "Wczytuj ustawienia z guake.yml"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Login shell",
+      "plural": "",
+      "translations": [
+        "Powłoka logowania"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Makes guake window be on top of all other windows in the desktop.",
+      "plural": "",
+      "translations": [
+        "Utrzymuj okno Guake nad pozostałymi oknami pulpitu."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Makes new tabs appear after the currently selected tab, instead of at the end.",
+      "plural": "",
+      "translations": [
+        "Otwieraj nowe karty za bieżącą kartą zamiast na końcu listy."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Makes tab bar on top of the Guake window. Per default, tabs appear below the terminal. Setting this to True will move the tab on top of the terminal. Requires a restart.",
+      "plural": "",
+      "translations": [
+        "Umieść pasek kart nad terminalem. Domyślnie znajduje się pod nim. Według źródłowego Guake zmiana wymaga ponownego uruchomienia."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Momentarily delay hiding Guake when focus is lost and don't hide if focus is returned quickly, like when switching desktops or turning on certain IMEs.",
+      "plural": "",
+      "translations": [
+        "Krótko opóźniaj ukrywanie po utracie aktywności i anuluj je, gdy fokus szybko powróci, np. podczas przełączania pulpitów lub używania edytora metod wprowadzania."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move left current tab",
+      "plural": "",
+      "translations": [
+        "Przenieś bieżącą kartę w lewo"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move right current tab",
+      "plural": "",
+      "translations": [
+        "Przenieś bieżącą kartę w prawo"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move the current tab to the left",
+      "plural": "",
+      "translations": [
+        "Przenieś bieżącą kartę w lewo."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move the current tab to the right",
+      "plural": "",
+      "translations": [
+        "Przenieś bieżącą kartę w prawo."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move the terminal split handle down.",
+      "plural": "",
+      "translations": [
+        "Przesuń granicę podziału terminala w dół."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move the terminal split handle left.",
+      "plural": "",
+      "translations": [
+        "Przesuń granicę podziału terminala w lewo."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move the terminal split handle right.",
+      "plural": "",
+      "translations": [
+        "Przesuń granicę podziału terminala w prawo."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Move the terminal split handle up.",
+      "plural": "",
+      "translations": [
+        "Przesuń granicę podziału terminala w górę."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Name of the GTK theme to apply on Guake. If set to an empty string, let GTK use the default system theme",
+      "plural": "",
+      "translations": [
+        "Nazwa motywu GTK używanego przez Guake. Pusta nazwa oznacza domyślny motyw systemowy."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "New Bash tab",
+      "plural": "",
+      "translations": [
+        "Nowa karta Bash"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "New CMD tab",
+      "plural": "",
+      "translations": [
+        "Nowa karta CMD"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "New PowerShell tab",
+      "plural": "",
+      "translations": [
+        "Nowa karta PowerShell"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "New Zsh tab",
+      "plural": "",
+      "translations": [
+        "Nowa karta Zsh"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "New tab with shell",
+      "plural": "",
+      "translations": [
+        "Nowa karta z powłoką"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "New tabs appear after the current tab.",
+      "plural": "",
+      "translations": [
+        "Otwieraj nowe karty za bieżącą kartą."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Next tab (alternative)",
+      "plural": "",
+      "translations": [
+        "Następna karta (alternatywnie)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Next tab.",
+      "plural": "",
+      "translations": [
+        "Następna karta."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Ninth tab.",
+      "plural": "",
+      "translations": [
+        "Dziewiąta karta."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "No",
+      "plural": "",
+      "translations": [
+        "Nie"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Notify when restored the tabs",
+      "plural": "",
+      "translations": [
+        "Powiadom po przywróceniu kart"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Number of seconds during which activity is ignored on a newly created tab, to avoid highlighting it because of its initial shell prompt.",
+      "plural": "",
+      "translations": [
+        "Liczba sekund ignorowania aktywności nowej karty, aby początkowy prompt powłoki nie powodował jej wyróżnienia."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Number of seconds during which activity is ignored on a tab right after it loses focus.",
+      "plural": "",
+      "translations": [
+        "Liczba sekund ignorowania aktywności karty po utracie przez nią fokusu."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "On show.",
+      "plural": "",
+      "translations": [
+        "Podczas wyświetlania."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Open a new tab with the Bash shell.",
+      "plural": "",
+      "translations": [
+        "Otwórz nową kartę z powłoką Bash."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Open a new tab with the Cmd shell.",
+      "plural": "",
+      "translations": [
+        "Otwórz nową kartę z powłoką CMD."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Open a new tab with the PowerShell shell.",
+      "plural": "",
+      "translations": [
+        "Otwórz nową kartę z powłoką PowerShell."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Open a new tab with the Zsh shell.",
+      "plural": "",
+      "translations": [
+        "Otwórz nową kartę z powłoką Zsh."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Open link under terminal cursor",
+      "plural": "",
+      "translations": [
+        "Otwórz odnośnik pod kursorem terminala"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Open new tab in the current working directory",
+      "plural": "",
+      "translations": [
+        "Otwieraj nowe karty w bieżącym katalogu roboczym"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Paste clipboard.",
+      "plural": "",
+      "translations": [
+        "Wklej ze schowka."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Paste the clipboard content.",
+      "plural": "",
+      "translations": [
+        "Wklej zawartość schowka."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Path to the default custom command json file.",
+      "plural": "",
+      "translations": [
+        "Ścieżka domyślnego pliku poleceń JSON."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Path to the default custom command json file. If is blank or the json file is not in a proper format the terminal context menu will be built without custom commands. If the file is",
+      "plural": "",
+      "translations": [
+        "Ścieżka pliku JSON z własnymi poleceniami. Pusta ścieżka lub nieprawidłowy format pliku powoduje pominięcie własnych poleceń w menu terminala."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Path to the default shell.",
+      "plural": "",
+      "translations": [
+        "Ścieżka domyślnej powłoki."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Path to the default shell. Set to empty to use default user shell. If invalid path is set here, guake will fallback to user shell.",
+      "plural": "",
+      "translations": [
+        "Ścieżka domyślnej powłoki. Pusta wartość oznacza powłokę użytkownika; źródłowe Guake wraca do niej również przy nieprawidłowej ścieżce."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Percent of the screen that will be used by guake terminal horizontally.",
+      "plural": "",
+      "translations": [
+        "Procent szerokości ekranu zajmowany przez terminal Guake."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Percent of the screen that will be used by guake terminal vertically.",
+      "plural": "",
+      "translations": [
+        "Procent wysokości ekranu zajmowany przez terminal Guake."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Place Guake at: 0: center, 1: left, 2: right",
+      "plural": "",
+      "translations": [
+        "Wyrównanie poziome okna: 0 — środek, 1 — lewa strona, 2 — prawa strona."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Place Guake at: 0: top, 1: bottom",
+      "plural": "",
+      "translations": [
+        "Położenie okna: 0 — u góry, 1 — u dołu."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Prefer Dark Theme for GTK",
+      "plural": "",
+      "translations": [
+        "Preferuj ciemny motyw GTK"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Prefer the dark theme version of the theme if available",
+      "plural": "",
+      "translations": [
+        "Preferuj ciemny wariant motywu, jeżeli jest dostępny."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Prefer the system default theme",
+      "plural": "",
+      "translations": [
+        "Preferuj domyślny motyw systemu."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Preferences",
+      "plural": "",
+      "translations": [
+        "Preferencje"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Press a key combination",
+      "plural": "",
+      "translations": [
+        "Naciśnij kombinację klawiszy"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Previous tab (alternative)",
+      "plural": "",
+      "translations": [
+        "Poprzednia karta (alternatywnie)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Previous tab.",
+      "plural": "",
+      "translations": [
+        "Poprzednia karta."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Prompt when closing tabs.",
+      "plural": "",
+      "translations": [
+        "Potwierdzaj zamknięcie kart."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Prompt when quitting.",
+      "plural": "",
+      "translations": [
+        "Potwierdzaj zakończenie programu."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quick open is a feature allowing you to open a file directly into your favorite text editor by clicking on its filename when it appears in your terminal.",
+      "plural": "",
+      "translations": [
+        "Szybkie otwieranie umożliwia otwarcie pliku w wybranym edytorze po kliknięciu jego nazwy w terminalu."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quick open the file in the current terminal.",
+      "plural": "",
+      "translations": [
+        "Otwieraj plik w bieżącym terminalu."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Quit Guake.",
+      "plural": "",
+      "translations": [
+        "Zakończ Guake."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Refocus window instead of closing.",
+      "plural": "",
+      "translations": [
+        "Przywróć aktywność okna zamiast je zamykać."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Refocus window.",
+      "plural": "",
+      "translations": [
+        "Ponownie aktywuj okno."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Rename current tab.",
+      "plural": "",
+      "translations": [
+        "Zmień nazwę bieżącej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Reset",
+      "plural": "",
+      "translations": [
+        "Przywróć"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Restore tabs when startup",
+      "plural": "",
+      "translations": [
+        "Przywracaj karty podczas uruchamiania"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Run this script on show.",
+      "plural": "",
+      "translations": [
+        "Uruchom ten skrypt podczas wyświetlania okna."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Scroll on keystroke",
+      "plural": "",
+      "translations": [
+        "Przewijaj po naciśnięciu klawisza"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Scroll on output",
+      "plural": "",
+      "translations": [
+        "Przewijaj po pojawieniu się tekstu"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Scrollback lines in history is infinite",
+      "plural": "",
+      "translations": [
+        "Przechowuj nieograniczoną liczbę wierszy historii przewijania."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search Engine:",
+      "plural": "",
+      "translations": [
+        "Wyszukiwarka:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search current selected text on the web",
+      "plural": "",
+      "translations": [
+        "Wyszukaj zaznaczony tekst w Internecie"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search engine to use",
+      "plural": "",
+      "translations": [
+        "Wyszukiwarka używana do wyszukiwania."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Search engine to use when using web search",
+      "plural": "",
+      "translations": [
+        "Wyszukiwarka używana do wyszukiwania w Internecie"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Second tab.",
+      "plural": "",
+      "translations": [
+        "Druga karta."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Select all contents of the currently active terminal.",
+      "plural": "",
+      "translations": [
+        "Zaznacz całą zawartość aktywnego terminala."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Select all.",
+      "plural": "",
+      "translations": [
+        "Zaznacz wszystko."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Set it as false to enjoy guake's fullscreen.",
+      "plural": "",
+      "translations": [
+        "Wyłącz tę opcję, aby korzystać z pełnego ekranu Guake."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Set terminal's cell height scale to `scale` (VTE >= 0.52)",
+      "plural": "",
+      "translations": [
+        "Skala wysokości komórki terminala (VTE >= 0.52)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Set terminal's cell width scale to `scale` (VTE >= 0.52)",
+      "plural": "",
+      "translations": [
+        "Skala szerokości komórki terminala (VTE >= 0.52)"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Sets the popup notifications visibility.",
+      "plural": "",
+      "translations": [
+        "Wyświetlanie powiadomień."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Sets the scrollbar visibility.",
+      "plural": "",
+      "translations": [
+        "Widoczność paska przewijania."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Sets the tray visibility.",
+      "plural": "",
+      "translations": [
+        "Widoczność ikony tray."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Seventh tab.",
+      "plural": "",
+      "translations": [
+        "Siódma karta."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shortcut already in use",
+      "plural": "",
+      "translations": [
+        "Ten skrót jest już przypisany"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show close buttons next to tab titles",
+      "plural": "",
+      "translations": [
+        "Pokazuj przyciski zamykania obok tytułów kart."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Show search box to search text inside the terminal",
+      "plural": "",
+      "translations": [
+        "Pokaż pole wyszukiwania tekstu w terminalu."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shows a dialog to rename the current tab.",
+      "plural": "",
+      "translations": [
+        "Pokaż dialog zmiany nazwy bieżącej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shows the next tab.",
+      "plural": "",
+      "translations": [
+        "Przejdź do następnej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Shows the previous tab.",
+      "plural": "",
+      "translations": [
+        "Przejdź do poprzedniej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Sixth tab.",
+      "plural": "",
+      "translations": [
+        "Szósta karta."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split tab horizontal.",
+      "plural": "",
+      "translations": [
+        "Podziel kartę w poziomie."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split tab vertical.",
+      "plural": "",
+      "translations": [
+        "Podziel kartę w pionie."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Split |",
+      "plural": "",
+      "translations": [
+        "Podziel |"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Start fullscreen.",
+      "plural": "",
+      "translations": [
+        "Uruchamiaj w trybie pełnoekranowym."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Start when GNOME starts",
+      "plural": "",
+      "translations": [
+        "Uruchamiaj przy starcie GNOME"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Startup script to execute when guake starts",
+      "plural": "",
+      "translations": [
+        "Skrypt uruchamiany podczas startu Guake"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Stay on top.",
+      "plural": "",
+      "translations": [
+        "Zawsze na wierzchu."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the eighth tab.",
+      "plural": "",
+      "translations": [
+        "Przejdź do ósmej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the fifth tab.",
+      "plural": "",
+      "translations": [
+        "Przejdź do piątej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the first tab.",
+      "plural": "",
+      "translations": [
+        "Przejdź do pierwszej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the fourth tab.",
+      "plural": "",
+      "translations": [
+        "Przejdź do czwartej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the last tab.",
+      "plural": "",
+      "translations": [
+        "Przejdź do ostatniej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the ninth tab.",
+      "plural": "",
+      "translations": [
+        "Przejdź do dziewiątej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the second tab.",
+      "plural": "",
+      "translations": [
+        "Przejdź do drugiej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the seventh tab.",
+      "plural": "",
+      "translations": [
+        "Przejdź do siódmej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the sixth tab.",
+      "plural": "",
+      "translations": [
+        "Przejdź do szóstej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the tenth tab.",
+      "plural": "",
+      "translations": [
+        "Przejdź do dziesiątej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Switch to the third tab.",
+      "plural": "",
+      "translations": [
+        "Przejdź do trzeciej karty."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Tab on top.",
+      "plural": "",
+      "translations": [
+        "Karty na górze."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Tenth tab.",
+      "plural": "",
+      "translations": [
+        "Dziesiąta karta."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "The number of scrollback lines to save in history.",
+      "plural": "",
+      "translations": [
+        "Liczba wierszy historii przewijania przechowywanych w pamięci."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "The tab bar visibility.",
+      "plural": "",
+      "translations": [
+        "Widoczność paska kart."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Third tab.",
+      "plural": "",
+      "translations": [
+        "Trzecia karta."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "This can be used to increase the letter spacing. (The font's width is not affected.) Valid values go from 1.0 (default) to 2.0 (\"double spacing\").",
+      "plural": "",
+      "translations": [
+        "Zwiększaj odstępy między znakami bez zmiany szerokości czcionki. Zakres od 1,0 do 2,0, gdzie 2,0 oznacza podwójny odstęp."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "This can be used to increase the line spacing. (The font's height is not affected.) Valid values go from 1.0 (default) to 2.0 (\"double spacing\").",
+      "plural": "",
+      "translations": [
+        "Zwiększaj odstępy między wierszami bez zmiany wysokości czcionki. Zakres od 1,0 do 2,0, gdzie 2,0 oznacza podwójny odstęp."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "This property allows you to execute a startup bash script each time guake starts. You can configure your initial tab settings within this script. Please see the command line argument of guake ('guake --help') for complete help.",
+      "plural": "",
+      "translations": [
+        "Uruchamiaj skrypt Bash przy każdym starcie Guake. Skrypt może ustawiać początkowe karty. Dalsze informacje zawiera pomoc guake --help."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "This property gives the command line to execute when doing a Quick Open. You can enter the following python string pattern in it: '%(file_path)s' will be replaced with the full pat",
+      "plural": "",
+      "translations": [
+        "Polecenie szybkiego otwierania. Znacznik %(file_path)s oznacza pełną ścieżkę pliku, a %(line_number)s — numer wiersza."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "To change a shortcut simply click on its name.",
+      "plural": "",
+      "translations": [
+        "Kliknij nazwę skrótu, aby go zmienić."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "To select which layout mode want to use for background image.",
+      "plural": "",
+      "translations": [
+        "Wybierz sposób wyświetlania obrazu tła."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle Fullscreen.",
+      "plural": "",
+      "translations": [
+        "Przełącz pełny ekran."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle hide on lose focus.",
+      "plural": "",
+      "translations": [
+        "Przełącz ukrywanie po utracie aktywności."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle main guake window fullscreen.",
+      "plural": "",
+      "translations": [
+        "Przełącz tryb pełnoekranowy głównego okna Guake."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle the terminal transparency from the actual level to 100% and vice versa.",
+      "plural": "",
+      "translations": [
+        "Przełącz przezroczystość między bieżącą wartością a pełnym kryciem."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle transparency.",
+      "plural": "",
+      "translations": [
+        "Przełącz przezroczystość."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Toggle whether guake will hide when it loses focus.",
+      "plural": "",
+      "translations": [
+        "Przełącz ukrywanie okna po utracie aktywności."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use bright colors for bold text",
+      "plural": "",
+      "translations": [
+        "Używaj jasnych kolorów dla pogrubionego tekstu"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use default font",
+      "plural": "",
+      "translations": [
+        "Używaj domyślnej czcionki"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use system default theme for GTK",
+      "plural": "",
+      "translations": [
+        "Używaj domyślnego motywu systemu"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use terminal titles for tab naming",
+      "plural": "",
+      "translations": [
+        "Używaj tytułów terminala jako nazw kart"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Use workspace specific tab sets",
+      "plural": "",
+      "translations": [
+        "Używaj osobnych zestawów kart dla obszarów roboczych"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Vertical displacement in pixels:",
+      "plural": "",
+      "translations": [
+        "Przesunięcie pionowe w pikselach:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Vertical window displacement.",
+      "plural": "",
+      "translations": [
+        "Pionowe przesunięcie okna."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "When allow_bold is disabled, any text in Guake terminal intended to print as bold text will be instead rendered as normal text.",
+      "plural": "",
+      "translations": [
+        "Po wyłączeniu pogrubienia tekst żądający pogrubionej czcionki jest wyświetlany zwykłą czcionką."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "When debug mode is enabled, logs are printed in the standard output where Guake as been launched",
+      "plural": "",
+      "translations": [
+        "W trybie debugowania informacje trafiają na standardowe wyjście procesu uruchamiającego Guake."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "When selecting text by word, sequences of these characters are considered single words. Ranges can be given as \"A-Z\". Literal hyphen (not expressing a range) should be the first character given.",
+      "plural": "",
+      "translations": [
+        "Przy zaznaczaniu słów ciągi tych znaków są traktowane jako jedno słowo. Można używać zakresów, np. A-Z. Dosłowny myślnik należy umieścić na początku."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "When setup, the selected background image will show on guake",
+      "plural": "",
+      "translations": [
+        "Wybrany obraz jest wyświetlany jako tło terminala Guake."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "When true tray is visible.",
+      "plural": "",
+      "translations": [
+        "Pokazuj ikonę tray."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "When true, each workspace gets their own set of tabs.",
+      "plural": "",
+      "translations": [
+        "Każdy obszar roboczy ma własny zestaw kart."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "When true, popup notifications will be shown when Guake starts.",
+      "plural": "",
+      "translations": [
+        "Pokazuj powiadomienia podczas uruchamiania Guake."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "When true, scrollbar is visible.",
+      "plural": "",
+      "translations": [
+        "Pokazuj pasek przewijania."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "When true, the program will start in fullscreen mode.",
+      "plural": "",
+      "translations": [
+        "Uruchamiaj program w trybie pełnoekranowym."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "When true, the program will start upon GNOME login.",
+      "plural": "",
+      "translations": [
+        "Uruchamiaj program po zalogowaniu do GNOME."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "When true, the tab bar is visible.",
+      "plural": "",
+      "translations": [
+        "Pokazuj pasek kart."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "When true, the tab bar will hide when is in fullscreen",
+      "plural": "",
+      "translations": [
+        "Ukrywaj pasek kart w trybie pełnoekranowym."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "When true, the tab bar will hide when there is only one tab",
+      "plural": "",
+      "translations": [
+        "Ukrywaj pasek kart, jeżeli otwarta jest tylko jedna karta."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Window height.",
+      "plural": "",
+      "translations": [
+        "Wysokość okna."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Window horizontal alignment.",
+      "plural": "",
+      "translations": [
+        "Wyrównanie poziome okna."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Window vertical alignment.",
+      "plural": "",
+      "translations": [
+        "Wyrównanie pionowe okna."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Window width.",
+      "plural": "",
+      "translations": [
+        "Szerokość okna."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Yes",
+      "plural": "",
+      "translations": [
+        "Tak"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Zoom in.",
+      "plural": "",
+      "translations": [
+        "Powiększ."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Zoom out.",
+      "plural": "",
+      "translations": [
+        "Pomniejsz."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "_Word characters:",
+      "plural": "",
+      "translations": [
+        "Znaki należące do słowa:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "eighth tab.",
+      "plural": "",
+      "translations": [
+        "Ósma karta."
       ]
     }
   ]

@@ -27,6 +27,7 @@ Interface
     Procedure RefreshTick     (Sender : TObject);
     Procedure FrameResize     (Sender : TObject);
    Private
+    fBackground        : TPicture;
     fSession           : TTerminalSession;
     fSettings          : TGuakeSettings;
     fCellWidth         : Integer;
@@ -57,6 +58,10 @@ Interface
     Procedure KeyPress    (Var Key : Char); Override;
     Function  DoMouseWheel(Shift : TShiftState; WheelDelta : Integer; MousePos : TPoint) : Boolean; Override;
    Public
+    /// <summary>Releases the cached background graphic.</summary>
+    Destructor Destroy; Override;
+    /// <summary>Draws the configured image behind default-background cells in scale, tile, center or stretch mode.</summary>
+    Procedure DrawBackground(Canvas : TCanvas; Const Bounds : TRect);
     /// <summary>Binds a borrowed session and settings. It never creates or closes a terminal process.</summary>
     Procedure Bind         (Session : TTerminalSession; Settings : TGuakeSettings);
     Procedure ApplySettings;
@@ -73,219 +78,304 @@ Interface
 Implementation
 
  Uses
-  System.Math, System.Character, System.StrUtils, Vcl.Clipbrd, Winapi.ShellAPI, Guake.VT, Guake.Shells;
+  System.Math, System.Character, System.StrUtils, Vcl.Clipbrd, Winapi.ShellAPI, Guake.VT, Guake.Shells, Vcl.Imaging.pngimage, Vcl.Imaging.jpeg, Vcl.Imaging.GIFImg;
 {$R *.dfm}
 
  Type
    TControlAccess = Class(TControl);
 
-  Procedure TfraTerminal.CreateWnd;
+  Destructor TfraTerminal.Destroy;
    Begin
+    fBackground.Free;
     Inherited;
-    DragAcceptFiles(Handle, True);
    End;
 
-  Procedure TfraTerminal.WndProc(Var Message : TMessage);
+  Procedure TfraTerminal.DrawBackground(Canvas : TCanvas; Const Bounds : TRect);
+   Var
+    Target : TRect;
+    Ratio  : Double;
+    x      : Integer;
+    y      : Integer;
+    Width  : Integer;
+    Height : Integer;
    Begin
-    If Message.Msg = WM_GETDLGCODE Then
+    Canvas.Brush.Color := fPalette[17];
+    Canvas.FillRect(Bounds);
+    If (fBackground = Nil) Or (fBackground.Graphic = Nil) Or fBackground.Graphic.Empty Then
+     Exit;
+    Width  := fBackground.Width;
+    Height := fBackground.Height;
+    If (Width <= 0) Or (Height <= 0) Then
+     Exit;
+    If fSettings.General.BackgroundImageLayoutMode = 1 Then
      Begin
-      Message.Result := DLGC_WANTALLKEYS Or DLGC_WANTCHARS Or DLGC_WANTARROWS Or DLGC_WANTTAB;
+      y := Bounds.Top;
+      While y < Bounds.Bottom Do
+       Begin
+        x := Bounds.Left;
+        While x < Bounds.Right Do
+         Begin
+          Canvas.Draw(x, y, fBackground.Graphic);
+          Inc(x, Width);
+         End;
+        Inc(y, Height);
+       End;
       Exit;
      End;
-    Inherited;
-   End;
-
-  Procedure TfraTerminal.Bind(Session : TTerminalSession; Settings : TGuakeSettings);
-   Begin
-    fSession      := Session;
-    fSettings     := Settings;
-    fLastRevision := -1;
-    ApplySettings;
-    refreshTimer.Enabled := Session <> Nil;
-    RefreshTick(Nil);
-   End;
-
-  Procedure TfraTerminal.ApplySettings;
-   Var
-    Colors : TArray<String>;
-    i      : Integer;
-    p      : Integer;
-    Size   : Integer;
-    s      : String;
-    Name   : String;
-   Begin
-    If fSettings = Nil Then
-     Exit;
-    Font.Name := 'Consolas';
-    Font.Size := 10;
-    If Not fSettings.General.UseDefaultFont Then
-     Begin
-      s    := fSettings.Style.Font.Style;
-      p    := LastDelimiter(' ', s);
-      Size := StrToIntDef(Copy(s, p + 1, MaxInt), 10);
-      Name := Copy(s, 1, p - 1);
-      If (Name <> '') And Not SameText(Name, 'Monospace') Then
-       Font.Name := Name;
-      Font.Size  := EnsureRange(Size, 4, 72);
-     End;
-    surface.Canvas.Font.Assign(Font);
-    fCellWidth  := Max(1, Round(surface.Canvas.TextWidth('M') * fSettings.Style.Font.CellWidthScale));
-    fCellHeight := Max(1, Round(surface.Canvas.TextHeight('Mg') * fSettings.Style.Font.CellHeightScale));
-    Colors      := fSettings.Style.Font.Palette.Split([':']);
-    For i       := 0 To 17 Do
-     Begin
-      fPalette[i] := clBlack;
-      If i < Length(Colors) Then
-       Begin
-        s := Colors[i];
-        If Copy(s, 1, 1) = '#' Then
-         Delete(s, 1, 1);
-        If Length(s) = 12 Then
-         fPalette[i] := RGB(StrToIntDef('$' + Copy(s, 1, 4), 0) Div 257, StrToIntDef('$' + Copy(s, 5, 4), 0) Div 257, StrToIntDef('$' + Copy(s, 9, 4), 0) Div 257);
-       End;
-     End;
-    scroll.Visible := fSettings.General.UseScrollbar;
-    If fSession <> Nil Then
-     If fSettings.General.InfiniteHistory Then
-      fSession.Buffer.SetHistoryLimit( -1)
-     Else
-      fSession.Buffer.SetHistoryLimit(fSettings.General.HistorySize);
-    FrameResize(Nil);
-    surface.Invalidate;
-   End;
-
-  Procedure TfraTerminal.FrameResize(Sender : TObject);
-   Begin
-    If (fSession <> Nil) And (fCellWidth > 0) And (fCellHeight > 0) Then
-     fSession.Resize(Max(2, (surface.Width - 8) Div fCellWidth), Max(1, (surface.Height - 8) Div fCellHeight));
-   End;
-
-  Function TfraTerminal.ResolveColor(Value : Integer; Foreground, Bold : Boolean) : TColor;
-   Const
-    Levels : Array[0..5] Of Integer = (0, 95, 135, 175, 215, 255);
-   Var
-    n : Integer;
-    r : Integer;
-    g : Integer;
-    b : Integer;
-   Begin
-    If Value = -1 Then
-     Exit(fPalette[16]);
-    If Value = -2 Then
-     Exit(fPalette[17]);
-    If (Value And $01000000) <> 0 Then
-     Exit(Value And $FFFFFF);
-    If Value < 16 Then
-     Begin
-      If Foreground And Bold And fSettings.Style.Font.BoldIsBright And (Value < 8) Then
-       Inc(Value, 8);
-      Exit(fPalette[EnsureRange(Value, 0, 15)]);
-     End;
-    If Value < 232 Then
-     Begin
-      n := Value - 16;
-      r := Levels[n Div 36];
-      g := Levels[(n Div 6) Mod 6];
-      b := Levels[n Mod 6];
-     End
-    Else
-     Begin
-      r := 8 + (Value - 232) * 10;
-      g := r;
-      b := r;
-     End;
-    Result := RGB(r, g, b);
-   End;
-
-  Function TfraTerminal.IsSelected(x, y : Integer) : Boolean;
-   Var
-    a : Int64;
-    b : Int64;
-    p : Int64;
-    t : Int64;
-   Begin
-    Result := False;
-    If Not fHasSelection Or (fSession = Nil) Then
-     Exit;
-    a := Int64(fSelectionStart.y) * fSession.Buffer.Columns + fSelectionStart.x;
-    b := Int64(fSelectionEnd.y) * fSession.Buffer.Columns + fSelectionEnd.x;
-    p := Int64(y) * fSession.Buffer.Columns + x;
-    If a > b Then
-     Begin
-      t := a;
-      a := b;
-      b := t;
-     End;
-    Result := (p >= a) And (p <= b);
-   End;
-
-  Procedure TfraTerminal.SurfacePaint(Sender : TObject);
-   Var
-    x         : Integer;
-    y         : Integer;
-    WorldY    : Integer;
-    CursorRow : Integer;
-    Temp      : Integer;
-    c         : TTerminalCell;
-    Fore      : TColor;
-    Back      : TColor;
-    r         : TRect;
-    Style     : TFontStyles;
-   Begin
-    surface.Canvas.Brush.Color := fPalette[17];
-    surface.Canvas.FillRect(surface.ClientRect);
-    If (fSession = Nil) Or (fCellWidth = 0) Or (fCellHeight = 0) Then
-     Exit;
-    surface.Canvas.Font.Assign(Font);
-    For y  := 0 To fSession.Buffer.Rows - 1 Do
-     For x := 0 To fSession.Buffer.Columns - 1 Do
+    Target := Bounds;
+    Case fSettings.General.BackgroundImageLayoutMode Of
+     0 :
       Begin
-       WorldY := scroll.Position + y;
-       c      := fSession.Buffer.Cell[x, WorldY];
-       Fore   := ResolveColor(c.Foreground, True, c.Bold);
-       Back   := ResolveColor(c.Background, False, False);
-       If c.Inverse Or IsSelected(x, WorldY) Then
-        Begin
-         Temp := Fore;
-         Fore := Back;
-         Back := Temp;
-        End;
-       r := Rect(4 + x * fCellWidth, 4 + y * fCellHeight, 4 + (x + 1) * fCellWidth, 4 + (y + 1) * fCellHeight);
-       If c.Continuation Then
-        Continue;
-       If (x + 1 < fSession.Buffer.Columns) And fSession.Buffer.Cell[x + 1, WorldY].Continuation Then
-        Inc(r.Right, fCellWidth);
-       Style := [];
-       If c.Bold And fSettings.Style.Font.AllowBold Then
-        Include(Style, fsBold);
-       If c.Italic Then
-        Include(Style, fsItalic);
-       If c.Underline Then
-        Include(Style, fsUnderline);
-       surface.Canvas.Font.Style := Style;
-       SetTextColor(surface.Canvas.Handle, ColorToRGB(Fore));
-       SetBkColor(surface.Canvas.Handle, ColorToRGB(Back));
-       ExtTextOut(surface.Canvas.Handle, r.Left, r.Top, ETO_CLIPPED Or ETO_OPAQUE, @r, PChar(c.Text), Length(c.Text), Nil);
+       Ratio         := Max((Bounds.Right - Bounds.Left) / Width, (Bounds.Bottom - Bounds.Top) / Height);
+       Width         := Max(1, Round(Width * Ratio));
+       Height        := Max(1, Round(Height * Ratio));
+       Target.Left   := Bounds.Left + ((Bounds.Right - Bounds.Left) - Width) Div 2;
+       Target.Top    := Bounds.Top + ((Bounds.Bottom - Bounds.Top) - Height) Div 2;
+       Target.Right  := Target.Left + Width;
+       Target.Bottom := Target.Top + Height;
       End;
-    If Focused And fSession.Buffer.CursorVisible And Not fSession.Exited And
-    ((fSettings.Style.CursorBlinkMode = 2) Or ((GetTickCount64 Div 500) Mod 2 = 0)) Then
+     2 :
+      Begin
+       Target.Left   := Bounds.Left + ((Bounds.Right - Bounds.Left) - Width) Div 2;
+       Target.Top    := Bounds.Top + ((Bounds.Bottom - Bounds.Top) - Height) Div 2;
+       Target.Right  := Target.Left + Width;
+       Target.Bottom := Target.Top + Height;
+      End;
+    End;
+    Canvas.StretchDraw(Target, fBackground.Graphic);
+  End;
+
+ Procedure TfraTerminal.CreateWnd;
+  Begin
+   Inherited;
+   DragAcceptFiles(Handle, True);
+  End;
+
+ Procedure TfraTerminal.WndProc(Var Message : TMessage);
+  Begin
+   If Message.Msg = WM_GETDLGCODE Then
+    Begin
+     Message.Result := DLGC_WANTALLKEYS Or DLGC_WANTCHARS Or DLGC_WANTARROWS Or DLGC_WANTTAB;
+     Exit;
+    End;
+   Inherited;
+  End;
+
+ Procedure TfraTerminal.Bind(Session : TTerminalSession; Settings : TGuakeSettings);
+  Begin
+   fSession      := Session;
+   fSettings     := Settings;
+   fLastRevision := -1;
+   ApplySettings;
+   refreshTimer.Enabled := Session <> Nil;
+   RefreshTick(Nil);
+  End;
+
+ Procedure TfraTerminal.ApplySettings;
+  Var
+   Colors : TArray<String>;
+   i      : Integer;
+   p      : Integer;
+   Size   : Integer;
+   s      : String;
+   Name   : String;
+  Begin
+   If fSettings = Nil Then
+    Exit;
+   If fBackground = Nil Then
+    fBackground := TPicture.Create;
+   fBackground.Assign(Nil);
+   If fSettings.General.BackgroundImageFile <> '' Then
+    Try
+     fBackground.LoadFromFile(fSettings.General.BackgroundImageFile);
+    Except
+     On E : Exception Do
+      Begin
+       fBackground.Assign(Nil);
+       OutputDebugString(PChar('Guake background image: ' + E.ClassName + ': ' + E.Message + sLineBreak + E.StackTrace));
+      End;
+    End;
+   Font.Name := 'Consolas';
+   Font.Size := 10;
+   If Not fSettings.General.UseDefaultFont Then
+    Begin
+     s    := fSettings.Style.Font.Style;
+     p    := LastDelimiter(' ', s);
+     Size := StrToIntDef(Copy(s, p + 1, MaxInt), 10);
+     Name := Copy(s, 1, p - 1);
+     If (Name <> '') And Not SameText(Name, 'Monospace') Then
+      Font.Name := Name;
+     Font.Size  := EnsureRange(Size, 4, 72);
+    End;
+   surface.Canvas.Font.Assign(Font);
+   fCellWidth  := Max(1, Round(surface.Canvas.TextWidth('M') * fSettings.Style.Font.CellWidthScale));
+   fCellHeight := Max(1, Round(surface.Canvas.TextHeight('Mg') * fSettings.Style.Font.CellHeightScale));
+   Colors      := fSettings.Style.Font.Palette.Split([':']);
+   For i       := 0 To 17 Do
+    Begin
+     fPalette[i] := clBlack;
+     If i < Length(Colors) Then
+      Begin
+       s := Colors[i];
+       If Copy(s, 1, 1) = '#' Then
+        Delete(s, 1, 1);
+       If Length(s) = 12 Then
+        fPalette[i] := RGB(StrToIntDef('$' + Copy(s, 1, 4), 0) Div 257, StrToIntDef('$' + Copy(s, 5, 4), 0) Div 257, StrToIntDef('$' + Copy(s, 9, 4), 0) Div 257);
+      End;
+    End;
+   scroll.Visible := fSettings.General.UseScrollbar;
+   If fSession <> Nil Then
+    If fSettings.General.InfiniteHistory Then
+     fSession.Buffer.SetHistoryLimit( -1)
+    Else
+     fSession.Buffer.SetHistoryLimit(fSettings.General.HistorySize);
+   FrameResize(Nil);
+   surface.Invalidate;
+  End;
+
+ Procedure TfraTerminal.FrameResize(Sender : TObject);
+  Begin
+   If (fSession <> Nil) And (fCellWidth > 0) And (fCellHeight > 0) Then
+    fSession.Resize(Max(2, (surface.Width - 8) Div fCellWidth), Max(1, (surface.Height - 8) Div fCellHeight));
+  End;
+
+ Function TfraTerminal.ResolveColor(Value : Integer; Foreground, Bold : Boolean) : TColor;
+  Const
+   Levels : Array[0..5] Of Integer = (0, 95, 135, 175, 215, 255);
+  Var
+   n : Integer;
+   r : Integer;
+   g : Integer;
+   b : Integer;
+  Begin
+   If Value = -1 Then
+    Exit(fPalette[16]);
+   If Value = -2 Then
+    Exit(fPalette[17]);
+   If (Value And $01000000) <> 0 Then
+    Exit(Value And $FFFFFF);
+   If Value < 16 Then
+    Begin
+     If Foreground And Bold And fSettings.Style.Font.BoldIsBright And (Value < 8) Then
+      Inc(Value, 8);
+     Exit(fPalette[EnsureRange(Value, 0, 15)]);
+    End;
+   If Value < 232 Then
+    Begin
+     n := Value - 16;
+     r := Levels[n Div 36];
+     g := Levels[(n Div 6) Mod 6];
+     b := Levels[n Mod 6];
+    End
+   Else
+    Begin
+     r := 8 + (Value - 232) * 10;
+     g := r;
+     b := r;
+    End;
+   Result := RGB(r, g, b);
+  End;
+
+ Function TfraTerminal.IsSelected(x, y : Integer) : Boolean;
+  Var
+   a : Int64;
+   b : Int64;
+   p : Int64;
+   t : Int64;
+  Begin
+   Result := False;
+   If Not fHasSelection Or (fSession = Nil) Then
+    Exit;
+   a := Int64(fSelectionStart.y) * fSession.Buffer.Columns + fSelectionStart.x;
+   b := Int64(fSelectionEnd.y) * fSession.Buffer.Columns + fSelectionEnd.x;
+   p := Int64(y) * fSession.Buffer.Columns + x;
+   If a > b Then
+    Begin
+     t := a;
+     a := b;
+     b := t;
+    End;
+   Result := (p >= a) And (p <= b);
+  End;
+
+ Procedure TfraTerminal.SurfacePaint(Sender : TObject);
+  Var
+   x               : Integer;
+   y               : Integer;
+   WorldY          : Integer;
+   CursorRow       : Integer;
+   Temp            : Integer;
+   c               : TTerminalCell;
+   Fore            : TColor;
+   Back            : TColor;
+   r               : TRect;
+   Style           : TFontStyles;
+   TransparentCell : Boolean;
+   Options         : Cardinal;
+  Begin
+   DrawBackground(surface.Canvas, surface.ClientRect);
+   If (fSession = Nil) Or (fCellWidth = 0) Or (fCellHeight = 0) Then
+    Exit;
+   surface.Canvas.Font.Assign(Font);
+   For y  := 0 To fSession.Buffer.Rows - 1 Do
+    For x := 0 To fSession.Buffer.Columns - 1 Do
      Begin
-      CursorRow := fSession.Buffer.TotalLines - fSession.Buffer.Rows + fSession.Buffer.CursorY - scroll.Position;
-      If (CursorRow >= 0) And (CursorRow < fSession.Buffer.Rows) Then
+      WorldY := scroll.Position + y;
+      c      := fSession.Buffer.Cell[x, WorldY];
+      Fore   := ResolveColor(c.Foreground, True, c.Bold);
+      Back   := ResolveColor(c.Background, False, False);
+      If c.Inverse Or IsSelected(x, WorldY) Then
        Begin
-        r := Rect(4 + fSession.Buffer.CursorX * fCellWidth, 4 + CursorRow * fCellHeight,
-        4 + (fSession.Buffer.CursorX + 1) * fCellWidth, 4 + (CursorRow + 1) * fCellHeight);
-        surface.Canvas.Brush.Color := fPalette[16];
-        Case fSettings.Style.CursorShape Of
-         1 : r.Right := r.Left + 2;
-         2 : r.Top := r.Bottom - 2;
-        End;
-        If fSettings.Style.CursorShape = 0 Then
-         surface.Canvas.FrameRect(r)
-        Else
-         surface.Canvas.FillRect(r);
+        Temp := Fore;
+        Fore := Back;
+        Back := Temp;
        End;
+      r := Rect(4 + x * fCellWidth, 4 + y * fCellHeight, 4 + (x + 1) * fCellWidth, 4 + (y + 1) * fCellHeight);
+      If c.Continuation Then
+       Continue;
+      If (x + 1 < fSession.Buffer.Columns) And fSession.Buffer.Cell[x + 1, WorldY].Continuation Then
+       Inc(r.Right, fCellWidth);
+      Style := [];
+      If c.Bold And fSettings.Style.Font.AllowBold Then
+       Include(Style, fsBold);
+      If c.Italic Then
+       Include(Style, fsItalic);
+      If c.Underline Then
+       Include(Style, fsUnderline);
+      surface.Canvas.Font.Style := Style;
+      TransparentCell           := (fBackground <> Nil) And (fBackground.Graphic <> Nil) And
+      (c.Background = -2) And Not c.Inverse And Not IsSelected(x, WorldY);
+      Options := ETO_CLIPPED;
+      If TransparentCell Then
+       SetBkMode(surface.Canvas.Handle, TRANSPARENT)
+      Else
+       Begin
+        SetBkMode(surface.Canvas.Handle, OPAQUE);
+        Options := Options Or ETO_OPAQUE;
+       End;
+      SetTextColor(surface.Canvas.Handle, ColorToRGB(Fore));
+      SetBkColor(surface.Canvas.Handle, ColorToRGB(Back));
+      ExtTextOut(surface.Canvas.Handle, r.Left, r.Top, Options, @r, PChar(c.Text), Length(c.Text), Nil);
      End;
+   If Focused And fSession.Buffer.CursorVisible And Not fSession.Exited And
+   ((fSettings.Style.CursorBlinkMode = 2) Or ((GetTickCount64 Div 500) Mod 2 = 0)) Then
+    Begin
+     CursorRow := fSession.Buffer.TotalLines - fSession.Buffer.Rows + fSession.Buffer.CursorY - scroll.Position;
+     If (CursorRow >= 0) And (CursorRow < fSession.Buffer.Rows) Then
+      Begin
+       r := Rect(4 + fSession.Buffer.CursorX * fCellWidth, 4 + CursorRow * fCellHeight,
+       4 + (fSession.Buffer.CursorX + 1) * fCellWidth, 4 + (CursorRow + 1) * fCellHeight);
+       surface.Canvas.Brush.Color := fPalette[16];
+       Case fSettings.Style.CursorShape Of
+        1 : r.Right := r.Left + 2;
+        2 : r.Top := r.Bottom - 2;
+       End;
+       If fSettings.Style.CursorShape = 0 Then
+        surface.Canvas.FrameRect(r)
+       Else
+        surface.Canvas.FillRect(r);
+      End;
+    End;
   End;
 
  Procedure TfraTerminal.FollowOutput;

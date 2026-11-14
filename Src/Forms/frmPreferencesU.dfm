@@ -45,6 +45,8 @@
     end
   end
   object navPages: TListBox
+    Color = clBtnFace
+    ParentColor = False
     Align = alLeft
     Width = 160
     BorderStyle = bsNone
@@ -2031,6 +2033,7 @@
   end
   object appEvents: TApplicationEvents
     OnException = ApplicationException
+    OnMessage = ApplicationMessage
     Left = 192
     Top = 680
   end
