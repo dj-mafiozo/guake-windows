@@ -34,7 +34,11 @@ Implementation
 
  Uses
   Winapi.Windows, System.SysUtils, System.Classes, System.IOUtils,
-  frmMainU, Vcl.Controls, Guake.ConPTY, Guake.VT, Guake.Shells, Guake.Sessions, Guake.Settings, Guake.Keybindings;
+  frmMainU, Vcl.ComCtrls, Vcl.Controls, Guake.ConPTY, Guake.VT, Guake.Shells, Guake.Sessions, Guake.Settings, Guake.Keybindings;
+
+ Type
+  TTabControlAccess = Class(TTabControl)
+  End;
 
  Function WaitForText(Session : TConPtySession; Buffer : TTerminalBuffer; Const Value : String; Timeout : Cardinal = 15000) : Boolean;
   Var
@@ -336,6 +340,7 @@ Implementation
     Settings.Keybindings.Global.ShowFocus := 'disabled';
     Main                                  := TfrmMain.Create(Nil);
     Try
+     Assert.IsTrue(Assigned(TTabControlAccess(Main.tabBar).OnDblClick));
      Main.Bind(Settings);
      Main.StartTerminal;
      Assert.AreEqual(1, Main.Controller.Count);

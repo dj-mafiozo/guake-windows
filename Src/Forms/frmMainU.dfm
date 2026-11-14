@@ -12,6 +12,7 @@
   Font.Name = 'Segoe UI'
   Font.Style = []
   OldCreateOrder = True
+  OnCreate = FormCreate
   OnClose = FormClose
   OnDestroy = FormDestroy
   OnDeactivate = FormDeactivate
@@ -39,7 +40,6 @@
     TabOrder = 1
     TabPosition = tpBottom
     OnChange = TabChanged
-    OnMouseDown = TabMouseDown
   end
   object trayIcon: TTrayIcon
     Hint = 'Guake Terminal'

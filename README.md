@@ -18,7 +18,7 @@ git submodule update --init --recursive
 powershell -NoProfile -ExecutionPolicy Bypass -File Src/Tools/Test.ps1
 ```
 
-Wymagane: Delphi Win64, Python 3 i `map2pdb.exe` w PATH. Budowanie nie zmienia wersji. Na początku kolejnego przebiegu prac zwiększ build jawnie przez `Src/Tools/Update-Version.ps1 -Part Build`; przed commitem zwiększ release przez `-Part Release`. Skrypt buduje projekt główny, DUnitX oraz podgląd formularzy; generuje i wiąże PDB z EXE. Raport: `bin/tests/test-results.xml`. Podglądy zakładek: `bin/tests/preferences-preview/`. Testy używają własnego katalogu tymczasowego pod `.build/`.
+Wymagane: Delphi Win64, Python 3 i `map2pdb.exe` w PATH. Budowanie nie zmienia wersji. Na początku kolejnego przebiegu prac zwiększ build jawnie przez `Src/Tools/Update-Version.ps1 -Part Build`; przed commitem zwiększ release przez `-Part Release`. Skrypt buduje projekt główny, DUnitX oraz podgląd formularzy; generuje osobne PDB, zachowując niezmienione EXE. Raport: `bin/tests/test-results.xml`. Podglądy zakładek: `bin/tests/preferences-preview/`. Testy używają własnego katalogu tymczasowego pod `.build/`.
 
 Główny EXE: `bin/Win64/guake.exe`. Samodzielny edytor preferencji do sprawdzenia formularza: `bin/forms/GuakeFormsPreview.exe`. Edytor zapisuje ustawienia do `%APPDATA%/Guake/guake.ini`. Zbudowaną aplikację z PDB i lokalizacją można spakować przez `Src/Tools/Package.ps1`.
 

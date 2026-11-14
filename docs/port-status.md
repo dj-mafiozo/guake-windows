@@ -62,7 +62,7 @@ Okno główne obsługuje geometrię i położenie, przezroczystość, pozycję p
 
 26 oryginalnych PO pozostaje bez zmian wraz z autorami. `Src/Tools/Import-Translations.py` generuje powtarzalne katalogi przez GNU msgfmt. `Guake.Localization` korzysta z `TTranslationCatalog` i `TPluralForms` z `Src/Vendor/i18n`. Formularz preferencji używa oryginalnych tekstów do zmiany języka; usuwa znaczniki GTK i dostosowuje mnemoniki do VCL. Nieprzetłumaczone napisy pozostają angielskie. Obecne punkty startowe wczytują polski katalog; wybór języka użytkownika wymaga jeszcze integracji.
 
-`{$StackFrames On}` jest w pierwszej linii PAS i DPR. `StackTrace` jest pierwszą jednostką projektów. MSBuild generuje szczegółowy MAP, a `Src/Tools/Build-Symbols.py` wywołuje `map2pdb.exe -include:0001;0002 -bind`. PDB jest dostarczany obok właściwego EXE i trafia do ZIP. Test potwierdza przechwycony stos i rozwiązaną nazwę funkcji przy obecnym PDB. Dostępność numerów linii zależy od danych wygenerowanych przez konwerter; obecna konfiguracja nie gwarantuje ich dla każdej ramki.
+`{$StackFrames On}` jest w pierwszej linii PAS i DPR. `StackTrace` jest pierwszą jednostką projektów. MSBuild generuje szczegółowy MAP, a `Src/Tools/Build-Symbols.py` wywołuje `map2pdb.exe -include:0001;0002`. PDB jest dostarczany obok właściwego EXE i trafia do ZIP. Test potwierdza przechwycony stos i rozwiązaną nazwę funkcji przy obecnym PDB. Dostępność numerów linii zależy od danych wygenerowanych przez konwerter; obecna konfiguracja nie gwarantuje ich dla każdej ramki.
 
 Logger zapisuje klasę i treść wyjątku, jego oryginalny `Exception.StackTrace`, wersję, czas, PID i wątek. Rotuje plik po 4 MiB do `.old`. Awaria logowania nie zastępuje pierwotnego wyjątku. Pliki VersionInfo i manifestu pozostają generowane przez MSBuild; repozytorium nie śledzi RES.
 
@@ -78,10 +78,14 @@ Początek: `1.0.0.1`. Major i minor pozostają niezmienione. Sam build i `Src/To
 
 ## Zgodność projektów z IDE
 
-DPROJ zawierają konfigurację wspólną Base oraz dziedziczące Debug i Release z kluczami Cfg_1 i Cfg_2, metadane osobowości Delphi i platformę Win64. Base oznacza wspólne opcje, a nie docelowy profil budowania. Usunięto niepublikowane zdarzenie TTabControl.OnDblClick; dwuklik obsługuje OnMouseDown. Sprzątanie formularza toleruje niepełne wczytanie DFM. Zapis projektu przez IDE wymaga jeszcze osobnej weryfikacji.
+DPROJ zawierają konfigurację wspólną Base oraz dziedziczące Debug i Release z kluczami Cfg_1 i Cfg_2, metadane osobowości Delphi i platformę Win64. Base oznacza wspólne opcje, a nie docelowy profil budowania. Usunięto niepublikowane zdarzenie TTabControl.OnDblClick; dwuklik jest przypisywany w FormCreate przez klasę dostępową TTabControlAccess. Sprzątanie formularza toleruje niepełne wczytanie DFM. Zapis projektu przez IDE wymaga jeszcze osobnej weryfikacji.
 
 ## Zasoby graficzne i bieżąca walidacja
 
 Oryginalne pixmapy są w `Src/Resources/Pixmaps`, z sumami kontrolnymi w `pixmaps-source.json`. Klon Guake nie zawierał ICO; `guake.ico` i `tray.ico` opakowują oryginalne obrazy PNG w format ikon Windows. `Guake.Images.rc` zawiera wyłącznie niestandardowe zasoby. Ikonę główną, manifest i wersję EXE generuje MSBuild.
 
 Wersja 1.0.3.38: 48/48 testów DUnitX, kompilacja Win64 Debug i Release, generowanie pasujących PDB. Testy sprawdzają też tworzenie i zwalnianie ramek terminala oraz podziałów. Budowanie zachowało sumy kontrolne DPROJ. Ponieważ uruchomiony wcześniejszy `guake.exe` blokował zwykły katalog wyjściowy, bieżące EXE i PDB zweryfikowano w `.build/verified-main` i `.build/verified-release`. Nie potwierdzono jeszcze zapisu projektu przez IDE ani pełnej zgodności wizualnej z Guake.
+
+Dwuklik karty jest podłączany przez TTabControlAccess w FormCreate. DFM przechowuje wyłącznie publikowane zdarzenie OnCreate. Test sprawdza przypisanie OnDblClick po wczytaniu formularza. Konwersja MAP do PDB nie używa już opcji -bind i nie modyfikuje EXE; porównanie SHA-256 przed i po konwersji jest obowiązkową kontrolą skryptu. Test odczytu symbolicznego stosu przeszedł także z osobnym PDB. Wcześniejszy wariant Debug po modyfikacji przez -bind został zablokowany przez Windows kodem 225.
+
+Wersja 1.0.4.39: 48/48 testów DUnitX, ponowne kompilacje Win64 Debug i Release oraz poprawny odczyt wersji obu EXE po utworzeniu osobnych PDB. Zwykły build nie zmienił numerów ani DPROJ. Pakiet `bin/guake-1.0.4.39-Win64.zip` zawiera EXE, PDB, tłumaczenia i licencje.

@@ -32,6 +32,7 @@ Interface
     miCopy            : TMenuItem;
     miPaste           : TMenuItem;
     miSearch          : TMenuItem;
+    Procedure FormCreate      (Sender : TObject);
     Procedure FormShow        (Sender : TObject);
     Procedure PreferencesClick(Sender : TObject);
     Procedure AboutClick      (Sender : TObject);
@@ -44,7 +45,6 @@ Interface
     Procedure PollTerminal    (Sender : TObject);
     Procedure TabChanged      (Sender : TObject);
     Procedure TabDoubleClick  (Sender : TObject);
-    Procedure TabMouseDown    (Sender : TObject; Button : TMouseButton; Shift : TShiftState; x, y : Integer);
    Private
     fController   : TTerminalController;
     fViews        : TDictionary<TTerminalSession, TfraTerminal>;
@@ -91,7 +91,19 @@ Implementation
 
  Uses
   frmPreferencesU, frmAboutU, frmRenameU, frmConfirmU, dmDialogsU, fraSplitU, Guake.Keybindings, System.Math, Guake.Resources;
+
+ Type
+  TTabControlAccess = Class(TTabControl)
+  End;
+
 {$R *.dfm}
+
+/// <summary>Connects the inherited double-click event without streaming an unpublished DFM property.</summary>
+
+ Procedure TfrmMain.FormCreate(Sender : TObject);
+  Begin
+   TTabControlAccess(tabBar).OnDblClick := TabDoubleClick;
+  End;
 
  Procedure TfrmMain.FormShow(Sender : TObject);
   Begin
@@ -459,12 +471,6 @@ Implementation
      fController.ActiveTab.Name := Name;
      UpdateTerminalTitles;
     End;
-  End;
-
- Procedure TfrmMain.TabMouseDown(Sender : TObject; Button : TMouseButton; Shift : TShiftState; x, y : Integer);
-  Begin
-   If (Button = mbLeft) And (ssDouble In Shift) Then
-    TabDoubleClick(Sender);
   End;
 
  Procedure TfrmMain.PollTerminal(Sender : TObject);
