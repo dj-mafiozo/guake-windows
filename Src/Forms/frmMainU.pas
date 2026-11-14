@@ -65,6 +65,11 @@ Interface
     miNewBash             : TMenuItem;
     miNewCmd              : TMenuItem;
     miNewPowerShell       : TMenuItem;
+    shellMenu             : TPopupMenu;
+    miPopupZsh            : TMenuItem;
+    miPopupBash           : TMenuItem;
+    miPopupCmd            : TMenuItem;
+    miPopupPowerShell     : TMenuItem;
     Procedure ShellTabClick      (Sender : TObject);
     Procedure AddTabClick        (Sender : TObject);
     Procedure TabListClick       (Sender : TObject);

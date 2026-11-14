@@ -129,3 +129,9 @@ Do 130 kluczy oryginalnego schematu dodano cztery rozszerzenia Windows w `keybin
 Polskie uzupełnienia PO obejmują brakujące etykiety, opisy działań, podpowiedzi ustawień i nowe powłoki. Oryginalne katalogi PO pozostają bez zmian. Przyciski paska kart są TSpeedButton, a statyczny Glyph jest odtwarzalnie wyprowadzany z `Src/Resources/add_tab.png`.
 
 Wersja 1.0.8.43: 59/59 testów DUnitX, kompilacje Win64 Debug i Release oraz normalny EXE w `bin/Win64`. Testy obejmują wszystkie układy obrazu, jego usunięcie i brak pliku, częściowe kroki kółka, cztery odrębne skróty z zapisem INI oraz utworzenie karty CMD przez menu i kolejkę akcji skrótu. Sprawdzenie `Update-AddTabGlyph.ps1 -Check` potwierdza zgodność Glyph z PNG. Pakiet: `bin/guake-1.0.8.43-Win64.zip`.
+
+## Płaskie karty i rozdzielenie menu
+
+`TTabControl.Style=tsFlatButtons` zastępuje wygląd tradycyjnych zakładek. Zaznaczenie nadal wynika z aktywnego indeksu kontrolera. Wspólne menu karty jest podłączone do samej kontrolki kart oraz jej panelu, więc działa również na wolnej części paska. `btnAddTab` ma osobny popup z bezpośrednią listą czterech powłok. Zwykły klik nadal wywołuje akcję nowej karty z domyślną powłoką z ustawień.
+
+Wersja 1.0.9.44: 59/59 testów DUnitX, kompilacje Win64 Debug i Release, kontrola powiązań obu menu oraz wyboru CMD niezależnie od ustawionej domyślnej powłoki. Glyph pozostał zgodny z PNG. Pakiet: `bin/guake-1.0.9.44-Win64.zip`.

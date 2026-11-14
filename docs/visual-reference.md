@@ -33,3 +33,5 @@ Scenariusze DUnitX sprawdzają przechodzenie między kategoriami, obecność ory
 Zrzuty rozwiniętych i zwiniętych grup pokazują siedem sekcji: Ogólne, Zarządzanie kartami, Zarządzanie podziałem, Nawigacja, Wygląd, Schowek i Dodatkowe funkcje. Bieżący edytor portu pozostaje płaską tabelą; przeniesienie grupowania i zwijania jest nadal do wykonania.
 
 Obszar pod kategoriami ma ten sam kolor co pasek nawigacji. Przyciski nowej karty i listy kart są TSpeedButton; ikona nowej karty pochodzi z `Src/Resources/add_tab.png`, a jej dane bitmapowe są w DFM. Podmenu powłok i cztery osobne skróty są dodatkiem Windows do pokazanego menu oryginalnego Guake.
+
+Pasek Windows używa stylu `tsFlatButtons`: aktywna karta jest wyróżniona jak wciśnięty przycisk. Kontener paska nadal może znajdować się u góry lub u dołu okna zgodnie z preferencjami. Menu kart działa na kartach i pustym obszarze paska. Ikona nowej karty ma osobne menu czterech powłok pod prawym przyciskiem myszy; lewy przycisk zachowuje domyślną powłokę.

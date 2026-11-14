@@ -41,6 +41,7 @@
     Color = clBtnFace
     ParentBackground = False
     DoubleBuffered = True
+    PopupMenu = tabMenu
     TabOrder = 1
     object btnTabList: TSpeedButton
       Align = alRight
@@ -51,6 +52,7 @@
       OnClick = TabListClick
     end
     object btnAddTab: TSpeedButton
+      PopupMenu = shellMenu
       Align = alRight
       Width = 28
       Glyph.Data = {
@@ -92,7 +94,8 @@
       Align = alClient
       DoubleBuffered = True
       TabOrder = 0
-      TabPosition = tpBottom
+      Style = tsFlatButtons
+      TabPosition = tpTop
       PopupMenu = tabMenu
       OnChange = TabChanged
     end
@@ -280,6 +283,27 @@
       Caption = 'Zamknij'
       Enabled = False
       OnClick = CommandClick
+    end
+  end
+  object shellMenu: TPopupMenu
+    object miPopupZsh: TMenuItem
+      Caption = 'Zsh'
+      OnClick = ShellTabClick
+    end
+    object miPopupBash: TMenuItem
+      Tag = 1
+      Caption = 'Bash'
+      OnClick = ShellTabClick
+    end
+    object miPopupCmd: TMenuItem
+      Tag = 2
+      Caption = 'CMD'
+      OnClick = ShellTabClick
+    end
+    object miPopupPowerShell: TMenuItem
+      Tag = 3
+      Caption = 'PowerShell'
+      OnClick = ShellTabClick
     end
   end
   object tabListMenu: TPopupMenu

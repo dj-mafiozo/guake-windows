@@ -572,10 +572,21 @@ Implementation
     Try
      Main.Bind(Settings);
      Main.StartTerminal;
+     Assert.IsTrue(Main.tabHost.PopupMenu = Main.tabMenu);
+     Assert.IsTrue(Main.tabBar.PopupMenu = Main.tabMenu);
+     Assert.IsTrue(Main.btnAddTab.PopupMenu = Main.shellMenu);
+     Assert.AreEqual(4, Main.shellMenu.Items.Count);
+     Assert.AreEqual(Integer(tsFlatButtons), Integer(Main.tabBar.Style));
+
      Assert.IsTrue(Main.btnAddTab.Enabled);
      Assert.IsFalse(Main.btnAddTab.Glyph.Empty);
      Assert.IsTrue(Main.btnTabList.Enabled);
      Assert.IsTrue(Main.miTrayNewTab.Enabled);
+     Settings.General.DefaultShell := 'powershell';
+     Main.miPopupCmd.Click;
+     Assert.AreEqual(Integer(gsCmd), Integer(Main.Controller.ActiveSession.Profile.Kind));
+     Main.Controller.CloseTab(Main.Controller.ActiveIndex);
+     Settings.General.DefaultShell  := 'cmd';
      Main.Controller.ActiveTab.Name := 'one';
      Main.AddTabClick(Nil);
      Main.Controller.ActiveTab.Name := 'two';

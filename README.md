@@ -35,3 +35,5 @@ Skróty z klawiszem grave (U+0060) i tyldą (~) można przechwytywać w preferen
 Obraz tła terminala obsługuje PNG, JPEG, BMP i statyczny GIF: skalowanie z zachowaniem proporcji i kadrowaniem, kafelkowanie, wyśrodkowanie i rozciąganie. Jawne kolory tła aplikacji terminalowych i zaznaczenie pozostają nieprzezroczyste.
 
 Menu karty zawiera wybór Zsh, Bash, CMD i PowerShell. Każda powłoka ma własne działanie w preferencjach skrótów; domyślnie skróty są wyłączone. Są to skróty lokalne działające w terminalu Guake. Etykiety i podpowiedzi uzupełnia polski katalog portu Windows.
+
+Pasek kart używa płaskich przycisków (`TTabControl.Style = tsFlatButtons`). Menu karty jest dostępne również na pustej części paska. Lewy klik ikony nowej karty otwiera domyślną powłokę z preferencji; prawy pokazuje bezpośredni wybór Zsh/Bash/CMD/PowerShell. Jednorazowy wybór nie zmienia ustawienia powłoki domyślnej.
