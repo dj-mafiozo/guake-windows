@@ -1,4 +1,5 @@
 ﻿{$StackFrames On}
+/// <summary>Finds literal or regular-expression matches in terminal text with direction and wrapping.</summary>
 Unit frmSearchU;
 
 Interface

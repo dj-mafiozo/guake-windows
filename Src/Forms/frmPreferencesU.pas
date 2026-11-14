@@ -1,5 +1,6 @@
 ﻿{$StackFrames On}
 
+/// <summary>DFM-backed Guake preference editor with immediate transactional persistence and localized captions.</summary>
 Unit frmPreferencesU;
 
 // Layout and behavior ported from Guake prefs.glade and prefs.py (GPL-2.0-or-later).
@@ -228,6 +229,7 @@ Interface
     Procedure ShortcutDblClick       (Sender : TObject);
     Procedure ApplicationException   (Sender : TObject; e : Exception);
    Private
+    fOnError           : TExceptionEvent;
     fSettings          : TGuakeSettings;
     fLocalizer         : TGuakeLocalization;
     fLog               : TGuakeLog;
@@ -248,6 +250,7 @@ Interface
     Procedure SetPreference(Key : TGuakeSetting; Const Value : String);
     Procedure SetShortcut  (Key : TGuakeSetting; Const Accelerator : String);
     Procedure ResetCompatibility;
+    Property OnError           : TExceptionEvent Read fOnError Write fOnError;
     Property Settings          : TGuakeSettings Read fSettings;
     Property OnSettingsChanged : TNotifyEvent Read fOnSettingsChanged Write fOnSettingsChanged;
   End;
@@ -1087,7 +1090,10 @@ Implementation
     Exit;
    If fLog <> Nil Then
     fLog.TryLogException(e, 'Preferences');
-   Application.ShowException(e);
+   If Assigned(fOnError) Then
+    fOnError(Sender, e)
+   Else
+    Application.ShowException(e);
   End;
 
 End.

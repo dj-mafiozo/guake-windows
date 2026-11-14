@@ -1,5 +1,8 @@
 ﻿[CmdletBinding()]
-param([string]$DelphiRoot = 'C:\Program Files (x86)\Embarcadero\Studio\19.0')
+param(
+    [string]$DelphiRoot = 'C:\Program Files (x86)\Embarcadero\Studio\19.0',
+    [string]$MainOutput
+)
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
 $msbuild = Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe'
@@ -8,9 +11,15 @@ $env:FrameworkDir = Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319'
 $env:FrameworkVersion = 'v4.0.30319'
 $env:PATH = (Join-Path $DelphiRoot 'bin') + ';' + $env:PATH
 if (!(Get-Command map2pdb.exe -ErrorAction SilentlyContinue)) { throw 'map2pdb.exe is required to build matching PDB symbols.' }
-& (Join-Path $PSScriptRoot 'Update-Version.ps1') -Part Build
+$projectHashes = @{}
+Get-ChildItem -Path (Join-Path $repo 'Src') -Filter '*.dproj' -Recurse | ForEach-Object { $projectHashes[$_.FullName] = (Get-FileHash -LiteralPath $_.FullName).Hash }
 foreach ($project in @('Src\Tests\GuakeTests.dproj','Src\Tests\GuakeFormsPreview.dproj','Src\guake.dproj')) {
-    & $msbuild (Join-Path $repo $project) /t:Build /p:Config=Debug /p:Platform=Win64 /v:minimal /nologo
+    $outputArguments = @()
+    if ($MainOutput -and $project -eq 'Src\guake.dproj') {
+        $MainOutput = [IO.Path]::GetFullPath($MainOutput)
+        $outputArguments = @('/p:DCC_ExeOutput=' + $MainOutput)
+    }
+    & $msbuild (Join-Path $repo $project) @outputArguments /t:Build /p:Config=Debug /p:Platform=Win64 /v:minimal /nologo
     if ($LASTEXITCODE -ne 0) { throw "MSBuild failed: $LASTEXITCODE" }
 }
 $locale = Join-Path $repo 'bin\forms\locale\catalogs'
@@ -29,4 +38,8 @@ try {
 } finally {
     $env:TEMP = $previousTemp
     $env:TMP = $previousTmp
+}
+
+foreach ($path in $projectHashes.Keys) {
+    if ((Get-FileHash -LiteralPath $path).Hash -ne $projectHashes[$path]) { throw "Building modified the project: $path" }
 }

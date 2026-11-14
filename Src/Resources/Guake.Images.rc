@@ -1,0 +1,12 @@
+// Original Guake image assets. VersionInfo and the manifest belong to MSBuild.
+GUAKE_TRAY ICON "Pixmaps/guake-tray.ico"
+GUAKE_ADD_TAB RCDATA "Pixmaps/add_tab.png"
+GUAKE_GUAKE_128 RCDATA "Pixmaps/guake-128.png"
+GUAKE_GUAKE_48 RCDATA "Pixmaps/guake-48.png"
+GUAKE_GUAKE_64 RCDATA "Pixmaps/guake-64.png"
+GUAKE_GUAKE_NOTIFICATION RCDATA "Pixmaps/guake-notification.png"
+GUAKE_GUAKE_TRAY RCDATA "Pixmaps/guake-tray.png"
+GUAKE_GUAKE RCDATA "Pixmaps/guake.png"
+GUAKE_QUICK_OPEN_PYTHON_EXCEPTION RCDATA "Pixmaps/quick-open-python-exception.png"
+GUAKE_QUICK_OPEN_SELECTION RCDATA "Pixmaps/quick-open-selection.png"
+GUAKE_QUICK_OPEN RCDATA "Pixmaps/quick-open.png"

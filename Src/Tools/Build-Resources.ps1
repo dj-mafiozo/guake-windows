@@ -10,9 +10,10 @@ if (!$ResourceCompiler) {
         Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
 }
 if (!$ResourceCompiler) { throw 'Windows SDK x64 Resource Compiler was not found' }
-$directory = Join-Path $repo 'Src\Vendor\i18n\Packages'
-Push-Location -LiteralPath $directory
-try {
-    & $ResourceCompiler /nologo /fo i18nFlags_16x11.res i18nFlags_16x11.rc
-    if ($LASTEXITCODE -ne 0) { throw "Resource Compiler failed: $LASTEXITCODE" }
-} finally { Pop-Location }
+foreach ($item in @(@('Src\Vendor\i18n\Packages','i18nFlags_16x11'),@('Src\Resources','Guake.Images'))) {
+    Push-Location -LiteralPath (Join-Path $repo $item[0])
+    try {
+        & $ResourceCompiler /nologo /fo ($item[1] + '.res') ($item[1] + '.rc')
+        if ($LASTEXITCODE -ne 0) { throw "Resource Compiler failed: $LASTEXITCODE" }
+    } finally { Pop-Location }
+}

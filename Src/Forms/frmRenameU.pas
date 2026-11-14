@@ -1,4 +1,5 @@
 ﻿{$StackFrames On}
+/// <summary>Edits a tab name in a DFM-defined modal dialog without changing it on cancellation.</summary>
 Unit frmRenameU;
 
 Interface

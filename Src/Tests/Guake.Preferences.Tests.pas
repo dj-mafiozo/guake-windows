@@ -1,15 +1,19 @@
 ﻿{$StackFrames On}
+/// <summary>DUnitX verification of preferences tests.</summary>
 Unit Guake.Preferences.Tests;
 
 Interface
 
  Uses
-  DUnitX.TestFramework, Guake.Settings, Guake.Localization, frmPreferencesU;
+  System.SysUtils, DUnitX.TestFramework, Guake.Settings, Guake.Localization, frmPreferencesU;
 
  Type
 
   [TestFixture]
   TPreferencesTests = Class
+   Private
+    fUnexpectedError : String;
+    Procedure UnexpectedError(Sender : TObject; e : Exception);
    Private
     fDirectory : String;
     fSettings  : TGuakeSettings;
@@ -37,16 +41,26 @@ Interface
 Implementation
 
  Uses
-  System.SysUtils, System.Classes, System.IOUtils, System.JSON,
+  System.Classes, System.IOUtils, System.JSON,
   Vcl.Forms, Vcl.Controls, Vcl.StdCtrls, Vcl.ComCtrls, Vcl.Graphics, Vcl.Imaging.pngimage,
   Guake.Palettes, frmAboutU, frmSearchU, frmRenameU, frmConfirmU, dmDialogsU, frmMainU;
+
+ Procedure TPreferencesTests.UnexpectedError(Sender : TObject; e : Exception);
+  Begin
+   fUnexpectedError := e.ClassName + ': ' + e.Message;
+   Writeln(fUnexpectedError);
+   Writeln(e.StackTrace);
+   Flush(Output);
+  End;
 
  Procedure TPreferencesTests.Setup;
   Begin
    fDirectory := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
    ForceDirectories(fDirectory);
-   fSettings := TGuakeSettings.Create(TPath.Combine(fDirectory, 'guake.ini'));
-   fForm     := TfrmPreferences.Create(Nil);
+   fSettings        := TGuakeSettings.Create(TPath.Combine(fDirectory, 'guake.ini'));
+   fUnexpectedError := '';
+   fForm            := TfrmPreferences.Create(Nil);
+   fForm.OnError    := UnexpectedError;
   End;
 
  Procedure TPreferencesTests.TearDown;
@@ -54,6 +68,7 @@ Implementation
    fForm.Free;
    fSettings.Free;
    TDirectory.Delete(fDirectory, True);
+   Assert.AreEqual('', fUnexpectedError);
   End;
 
  Procedure TPreferencesTests.CompleteSchemaAndDefaults;
@@ -342,9 +357,9 @@ Implementation
    Try
     Raise EInvalidOpException.Create('symbol test');
    Except
-    On E : Exception Do
+    On e : Exception Do
      Begin
-      Assert.IsTrue(Pos('SymbolicStackUsesMatchingPdb', E.StackTrace) > 0, E.StackTrace);
+      Assert.IsTrue(Pos('SymbolicStackUsesMatchingPdb', e.StackTrace) > 0, e.StackTrace);
       Assert.IsTrue(TFile.Exists(ChangeFileExt(ParamStr(0), '.pdb')));
      End;
    End;

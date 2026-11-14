@@ -1,5 +1,6 @@
 ﻿{$StackFrames On}
 
+/// <summary>Native executable discovery and Windows argument quoting for supported interactive shells.</summary>
 Unit Guake.Shells;
 
 Interface

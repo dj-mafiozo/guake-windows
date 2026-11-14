@@ -1,17 +1,28 @@
 ﻿object frmMain: TfrmMain
-  Caption = 'Guake!'
-  ClientWidth = 1000
-  ClientHeight = 540
+  Left = 0
+  Top = 0
   BorderStyle = bsNone
+  Caption = 'Guake!'
+  ClientHeight = 540
+  ClientWidth = 1000
   Color = clBlack
-  Font.Name = 'Segoe UI'
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
   Font.Height = -12
-  OnShow = FormShow
-  OnDeactivate = FormDeactivate
+  Font.Name = 'Segoe UI'
+  Font.Style = []
+  OldCreateOrder = True
   OnClose = FormClose
+  OnDestroy = FormDestroy
+  OnDeactivate = FormDeactivate
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 15
   object terminalHost: TPanel
+    Left = 0
+    Top = 0
+    Width = 1000
+    Height = 508
     Align = alClient
     BevelOuter = bvNone
     Color = clBlack
@@ -20,10 +31,15 @@
     TabOrder = 0
   end
   object tabBar: TTabControl
-    Align = alBottom
+    Left = 0
+    Top = 508
+    Width = 1000
     Height = 32
+    Align = alBottom
     TabOrder = 1
     TabPosition = tpBottom
+    OnChange = TabChanged
+    OnMouseDown = TabMouseDown
   end
   object trayIcon: TTrayIcon
     Hint = 'Guake Terminal'
@@ -47,7 +63,7 @@
       Caption = '-'
     end
     object miQuit: TMenuItem
-      Caption = 'Zako?cz'
+      Caption = 'Zakończ'
       OnClick = QuitClick
     end
   end
@@ -55,14 +71,13 @@
     Left = 136
     Top = 40
     object miNewTab: TMenuItem
-      Tag = 0
       Caption = 'Nowa karta'
       Enabled = False
       OnClick = CommandClick
     end
     object miCloseTab: TMenuItem
       Tag = 1
-      Caption = 'Zamknij kart?'
+      Caption = 'Zamknij kartę'
       Enabled = False
       OnClick = CommandClick
     end
@@ -96,5 +111,12 @@
       Enabled = False
       OnClick = CommandClick
     end
+  end
+  object pollTimer: TTimer
+    Enabled = False
+    Interval = 30
+    OnTimer = PollTerminal
+    Left = 184
+    Top = 40
   end
 end

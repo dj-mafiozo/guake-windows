@@ -1,5 +1,6 @@
 ﻿{$StackFrames On}
 
+/// <summary>Original named Guake color schemes represented as immutable palette data.</summary>
 Unit Guake.Palettes;
 // Palette data ported from Guake palettes.py (GPL-2.0-or-later).
 

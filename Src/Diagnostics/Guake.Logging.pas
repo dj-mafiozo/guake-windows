@@ -1,5 +1,6 @@
 ﻿{$StackFrames On}
 
+/// <summary>Writes original exception stack traces with process, thread and version information.</summary>
 Unit Guake.Logging;
 
 Interface

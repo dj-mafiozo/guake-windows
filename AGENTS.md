@@ -25,7 +25,7 @@
 - Używaj submodułu `Src/Common` i `VersionU.pas` do odczytu wersji EXE. Nie kopiuj tej jednostki do projektu i nie modyfikuj submodułu przy zmianie wersji aplikacji.
 - Początek: 1.0.0.1. Każdy kolejny przebieg zwiększa build. Każdy commit zwiększa release. Nie zmieniaj major/minor i nigdy nie resetuj build.
 - Liczniki i tekstowe FileVersion/ProductVersion utrzymuj zgodne w konfiguracji MSBuild; nie twórz RC dla tych zasobów.
-- Zwiększenie release: Src/Tools/Update-Version.ps1 -Part Release. Kolejny przebieg i testy: Src/Tools/Test.ps1.
+- Zwiększenie release: Src/Tools/Update-Version.ps1 -Part Release. Build kolejnego przebiegu prac: Src/Tools/Update-Version.ps1 -Part Build. Testy: Src/Tools/Test.ps1. Samo budowanie i testowanie nie zmienia wersji.
 - Twórz commity lokalne z naturalnym polskim opisem problemu, rozwiązania i testów, bez metainformacji o lokalnym commicie i braku push.
 
 ## Lokalizacja i diagnostyka

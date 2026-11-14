@@ -1,4 +1,5 @@
 ﻿{$StackFrames On}
+/// <summary>Displays process-aware quit, tab-close and color-reset confirmations.</summary>
 Unit frmConfirmU;
 
 Interface

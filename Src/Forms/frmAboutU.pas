@@ -1,4 +1,5 @@
 ﻿{$StackFrames On}
+/// <summary>Displays the native Windows port version, original artwork, contributor credits and license.</summary>
 Unit frmAboutU;
 
 Interface

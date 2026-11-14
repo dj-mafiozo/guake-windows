@@ -1,9 +1,17 @@
 ﻿{$StackFrames On}
+/// <summary>Starts the standalone preference-view development preview with shared settings and logging.</summary>
 Program GuakeFormsPreview;
 {$R *.res}
 
 Uses
  StackTrace         In '..\Vendor\stacktrace\source\StackTrace.pas',
+ Guake.Resources    In '..\Resources\Guake.Resources.pas',
+ Guake.ConPTY       In '..\Terminal\Guake.ConPTY.pas',
+ Guake.VT           In '..\Terminal\Guake.VT.pas',
+ Guake.Sessions     In '..\Terminal\Guake.Sessions.pas',
+ Guake.Keybindings  In '..\Terminal\Guake.Keybindings.pas',
+ fraTerminalU       In '..\Frames\fraTerminalU.pas',
+ fraSplitU          In '..\Frames\fraSplitU.pas',
  System.SysUtils, System.IOUtils, Vcl.Forms,
  Guake.Settings     In '..\Settings\Guake.Settings.pas',
  Guake.Localization In '..\Localization\Guake.Localization.pas',

@@ -1,12 +1,13 @@
 ﻿{$StackFrames On}
+/// <summary>Hosts the drop-down terminal window, session layout, tray commands and native global shortcuts.</summary>
 Unit frmMainU;
 
 Interface
 
  Uses
-  System.SysUtils, System.Classes, Winapi.Windows, Winapi.Messages,
+  System.SysUtils, System.Classes, System.Generics.Collections, Winapi.Windows, Winapi.Messages,
   Vcl.Forms, Vcl.Controls, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.Menus,
-  Guake.Settings, Guake.Localization, Guake.Logging;
+  Guake.Settings, Guake.Localization, Guake.Logging, Guake.Sessions, fraTerminalU, frmSearchU;
 
  Type
   TGuakeWindowCommand = (gwNewTab, gwCloseTab, gwSplitHorizontal, gwSplitVertical, gwCopy, gwPaste, gwSearch);
@@ -14,6 +15,7 @@ Interface
   TGuakeCommandEvent = Procedure(Sender : TObject; Command : TGuakeWindowCommand) Of Object;
 
   TfrmMain = Class(TForm)
+    pollTimer         : TTimer;
     terminalHost      : TPanel;
     tabBar            : TTabControl;
     trayIcon          : TTrayIcon;
@@ -38,6 +40,29 @@ Interface
     Procedure TrayDblClick    (Sender : TObject);
     Procedure FormDeactivate  (Sender : TObject);
     Procedure FormClose       (Sender : TObject; Var Action : TCloseAction);
+    Procedure FormDestroy     (Sender : TObject);
+    Procedure PollTerminal    (Sender : TObject);
+    Procedure TabChanged      (Sender : TObject);
+    Procedure TabDoubleClick  (Sender : TObject);
+    Procedure TabMouseDown    (Sender : TObject; Button : TMouseButton; Shift : TShiftState; x, y : Integer);
+   Private
+    fController   : TTerminalController;
+    fViews        : TDictionary<TTerminalSession, TfraTerminal>;
+    fRootView     : TControl;
+    fSearch       : TfrmSearch;
+    fUpdatingTabs : Boolean;
+    fPolling      : Boolean;
+    Procedure ClearTerminalViews;
+    Procedure ControllerChanged(Sender : TObject);
+    Procedure RenderTerminalTree;
+    Procedure UpdateTerminalTitles;
+    Procedure TerminalActivated(Sender : TObject);
+    Procedure TerminalShortcut (Sender : TObject; Key : Word; Shift : TShiftState; Var Handled : Boolean);
+    Procedure RegisterGlobalHotkeys;
+    Procedure WMHotKey         (Var Message : TMessage); Message WM_HOTKEY;
+    Procedure WMTerminalAction (Var Message : TMessage); Message WM_APP + 42;
+    Procedure SearchMatched    (Sender : TObject);
+    Function  ConfirmClose     (Quitting : Boolean) : Boolean;
    Private
     fSettings    : TGuakeSettings;
     fLocalizer   : TGuakeLocalization;
@@ -48,6 +73,13 @@ Interface
     Procedure SettingsChanged(Sender : TObject);
     Procedure SetOnCommand   (Const Value : TGuakeCommandEvent);
    Public
+    /// <summary>Starts the default ConPTY tab, native hotkeys and session polling.</summary>
+    Procedure StartTerminal;
+    /// <summary>Detaches views before destroying session-owned processes and buffers.</summary>
+    Procedure StopTerminal;
+    Procedure ExecuteTerminalAction(Action : TGuakeSetting);
+    Function  ActiveTerminalFrame : TfraTerminal;
+    Property Controller : TTerminalController Read fController;
     Procedure Bind         (Settings : TGuakeSettings; Localizer : TGuakeLocalization = Nil; Log : TGuakeLog = Nil);
     Procedure ApplySettings;
     Procedure ToggleVisibility;
@@ -58,12 +90,14 @@ Interface
 Implementation
 
  Uses
-  frmPreferencesU, frmAboutU;
+  frmPreferencesU, frmAboutU, frmRenameU, frmConfirmU, dmDialogsU, fraSplitU, Guake.Keybindings, System.Math, Guake.Resources;
 {$R *.dfm}
 
  Procedure TfrmMain.FormShow(Sender : TObject);
   Begin
-   trayIcon.Icon.Assign(Application.Icon);
+   LoadGuakeTrayIcon(trayIcon.Icon);
+   If (fController <> Nil) And (fController.Count = 0) Then
+    fController.NewTab;
    ApplySettings;
   End;
 
@@ -130,12 +164,19 @@ Implementation
    And Not(fSettings.General.HideTabsIfOneTab And (tabBar.Tabs.Count <= 1));
    AlphaBlend       := fSettings.Style.Background.Transparency < 100;
    AlphaBlendValue  := MulDiv(fSettings.Style.Background.Transparency, 255, 100);
-   trayIcon.Visible := Visible And fSettings.General.UseTrayicon;
+   trayIcon.Visible := (fController <> Nil) And fSettings.General.UseTrayicon;
   End;
 
  Procedure TfrmMain.SettingsChanged(Sender : TObject);
+  Var
+   Frame : TfraTerminal;
   Begin
    ApplySettings;
+   If fViews <> Nil Then
+    For Frame In fViews.Values Do
+     Frame.ApplySettings;
+   If fController <> Nil Then
+    RegisterGlobalHotkeys;
   End;
 
  Procedure TfrmMain.PreferencesClick(Sender : TObject);
@@ -169,13 +210,22 @@ Implementation
 
  Procedure TfrmMain.QuitClick(Sender : TObject);
   Begin
+   If Not ConfirmClose(True) Then
+    Exit;
    trayIcon.Visible := False;
+   StopTerminal;
    Application.Terminate;
   End;
 
  Procedure TfrmMain.CommandClick(Sender : TObject);
+  Const
+   Actions : Array[0..6] Of TGuakeSetting = (gskKeybindingsLocalNewTab, gskKeybindingsLocalCloseTab,
+   gskKeybindingsLocalSplitTabHorizontal, gskKeybindingsLocalSplitTabVertical,
+   gskKeybindingsLocalClipboardCopy, gskKeybindingsLocalClipboardPaste, gskKeybindingsLocalSearchTerminal);
   Begin
-   If Assigned(fOnCommand) Then
+   If fController <> Nil Then
+    ExecuteTerminalAction(Actions[TMenuItem(Sender).Tag])
+   Else If Assigned(fOnCommand) Then
     fOnCommand(Self, TGuakeWindowCommand(TMenuItem(Sender).Tag));
   End;
 
@@ -232,6 +282,471 @@ Implementation
    Else
     BoundsRect := fSavedBounds;
    ApplySettings;
+  End;
+
+ Procedure TfrmMain.ClearTerminalViews;
+  Var
+   Frame : TfraTerminal;
+  Begin
+   If fViews <> Nil Then
+    Begin
+     For Frame In fViews.Values Do
+      Frame.Bind(Nil, fSettings);
+     fViews.Clear;
+    End;
+   FreeAndNil(fRootView);
+  End;
+
+ Procedure TfrmMain.StartTerminal;
+  Begin
+   If fController <> Nil Then
+    Exit;
+   fViews                := TDictionary<TTerminalSession, TfraTerminal>.Create;
+   fController           := TTerminalController.Create(fSettings);
+   fController.OnChanged := ControllerChanged;
+   Try
+    fController.NewTab;
+    RegisterGlobalHotkeys;
+    pollTimer.Enabled         := True;
+    miNewTab.Enabled          := True;
+    miCloseTab.Enabled        := True;
+    miSplitHorizontal.Enabled := True;
+    miSplitVertical.Enabled   := True;
+    miCopy.Enabled            := True;
+    miPaste.Enabled           := True;
+    miSearch.Enabled          := True;
+    ApplySettings;
+    If fSettings.General.StartFullscreen Then
+     SetFullScreen(True);
+   Except
+    StopTerminal;
+    Raise;
+   End;
+  End;
+
+ Procedure TfrmMain.StopTerminal;
+  Begin
+   If pollTimer <> Nil Then
+    pollTimer.Enabled := False;
+   If HandleAllocated Then
+    Begin
+     UnregisterHotKey(Handle, 1);
+     UnregisterHotKey(Handle, 2);
+    End;
+   ClearTerminalViews;
+   FreeAndNil(fViews);
+   FreeAndNil(fController);
+  End;
+
+ Procedure TfrmMain.FormDestroy(Sender : TObject);
+  Begin
+   StopTerminal;
+  End;
+
+ Function TfrmMain.ActiveTerminalFrame : TfraTerminal;
+  Begin
+   Result := Nil;
+   If (fController <> Nil) And (fController.ActiveSession <> Nil) And (fViews <> Nil) Then
+    fViews.TryGetValue(fController.ActiveSession, Result);
+  End;
+
+ Procedure TfrmMain.RenderTerminalTree;
+
+   Function Build(Node : TTerminalNode; Host : TWinControl) : TControl;
+    Var
+     Frame : TfraTerminal;
+     Split : TfraSplit;
+    Begin
+     If Node.Kind = tnTerminal Then
+      Begin
+       Frame                   := TfraTerminal.Create(Host);
+       Frame.Parent            := Host;
+       Frame.Align             := alClient;
+       Frame.PopupMenu         := terminalMenu;
+       Frame.surface.PopupMenu := terminalMenu;
+       Frame.OnActivate        := TerminalActivated;
+       Frame.OnShortcut        := TerminalShortcut;
+       Frame.Bind(Node.Session, fSettings);
+       fViews.Add(Node.Session, Frame);
+       Result := Frame;
+      End
+     Else
+      Begin
+       Split        := TfraSplit.Create(Host);
+       Split.Parent := Host;
+       Split.Align  := alClient;
+       Split.Configure(Node.Kind = tnVertical, Node.Ratio);
+       Build(Node.First, Split.firstHost);
+       Build(Node.Second, Split.secondHost);
+       Result := Split;
+      End;
+    End;
+  Var
+   Frame : TfraTerminal;
+
+  Begin
+   ClearTerminalViews;
+   If (fController = Nil) Or (fController.ActiveTab = Nil) Then
+    Exit;
+   fRootView := Build(fController.ActiveTab.Root, terminalHost);
+   Frame     := ActiveTerminalFrame;
+   If (Frame <> Nil) And Visible And Frame.CanFocus Then
+    Frame.SetFocus;
+  End;
+
+ Procedure TfrmMain.UpdateTerminalTitles;
+  Var
+   i     : Integer;
+   Title : String;
+  Begin
+   If fController = Nil Then
+    Exit;
+   fUpdatingTabs := True;
+   Try
+    While tabBar.Tabs.Count > fController.Count Do
+     tabBar.Tabs.Delete(tabBar.Tabs.Count - 1);
+    For i := 0 To fController.Count - 1 Do
+     Begin
+      Title := fController.Tabs[i].Title;
+      If Length(Title) > fSettings.General.MaxTabNameLength Then
+       Title := Copy(Title, 1, fSettings.General.MaxTabNameLength);
+      If i = tabBar.Tabs.Count Then
+       tabBar.Tabs.Add(Title)
+      Else If tabBar.Tabs[i] <> Title Then
+       tabBar.Tabs[i] := Title;
+     End;
+    tabBar.TabIndex := fController.ActiveIndex;
+    If fSettings.General.SetWindowTitle And (fController.ActiveTab <> Nil) Then
+     Caption := fController.ActiveTab.Title
+    Else
+     Caption       := 'Guake!';
+    tabBar.Visible := fSettings.General.WindowTabbar And Not(fFullScreen And fSettings.General.FullscreenHideTabbar)
+    And Not(fSettings.General.HideTabsIfOneTab And (fController.Count <= 1));
+   Finally
+    fUpdatingTabs := False;
+   End;
+  End;
+
+ Procedure TfrmMain.ControllerChanged(Sender : TObject);
+  Begin
+   RenderTerminalTree;
+   UpdateTerminalTitles;
+  End;
+
+ Procedure TfrmMain.TerminalActivated(Sender : TObject);
+  Begin
+   If fController <> Nil Then
+    fController.FocusSession(TfraTerminal(Sender).Session);
+  End;
+
+ Procedure TfrmMain.TabChanged(Sender : TObject);
+  Begin
+   If fUpdatingTabs Or (fController = Nil) Or (tabBar.TabIndex < 0) Then
+    Exit;
+   ClearTerminalViews;
+   fController.SelectTab(tabBar.TabIndex);
+  End;
+
+ Procedure TfrmMain.TabDoubleClick(Sender : TObject);
+  Var
+   Name : String;
+  Begin
+   If (fController = Nil) Or (fController.ActiveTab = Nil) Then
+    Exit;
+   Name := fController.ActiveTab.Title;
+   If TfrmRename.Execute(Self, Name, fLocalizer) Then
+    Begin
+     fController.ActiveTab.Name := Name;
+     UpdateTerminalTitles;
+    End;
+  End;
+
+ Procedure TfrmMain.TabMouseDown(Sender : TObject; Button : TMouseButton; Shift : TShiftState; x, y : Integer);
+  Begin
+   If (Button = mbLeft) And (ssDouble In Shift) Then
+    TabDoubleClick(Sender);
+  End;
+
+ Procedure TfrmMain.PollTerminal(Sender : TObject);
+  Var
+   i         : Integer;
+   Tab       : TTerminalTab;
+   Session   : TTerminalSession;
+   AllExited : Boolean;
+   List      : TList<TTerminalSession>;
+  Begin
+   If (fController = Nil) Or fPolling Then
+    Exit;
+   fPolling := True;
+   Try
+    If fController.Poll Then
+     UpdateTerminalTitles;
+    If Not fSettings.ReadBool('windows', 'keep-exited-tabs', False) Then
+     For i := fController.Count - 1 Downto 0 Do
+      Begin
+       Tab       := fController.Tabs[i];
+       AllExited := True;
+       List      := TList<TTerminalSession>.Create;
+       Try
+        Tab.Root.Collect(List);
+        For Session In List Do
+         AllExited := AllExited And Session.Exited;
+       Finally
+        List.Free;
+       End;
+       If AllExited Then
+        Begin
+         ClearTerminalViews;
+         fController.CloseTab(i);
+        End;
+      End;
+    If fController.Count = 0 Then
+     Hide;
+   Finally
+    fPolling := False;
+   End;
+  End;
+
+ Procedure TfrmMain.RegisterGlobalHotkeys;
+  Var
+   Key       : Word;
+   Modifiers : Cardinal;
+  Begin
+   UnregisterHotKey(Handle, 1);
+   UnregisterHotKey(Handle, 2);
+   If ParseAccelerator(fSettings.Keybindings.Global.ShowHide, Key, Modifiers) Then
+    If Not RegisterHotKey(Handle, 1, Modifiers Or $4000, Key) Then
+     RaiseLastOSError;
+   If ParseAccelerator(fSettings.Keybindings.Global.ShowFocus, Key, Modifiers) Then
+    If Not RegisterHotKey(Handle, 2, Modifiers Or $4000, Key) Then
+     RaiseLastOSError;
+  End;
+
+ Procedure TfrmMain.WMHotKey(Var Message : TMessage);
+  Begin
+   If Message.WParam = 1 Then
+    ToggleVisibility
+   Else If Message.WParam = 2 Then
+    Begin
+     If Not Visible Then
+      Show;
+     SetForegroundWindow(Handle);
+    End;
+  End;
+
+ Procedure TfrmMain.TerminalShortcut(Sender : TObject; Key : Word; Shift : TShiftState; Var Handled : Boolean);
+  Var
+   Setting    : TGuakeSetting;
+   Definition : TGuakeSettingDefinition;
+  Begin
+   For Setting := Low(TGuakeSetting) To High(TGuakeSetting) Do
+    Begin
+     Definition := TGuakeSettings.Definition(Setting);
+     If (Definition.Section = 'keybindings.local') And MatchAccelerator(fSettings.GetValue(Setting), Key, Shift) Then
+      Begin
+       Handled := True;
+       // Dispatch after KeyDown returns, since actions may destroy the sending terminal frame.
+       PostMessage(Handle, WM_APP + 42, Ord(Setting), 0);
+       Exit;
+      End;
+    End;
+  End;
+
+ Procedure TfrmMain.WMTerminalAction(Var Message : TMessage);
+  Begin
+   If Message.WParam <= Ord(High(TGuakeSetting)) Then
+    ExecuteTerminalAction(TGuakeSetting(Message.WParam));
+  End;
+
+ Procedure TfrmMain.ExecuteTerminalAction(Action : TGuakeSetting);
+  Var
+   Frame  : TfraTerminal;
+   Dialog : TdmDialogs;
+   Index  : Integer;
+   Name   : String;
+  Begin
+   If fController = Nil Then
+    Exit;
+   Frame := ActiveTerminalFrame;
+   Case Action Of
+    gskKeybindingsLocalNewTab, gskKeybindingsLocalNewTabCwd :
+     Begin
+      ClearTerminalViews;
+      fController.NewTab;
+     End;
+    gskKeybindingsLocalNewTabHome :
+     Begin
+      ClearTerminalViews;
+      fController.NewTab(GetEnvironmentVariable('USERPROFILE'));
+     End;
+    gskKeybindingsLocalCloseTab :
+     If ConfirmClose(False) Then
+      Begin
+       ClearTerminalViews;
+       fController.CloseTab(fController.ActiveIndex);
+      End;
+    gskKeybindingsLocalCloseTerminal :
+     If ConfirmClose(False) Then
+      Begin
+       ClearTerminalViews;
+       fController.CloseTerminal;
+      End;
+    gskKeybindingsLocalSplitTabHorizontal, gskKeybindingsLocalSplitTabVertical :
+     Begin
+      ClearTerminalViews;
+      fController.Split(Action = gskKeybindingsLocalSplitTabVertical);
+     End;
+    gskKeybindingsLocalClipboardCopy :
+     If Frame <> Nil Then
+      Frame.CopySelection;
+    gskKeybindingsLocalClipboardPaste :
+     If Frame <> Nil Then
+      Frame.Paste;
+    gskKeybindingsLocalSelectAll :
+     If Frame <> Nil Then
+      Frame.SelectAll;
+    gskKeybindingsLocalPreviousTab, gskKeybindingsLocalPreviousTabAlt :
+     If fController.Count > 0 Then
+      Begin
+       ClearTerminalViews;
+       fController.SelectTab((fController.ActiveIndex + fController.Count - 1) Mod fController.Count);
+      End;
+    gskKeybindingsLocalNextTab, gskKeybindingsLocalNextTabAlt :
+     If fController.Count > 0 Then
+      Begin
+       ClearTerminalViews;
+       fController.SelectTab((fController.ActiveIndex + 1) Mod fController.Count);
+      End;
+    gskKeybindingsLocalSwitchTab1..gskKeybindingsLocalSwitchTab10 :
+     Begin
+      Index := Ord(Action) - Ord(gskKeybindingsLocalSwitchTab1);
+      If Index < fController.Count Then
+       Begin
+        ClearTerminalViews;
+        fController.SelectTab(Index);
+       End;
+     End;
+    gskKeybindingsLocalSwitchTabLast :
+     If fController.Count > 0 Then
+      Begin
+       ClearTerminalViews;
+       fController.SelectTab(fController.Count - 1);
+      End;
+    gskKeybindingsLocalMoveTabLeft :
+     If fController.ActiveIndex > 0 Then
+      fController.MoveTab(fController.ActiveIndex, fController.ActiveIndex - 1);
+    gskKeybindingsLocalMoveTabRight :
+     If fController.ActiveIndex < fController.Count - 1 Then
+      fController.MoveTab(fController.ActiveIndex, fController.ActiveIndex + 1);
+    gskKeybindingsLocalRenameCurrentTab :
+     TabDoubleClick(Nil);
+    gskKeybindingsLocalResetTerminal :
+     If fController.ActiveSession <> Nil Then
+      fController.ActiveSession.Buffer.Reset;
+    gskKeybindingsLocalToggleFullscreen :
+     SetFullScreen(Not fFullScreen);
+    gskKeybindingsLocalToggleHideOnLoseFocus :
+     Begin
+      fSettings.General.WindowLosefocus := Not fSettings.General.WindowLosefocus;
+      fSettings.Save;
+     End;
+    gskKeybindingsLocalIncreaseHeight, gskKeybindingsLocalDecreaseHeight :
+     Begin
+      If Action = gskKeybindingsLocalIncreaseHeight Then
+       Index := 2
+      Else
+       Index                         := -2;
+      fSettings.General.WindowHeight := EnsureRange(fSettings.General.WindowHeight + Index, 1, 100);
+      fSettings.Save;
+      ApplySettings;
+     End;
+    gskKeybindingsLocalIncreaseTransparency, gskKeybindingsLocalDecreaseTransparency :
+     Begin
+      If Action = gskKeybindingsLocalIncreaseTransparency Then
+       Index := -5
+      Else
+       Index                                  := 5;
+      fSettings.Style.Background.Transparency := EnsureRange(fSettings.Style.Background.Transparency + Index, 0, 100);
+      fSettings.Save;
+      ApplySettings;
+     End;
+    gskKeybindingsLocalToggleTransparency :
+     Begin
+      If fSettings.Style.Background.Transparency = 100 Then
+       fSettings.Style.Background.Transparency := 90
+      Else
+       fSettings.Style.Background.Transparency := 100;
+      ApplySettings;
+     End;
+    gskKeybindingsLocalSearchTerminal :
+     If fController.ActiveSession <> Nil Then
+      Begin
+       If fSearch = Nil Then
+        fSearch := TfrmSearch.Create(Self);
+       fSearch.Localize(fLocalizer);
+       fSearch.SetContent(fController.ActiveSession.Buffer.Text);
+       fSearch.OnMatch := SearchMatched;
+       fSearch.Show;
+       fSearch.edtSearch.SetFocus;
+      End;
+    gskKeybindingsLocalQuit :
+     QuitClick(Nil);
+   End;
+  End;
+
+ Procedure TfrmMain.SearchMatched(Sender : TObject);
+  Var
+   Frame : TfraTerminal;
+  Begin
+   Frame := ActiveTerminalFrame;
+   If Frame <> Nil Then
+    Frame.HighlightText(fSearch.MatchStart, fSearch.MatchLength);
+  End;
+
+ Function TfrmMain.ConfirmClose(Quitting : Boolean) : Boolean;
+  Var
+   Dialog    : TfrmConfirm;
+   Processes : TStringList;
+   Session   : TTerminalSession;
+   TabCount  : Integer;
+  Begin
+   Result := True;
+   If (fController = Nil) Or (fController.Count = 0) Then
+    Exit;
+   If Quitting Then
+    Begin
+     If Not fSettings.General.PromptOnQuit And (fSettings.General.PromptOnCloseTab <> 2) Then
+      Exit;
+     TabCount := fController.Count;
+    End
+   Else
+    Begin
+     If fSettings.General.PromptOnCloseTab = 0 Then
+      Exit;
+     TabCount := -1;
+    End;
+   Processes := TStringList.Create;
+   Try
+    If Quitting Then
+     Begin
+      For Session In fController.Sessions Do
+       If Not Session.Exited Then
+        Processes.Add(Session.Title);
+     End
+    Else If (fController.ActiveSession <> Nil) And Not fController.ActiveSession.Exited Then
+     Processes.Add(fController.ActiveSession.Title);
+    If (Processes.Count = 0) And Not Quitting And (fSettings.General.PromptOnCloseTab = 1) Then
+     Exit;
+    Dialog := TfrmConfirm.Create(Self);
+    Try
+     Dialog.ConfigureQuit(Processes, TabCount, 1, fLocalizer);
+     Result := Dialog.ShowModal = mrYes;
+    Finally
+     Dialog.Free;
+    End;
+   Finally
+    Processes.Free;
+   End;
   End;
 
 End.

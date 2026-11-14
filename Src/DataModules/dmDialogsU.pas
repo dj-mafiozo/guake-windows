@@ -1,4 +1,5 @@
 ﻿{$StackFrames On}
+/// <summary>DFM-owned native file dialogs and UTF-8 terminal-content export.</summary>
 Unit dmDialogsU;
 
 Interface

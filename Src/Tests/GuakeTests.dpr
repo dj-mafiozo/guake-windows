@@ -1,5 +1,6 @@
 ﻿{$StackFrames On}
 
+/// <summary>Runs DUnitX scenarios with structured reports and an error exit status.</summary>
 Program GuakeTests;
 
 {$APPTYPE CONSOLE}
@@ -7,6 +8,14 @@ Program GuakeTests;
 
 Uses
  StackTrace              In '..\Vendor\stacktrace\source\StackTrace.pas',
+ Guake.Resources         In '..\Resources\Guake.Resources.pas',
+ Guake.ConPTY            In '..\Terminal\Guake.ConPTY.pas',
+ Guake.VT                In '..\Terminal\Guake.VT.pas',
+ Guake.Sessions          In '..\Terminal\Guake.Sessions.pas',
+ Guake.Keybindings       In '..\Terminal\Guake.Keybindings.pas',
+ fraTerminalU            In '..\Frames\fraTerminalU.pas',
+ fraSplitU               In '..\Frames\fraSplitU.pas',
+ Guake.Terminal.Tests    In 'Guake.Terminal.Tests.pas',
  Vcl.Forms,
  Guake.Preferences.Tests In 'Guake.Preferences.Tests.pas',
  frmAboutU               In '..\Forms\frmAboutU.pas',

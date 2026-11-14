@@ -1,5 +1,6 @@
 ﻿{$StackFrames On}
 
+/// <summary>Loads translated messages and plural rules through the vendored i18n engine.</summary>
 Unit Guake.Localization;
 
 Interface

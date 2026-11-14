@@ -1,5 +1,6 @@
 ﻿{$StackFrames On}
 
+/// <summary>DUnitX verification of core tests.</summary>
 Unit Guake.Core.Tests;
 
 Interface
