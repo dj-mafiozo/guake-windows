@@ -49,3 +49,5 @@ Historia i ekran główny są ponownie zawijane po zmianie szerokości. Segmenta
 Guake działa jako pojedyncza instancja użytkownika w sesji Windows. Kolejne uruchomienie przełącza widoczność; `guake.exe --help` pokazuje dostępne polecenia CLI. Komunikacja korzysta z prywatnego Named Pipe, nie z D-Bus. Tryb `--hidden` służy m.in. autostartowi. Menu tray „Wyświetl” przełącza widoczność jak główny skrót. Ikona nie ma pojawiać się na pasku zadań ani po aktywacji terminala.
 
 Działają powiadomienia startowe i diagnostyczne z ikoną Guake, hooki start/show, autostart HKCU oraz dzwonek BEL. `.guake.yml` może nadawać tytuł projektu, a plik poleceń JSON tworzy menu użytkownika. Zakres parsera i ograniczenia integracji opisuje [stan portu](docs/port-status.md).
+
+Quick Open otwiera istniejący plik z numerem wiersza przez Ctrl+klik albo menu zaznaczenia. Obsługuje diagnostykę Python/pytest/GCC/Delphi/MSVC i ścieżki Windows/Git SDK. W preferencjach włącz funkcję i ustaw polecenie edytora dostępnego w Windows, np. `notepad.exe %(file_path)s` albo `code -g %(file_path)s:%(line_number)s`. Można uruchamiać edytor osobno lub wysyłać polecenie do bieżącej powłoki.

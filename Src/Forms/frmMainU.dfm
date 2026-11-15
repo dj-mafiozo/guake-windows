@@ -221,6 +221,7 @@
     object miQuickOpen: TMenuItem
       Caption = 'Szybko otwórz...'
       Enabled = False
+      OnClick = QuickOpenClick
     end
     object miSearch: TMenuItem
       Tag = 6

@@ -863,3 +863,6 @@ msgstr "Nie udało się wykonać polecenia zdalnego. Szczegóły znajdują się 
 
 msgid "Could not configure Windows startup. See the log for details."
 msgstr "Nie udało się skonfigurować autostartu Windows. Szczegóły znajdują się w dzienniku."
+
+msgid "Could not open the file. Check the editor command in preferences."
+msgstr "Nie udało się otworzyć pliku. Sprawdź polecenie edytora w preferencjach."

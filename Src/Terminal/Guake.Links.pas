@@ -41,7 +41,7 @@ Implementation
      Value := Match.Value;
      While (Value <> '') And CharInSet(Value[Length(Value)], ['.', ',', ';', '!', '?', ')', ']', '}']) Do
       Delete(Value, Length(Value), 1);
-     If (CharacterIndex >= Match.Index) And (CharacterIndex < Match.Index + Length(Value)) Then
+     If (CharacterIndex >= Match.Index - 1) And (CharacterIndex < Match.Index - 1 + Length(Value)) Then
       Exit(NormalizeTerminalLink(Value));
     End;
   End;

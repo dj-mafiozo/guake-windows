@@ -41,3 +41,5 @@ Menu zapisu i przywracania kart jest aktywne i korzysta z pliku sesji JSON. Anim
 Powiadomienie startowe korzysta z tytułu „Terminal Guake”, oryginalnej ikony i nazwy głównego skrótu w treści. Kolejka Windows obejmuje również odtworzenie kart i komunikaty błędów. „Wyświetl” w trayu oznacza przełączenie widoczności, nie samo pokazanie. Okno terminala i proxy VCL mają pomijać pasek zadań oraz Alt+Tab przez cały czas działania.
 
 Przezroczystość terminala jest obecnie składana dla samego tła i obrazu; tekst, zaznaczenie, jawne tła SGR i pasek kart zachowują krycie. Dodano animowane GIF-y. Pozostaje porównanie na rzeczywistym pulpicie i dalsza zgodność renderowania z VTE.
+
+Pozycja Quick Open w menu terminala jest aktywna dla rozpoznanego, istniejącego pliku, gdy funkcja jest włączona w preferencjach. Ctrl+klik i zaznaczenie korzystają z tego samego parsera diagnostyki.

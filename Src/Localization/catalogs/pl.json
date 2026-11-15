@@ -2756,6 +2756,14 @@
     },
     {
       "context": "",
+      "singular": "Could not open the file. Check the editor command in preferences.",
+      "plural": "",
+      "translations": [
+        "Nie udało się otworzyć pliku. Sprawdź polecenie edytora w preferencjach."
+      ]
+    },
+    {
+      "context": "",
       "singular": "Could not register a global shortcut. Choose another shortcut in Preferences.",
       "plural": "",
       "translations": [

@@ -51,10 +51,10 @@
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_MajorVer>1</VerInfo_MajorVer>
     <VerInfo_MinorVer>0</VerInfo_MinorVer>
-    <VerInfo_Release>14</VerInfo_Release>
+    <VerInfo_Release>15</VerInfo_Release>
     <VerInfo_Build>48</VerInfo_Build>
     <VerInfo_Locale>1045</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Guake dla Windows;FileVersion=1.0.14.48;InternalName=guake;OriginalFilename=guake.exe;ProductName=Guake dla Windows;ProductVersion=1.0.14.48</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Guake dla Windows;FileVersion=1.0.15.48;InternalName=guake;OriginalFilename=guake.exe;ProductName=Guake dla Windows;ProductVersion=1.0.15.48</VerInfo_Keys>
     <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
     <DCC_MapFile>3</DCC_MapFile>
     <PostBuildEvent>powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(MSBuildProjectDirectory)\Tools\Complete-Build.ps1" -ProjectFile "$(MSBuildProjectDirectory)\guake.dproj" -OutputDirectory "$(DCC_ExeOutput)\."</PostBuildEvent>
@@ -95,6 +95,7 @@
     <DCCReference Include="Appearance\Guake.Composition.pas" />
     <DCCReference Include="Appearance\Guake.AnimatedBackground.pas" />
     <DCCReference Include="Terminal\Guake.Links.pas" />
+    <DCCReference Include="Terminal\Guake.QuickOpen.pas" />
     <DCCReference Include="Resources\Guake.Resources.pas" />
     <DCCReference Include="Terminal\Guake.ConPTY.pas" />
     <DCCReference Include="Terminal\Guake.VT.pas" />

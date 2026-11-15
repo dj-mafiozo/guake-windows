@@ -7,7 +7,7 @@ Interface
  Uses
   System.SysUtils, System.Classes, System.Generics.Collections, Winapi.Windows, Winapi.Messages,
   Vcl.Graphics, Vcl.Forms, Vcl.Controls, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.Menus, Vcl.StdCtrls, Vcl.Buttons,
-  Guake.IPC, Guake.Settings, Guake.Localization, Guake.Logging, Guake.Sessions, fraTerminalU, frmSearchU;
+  Guake.QuickOpen, Guake.IPC, Guake.Settings, Guake.Localization, Guake.Logging, Guake.Sessions, fraTerminalU, frmSearchU;
 
  Type
   TGuakeWindowCommand = (gwNewTab, gwCloseTab, gwSplitHorizontal, gwSplitVertical, gwCopy, gwPaste, gwSearch);
@@ -77,6 +77,7 @@ Interface
     miPopupBash           : TMenuItem;
     miPopupCmd            : TMenuItem;
     miPopupPowerShell     : TMenuItem;
+    Procedure QuickOpenClick     (Sender : TObject);
     Procedure NotificationExpired(Sender : TObject);
     Procedure CustomCommandClick (Sender : TObject);
     Procedure SaveTabsClick      (Sender : TObject);
@@ -113,6 +114,8 @@ Interface
     Procedure VisualChanged(Sender : TObject);
     Procedure PresentLayeredWindow;
    Private
+    fPopupQuickOpen     : TQuickOpenTarget;
+    fPopupQuickSession  : String;
     fPopupLink          : String;
     fNotificationQueue  : TQueue<String>;
     fNotificationWindow : HWND;
@@ -127,6 +130,10 @@ Interface
     fUpdatingTabs       : Boolean;
     fPolling            : Boolean;
     fHotkeyErrors       : String;
+    Procedure TerminalCtrlClick(Sender : TObject; x, y : Integer; Var Handled : Boolean);
+    Function  QuickOpenTarget  (Frame : TfraTerminal; x, y : Integer; Out Target : TQuickOpenTarget) : Boolean;
+    /// <summary>Executes an editor command only for a previously resolved, existing local file.</summary>
+    Procedure OpenQuickTarget      (Frame : TfraTerminal; Const Target : TQuickOpenTarget);
     Procedure ExecuteConfiguredHook(Const Value : String);
     Procedure ShowNotification     (Const Text : String);
     Procedure ShowNextNotification;
@@ -196,7 +203,7 @@ Interface
 Implementation
 
  Uses
-  Guake.WindowsIntegration, Guake.ProjectConfig, Guake.Links, Winapi.ShellAPI, System.NetEncoding, System.IOUtils, System.JSON, frmPreferencesU, frmAboutU, frmRenameU, frmConfirmU, dmDialogsU, fraSplitU, Guake.Keybindings, System.Math, Guake.Resources;
+  Guake.Shells, Guake.WindowsIntegration, Guake.ProjectConfig, Guake.Links, Winapi.ShellAPI, System.NetEncoding, System.IOUtils, System.JSON, frmPreferencesU, frmAboutU, frmRenameU, frmConfirmU, dmDialogsU, fraSplitU, Guake.Keybindings, System.Math, Guake.Resources;
 
  Type
   TTabControlAccess = Class(TTabControl)
@@ -387,7 +394,7 @@ Implementation
      Origin := ScreenToClient(Control.Parent.ClientToScreen(Point(Control.Left, Control.Top)));
      Saved  := SaveDC(Destination.Canvas.Handle);
      Try
-      SetViewportOrgEx(Destination.Canvas.Handle, Origin.x, Origin.y, Nil);
+      SetViewportOrgEx(Destination.Canvas.Handle, Origin.X, Origin.Y, Nil);
       IntersectClipRect(Destination.Canvas.Handle, 0, 0, Control.Width, Control.Height);
       Destination.Canvas.Brush.Color := clBtnFace;
       Destination.Canvas.FillRect(Rect(0, 0, Control.Width, Control.Height));
@@ -437,15 +444,15 @@ Implementation
        Begin
         Position := ScreenToClient(Frame.surface.ClientToScreen(Point(0, 0)));
         Frame.RenderAlpha(fTerminalSurface, Opacity);
-        Left   := Max(0, Position.x);
-        Right  := Min(Destination.Width, Position.x + fTerminalSurface.Width);
-        Top    := Max(0, Position.y);
-        Bottom := Min(Destination.Height, Position.y + fTerminalSurface.Height);
+        Left   := Max(0, Position.X);
+        Right  := Min(Destination.Width, Position.X + fTerminalSurface.Width);
+        Top    := Max(0, Position.Y);
+        Bottom := Min(Destination.Height, Position.Y + fTerminalSurface.Height);
         For y  := Top To Bottom - 1 Do
          If Right > Left Then
           Begin
-           Source := fTerminalSurface.ScanLine[y - Position.y];
-           Inc(Source, (Left - Position.x) * SizeOf(TRGBQuad));
+           Source := fTerminalSurface.ScanLine[y - Position.Y];
+           Inc(Source, (Left - Position.X) * SizeOf(TRGBQuad));
            Target := Destination.ScanLine[y];
            Inc(Target, Left * SizeOf(TRGBQuad));
            Move(Source^, Target^, (Right - Left) * SizeOf(TRGBQuad));
@@ -598,10 +605,10 @@ Implementation
   Var
    Point : TPoint;
   Begin
-   Point.x := 0;
-   Point.y := btnTabList.Height;
+   Point.X := 0;
+   Point.Y := btnTabList.Height;
    Point   := btnTabList.ClientToScreen(Point);
-   tabListMenu.Popup(Point.x, Point.y);
+   tabListMenu.Popup(Point.X, Point.Y);
   End;
 
 /// <summary>Builds only the data-dependent tab list and selects by stable tab identity.</summary>
@@ -855,17 +862,99 @@ Implementation
    fController.ActiveSession.SendText(TCustomCommandItem(Sender).CommandText + #13);
   End;
 
+ Function TfrmMain.QuickOpenTarget(Frame : TfraTerminal; x, y : Integer; Out Target : TQuickOpenTarget) : Boolean;
+  Var
+   Text  : String;
+   Index : Integer;
+  Begin
+   Result := False;
+   Target := Default(TQuickOpenTarget);
+   If (Frame = Nil) Or (Frame.Session = Nil) Or Not fSettings.General.QuickOpenEnable Then
+    Exit;
+   Text := Frame.SelectedText;
+   If Text <> '' Then
+    If FindQuickOpenTarget(Text, -1, Frame.Session.Directory, Frame.Session.Profile.GitSdkRoot, Target) Then
+     Exit(True);
+   Text := Frame.TextAt(x, y, Index);
+   If Index >= 0 Then
+    Result := FindQuickOpenTarget(Text, Index, Frame.Session.Directory, Frame.Session.Profile.GitSdkRoot, Target);
+  End;
+
+ Procedure TfrmMain.OpenQuickTarget(Frame : TfraTerminal; Const Target : TQuickOpenTarget);
+  Var
+   Command : String;
+   Shell   : TGuakeShell;
+  Begin
+   If (Frame = Nil) Or (Frame.Session = Nil) Or (Target.FileName = '') Then
+    Exit;
+   Try
+    If fSettings.General.QuickOpenInCurrentTerminal Then
+     Shell := Frame.Session.Profile.Kind
+    Else
+     Shell  := gsCmd;
+    Command := QuickOpenCommand(fSettings.General.QuickOpenCommandLine, Target, Shell);
+    If fSettings.General.QuickOpenInCurrentTerminal Then
+     Frame.Session.SendText(Command + #13)
+    Else
+     StartConfiguredCommand(Command, Frame.Session.Directory);
+   Except
+    On E : Exception Do
+     Begin
+      If fLog <> Nil Then
+       fLog.TryLogException(E, 'Quick Open');
+      ShowNotification('Could not open the file. Check the editor command in preferences.');
+     End;
+   End;
+  End;
+
+ Procedure TfrmMain.TerminalCtrlClick(Sender : TObject; x, y : Integer; Var Handled : Boolean);
+  Var
+   Frame  : TfraTerminal;
+   Target : TQuickOpenTarget;
+   Link   : String;
+  Begin
+   Frame   := TfraTerminal(Sender);
+   Handled := QuickOpenTarget(Frame, x, y, Target);
+   If Handled Then
+    OpenQuickTarget(Frame, Target)
+   Else
+    Begin
+     Link    := Frame.LinkAt(x, y);
+     Handled := Link <> '';
+     If Handled Then
+      OpenExternalLink(Link);
+    End;
+  End;
+
+ Procedure TfrmMain.QuickOpenClick(Sender : TObject);
+  Var
+   Frame : TfraTerminal;
+  Begin
+   Frame := ActiveTerminalFrame;
+   If (Frame <> Nil) And (Frame.Session.Id = fPopupQuickSession) Then
+    OpenQuickTarget(Frame, fPopupQuickOpen);
+  End;
+
  Procedure TfrmMain.TerminalMenuPopup(Sender : TObject);
   Var
    Frame : TfraTerminal;
   Begin
    LoadCustomCommands;
+   fPopupQuickOpen     := Default(TQuickOpenTarget);
+   fPopupQuickSession  := '';
+   miQuickOpen.Enabled := False;
    fPopupLink          := '';
    Frame               := ActiveTerminalFrame;
    miSearchWeb.Enabled := (Frame <> Nil) And (Frame.SelectedText <> '');
    miOpenLink.Enabled  := False;
    If Frame <> Nil Then
-    fPopupLink             := Frame.LinkAt(Frame.surface.ScreenToClient(Mouse.CursorPos).x, Frame.surface.ScreenToClient(Mouse.CursorPos).y);
+    fPopupLink := Frame.LinkAt(Frame.surface.ScreenToClient(Mouse.CursorPos).X, Frame.surface.ScreenToClient(Mouse.CursorPos).Y);
+   If Frame <> Nil Then
+    Begin
+     miQuickOpen.Enabled := QuickOpenTarget(Frame, Frame.surface.ScreenToClient(Mouse.CursorPos).X,
+     Frame.surface.ScreenToClient(Mouse.CursorPos).Y, fPopupQuickOpen);
+     fPopupQuickSession := Frame.Session.Id;
+    End;
    miOpenLink.Enabled      := fPopupLink <> '';
    miCopy.Enabled          := (Frame <> Nil) And (Frame.SelectedText <> '');
    miPaste.Enabled         := (Frame <> Nil) And IsClipboardFormatAvailable(CF_UNICODETEXT);
@@ -884,7 +973,7 @@ Implementation
    If fController = Nil Then
     Exit;
    Point := tabBar.ScreenToClient(Mouse.CursorPos);
-   Index := tabBar.IndexOfTabAt(Point.x, Point.y);
+   Index := tabBar.IndexOfTabAt(Point.X, Point.Y);
    If Index >= 0 Then
     fController.SelectTab(Index);
    miRenameTab.Enabled := fController.ActiveTab <> Nil;
@@ -1192,6 +1281,7 @@ Implementation
        Frame.Align             := alClient;
        Frame.PopupMenu         := terminalMenu;
        Frame.surface.PopupMenu := terminalMenu;
+       Frame.OnCtrlClick       := TerminalCtrlClick;
        Frame.OnVisualChanged   := VisualChanged;
        Frame.OnActivate        := TerminalActivated;
        Frame.OnShortcut        := TerminalShortcut;
@@ -1579,7 +1669,7 @@ Implementation
      If Frame <> Nil Then
       Begin
        Point := Frame.surface.ScreenToClient(Mouse.CursorPos);
-       OpenExternalLink(Frame.LinkAt(Point.x, Point.y));
+       OpenExternalLink(Frame.LinkAt(Point.X, Point.Y));
       End;
     gskKeybindingsLocalFocusTerminalUp :
      fController.FocusDirection(0, -1);

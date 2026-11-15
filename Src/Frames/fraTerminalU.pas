@@ -12,6 +12,8 @@ Interface
   Guake.Sessions, Guake.Settings, Guake.AnimatedBackground;
 
  Type
+  TTerminalPointEvent = Procedure(Sender : TObject; x, y : Integer; Var Handled : Boolean) Of Object;
+
   TTerminalKeyEvent = Procedure(Sender : TObject; Key : Word; Shift : TShiftState; Var Handled : Boolean) Of Object;
 
   TfraTerminal = Class(TFrame)
@@ -32,6 +34,8 @@ Interface
     fColorSurface    : TBitmap;
     fBackSurface     : TBitmap;
     fMaskSurface     : TBitmap;
+    fOnCtrlClick     : TTerminalPointEvent;
+    fConsumedClick   : Boolean;
     fOnVisualChanged : TNotifyEvent;
     Procedure InvalidateSurface;
     Procedure PaintSurface(Canvas : TCanvas; Mask : Boolean);
@@ -87,9 +91,12 @@ Interface
     Function  SelectedText : String;
     /// <summary>Resolves OSC 8 or a textual URL at a view pixel, including scrollback.</summary>
     Function LinkAt(x, y : Integer) : String;
-    Property Session    : TTerminalSession Read fSession;
-    Property OnActivate : TNotifyEvent Read fOnActivate Write fOnActivate;
-    Property OnShortcut : TTerminalKeyEvent Read fOnShortcut Write fOnShortcut;
+    /// <summary>Returns the clicked physical row and its UTF-16 index without changing selection.</summary>
+    Function TextAt(x, y : Integer; Out CharacterIndex : Integer) : String;
+    Property OnCtrlClick : TTerminalPointEvent Read fOnCtrlClick Write fOnCtrlClick;
+    Property Session     : TTerminalSession Read fSession;
+    Property OnActivate  : TNotifyEvent Read fOnActivate Write fOnActivate;
+    Property OnShortcut  : TTerminalKeyEvent Read fOnShortcut Write fOnShortcut;
   End;
 
 Implementation
@@ -322,8 +329,8 @@ Implementation
    Result := False;
    If Not fHasSelection Or (fSession = Nil) Then
     Exit;
-   a := Int64(fSelectionStart.y) * fSession.Buffer.Columns + fSelectionStart.x;
-   b := Int64(fSelectionEnd.y) * fSession.Buffer.Columns + fSelectionEnd.x;
+   a := Int64(fSelectionStart.Y) * fSession.Buffer.Columns + fSelectionStart.X;
+   b := Int64(fSelectionEnd.Y) * fSession.Buffer.Columns + fSelectionEnd.X;
    p := Int64(y) * fSession.Buffer.Columns + x;
    If a > b Then
     Begin
@@ -638,8 +645,8 @@ Implementation
 
  Function TfraTerminal.MouseCell(x, y : Integer) : TPoint;
   Begin
-   Result.x := EnsureRange((x - 4) Div Max(1, fCellWidth), 0, fSession.Buffer.Columns - 1);
-   Result.y := EnsureRange(scroll.Position + (y - 4) Div Max(1, fCellHeight), 0, fSession.Buffer.TotalLines - 1);
+   Result.X := EnsureRange((x - 4) Div Max(1, fCellWidth), 0, fSession.Buffer.Columns - 1);
+   Result.Y := EnsureRange(scroll.Position + (y - 4) Div Max(1, fCellHeight), 0, fSession.Buffer.TotalLines - 1);
   End;
 
  Procedure TfraTerminal.SendMouse(Button : Integer; Release : Boolean; Shift : TShiftState; x, y : Integer);
@@ -648,7 +655,7 @@ Implementation
    Final : String;
   Begin
    p := MouseCell(x, y);
-   Dec(p.y, scroll.Position);
+   Dec(p.Y, scroll.Position);
    If ssShift In Shift Then
     Inc(Button, 4);
    If ssAlt In Shift Then
@@ -661,23 +668,36 @@ Implementation
       Final := 'm'
      Else
       Final := 'M';
-     Send(Format(#27'[<%d;%d;%d%s', [Button, p.x + 1, p.y + 1, Final]));
+     Send(Format(#27'[<%d;%d;%d%s', [Button, p.X + 1, p.Y + 1, Final]));
     End
-   Else If (p.x < 223) And (p.y < 223) Then
+   Else If (p.X < 223) And (p.Y < 223) Then
     Begin
      If Release Then
       Button := 3;
-     Send(#27'[M' + Char(Button + 32) + Char(p.x + 33) + Char(p.y + 33));
+     Send(#27'[M' + Char(Button + 32) + Char(p.X + 33) + Char(p.Y + 33));
     End;
   End;
 
  Procedure TfraTerminal.SurfaceMouseDown(Sender : TObject; Button : TMouseButton; Shift : TShiftState; x, y : Integer);
+  Var
+   Handled : Boolean;
   Begin
    If fSession = Nil Then
     Exit;
    SetFocus;
    If Assigned(fOnActivate) Then
     fOnActivate(Self);
+   fConsumedClick := False;
+   If (Button = mbLeft) And (ssCtrl In Shift) And Assigned(fOnCtrlClick) Then
+    Begin
+     Handled := False;
+     fOnCtrlClick(Self, x, y, Handled);
+     If Handled Then
+      Begin
+       fConsumedClick := True;
+       Exit;
+      End;
+    End;
    If (fSession.Buffer.MouseMode > 0) And Not(ssShift In Shift) Then
     Begin
      SendMouse(Ord(Button), False, Shift, x, y);
@@ -701,8 +721,8 @@ Implementation
    If fSelecting Then
     Begin
      If Not fHasSelection And
-     (Abs(x - fMouseAnchor.x) < GetSystemMetrics(SM_CXDRAG)) And
-     (Abs(y - fMouseAnchor.y) < GetSystemMetrics(SM_CYDRAG)) Then
+     (Abs(x - fMouseAnchor.X) < GetSystemMetrics(SM_CXDRAG)) And
+     (Abs(y - fMouseAnchor.Y) < GetSystemMetrics(SM_CYDRAG)) Then
       Exit;
      fHasSelection := True;
      fSelectionEnd := MouseCell(x, y);
@@ -714,6 +734,11 @@ Implementation
 
  Procedure TfraTerminal.SurfaceMouseUp(Sender : TObject; Button : TMouseButton; Shift : TShiftState; x, y : Integer);
   Begin
+   If fConsumedClick Then
+    Begin
+     fConsumedClick := False;
+     Exit;
+    End;
    If fSession = Nil Then
     Exit;
    If (fSession.Buffer.MouseMode > 0) And Not(ssShift In Shift) Then
@@ -740,22 +765,22 @@ Implementation
 
    Function WordCell(Column : Integer) : Boolean;
     Begin
-     s      := fSession.Buffer.Cell[Column, p.y].Text;
+     s      := fSession.Buffer.Cell[Column, p.Y].Text;
      Result := (s <> '') And (s[1].IsLetterOrDigit Or (Pos(s[1], '-_./:@~') > 0));
     End;
 
   Begin
    If fSession = Nil Then
     Exit;
-   p := MouseCell(surface.ScreenToClient(Mouse.CursorPos).x, surface.ScreenToClient(Mouse.CursorPos).y);
-   x := p.x;
+   p := MouseCell(surface.ScreenToClient(Mouse.CursorPos).X, surface.ScreenToClient(Mouse.CursorPos).Y);
+   x := p.X;
    While (x > 0) And WordCell(x - 1) Do
     Dec(x);
-   fSelectionStart := Point(x, p.y);
-   x               := p.x;
+   fSelectionStart := Point(x, p.Y);
+   x               := p.X;
    While (x < fSession.Buffer.Columns - 1) And WordCell(x + 1) Do
     Inc(x);
-   fSelectionEnd                        := Point(x, p.y);
+   fSelectionEnd                        := Point(x, p.Y);
    fHasSelection                        := True;
    fSelecting                           := False;
    TControlAccess(surface).MouseCapture := False;
@@ -776,9 +801,9 @@ Implementation
     Begin
      p := surface.ScreenToClient(MousePos);
      If WheelDelta > 0 Then
-      SendMouse(64, False, Shift, p.x, p.y)
+      SendMouse(64, False, Shift, p.X, p.Y)
      Else
-      SendMouse(65, False, Shift, p.x, p.y);
+      SendMouse(65, False, Shift, p.X, p.Y);
     End
    Else
     Begin
@@ -794,6 +819,24 @@ Implementation
     End;
   End;
 
+ Function TfraTerminal.TextAt(x, y : Integer; Out CharacterIndex : Integer) : String;
+  Var
+   Cell : TPoint;
+   i    : Integer;
+  Begin
+   Result         := '';
+   CharacterIndex := -1;
+   If (fSession = Nil) Or Not PtInRect(surface.ClientRect, Point(x, y)) Then
+    Exit;
+   Cell := MouseCell(x, y);
+   While (Cell.X > 0) And fSession.Buffer.Cell[Cell.X, Cell.Y].Continuation Do
+    Dec(Cell.X);
+   CharacterIndex := 0;
+   For i          := 0 To Cell.X - 1 Do
+    Inc(CharacterIndex, Length(fSession.Buffer.Cell[i, Cell.Y].Text));
+   Result := fSession.Buffer.LineText(Cell.Y);
+  End;
+
  Function TfraTerminal.LinkAt(x, y : Integer) : String;
   Var
    p     : TPoint;
@@ -804,20 +847,20 @@ Implementation
    If (fSession = Nil) Or Not PtInRect(surface.ClientRect, Point(x, y)) Then
     Exit;
    p      := MouseCell(x, y);
-   Result := NormalizeTerminalLink(fSession.Buffer.Cell[p.x, p.y].Hyperlink);
+   Result := NormalizeTerminalLink(fSession.Buffer.Cell[p.X, p.Y].Hyperlink);
    If Result <> '' Then
     Exit;
    Index := 0;
-   For i := 0 To p.x - 1 Do
-    Inc(Index, Length(fSession.Buffer.Cell[i, p.y].Text));
-   Result := TerminalLinkAt(fSession.Buffer.LineText(p.y), Index);
+   For i := 0 To p.X - 1 Do
+    Inc(Index, Length(fSession.Buffer.Cell[i, p.Y].Text));
+   Result := TerminalLinkAt(fSession.Buffer.LineText(p.Y), Index);
   End;
 
  Function TfraTerminal.SelectedText : String;
   Begin
    Result := '';
    If fHasSelection And (fSession <> Nil) Then
-    Result := fSession.Buffer.RangeText(fSelectionStart.x, fSelectionStart.y, fSelectionEnd.x, fSelectionEnd.y);
+    Result := fSession.Buffer.RangeText(fSelectionStart.X, fSelectionStart.Y, fSelectionEnd.X, fSelectionEnd.Y);
   End;
 
  Procedure TfraTerminal.CopySelection;
@@ -928,7 +971,7 @@ Implementation
    fSelectionStart := Locate(Start);
    fSelectionEnd   := Locate(Start + Count - 1);
    fHasSelection   := True;
-   scroll.Position := Min(fSelectionStart.y, Max(0, fSession.Buffer.TotalLines - fSession.Buffer.Rows));
+   scroll.Position := Min(fSelectionStart.Y, Max(0, fSession.Buffer.TotalLines - fSession.Buffer.Rows));
    InvalidateSurface;
   End;
 

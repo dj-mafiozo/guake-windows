@@ -16,6 +16,8 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure QuickOpenDiagnosticsAndShellQuoting;
+    [Test] Procedure QuickOpenCtrlClickAndContextMenu;
     [Test] Procedure PerPixelAlphaComposition;
     [Test] Procedure TerminalBackgroundAlphaAndWindowControls;
     [Test] Procedure AnimatedGifBackgroundDelaysAndRemoval;
@@ -57,7 +59,7 @@ Interface
 Implementation
 
  Uses
-  System.Types, Guake.Composition, Guake.AnimatedBackground, Vcl.Imaging.GIFImg, frmAboutU, Guake.WindowsIntegration, System.Win.Registry, Guake.ProjectConfig, System.JSON, System.Generics.Collections, Guake.Unicode, Guake.Links, Winapi.Windows, Winapi.Messages, System.SysUtils, System.IOUtils,
+  Guake.QuickOpen, System.Types, Guake.Composition, Guake.AnimatedBackground, Vcl.Imaging.GIFImg, frmAboutU, Guake.WindowsIntegration, System.Win.Registry, Guake.ProjectConfig, System.JSON, System.Generics.Collections, Guake.Unicode, Guake.Links, Winapi.Windows, Winapi.Messages, System.SysUtils, System.IOUtils,
   frmMainU, fraTerminalU, Vcl.Graphics, Vcl.Imaging.pngimage, Vcl.ComCtrls, Vcl.Controls, Guake.ConPTY, Guake.VT, Guake.Shells, Guake.Sessions, Guake.Settings, Guake.Keybindings, Vcl.Forms;
 
  Type
@@ -80,6 +82,160 @@ Implementation
     Sleep(10);
    Until GetTickCount64 >= Deadline;
    Result := False;
+  End;
+
+ Procedure TTerminalTests.QuickOpenDiagnosticsAndShellQuoting;
+  Var
+   Directory : String;
+   FileName  : String;
+   Text      : String;
+   Posix     : String;
+   Command   : String;
+   Target    : TQuickOpenTarget;
+  Begin
+   Directory := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
+   TDirectory.CreateDirectory(Directory);
+   FileName := TPath.Combine(Directory, 'zażółć test.py');
+   Try
+    TFile.WriteAllText(FileName, '# header' + #10 + 'class Tests:' + #10 + '    def test_value(self): pass' + #10, TEncoding.UTF8);
+    Text := '  File "' + FileName + '", line 27, in main';
+    Assert.IsTrue(FindQuickOpenTarget(Text, 10, Directory, '', Target), 'Python traceback');
+    Assert.AreEqual(FileName, Target.FileName);
+    Assert.AreEqual(27, Target.LineNumber);
+    Text := '"' + FileName + '":17:4: error';
+    Assert.IsTrue(FindQuickOpenTarget(Text, 3, Directory, '', Target), 'Quoted GCC diagnostic');
+    Assert.AreEqual(17, Target.LineNumber);
+    Assert.AreEqual(4, Target.ColumnNumber);
+    Text := FileName + ':32:9: error';
+    Assert.IsTrue(FindQuickOpenTarget(Text, 3, Directory, '', Target), 'Unquoted GCC path with spaces');
+    Assert.AreEqual(32, Target.LineNumber);
+    Assert.AreEqual(9, Target.ColumnNumber);
+    Assert.AreEqual('https://example.org/a', TerminalLinkAt('https://example.org/a', 0));
+    Assert.AreEqual('https://example.org/a', TerminalLinkAt('https://example.org/a', 20));
+    Text := FileName + '(31,8): error';
+    Assert.IsTrue(FindQuickOpenTarget(Text, 3, Directory, '', Target), 'Delphi/MSVC diagnostic');
+    Assert.AreEqual(31, Target.LineNumber);
+    Assert.AreEqual(8, Target.ColumnNumber);
+    Assert.IsTrue(FindQuickOpenTarget('"zażółć test.py"', -1, Directory, '', Target), 'Relative quoted path');
+    Assert.AreEqual(FileName, Target.FileName);
+    TFile.Copy(FileName, TPath.Combine(Directory, 'test.py'));
+    Assert.IsTrue(FindQuickOpenTarget('test.py::Tests::test_value', 2, Directory, '', Target), 'Pytest function');
+    Assert.AreEqual(3, Target.LineNumber);
+    Posix := StringReplace(FileName, '\', '/', [rfReplaceAll]);
+    Posix := '/' + LowerCase(Posix[1]) + Copy(Posix, 3, MaxInt);
+    Assert.IsTrue(FindQuickOpenTarget('"' + Posix + '"', -1, Directory, '', Target), 'Git drive path');
+    Assert.AreEqual(FileName, Target.FileName);
+    TDirectory.CreateDirectory(TPath.Combine(Directory, 'usr\include'));
+    TFile.WriteAllText(TPath.Combine(Directory, 'usr\include\test.h'), 'test');
+    Assert.IsTrue(FindQuickOpenTarget('/usr/include/test.h:9', 5, Directory, Directory, Target), 'Git SDK path');
+    Assert.AreEqual(9, Target.LineNumber);
+    Assert.IsFalse(FindQuickOpenTarget('missing.py:23', 2, Directory, '', Target), 'Missing file');
+    Assert.IsFalse(FindQuickOpenTarget('prefix "' + FileName + '":17 suffix', 0, Directory, '', Target), 'Click outside the file');
+    Assert.IsFalse(FindQuickOpenTarget(StringOfChar('x', 8193), 0, Directory, '', Target), 'Oversized diagnostic');
+    Target.FileName     := 'C:\folder with spaces\O''Brien $x.py';
+    Target.LineNumber   := 17;
+    Target.ColumnNumber := 4;
+    Assert.AreEqual('editor "C:\folder with spaces\O''Brien $x.py":17:4',
+    QuickOpenCommand('editor %(file_path)s:%(line_number)s:%(column_number)s', Target, gsCmd));
+    Assert.AreEqual('editor "C:\folder with spaces\O''Brien $x.py"',
+    QuickOpenCommand('editor "%(file_path)s"', Target, gsCmd));
+    Command := QuickOpenCommand('editor %(file_path)s', Target, gsPowerShell);
+    Assert.IsTrue(Pos('O''''Brien', Command) > 0, 'PowerShell apostrophe');
+    Command := QuickOpenCommand('editor "%(file_path)s"', Target, gsPowerShell);
+    Assert.IsTrue(Pos('`$x', Command) > 0, 'PowerShell expansion');
+    Command := QuickOpenCommand('editor %(file_path)s', Target, gsBash);
+    Assert.IsTrue(Pos('/c/folder with spaces/', Command) > 0, 'POSIX drive mapping');
+    Assert.IsTrue(Pos(#39'"'#39'"'#39, Command) > 0, 'POSIX apostrophe');
+    Command := QuickOpenCommand('editor "%(file_path)s"', Target, gsZsh);
+    Assert.IsTrue(Pos('\$x', Command) > 0, 'Zsh expansion');
+   Finally
+    TDirectory.Delete(Directory, True);
+   End;
+  End;
+
+ Procedure TTerminalTests.QuickOpenCtrlClickAndContextMenu;
+  Var
+   Settings  : TGuakeSettings;
+   Main      : TfrmMain;
+   Frame     : TfraTerminal;
+   Directory : String;
+   FileName  : String;
+   FlagFile  : String;
+   Text      : String;
+   Deadline  : UInt64;
+
+   Procedure WaitForEditor;
+    Begin
+     Deadline := GetTickCount64 + 5000;
+     While Not TFile.Exists(FlagFile) And (GetTickCount64 < Deadline) Do
+      Begin
+       Main.PollTerminal(Nil);
+       Sleep(10);
+      End;
+     Assert.IsTrue(TFile.Exists(FlagFile), 'Editor command was not executed');
+     Assert.AreEqual('QUICK_OPEN_17_4', Trim(TFile.ReadAllText(FlagFile)));
+    End;
+
+   Procedure PutDiagnostic;
+    Begin
+     Frame.Session.Buffer.FeedText(#27'[2J' + #27'[H' + Text);
+     Frame.RefreshTick(Nil);
+    End;
+
+  Begin
+   Directory := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
+   TDirectory.CreateDirectory(Directory);
+   FileName := TPath.Combine(Directory, 'test.pas');
+   FlagFile := TPath.Combine(Directory, 'opened.txt');
+   Settings := TGuakeSettings.Create(TPath.Combine(Directory, 'settings.ini'));
+   Try
+    TFile.WriteAllText(FileName, 'test');
+    Settings.General.DefaultShell               := 'cmd';
+    Settings.General.UseTrayicon                := False;
+    Settings.General.UsePopup                   := False;
+    Settings.General.DropDownAnimation          := False;
+    Settings.Keybindings.Global.ShowHide        := 'disabled';
+    Settings.Keybindings.Global.ShowFocus       := 'disabled';
+    Settings.General.QuickOpenEnable            := True;
+    Settings.General.QuickOpenInCurrentTerminal := True;
+    Settings.General.QuickOpenCommandLine       := 'echo QUICK_OPEN_%(line_number)s_%(column_number)s>"' + FlagFile + '"';
+    Main                                        := TfrmMain.Create(Nil);
+    Try
+     Main.Bind(Settings);
+     Main.StartTerminal;
+     Main.Show;
+     Main.SetBounds( -30000, 0, 1200, 300);
+     Frame := Main.ActiveTerminalFrame;
+     Text  := '"' + FileName + '":17:4';
+     PutDiagnostic;
+     Frame.SurfaceMouseDown(Nil, mbLeft, [ssCtrl], 6, 5);
+     Frame.SurfaceMouseUp(Nil, mbLeft, [ssCtrl], 6, 5);
+     Assert.AreEqual('', Frame.SelectedText);
+     WaitForEditor;
+     TFile.Delete(FlagFile);
+     Settings.General.QuickOpenInCurrentTerminal := False;
+     PutDiagnostic;
+     Assert.IsTrue(Pos(Text, Frame.Session.Buffer.Text) > 0, 'Diagnostic must be available for selection');
+     Frame.HighlightText(Pos(Text, Frame.Session.Buffer.Text), Length(Text));
+     Assert.AreEqual(Text, Frame.SelectedText, 'Select the entire diagnostic including its column');
+     Main.TerminalMenuPopup(Nil);
+     Assert.IsTrue(Main.miQuickOpen.Enabled, 'Selected diagnostic enables Quick Open: ' + Frame.SelectedText);
+     Main.miQuickOpen.Click;
+     WaitForEditor;
+     TFile.Delete(FlagFile);
+     Settings.General.QuickOpenEnable := False;
+     Main.TerminalMenuPopup(Nil);
+     Assert.IsFalse(Main.miQuickOpen.Enabled);
+     Frame.SurfaceMouseDown(Nil, mbLeft, [ssCtrl], 6, 5);
+     Frame.SurfaceMouseUp(Nil, mbLeft, [ssCtrl], 6, 5);
+     Assert.IsFalse(TFile.Exists(FlagFile));
+    Finally
+     Main.Free;
+    End;
+   Finally
+    Settings.Free;
+    TDirectory.Delete(Directory, True);
+   End;
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad;
