@@ -5,6 +5,7 @@ Program GuakeFormsPreview;
 
 Uses
  StackTrace         In '..\Vendor\stacktrace\source\StackTrace.pas',
+ Guake.Unicode      In '..\Terminal\Guake.Unicode.pas',
  Guake.Links        In '..\Terminal\Guake.Links.pas',
  Guake.Resources    In '..\Resources\Guake.Resources.pas',
  Guake.ConPTY       In '..\Terminal\Guake.ConPTY.pas',

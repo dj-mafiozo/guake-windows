@@ -14,6 +14,8 @@ Interface
   TTerminalTests = Class
    Public
     [Test] Procedure IncrementalUnicodeAndCSI;
+    [Test] Procedure ExtendedGraphemesAcrossByteFragments;
+    [Test] Procedure ReflowPreservesHistoryStylesAndCursor;
     [Test] Procedure HyperlinksSearchAndDirectionalPanes;
     [Test] Procedure SessionTreeRoundTripAndFailedRestore;
     [Test] Procedure AlternateScreenRestoresPrimary;
@@ -44,7 +46,7 @@ Interface
 Implementation
 
  Uses
-  Guake.Links, Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, System.IOUtils,
+  Guake.Unicode, Guake.Links, Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, System.IOUtils,
   frmMainU, fraTerminalU, Vcl.Graphics, Vcl.Imaging.pngimage, Vcl.ComCtrls, Vcl.Controls, Guake.ConPTY, Guake.VT, Guake.Shells, Guake.Sessions, Guake.Settings, Guake.Keybindings;
 
  Type
@@ -977,6 +979,81 @@ Implementation
     Settings.Free;
     If TFile.Exists(Path) Then
      TFile.Delete(Path);
+   End;
+  End;
+
+/// <summary>Feeds ZWJ families, flags, keycaps, skin tones and combining marks one UTF-8 byte at a time.</summary>
+
+ Procedure TTerminalTests.ExtendedGraphemesAcrossByteFragments;
+  Var
+   Buffer : TTerminalBuffer;
+   Bytes  : TBytes;
+   One    : TBytes;
+   b      : Byte;
+  Begin
+   Assert.IsTrue(UnicodeBreakEngineAvailable, 'Windows ICU character break engine is required for this scenario');
+   Buffer := TTerminalBuffer.Create(40, 4);
+   Try
+    Bytes := TEncoding.UTF8.GetBytes('👨‍👩‍👧‍👦🇵🇱1️⃣👍🏽áX');
+    SetLength(One, 1);
+    For b In Bytes Do
+     Begin
+      One[0] := b;
+      Buffer.Feed(One);
+     End;
+    Assert.AreEqual('👨‍👩‍👧‍👦', Buffer.Cell[0, 0].Text);
+    Assert.AreEqual('🇵🇱', Buffer.Cell[2, 0].Text);
+    Assert.AreEqual('1️⃣', Buffer.Cell[4, 0].Text);
+    Assert.AreEqual('👍🏽', Buffer.Cell[6, 0].Text);
+    Assert.AreEqual('á', Buffer.Cell[8, 0].Text);
+    Assert.AreEqual('X', Buffer.Cell[9, 0].Text);
+    Assert.IsTrue(Buffer.Cell[1, 0].Continuation);
+    Buffer.Resize(6, 4);
+    Buffer.Resize(40, 4);
+    Assert.AreEqual('👨‍👩‍👧‍👦🇵🇱1️⃣👍🏽áX', Buffer.Text);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Resizes repeatedly across wide-character boundaries without losing soft lines, hard newlines, styles or the prompt cursor.</summary>
+
+ Procedure TTerminalTests.ReflowPreservesHistoryStylesAndCursor;
+  Var
+   Buffer : TTerminalBuffer;
+   Before : String;
+   i      : Integer;
+   x      : Integer;
+   y      : Integer;
+   Found  : Boolean;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 3, 100);
+   Try
+    Buffer.FeedText('1234567界Z' + #13#10 + #27'[31m' + 'abc 👨‍👩‍👧‍👦 é END' + #27'[0m' + #13#10 + 'tail');
+    Before := Buffer.Text;
+    Assert.IsTrue(Pos('1234567界Z', Before) > 0, Before);
+    For i := 1 To 4 Do
+     Begin
+      Buffer.Resize(5, 4);
+      Assert.AreEqual(Before, Buffer.Text);
+      Buffer.Resize(14, 3);
+      Assert.AreEqual(Before, Buffer.Text);
+     End;
+    Found  := False;
+    For y  := 0 To Buffer.TotalLines - 1 Do
+     For x := 0 To Buffer.Columns - 1 Do
+      If Buffer.Cell[x, y].Text = 'a' Then
+       If Buffer.Cell[x, y].Foreground = 1 Then
+        Found := True;
+    Assert.IsTrue(Found, 'SGR attribute lost during reflow');
+    Buffer.FeedText('!');
+    Assert.AreEqual(Before + '!', Buffer.Text);
+    Buffer.FeedText(#27'[?1049h' + 'alternate');
+    Buffer.Resize(9, 4);
+    Buffer.FeedText(#27'[?1049l');
+    Assert.AreEqual(Before + '!', Buffer.Text);
+   Finally
+    Buffer.Free;
    End;
   End;
 

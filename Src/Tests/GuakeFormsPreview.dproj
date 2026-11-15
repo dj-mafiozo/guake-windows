@@ -29,10 +29,10 @@
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_MajorVer>1</VerInfo_MajorVer>
     <VerInfo_MinorVer>0</VerInfo_MinorVer>
-    <VerInfo_Release>11</VerInfo_Release>
+    <VerInfo_Release>12</VerInfo_Release>
     <VerInfo_Build>46</VerInfo_Build>
     <VerInfo_Locale>1045</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Formularze Guake dla Windows;FileVersion=1.0.11.46;InternalName=GuakeFormsPreview;OriginalFilename=GuakeFormsPreview.exe;ProductName=Guake dla Windows;ProductVersion=1.0.11.46</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Formularze Guake dla Windows;FileVersion=1.0.12.46;InternalName=GuakeFormsPreview;OriginalFilename=GuakeFormsPreview.exe;ProductName=Guake dla Windows;ProductVersion=1.0.12.46</VerInfo_Keys>
     <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
     <DCC_MapFile>3</DCC_MapFile>
     <PostBuildEvent>python "$(MSBuildProjectDirectory)\..\Tools\Build-Symbols.py" "$(DCC_ExeOutput)\$(MSBuildProjectName).map"</PostBuildEvent>
@@ -51,6 +51,7 @@
     <DelphiCompile Include="$(MainSource)">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
+    <DCCReference Include="..\Terminal\Guake.Unicode.pas" />
     <DCCReference Include="..\Terminal\Guake.Links.pas" />
     <DCCReference Include="..\Settings\Guake.Settings.pas" />
     <DCCReference Include="..\Terminal\Guake.Shells.pas" />

@@ -43,3 +43,5 @@ Wrapper `bin/Win64/git-zsh.exe` bez parametrów otwiera Zsh w mintty. Z `--nomin
 Skróty mają siedem zwijanych sekcji, obsługiwanych myszą i klawiaturą. Zaznaczenie w terminalu zaczyna się od przeciągnięcia; zwykły klik nie wybiera znaku. [Aktualna tabela stanu portu](docs/port-status.md) oddziela działające funkcje od zakresu pozostałego do przeniesienia.
 
 Preferencje ogólne pozwalają włączyć animację wysuwania/chowania i ustawić jej czas. Działają skróty kierunkowego fokusu i przesuwania granicy podziału, otwieranie URL/OSC 8 oraz wyszukiwanie zaznaczenia w WWW. Menu tray zapisuje i przywraca karty z drzewem podziałów. Odtwarzanie po starcie i autosave korzystają z pliku `.session.json` obok INI i uruchamiają nowe powłoki w zapisanych katalogach.
+
+Historia i ekran główny są ponownie zawijane po zmianie szerokości. Segmentacja grafemów używa systemowego ICU; nie trzeba dostarczać biblioteki wraz z aplikacją. Na starszych systemach bez odpowiednich eksportów ICU działa uproszczony wariant opisany w stanie portu.

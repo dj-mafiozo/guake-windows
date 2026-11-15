@@ -11,6 +11,8 @@ Interface
   TTerminalCell = Record
    Text         : String;
    Hyperlink    : String;
+   SoftWrapped  : Boolean;
+   WrapPadding  : Boolean;
    Foreground   : Integer;
    Background   : Integer;
    Bold         : Boolean;
@@ -115,7 +117,7 @@ Interface
 Implementation
 
  Uses
-  System.Math, System.StrUtils;
+  System.Math, System.StrUtils, Guake.Unicode;
 
  Function TTerminalBuffer.Blank : TTerminalCell;
   Begin
@@ -254,40 +256,51 @@ Implementation
     End;
   End;
 
- Function Combining(Code : Cardinal) : Boolean;
-  Begin
-   Result := ((Code >= $0300) And (Code <= $036F)) Or ((Code >= $1AB0) And (Code <= $1AFF)) Or ((Code >= $1DC0) And (Code <= $1DFF)) Or ((Code >= $FE00) And (Code <= $FE0F)) Or ((Code >= $FE20) And (Code <= $FE2F)) Or (Code = $200D);
-  End;
-
- Function WideCode(Code : Cardinal) : Boolean;
-  Begin
-   Result := ((Code >= $1100) And (Code <= $115F)) Or ((Code >= $2E80) And (Code <= $A4CF)) Or ((Code >= $AC00) And (Code <= $D7A3)) Or ((Code >= $F900) And (Code <= $FAFF)) Or ((Code >= $FE10) And (Code <= $FE6F)) Or ((Code >= $FF01) And (Code <= $FF60)) Or ((Code >= $1F300) And (Code <= $1FAFF)) Or ((Code >= $20000) And (Code <= $3FFFD));
-  End;
-
  Procedure TTerminalBuffer.PutCode(Code : Cardinal);
   Var
-   w, i, Previous : Integer;
+   w, i, Previous, OldWidth, NewWidth : Integer;
+   Next                               : String;
   Begin
-   If Combining(Code) Then
+   Next     := CodeText(Code);
+   Previous := fX - 1;
+   If fWrapPending Then
+    Previous := fX;
+   If (Previous >= 0) And fScreen[fY][Previous].Continuation Then
+    Dec(Previous);
+   If (Previous >= 0) And JoinsGrapheme(fScreen[fY][Previous].Text, Next) Then
     Begin
-     Previous := fX - 1;
-     If fWrapPending Then
-      Previous := fX;
-     If (Previous >= 0) And fScreen[fY][Previous].Continuation Then
-      Dec(Previous);
-     If Previous >= 0 Then
-      fScreen[fY][Previous].Text := fScreen[fY][Previous].Text + CodeText(Code);
+     OldWidth := 1;
+     If (Previous + 1 < fColumns) And fScreen[fY][Previous + 1].Continuation Then
+      OldWidth                  := 2;
+     fScreen[fY][Previous].Text := fScreen[fY][Previous].Text + Next;
+     NewWidth                   := Min(GraphemeWidth(fScreen[fY][Previous].Text), fColumns - Previous);
+     If NewWidth > OldWidth Then
+      Begin
+       fScreen[fY][Previous + 1]              := Blank;
+       fScreen[fY][Previous + 1].Text         := '';
+       fScreen[fY][Previous + 1].Continuation := True;
+       If Not fWrapPending Then
+        Begin
+         Inc(fX);
+         If fX >= fColumns Then
+          Begin
+           fX           := fColumns - 1;
+           fWrapPending := fAutoWrap;
+          End;
+        End;
+      End;
      Exit;
     End;
-   w := 1;
-   If WideCode(Code) Then
-    w := 2;
+   w := GraphemeWidth(Next);
    If w > fColumns Then
     w := 1;
    If fWrapPending Or ((w = 2) And (fX = fColumns - 1)) Then
     If fAutoWrap Then
      Begin
-      fX := 0;
+      fScreen[fY][fColumns - 1].SoftWrapped := True;
+      If (w = 2) And (fX = fColumns - 1) And Not fWrapPending Then
+       fScreen[fY][fColumns - 1].WrapPadding := True;
+      fX                                     := 0;
       LineFeed;
      End;
    fWrapPending := False;
@@ -777,12 +790,14 @@ Implementation
    Feed(TEncoding.UTF8.GetBytes(Text));
   End;
 
+/// <summary>Reflows primary logical lines and history, preserving grapheme cells, style, links and cursor position.</summary>
+
  Procedure TTerminalBuffer.Resize(Columns, Rows : Integer);
   Var
-   NewScreen : TTerminalScreen;
-   x, y      : Integer;
+   NewScreen  : TTerminalScreen;
+   NewPending : Boolean;
 
-   Procedure Change(Var Screen : TTerminalScreen);
+   Procedure ResizeGrid(Var Screen : TTerminalScreen);
     Var
      x, y : Integer;
     Begin
@@ -794,21 +809,174 @@ Implementation
      NewScreen         := Nil;
     End;
 
+   Procedure Reflow(Var Screen : TTerminalScreen; Var CursorX, CursorY : Integer; Pending : Boolean);
+    Var
+     Input, Output                                                                     : TList<TTerminalLine>;
+     Current, Source                                                                   : TTerminalLine;
+     Cell                                                                              : TTerminalCell;
+     x, y, i, Count, Bottom, Col, Width, CursorRow, CursorCol, MappedX, MappedY, Start : Integer;
+     HaveLine, MappedPending, FoundCursor                                              : Boolean;
+
+     Procedure StartLine;
+      Var
+       j : Integer;
+      Begin
+       Current := Nil;
+       SetLength(Current, Columns);
+       For j := 0 To Columns - 1 Do
+        Begin
+         Current[j]             := Blank;
+         Current[j].SoftWrapped := False;
+         Current[j].WrapPadding := False;
+        End;
+       Col      := 0;
+       HaveLine := True;
+      End;
+
+     Procedure FinishLine(Wrapped : Boolean);
+      Begin
+       If Not HaveLine Then
+        StartLine;
+       Current[Columns - 1].SoftWrapped := Wrapped;
+       Output.Add(Current);
+       Current  := Nil;
+       HaveLine := False;
+      End;
+
+     Procedure MakeRoom(Width : Integer);
+      Begin
+       If Not HaveLine Then
+        StartLine;
+       If Col + Width > Columns Then
+        Begin
+         If Col < Columns Then
+          Current[Columns - 1].WrapPadding := True;
+         FinishLine(True);
+         StartLine;
+        End;
+      End;
+
+    Begin
+     Input  := TList<TTerminalLine>.Create;
+     Output := TList<TTerminalLine>.Create;
+     Try
+      Bottom := CursorY;
+      For y  := 0 To High(Screen) Do
+       For x := 0 To High(Screen[y]) Do
+        If (Screen[y][x].Text <> '') And (Screen[y][x].Text <> ' ') Then
+         Bottom := Max(Bottom, y);
+      For Source In fHistory Do
+       Input.Add(Source);
+      CursorRow := fHistory.Count + CursorY;
+      CursorCol := CursorX + Ord(Pending);
+      For y     := 0 To Min(Bottom, High(Screen)) Do
+       Input.Add(Screen[y]);
+      HaveLine      := False;
+      FoundCursor   := False;
+      MappedPending := False;
+      MappedX       := 0;
+      MappedY       := 0;
+      For y         := 0 To Input.Count - 1 Do
+       Begin
+        Source := Input[y];
+        Count  := Length(Source);
+        If (Count > 0) And Not Source[Count - 1].SoftWrapped Then
+         Begin
+          While (Count > 0) And ((Source[Count - 1].Text = ' ') Or (Source[Count - 1].Text = '')) And
+          Not Source[Count - 1].Continuation Do
+           Dec(Count);
+         End;
+        If y = CursorRow Then
+         Count := Max(Count, CursorCol);
+        i      := 0;
+        While i <= Count Do
+         Begin
+          If Not HaveLine Then
+           StartLine;
+          If (i < Count) And (i < Length(Source)) And Not Source[i].Continuation And Not Source[i].WrapPadding Then
+           MakeRoom(Min(Columns, GraphemeWidth(Source[i].Text)));
+          If (y = CursorRow) And (i = CursorCol) Then
+           Begin
+            MappedY       := Output.Count;
+            MappedX       := Min(Columns - 1, Col);
+            MappedPending := Col >= Columns;
+            FoundCursor   := True;
+           End;
+          If i = Count Then
+           Break;
+          If (i < Length(Source)) And Not Source[i].Continuation And Not Source[i].WrapPadding Then
+           Begin
+            Cell             := Source[i];
+            Cell.SoftWrapped := False;
+            Cell.WrapPadding := False;
+            Width            := Min(Columns, GraphemeWidth(Cell.Text));
+            Current[Col]     := Cell;
+            If Width = 2 Then
+             Begin
+              Current[Col + 1]              := Cell;
+              Current[Col + 1].Text         := '';
+              Current[Col + 1].Continuation := True;
+             End;
+            Inc(Col, Width);
+           End;
+          Inc(i);
+         End;
+        If (Length(Source) = 0) Or Not Source[High(Source)].SoftWrapped Then
+         FinishLine(False);
+       End;
+      If HaveLine Then
+       FinishLine(False);
+      If Output.Count = 0 Then
+       Begin
+        StartLine;
+        FinishLine(False);
+       End;
+      Start := Max(0, Output.Count - Rows);
+      If FoundCursor Then
+       Start := Min(Start, MappedY);
+      fHistory.Clear;
+      For y := 0 To Start - 1 Do
+       fHistory.Add(Output[y]);
+      If fHistoryLimit >= 0 Then
+       While fHistory.Count > fHistoryLimit Do
+        fHistory.Delete(0);
+      AllocateScreen(NewScreen, Columns, Rows);
+      For y         := 0 To Min(Rows - 1, Output.Count - Start - 1) Do
+       NewScreen[y] := Output[Start + y];
+      Screen        := NewScreen;
+      NewScreen     := Nil;
+      CursorX       := EnsureRange(MappedX, 0, Columns - 1);
+      CursorY       := EnsureRange(MappedY - Start, 0, Rows - 1);
+      NewPending    := MappedPending;
+     Finally
+      Input.Free;
+      Output.Free;
+     End;
+    End;
+
   Begin
    If (Columns < 1) Or (Rows < 1) Or (Columns > 32767) Or (Rows > 32767) Then
     Raise EArgumentOutOfRangeException.Create('Terminal size');
    If (Columns = fColumns) And (Rows = fRows) Then
     Exit;
-   Change(fScreen);
+   NewPending := False;
    If fAlternate Then
-    Change(fPrimary);
+    Begin
+     Reflow(fPrimary, fPrimaryX, fPrimaryY, False);
+     ResizeGrid(fScreen);
+     NewPending := False;
+    End
+   Else
+    Reflow(fScreen, fX, fY, fWrapPending);
    fColumns     := Columns;
    fRows        := Rows;
    fX           := Min(fX, Columns - 1);
    fY           := Min(fY, Rows - 1);
+   fSavedX      := Min(fSavedX, Columns - 1);
+   fSavedY      := Min(fSavedY, Rows - 1);
    fTop         := 0;
    fBottom      := Rows - 1;
-   fWrapPending := False;
+   fWrapPending := NewPending;
    Inc(fRevision);
   End;
 
@@ -845,7 +1013,7 @@ Implementation
    For x  := 0 To fColumns - 1 Do
     Begin
      c := GetCell(x, Index);
-     If Not c.Continuation Then
+     If Not c.Continuation And Not c.WrapPadding Then
       Result := Result + c.Text;
     End;
    Result := TrimRight(Result);
@@ -876,12 +1044,15 @@ Implementation
       If ((y > StartY) Or (x >= StartX)) And ((y < EndY) Or (x <= EndX)) Then
        Begin
         c := GetCell(x, y);
-        If Not c.Continuation Then
+        If Not c.Continuation And Not c.WrapPadding Then
          s := s + c.Text;
        End;
-     If y > StartY Then
+     If (y > StartY) And Not GetCell(fColumns - 1, y - 1).SoftWrapped Then
       Result := Result + sLineBreak;
-     Result  := Result + TrimRight(s);
+     If (y < EndY) And GetCell(fColumns - 1, y).SoftWrapped Then
+      Result := Result + s
+     Else
+      Result := Result + TrimRight(s);
     End;
   End;
 
