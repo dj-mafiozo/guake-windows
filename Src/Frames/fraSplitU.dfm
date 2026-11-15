@@ -12,6 +12,7 @@
     Align = alLeft
     Width = 5
     MinSize = 50
+    OnMoved = SplitterMoved
   end
   object secondHost: TPanel
     Left = 361

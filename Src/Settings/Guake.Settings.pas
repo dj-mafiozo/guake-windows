@@ -149,7 +149,9 @@ Interface
     gskKeybindingsLocalNewTabZsh,
     gskKeybindingsLocalNewTabBash,
     gskKeybindingsLocalNewTabCmd,
-    gskKeybindingsLocalNewTabPowerShell
+    gskKeybindingsLocalNewTabPowerShell,
+    gskGeneralDropDownAnimation,
+    gskGeneralDropDownAnimationDuration
    );
 {FLD-}
 
@@ -166,6 +168,8 @@ Interface
   End;
 
   TGuakeGeneralSettings = Record
+   DropDownAnimation            : Boolean;
+   DropDownAnimationDuration    : Integer;
    SchemaVersion                : String;
    DebugMode                    : Boolean;
    MouseDisplay                 : Boolean;
@@ -521,7 +525,9 @@ Implementation
     (Section: 'keybindings.local';  Key: 'new-tab-zsh';                     DefaultValue: 'disabled';                                                                                                                                                                                                                                                        Summary: 'New Zsh tab';                                                Description: 'Open a new tab with the Zsh shell.';                                                                                                                                                                                                                                                                                                                                  Kind: skString;  HasRange: False; Minimum: 0; Maximum: 0),
     (Section: 'keybindings.local';  Key: 'new-tab-bash';                    DefaultValue: 'disabled';                                                                                                                                                                                                                                                        Summary: 'New Bash tab';                                               Description: 'Open a new tab with the Bash shell.';                                                                                                                                                                                                                                                                                                                                 Kind: skString;  HasRange: False; Minimum: 0; Maximum: 0),
     (Section: 'keybindings.local';  Key: 'new-tab-cmd';                     DefaultValue: 'disabled';                                                                                                                                                                                                                                                        Summary: 'New CMD tab';                                                Description: 'Open a new tab with the Cmd shell.';                                                                                                                                                                                                                                                                                                                                  Kind: skString;  HasRange: False; Minimum: 0; Maximum: 0),
-    (Section: 'keybindings.local';  Key: 'new-tab-powershell';              DefaultValue: 'disabled';                                                                                                                                                                                                                                                        Summary: 'New PowerShell tab';                                         Description: 'Open a new tab with the PowerShell shell.';                                                                                                                                                                                                                                                                                                                           Kind: skString;  HasRange: False; Minimum: 0; Maximum: 0)
+    (Section: 'keybindings.local';  Key: 'new-tab-powershell';              DefaultValue: 'disabled';                                                                                                                                                                                                                                                        Summary: 'New PowerShell tab';                                         Description: 'Open a new tab with the PowerShell shell.';                                                                                                                                                                                                                                                                                                                           Kind: skString;  HasRange: False; Minimum: 0; Maximum: 0),
+    (Section: 'general';            Key: 'drop-down-animation';             DefaultValue: 'true';                                                                                                                                                                                                                                                            Summary: 'Drop-down animation';                                        Description: 'Animate showing and hiding the terminal window.';                                                                                                                                                                                                                                                                                                                     Kind: skBoolean; HasRange: False; Minimum: 0; Maximum: 0),
+    (Section: 'general';            Key: 'drop-down-animation-duration';    DefaultValue: '180';                                                                                                                                                                                                                                                             Summary: 'Animation duration (ms)';                                    Description: 'Duration of the drop-down animation in milliseconds.';                                                                                                                                                                                                                                                                                                                Kind: skInteger; HasRange: True;  Minimum: 0; Maximum: 2000)
    );
 {FLD-}
 
@@ -839,6 +845,8 @@ End;
     gskKeybindingsLocalMoveTerminalSplitDown       : Result := Keybindings.Local.MoveTerminalSplitDown;
     gskKeybindingsLocalMoveTerminalSplitLeft       : Result := Keybindings.Local.MoveTerminalSplitLeft;
     gskKeybindingsLocalMoveTerminalSplitRight      : Result := Keybindings.Local.MoveTerminalSplitRight;
+    gskGeneralDropDownAnimation                    : Result := LowerCase(BoolToStr(General.DropDownAnimation, True));
+    gskGeneralDropDownAnimationDuration            : Result := IntToStr(General.DropDownAnimationDuration);
     gskHooksShow                                   : Result := Hooks.Show;
    Else Result := '';
    End;
@@ -980,6 +988,8 @@ End;
     gskKeybindingsLocalMoveTerminalSplitDown       : Keybindings.Local.MoveTerminalSplitDown := Value;
     gskKeybindingsLocalMoveTerminalSplitLeft       : Keybindings.Local.MoveTerminalSplitLeft := Value;
     gskKeybindingsLocalMoveTerminalSplitRight      : Keybindings.Local.MoveTerminalSplitRight := Value;
+    gskGeneralDropDownAnimation                    : General.DropDownAnimation := StrToBool(Value);
+    gskGeneralDropDownAnimationDuration            : General.DropDownAnimationDuration := StrToInt(Value);
     gskHooksShow                                   : Hooks.Show := Value;
    End;
   End;

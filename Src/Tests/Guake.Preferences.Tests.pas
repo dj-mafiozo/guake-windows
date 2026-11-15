@@ -90,7 +90,7 @@ Implementation
    Root := TJSONObject.ParseJSONValue(TFile.ReadAllText(Path, TEncoding.UTF8));
    Try
     Entries := Root As TJSONArray;
-    Assert.AreEqual(Entries.Count + 4, Ord(High(TGuakeSetting)) + 1);
+    Assert.AreEqual(Entries.Count + 6, Ord(High(TGuakeSetting)) + 1);
     For Entry In Entries Do
      Begin
       Assert.IsTrue(TGuakeSettings.FindKey(Entry.GetValue<String>('section'), Entry.GetValue<String>('name'), k));
@@ -441,11 +441,11 @@ Implementation
    Assert.IsNotNull(fForm.imgHeader.Picture.Graphic);
    For Index := 0 To 8 Do
     Begin
-     Assert.IsFalse(fForm.pages.pages[Index].TabVisible);
+     Assert.IsFalse(fForm.pages.Pages[Index].TabVisible);
      fForm.navPages.ItemIndex := Index;
      fForm.NavigationClick(Nil);
      Assert.AreEqual(Index, fForm.pages.ActivePageIndex);
-     Assert.AreEqual(fForm.pages.pages[Index].Caption, fForm.navPages.Items[Index]);
+     Assert.AreEqual(fForm.pages.Pages[Index].Caption, fForm.navPages.Items[Index]);
     End;
   End;
 

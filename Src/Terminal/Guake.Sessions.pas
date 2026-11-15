@@ -104,10 +104,20 @@ Interface
     /// <summary>Removes the active leaf and collapses its split parent while preserving its sibling.</summary>
     Procedure CloseTerminal;
     Procedure FocusSession(Session : TTerminalSession);
+    /// <summary>Focuses the nearest pane in a cardinal direction using split geometry.</summary>
+    Function FocusDirection(DX, DY : Integer) : Boolean;
+    /// <summary>Moves the nearest split boundary on the requested axis by five percent.</summary>
+    Function MoveSplit(DX, DY : Integer) : Boolean;
     /// <summary>Enumerates terminal leaves across all tabs in display order.</summary>
     Function    Sessions : TArray<TTerminalSession>;
     /// <summary>Processes queued terminal output on the calling thread and updates session state.</summary>
     Function    Poll : Boolean;
+    /// <summary>Serializes layout, active panes, profiles and working directories without terminal output or running commands.</summary>
+    Function SessionState : String;
+    /// <summary>Restores into a separate owned tree; any failure leaves existing sessions intact.</summary>
+    Procedure RestoreState(Const Value : String);
+    Procedure SaveSession (Const FileName : String);
+    Procedure LoadSession (Const FileName : String);
     Property Count                 : Integer Read GetCount;
     Property Tabs[Index : Integer] : TTerminalTab Read GetTab;
     Property ActiveIndex           : Integer Read fActiveIndex;
@@ -119,7 +129,7 @@ Interface
 Implementation
 
  Uses
-  System.IOUtils, System.Math, System.NetEncoding;
+  Winapi.Windows, System.JSON, System.Types, System.IOUtils, System.Math, System.NetEncoding;
 
  Function NewId : String;
   Var
@@ -578,6 +588,324 @@ Implementation
        Exit;
       End;
     End;
+  End;
+
+ Function TTerminalController.FocusDirection(DX, DY : Integer) : Boolean;
+  Var
+   Rectangles                            : TDictionary<TTerminalNode, TRect>;
+   Node, Best                            : TTerminalNode;
+   Source, Target                        : TRect;
+   x, y, TX, TY, Forward, Cross, Overlap : Integer;
+   Score, BestScore                      : Int64;
+
+   Procedure Collect(Node : TTerminalNode; Bounds : TRect);
+    Var
+     a, b : TRect;
+     Cut  : Integer;
+    Begin
+     If Node.Kind = tnTerminal Then
+      Begin
+       Rectangles.Add(Node, Bounds);
+       Exit;
+      End;
+     a := Bounds;
+     b := Bounds;
+     If Node.Kind = tnVertical Then
+      Begin
+       Cut     := Bounds.Left + (Bounds.Right - Bounds.Left) * Node.Ratio Div 100;
+       a.Right := Cut;
+       b.Left  := Cut;
+      End
+     Else
+      Begin
+       Cut      := Bounds.Top + (Bounds.Bottom - Bounds.Top) * Node.Ratio Div 100;
+       a.Bottom := Cut;
+       b.Top    := Cut;
+      End;
+     Collect(Node.First, a);
+     Collect(Node.Second, b);
+    End;
+
+  Begin
+   Result := False;
+   If (ActiveTab = Nil) Or (Abs(DX) + Abs(DY) <> 1) Then
+    Exit;
+   Rectangles := TDictionary<TTerminalNode, TRect>.Create;
+   Try
+    Collect(ActiveTab.Root, Rect(0, 0, 10000, 10000));
+    Source    := Rectangles[ActiveTab.Active];
+    x         := (Source.Left + Source.Right) Div 2;
+    y         := (Source.Top + Source.Bottom) Div 2;
+    Best      := Nil;
+    BestScore := High(Int64);
+    For Node In Rectangles.Keys Do
+     Begin
+      If Node = ActiveTab.Active Then
+       Continue;
+      Target  := Rectangles[Node];
+      TX      := (Target.Left + Target.Right) Div 2;
+      TY      := (Target.Top + Target.Bottom) Div 2;
+      Forward := (TX - x) * DX + (TY - y) * DY;
+      If Forward <= 0 Then
+       Continue;
+      Cross := Abs((TX - x) * DY + (TY - y) * DX);
+      If DX <> 0 Then
+       Overlap := Min(Source.Bottom, Target.Bottom) - Max(Source.Top, Target.Top)
+      Else
+       Overlap := Min(Source.Right, Target.Right) - Max(Source.Left, Target.Left);
+      Score    := Int64(Forward) * 10000 + Cross;
+      If Overlap <= 0 Then
+       Inc(Score, Int64(1000000000));
+      If Score < BestScore Then
+       Begin
+        BestScore := Score;
+        Best      := Node;
+       End;
+     End;
+    If Best <> Nil Then
+     Begin
+      ActiveTab.Active := Best;
+      Result           := True;
+     End;
+   Finally
+    Rectangles.Free;
+   End;
+  End;
+
+ Function TTerminalController.MoveSplit(DX, DY : Integer) : Boolean;
+  Var
+   Node  : TTerminalNode;
+   Kind  : TTerminalNodeKind;
+   Ratio : Integer;
+  Begin
+   Result := False;
+   If (ActiveTab = Nil) Or (Abs(DX) + Abs(DY) <> 1) Then
+    Exit;
+   If DX <> 0 Then
+    Kind := tnVertical
+   Else
+    Kind := tnHorizontal;
+   Node  := ActiveTab.Active.Parent;
+   While (Node <> Nil) And (Node.Kind <> Kind) Do
+    Node := Node.Parent;
+   If Node = Nil Then
+    Exit;
+   Ratio := EnsureRange(Node.Ratio + 5 * (DX + DY), 10, 90);
+   If Ratio = Node.Ratio Then
+    Exit;
+   Node.Ratio := Ratio;
+   Changed;
+   Result := True;
+  End;
+
+/// <summary>JSON v1 contains only restartable session descriptions; process memory and scrollback are intentionally excluded.</summary>
+
+ Function TTerminalController.SessionState : String;
+  Var
+   Root, Item : TJSONObject;
+   TabsArray  : TJSONArray;
+   Tab        : TTerminalTab;
+
+   Function NodeValue(Node : TTerminalNode) : TJSONObject;
+    Var
+     Profile : TShellProfile;
+    Begin
+     Result := TJSONObject.Create;
+     Try
+      Result.AddPair('kind', TJSONNumber.Create(Ord(Node.Kind)));
+      Result.AddPair('ratio', TJSONNumber.Create(Node.Ratio));
+      If Node.Kind = tnTerminal Then
+       Begin
+        Profile := Node.Session.Profile;
+        Result.AddPair('id', Node.Session.Id);
+        Result.AddPair('directory', Node.Session.Directory);
+        Result.AddPair('title', Node.Session.CustomTitle);
+        Result.AddPair('shell', TJSONNumber.Create(Ord(Profile.Kind)));
+        Result.AddPair('executable', Profile.Executable);
+        Result.AddPair('arguments', Profile.Arguments);
+        Result.AddPair('git-sdk-root', Profile.GitSdkRoot);
+       End
+      Else
+       Begin
+        Result.AddPair('first', NodeValue(Node.First));
+        Result.AddPair('second', NodeValue(Node.Second));
+       End;
+     Except
+      Result.Free;
+      Raise;
+     End;
+    End;
+
+  Begin
+   Root := TJSONObject.Create;
+   Try
+    Root.AddPair('version', TJSONNumber.Create(1));
+    Root.AddPair('active-tab', TJSONNumber.Create(fActiveIndex));
+    TabsArray := TJSONArray.Create;
+    Root.AddPair('tabs', TabsArray);
+    For Tab In fTabs Do
+     Begin
+      Item := TJSONObject.Create;
+      TabsArray.AddElement(Item);
+      Item.AddPair('id', Tab.Id);
+      Item.AddPair('name', Tab.Name);
+      Item.AddPair('active-session', Tab.Active.Session.Id);
+      Item.AddPair('root', NodeValue(Tab.Root));
+     End;
+    Result := Root.ToJSON;
+   Finally
+    Root.Free;
+   End;
+  End;
+
+ Procedure TTerminalController.RestoreState(Const Value : String);
+  Var
+   Root                : TJSONValue;
+   Obj, Item           : TJSONObject;
+   ArrayValue          : TJSONArray;
+   NewTabs, OldTabs    : TObjectList<TTerminalTab>;
+   Tab                 : TTerminalTab;
+   Entry               : TJSONValue;
+   ActiveIndex, Leaves : Integer;
+
+   Function Field(Obj : TJSONObject; Const Name : String) : String;
+    Var
+     Value : TJSONValue;
+    Begin
+     Value := Obj.GetValue(Name);
+     If Value = Nil Then
+      Raise EArgumentException.Create('Missing session field: ' + Name);
+     Result := Value.Value;
+    End;
+
+   Function ReadNode(Value : TJSONValue; Parent : TTerminalNode; Depth : Integer; Const ActiveId : String; Var Active : TTerminalNode) : TTerminalNode;
+    Var
+     Obj                : TJSONObject;
+     Kind, Shell, Ratio : Integer;
+     Profile            : TShellProfile;
+     Session            : TTerminalSession;
+    Begin
+     If (Depth > 64) Or Not(Value Is TJSONObject) Then
+      Raise EArgumentException.Create('Invalid session tree');
+     Obj   := TJSONObject(Value);
+     Kind  := StrToInt(Field(Obj, 'kind'));
+     Ratio := StrToInt(Field(Obj, 'ratio'));
+     If (Kind < Ord(Low(TTerminalNodeKind))) Or (Kind > Ord(High(TTerminalNodeKind))) Or (Ratio < 10) Or (Ratio > 90) Then
+      Raise EArgumentException.Create('Invalid split geometry');
+     Result := TTerminalNode.Create(Nil);
+     Try
+      Result.Parent := Parent;
+      Result.Kind   := TTerminalNodeKind(Kind);
+      Result.Ratio  := Ratio;
+      If Result.Kind = tnTerminal Then
+       Begin
+        Inc(Leaves);
+        If Leaves > 128 Then
+         Raise EArgumentException.Create('Too many session panes');
+        Shell := StrToInt(Field(Obj, 'shell'));
+        If (Shell < Ord(Low(TGuakeShell))) Or (Shell > Ord(High(TGuakeShell))) Then
+         Raise EArgumentException.Create('Invalid shell');
+        Profile := TShellProfile.Resolve(TGuakeShell(Shell), Field(Obj, 'git-sdk-root'));
+        // Built-in launchers are resolved relative to this installation. Preserve custom shell paths.
+        If Not SameText(ExtractFileName(Field(Obj, 'executable')), ExtractFileName(Profile.Executable)) Then
+         Profile.Executable := Field(Obj, 'executable');
+        Profile.Arguments   := Field(Obj, 'arguments');
+        Session             := TTerminalSession.Create(Profile, Field(Obj, 'directory'), fSettings);
+        Result.Session      := Session;
+        Session.fId         := Field(Obj, 'id');
+        Session.CustomTitle := Field(Obj, 'title');
+        If Session.Id = ActiveId Then
+         Active := Result;
+       End
+      Else
+       Begin
+        Result.First  := ReadNode(Obj.GetValue('first'), Result, Depth + 1, ActiveId, Active);
+        Result.Second := ReadNode(Obj.GetValue('second'), Result, Depth + 1, ActiveId, Active);
+       End;
+     Except
+      Result.Free;
+      Raise;
+     End;
+    End;
+
+  Begin
+   If Length(Value) > 2 * 1024 * 1024 Then
+    Raise EArgumentException.Create('Session file exceeds 2 MiB');
+   Root    := TJSONObject.ParseJSONValue(Value);
+   NewTabs := TObjectList<TTerminalTab>.Create(True);
+   Try
+    If Not(Root Is TJSONObject) Then
+     Raise EArgumentException.Create('Invalid session JSON');
+    Obj := TJSONObject(Root);
+    If Field(Obj, 'version') <> '1' Then
+     Raise EArgumentException.Create('Unsupported session version');
+    If Not(Obj.GetValue('tabs') Is TJSONArray) Then
+     Raise EArgumentException.Create('Invalid tabs');
+    ArrayValue := TJSONArray(Obj.GetValue('tabs'));
+    If ArrayValue.Count > 64 Then
+     Raise EArgumentException.Create('Too many tabs');
+    ActiveIndex := StrToInt(Field(Obj, 'active-tab'));
+    Leaves      := 0;
+    If (ArrayValue.Count > 0) And ((ActiveIndex < 0) Or (ActiveIndex >= ArrayValue.Count)) Then
+     Raise EArgumentException.Create('Invalid active tab');
+    For Entry In ArrayValue Do
+     Begin
+      If Not(Entry Is TJSONObject) Then
+       Raise EArgumentException.Create('Invalid tab');
+      Item := TJSONObject(Entry);
+      Tab  := TTerminalTab.Create;
+      NewTabs.Add(Tab);
+      Tab.Id   := Field(Item, 'id');
+      Tab.Name := Field(Item, 'name');
+      Tab.Root := ReadNode(Item.GetValue('root'), Nil, 0, Field(Item, 'active-session'), Tab.Active);
+      If Tab.Active = Nil Then
+       Raise EArgumentException.Create('Invalid active session');
+     End;
+    OldTabs      := fTabs;
+    fTabs        := NewTabs;
+    NewTabs      := OldTabs;
+    fActiveIndex := ActiveIndex;
+    Changed;
+   Finally
+    NewTabs.Free;
+    Root.Free;
+   End;
+  End;
+
+ Procedure TTerminalController.SaveSession(Const FileName : String);
+  Var
+   Temporary, Text : String;
+  Begin
+   Text := SessionState;
+   ForceDirectories(ExtractFilePath(ExpandFileName(FileName)));
+   Temporary := FileName + '.' + NewId + '.tmp';
+   Try
+    TFile.WriteAllText(Temporary, Text, TEncoding.UTF8);
+    Win32Check(MoveFileEx(PChar(Temporary), PChar(FileName), MOVEFILE_REPLACE_EXISTING Or MOVEFILE_WRITE_THROUGH));
+   Finally
+    If TFile.Exists(Temporary) Then
+     TFile.Delete(Temporary);
+   End;
+  End;
+
+ Procedure TTerminalController.LoadSession(Const FileName : String);
+  Var
+   Stream : TFileStream;
+   Text   : TStreamReader;
+  Begin
+   Stream := TFileStream.Create(FileName, fmOpenRead Or fmShareDenyWrite);
+   Try
+    If Stream.Size > 2 * 1024 * 1024 Then
+     Raise EArgumentException.Create('Session file exceeds 2 MiB');
+    Text := TStreamReader.Create(Stream, TEncoding.UTF8, True);
+    Try
+     RestoreState(Text.ReadToEnd);
+    Finally
+     Text.Free;
+    End;
+   Finally
+    Stream.Free;
+   End;
   End;
 
  Function TTerminalController.Sessions : TArray<TTerminalSession>;

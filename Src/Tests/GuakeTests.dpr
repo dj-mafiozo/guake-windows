@@ -8,6 +8,7 @@ Program GuakeTests;
 
 Uses
  StackTrace              In '..\Vendor\stacktrace\source\StackTrace.pas',
+ Guake.Links             In '..\Terminal\Guake.Links.pas',
  Guake.Resources         In '..\Resources\Guake.Resources.pas',
  Guake.ConPTY            In '..\Terminal\Guake.ConPTY.pas',
  Guake.VT                In '..\Terminal\Guake.VT.pas',

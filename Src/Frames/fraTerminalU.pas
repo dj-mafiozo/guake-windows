@@ -71,6 +71,8 @@ Interface
     Procedure SelectAll;
     Procedure HighlightText(Start, Count : Integer);
     Function  SelectedText : String;
+    /// <summary>Resolves OSC 8 or a textual URL at a view pixel, including scrollback.</summary>
+    Function LinkAt(x, y : Integer) : String;
     Property Session    : TTerminalSession Read fSession;
     Property OnActivate : TNotifyEvent Read fOnActivate Write fOnActivate;
     Property OnShortcut : TTerminalKeyEvent Read fOnShortcut Write fOnShortcut;
@@ -79,7 +81,7 @@ Interface
 Implementation
 
  Uses
-  System.Math, System.Character, System.StrUtils, Vcl.Clipbrd, Winapi.ShellAPI, Guake.VT, Guake.Shells, Vcl.Imaging.pngimage, Vcl.Imaging.jpeg, Vcl.Imaging.GIFImg;
+  Guake.Links, System.Math, System.Character, System.StrUtils, Vcl.Clipbrd, Winapi.ShellAPI, Guake.VT, Guake.Shells, Vcl.Imaging.pngimage, Vcl.Imaging.jpeg, Vcl.Imaging.GIFImg;
 {$R *.dfm}
 
  Type
@@ -701,6 +703,25 @@ Implementation
      Else
       scroll.Position := scroll.Position + Step;
     End;
+  End;
+
+ Function TfraTerminal.LinkAt(x, y : Integer) : String;
+  Var
+   p     : TPoint;
+   i     : Integer;
+   Index : Integer;
+  Begin
+   Result := '';
+   If (fSession = Nil) Or Not PtInRect(surface.ClientRect, Point(x, y)) Then
+    Exit;
+   p      := MouseCell(x, y);
+   Result := NormalizeTerminalLink(fSession.Buffer.Cell[p.x, p.y].Hyperlink);
+   If Result <> '' Then
+    Exit;
+   Index := 0;
+   For i := 0 To p.x - 1 Do
+    Inc(Index, Length(fSession.Buffer.Cell[i, p.y].Text));
+   Result := TerminalLinkAt(fSession.Buffer.LineText(p.y), Index);
   End;
 
  Function TfraTerminal.SelectedText : String;

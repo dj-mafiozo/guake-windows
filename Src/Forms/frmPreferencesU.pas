@@ -15,11 +15,14 @@ Interface
 
  Type
   TfrmPreferences = Class(TForm)
-    pnlHeader            : TPanel;
-    imgHeader            : TImage;
-    lblHeaderTitle       : TLabel;
-    lblHeaderDescription : TLabel;
-    navPages             : TListBox;
+    ctlDropDownAnimation         : TCheckBox;
+    ctlDropDownAnimationDuration : TSpinEdit;
+    lblDropDownAnimationDuration : TLabel;
+    pnlHeader                    : TPanel;
+    imgHeader                    : TImage;
+    lblHeaderTitle               : TLabel;
+    lblHeaderDescription         : TLabel;
+    navPages                     : TListBox;
 
     pnlFooter                       : TPanel;
     btnClose                        : TButton;
@@ -284,6 +287,8 @@ Implementation
   Var
    varIndex : Integer;
   Begin
+   ctlDropDownAnimation.Caption            := Translate('Drop-down animation');
+   lblDropDownAnimationDuration.Caption    := Translate('Animation duration (ms)');
    ctlAlignLeft.Caption                    := Translate('Left');
    ctlAlignCenter.Caption                  := Translate('Center');
    ctlAlignRight.Caption                   := Translate('Right');
@@ -702,6 +707,7 @@ Implementation
 
  Procedure TfrmPreferences.UpdateSensitivity;
   Begin
+   ctlDropDownAnimationDuration.Enabled    := ctlDropDownAnimation.Checked;
    ctlPromptOnQuit.Enabled                 := ctlPromptOnCloseTab.ItemIndex <> 2;
    ctlRestoreTabsNotify.Enabled            := ctlRestoreTabsStartup.Checked;
    ctlTabActivityNewTabGrace.Enabled       := ctlDisplayTabActivity.Checked;

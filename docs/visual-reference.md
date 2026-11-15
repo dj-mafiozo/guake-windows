@@ -14,7 +14,7 @@ Jasny pasek kart ma przyciski nowej karty i listy otwartych kart po prawej. List
 
 Menu karty: Nowa karta, Nowa karta z powłoką (rozszerzenie Windows), Zmień nazwę, Przywróć niestandardowe kolory, Zamknij. Reset indywidualnych kolorów pozostaje nieaktywny, dopóki port nie przechowuje palety dla konkretnej karty.
 
-Menu terminala zachowuje kolejność kopiowania i wklejania, pełnego ekranu, podziałów, zamknięcia terminala, zapisu zawartości, resetu, integracji odnośników i Quick Open oraz preferencji, informacji i zakończenia programu. Zapis zawartości korzysta z dialogu DFM w `Src/DataModules`. Integracje odnośników, wyszukiwania internetowego i Quick Open pozostają nieaktywne do implementacji ich obsługi.
+Menu terminala zachowuje kolejność kopiowania i wklejania, pełnego ekranu, podziałów, zamknięcia terminala, zapisu zawartości, resetu, integracji odnośników i Quick Open oraz preferencji, informacji i zakończenia programu. Zapis zawartości korzysta z dialogu DFM w `Src/DataModules`. Odnośniki i wyszukiwanie internetowe działają; Quick Open pozostaje nieaktywne.
 
 Menu tray zawiera nową kartę, zapis i przywracanie kart, preferencje, informacje i zakończenie. Zapis i odtwarzanie sesji są widoczne jako nieaktywne polecenia; dodanie pozycji menu nie oznacza ukończenia tych funkcji.
 
@@ -35,3 +35,5 @@ Zrzuty rozwiniętych i zwiniętych grup pokazują siedem sekcji: Ogólne, Zarzą
 Obszar pod kategoriami ma ten sam kolor co pasek nawigacji. Przyciski nowej karty i listy kart są TSpeedButton; ikona nowej karty pochodzi z `Src/Resources/add_tab.png`, a jej dane bitmapowe są w DFM. Podmenu powłok i cztery osobne skróty są dodatkiem Windows do pokazanego menu oryginalnego Guake.
 
 Pasek Windows używa stylu `tsFlatButtons`: aktywna karta jest wyróżniona jak wciśnięty przycisk. Kontener paska nadal może znajdować się u góry lub u dołu okna zgodnie z preferencjami. Menu kart działa na kartach i pustym obszarze paska. Ikona nowej karty ma osobne menu czterech powłok pod prawym przyciskiem myszy; lewy przycisk zachowuje domyślną powłokę.
+
+Menu zapisu i przywracania kart jest aktywne i korzysta z pliku sesji JSON. Animacja wysuwania jest rozszerzeniem Windows konfigurowanym na stronie ogólnej.

@@ -121,10 +121,12 @@
     object miSaveTabs: TMenuItem
       Caption = 'Zapisz karty'
       Enabled = False
+      OnClick = SaveTabsClick
     end
     object miRestoreTabs: TMenuItem
       Caption = 'Przywróć karty'
       Enabled = False
+      OnClick = RestoreTabsClick
     end
     object miTraySeparator2: TMenuItem
       Caption = '-'
@@ -205,10 +207,12 @@
     object miOpenLink: TMenuItem
       Caption = 'Otwórz odnośnik...'
       Enabled = False
+      OnClick = LinkActionClick
     end
     object miSearchWeb: TMenuItem
       Caption = 'Znajdź w Internecie'
       Enabled = False
+      OnClick = LinkActionClick
     end
     object miQuickOpen: TMenuItem
       Caption = 'Szybko otwórz...'
@@ -315,5 +319,15 @@
     OnTimer = PollTerminal
     Left = 184
     Top = 40
+  end
+  object animationTimer: TTimer
+    Enabled = False
+    Interval = 15
+    OnTimer = AnimationTick
+  end
+  object sessionTimer: TTimer
+    Enabled = False
+    Interval = 1000
+    OnTimer = SessionSaveTick
   end
 end

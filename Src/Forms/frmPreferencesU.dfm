@@ -104,6 +104,31 @@
         HorzScrollBar.Visible = False
         VertScrollBar.Tracking = True
         TabOrder = 0
+        object ctlDropDownAnimation: TCheckBox
+          Left = 32
+          Top = 1150
+          Width = 400
+          Height = 25
+          Tag = 135
+          Caption = 'Animacja wysuwania terminala'
+          OnClick = SettingChanged
+        end
+        object lblDropDownAnimationDuration: TLabel
+          Left = 32
+          Top = 1192
+          Caption = 'Czas animacji (ms)'
+        end
+        object ctlDropDownAnimationDuration: TSpinEdit
+          Left = 360
+          Top = 1186
+          Width = 100
+          Height = 26
+          Tag = 136
+          MaxValue = 2000
+          MinValue = 0
+          Value = 180
+          OnChange = SettingChanged
+        end
         object grpGeneral0: TGroupBox
           Left = 16
           Top = 12

@@ -41,3 +41,5 @@ Pasek kart używa płaskich przycisków (`TTabControl.Style = tsFlatButtons`). M
 Wrapper `bin/Win64/git-zsh.exe` bez parametrów otwiera Zsh w mintty. Z `--nomintty` korzysta z bieżącej konsoli; ten wariant jest podłączony pod profil `zsh` w Guake. Katalog Git SDK można przekazać przez `--git-sdk-root`, `GIT_SDK_ROOT`, a w Guake przez `windows/git-sdk-root` w INI. Domyślny katalog to `C:/git-sdk-64`. Wrapper wymaga zainstalowanego SDK z Zsh i mintty; nie zawiera dystrybucji tych programów.
 
 Skróty mają siedem zwijanych sekcji, obsługiwanych myszą i klawiaturą. Zaznaczenie w terminalu zaczyna się od przeciągnięcia; zwykły klik nie wybiera znaku. [Aktualna tabela stanu portu](docs/port-status.md) oddziela działające funkcje od zakresu pozostałego do przeniesienia.
+
+Preferencje ogólne pozwalają włączyć animację wysuwania/chowania i ustawić jej czas. Działają skróty kierunkowego fokusu i przesuwania granicy podziału, otwieranie URL/OSC 8 oraz wyszukiwanie zaznaczenia w WWW. Menu tray zapisuje i przywraca karty z drzewem podziałów. Odtwarzanie po starcie i autosave korzystają z pliku `.session.json` obok INI i uruchamiają nowe powłoki w zapisanych katalogach.

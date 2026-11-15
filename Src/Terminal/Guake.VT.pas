@@ -10,6 +10,7 @@ Interface
  Type
   TTerminalCell = Record
    Text         : String;
+   Hyperlink    : String;
    Foreground   : Integer;
    Background   : Integer;
    Bold         : Boolean;
@@ -45,6 +46,7 @@ Interface
     fState             : TVTState;
     fSequence          : String;
     fTitle             : String;
+    fHyperlink         : String;
     fDirectory         : String;
     fResponses         : String;
     fUtf8              : Cardinal;
@@ -163,6 +165,7 @@ Implementation
 
  Procedure TTerminalBuffer.Reset;
   Begin
+   fHyperlink         := '';
    fAttr              := Default(TTerminalCell);
    fAttr.Foreground   := -1;
    fAttr.Background   := -2;
@@ -297,6 +300,7 @@ Implementation
     fScreen[fY][fX + 1]         := Blank;
    fScreen[fY][fX]              := fAttr;
    fScreen[fY][fX].Text         := CodeText(Code);
+   fScreen[fY][fX].Hyperlink    := fHyperlink;
    fScreen[fY][fX].Continuation := False;
    If (w = 2) And (fX + 1 < fColumns) Then
     Begin
@@ -351,7 +355,13 @@ Implementation
    If (Command = '0') Or (Command = '2') Then
     fTitle := Value
    Else If Command = '7' Then
-    fDirectory := Value;
+    fDirectory := Value
+   Else If Command = '8' Then
+    Begin
+     P := Pos(';', Value);
+     If P > 0 Then
+      fHyperlink := Copy(Value, P + 1, MaxInt);
+    End;
   End;
 
  Procedure TTerminalBuffer.ExecuteCSI(Final : Char);

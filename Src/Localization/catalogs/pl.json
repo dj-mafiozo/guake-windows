@@ -2460,6 +2460,22 @@
     },
     {
       "context": "",
+      "singular": "Animate showing and hiding the terminal window.",
+      "plural": "",
+      "translations": [
+        "Animuj wysuwanie i chowanie okna terminala."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Animation duration (ms)",
+      "plural": "",
+      "translations": [
+        "Czas animacji (ms)"
+      ]
+    },
+    {
+      "context": "",
       "singular": "Any terminal program can set the terminal's title via special escape sequences. Some shells (e.g. bash) display user's prompt there (though you can adjust that to any arbitrary tex",
       "plural": "",
       "translations": [
@@ -2872,6 +2888,22 @@
       "plural": "",
       "translations": [
         "Monitor, na którym pojawia się okno."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Drop-down animation",
+      "plural": "",
+      "translations": [
+        "Animacja wysuwania terminala"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Duration of the drop-down animation in milliseconds.",
+      "plural": "",
+      "translations": [
+        "Czas animacji wysuwania terminala w milisekundach."
       ]
     },
     {

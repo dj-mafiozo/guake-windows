@@ -833,3 +833,15 @@ msgstr "Ukrywaj pasek kart, jeżeli otwarta jest tylko jedna karta."
 
 msgid "To disable a shortcut, press the \"Backspace\" key."
 msgstr "Naciśnięcie klawisza „Backspace” wyłącza skrót."
+
+msgid "Drop-down animation"
+msgstr "Animacja wysuwania terminala"
+
+msgid "Animation duration (ms)"
+msgstr "Czas animacji (ms)"
+
+msgid "Animate showing and hiding the terminal window."
+msgstr "Animuj wysuwanie i chowanie okna terminala."
+
+msgid "Duration of the drop-down animation in milliseconds."
+msgstr "Czas animacji wysuwania terminala w milisekundach."

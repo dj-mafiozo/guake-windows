@@ -15,6 +15,8 @@ Interface
   TGuakeCommandEvent = Procedure(Sender : TObject; Command : TGuakeWindowCommand) Of Object;
 
   TfrmMain = Class(TForm)
+    sessionTimer          : TTimer;
+    animationTimer        : TTimer;
     pollTimer             : TTimer;
     terminalHost          : TPanel;
     tabBar                : TTabControl;
@@ -70,6 +72,11 @@ Interface
     miPopupBash           : TMenuItem;
     miPopupCmd            : TMenuItem;
     miPopupPowerShell     : TMenuItem;
+    Procedure SaveTabsClick      (Sender : TObject);
+    Procedure RestoreTabsClick   (Sender : TObject);
+    Procedure SessionSaveTick    (Sender : TObject);
+    Procedure LinkActionClick    (Sender : TObject);
+    Procedure AnimationTick      (Sender : TObject);
     Procedure ShellTabClick      (Sender : TObject);
     Procedure AddTabClick        (Sender : TObject);
     Procedure TabListClick       (Sender : TObject);
@@ -108,16 +115,25 @@ Interface
     Procedure RegisterGlobalHotkeys;
     Procedure WMHotKey         (Var Message : TMessage); Message WM_HOTKEY;
     Procedure WMTerminalAction (Var Message : TMessage); Message WM_APP + 42;
+    Procedure OpenExternalLink (Const Value : String);
     Procedure SearchMatched    (Sender : TObject);
     Function  ConfirmClose     (Quitting : Boolean) : Boolean;
    Private
-    fSettings    : TGuakeSettings;
-    fLocalizer   : TGuakeLocalization;
-    fLog         : TGuakeLog;
-    fOnCommand   : TGuakeCommandEvent;
-    fFullScreen  : Boolean;
-    fSavedBounds : TRect;
+    fSettings           : TGuakeSettings;
+    fLocalizer          : TGuakeLocalization;
+    fLog                : TGuakeLog;
+    fOnCommand          : TGuakeCommandEvent;
+    fFullScreen         : Boolean;
+    fAnimating          : Boolean;
+    fAnimationTarget    : Boolean;
+    fAnimationProgress  : Double;
+    fAnimationTick      : UInt64;
+    fAnimationBounds    : TRect;
+    fSessionSaveBlocked : Boolean;
+    fLastSavedState     : String;
+    fSavedBounds        : TRect;
     Procedure ApplyOpacity;
+    Function  SessionFileName : String;
     Procedure SettingsChanged(Sender : TObject);
     Procedure SetOnCommand   (Const Value : TGuakeCommandEvent);
    Protected
@@ -132,17 +148,18 @@ Interface
     Property Controller : TTerminalController Read fController;
     /// <summary>Registration failures for unavailable global shortcuts; terminal startup remains operational.</summary>
     Property HotkeyErrors : String Read fHotkeyErrors;
-    Procedure Bind         (Settings : TGuakeSettings; Localizer : TGuakeLocalization = Nil; Log : TGuakeLog = Nil);
+    Procedure Bind              (Settings : TGuakeSettings; Localizer : TGuakeLocalization = Nil; Log : TGuakeLog = Nil);
     Procedure ApplySettings;
+    Procedure SetTerminalVisible(Value : Boolean);
     Procedure ToggleVisibility;
-    Procedure SetFullScreen(Value : Boolean);
+    Procedure SetFullScreen     (Value : Boolean);
     Property OnCommand : TGuakeCommandEvent Read fOnCommand Write SetOnCommand;
   End;
 
 Implementation
 
  Uses
-  frmPreferencesU, frmAboutU, frmRenameU, frmConfirmU, dmDialogsU, fraSplitU, Guake.Keybindings, System.Math, Guake.Resources;
+  Guake.Links, Winapi.ShellAPI, System.NetEncoding, System.IOUtils, frmPreferencesU, frmAboutU, frmRenameU, frmConfirmU, dmDialogsU, fraSplitU, Guake.Keybindings, System.Math, Guake.Resources;
 
  Type
   TTabControlAccess = Class(TTabControl)
@@ -244,7 +261,7 @@ Implementation
     y := r.Bottom - h - fSettings.General.WindowVerticalDisplacement
    Else
     y := r.Top + fSettings.General.WindowVerticalDisplacement;
-   If Not fFullScreen Then
+   If Not fFullScreen And Not fAnimating Then
     SetBounds(x, y, w, h);
    If fSettings.General.WindowOntop Then
     FormStyle := fsStayOnTop
@@ -412,11 +429,38 @@ Implementation
      End;
   End;
 
+/// <summary>Opens supported URI schemes through the Windows default application.</summary>
+
+ Procedure TfrmMain.OpenExternalLink(Const Value : String);
+  Var
+   Link : String;
+   Code : NativeInt;
+  Begin
+   Link := NormalizeTerminalLink(Value);
+   If Link = '' Then
+    Exit;
+   Code := NativeInt(ShellExecute(Handle, 'open', PChar(Link), Nil, Nil, SW_SHOWNORMAL));
+   If Code <= 32 Then
+    Raise EOSError.CreateFmt('Cannot open link (%d): %s', [Code, Link]);
+  End;
+
+ Procedure TfrmMain.LinkActionClick(Sender : TObject);
+  Begin
+   If Sender = miSearchWeb Then
+    ExecuteTerminalAction(gskKeybindingsLocalSearchOnWeb)
+   Else
+    ExecuteTerminalAction(gskKeybindingsLocalOpenLinkUnderTerminalCursor);
+  End;
+
  Procedure TfrmMain.TerminalMenuPopup(Sender : TObject);
   Var
    Frame : TfraTerminal;
   Begin
-   Frame                   := ActiveTerminalFrame;
+   Frame               := ActiveTerminalFrame;
+   miSearchWeb.Enabled := (Frame <> Nil) And (Frame.SelectedText <> '');
+   miOpenLink.Enabled  := False;
+   If Frame <> Nil Then
+    miOpenLink.Enabled     := Frame.LinkAt(Frame.surface.ScreenToClient(Mouse.CursorPos).x, Frame.surface.ScreenToClient(Mouse.CursorPos).y) <> '';
    miCopy.Enabled          := (Frame <> Nil) And (Frame.SelectedText <> '');
    miPaste.Enabled         := (Frame <> Nil) And IsClipboardFormatAvailable(CF_UNICODETEXT);
    miFullscreen.Enabled    := fController <> Nil;
@@ -468,16 +512,91 @@ Implementation
    End;
   End;
 
- Procedure TfrmMain.ToggleVisibility;
+/// <summary>Slides without resizing ConPTY, clips to the final window slot, and supports reversing in flight.</summary>
+
+ Procedure TfrmMain.SetTerminalVisible(Value : Boolean);
   Begin
-   If Visible Then
-    Hide
-   Else
+   If fSettings = Nil Then
+    Exit;
+   If Not fSettings.General.DropDownAnimation Or (fSettings.General.DropDownAnimationDuration = 0) Or fFullScreen Then
     Begin
-     Show;
+     animationTimer.Enabled := False;
+     If fAnimating Then
+      Begin
+       BoundsRect := fAnimationBounds;
+       SetWindowRgn(Handle, 0, True);
+      End;
+     fAnimating := False;
+     If Value Then
+      Show
+     Else
+      Hide;
+     Exit;
+    End;
+   If Not fAnimating Then
+    Begin
+     If Visible = Value Then
+      Exit;
      ApplySettings;
+     fAnimationBounds   := BoundsRect;
+     fAnimationProgress := Ord(Visible);
+     fAnimating         := True;
+    End;
+   fAnimationTarget := Value;
+   fAnimationTick   := GetTickCount64;
+   If Value Then
+    Begin
+     AnimationTick(Nil);
+     Show;
      SetForegroundWindow(Handle);
     End;
+   animationTimer.Enabled := True;
+  End;
+
+ Procedure TfrmMain.AnimationTick(Sender : TObject);
+  Var
+   NowTick : UInt64;
+   Step    : Double;
+   Eased   : Double;
+   y       : Integer;
+   Delta   : Integer;
+   Clip    : TRect;
+  Begin
+   If Not fAnimating Then
+    Exit;
+   NowTick        := GetTickCount64;
+   Step           := (NowTick - fAnimationTick) / Max(1, fSettings.General.DropDownAnimationDuration);
+   fAnimationTick := NowTick;
+   If fAnimationTarget Then
+    fAnimationProgress := Min(1.0, fAnimationProgress + Step)
+   Else
+    fAnimationProgress := Max(0.0, fAnimationProgress - Step);
+   Eased               := fAnimationProgress * fAnimationProgress * (3 - 2 * fAnimationProgress);
+   Delta               := Round((fAnimationBounds.Bottom - fAnimationBounds.Top) * (1 - Eased));
+   If fSettings.General.WindowValignment = 1 Then
+    y := fAnimationBounds.Top + Delta
+   Else
+    y   := fAnimationBounds.Top - Delta;
+   Top  := y;
+   Clip := Rect(0, Max(0, fAnimationBounds.Top - y), Width, Min(Height, fAnimationBounds.Bottom - y));
+   SetWindowRgn(Handle, CreateRectRgn(Clip.Left, Clip.Top, Clip.Right, Clip.Bottom), True);
+   If (fAnimationTarget And (fAnimationProgress >= 1)) Or (Not fAnimationTarget And (fAnimationProgress <= 0)) Then
+    Begin
+     animationTimer.Enabled := False;
+     If Not fAnimationTarget Then
+      Hide;
+     BoundsRect := fAnimationBounds;
+     SetWindowRgn(Handle, 0, True);
+     fAnimating := False;
+    End;
+  End;
+
+ Procedure TfrmMain.ToggleVisibility;
+  Begin
+   If fAnimating Then
+    SetTerminalVisible(Not fAnimationTarget)
+   Else
+    SetTerminalVisible(Not Visible);
   End;
 
  Procedure TfrmMain.TrayDblClick(Sender : TObject);
@@ -488,12 +607,13 @@ Implementation
  Procedure TfrmMain.FormDeactivate(Sender : TObject);
   Begin
    If (fSettings <> Nil) And fSettings.General.WindowLosefocus And (Screen.ActiveForm = Self) Then
-    Hide;
+    SetTerminalVisible(False);
   End;
 
  Procedure TfrmMain.FormClose(Sender : TObject; Var Action : TCloseAction);
   Begin
-   Action := caHide;
+   Action := caNone;
+   SetTerminalVisible(False);
   End;
 
  Procedure TfrmMain.SetFullScreen(Value : Boolean);
@@ -559,6 +679,18 @@ Implementation
 
  Procedure TfrmMain.StopTerminal;
   Begin
+   If sessionTimer <> Nil Then
+    sessionTimer.Enabled := False;
+   If (fController <> Nil) And (fSettings <> Nil) And fSettings.General.SaveTabsWhenChanged And Not fSessionSaveBlocked Then
+    Begin
+     Try
+      fController.SaveSession(SessionFileName);
+     Except
+      On E : Exception Do
+       If fLog <> Nil Then
+        fLog.TryLogException(E, 'Save session at shutdown');
+     End;
+    End;
    If pollTimer <> Nil Then
     pollTimer.Enabled := False;
    If HandleAllocated Then
@@ -579,6 +711,8 @@ Implementation
 
  Procedure TfrmMain.FormDestroy(Sender : TObject);
   Begin
+   If animationTimer <> Nil Then
+    animationTimer.Enabled := False;
    StopTerminal;
   End;
 
@@ -614,6 +748,7 @@ Implementation
        Split        := TfraSplit.Create(Host);
        Split.Parent := Host;
        Split.Align  := alClient;
+       Split.Node   := Node;
        Split.Configure(Node.Kind = tnVertical, Node.Ratio);
        Build(Node.First, Split.firstHost);
        Build(Node.Second, Split.secondHost);
@@ -664,6 +799,56 @@ Implementation
     And Not(fSettings.General.HideTabsIfOneTab And (fController.Count <= 1));
    Finally
     fUpdatingTabs := False;
+   End;
+  End;
+
+ Function TfrmMain.SessionFileName : String;
+  Begin
+   Result := ChangeFileExt(fSettings.FileName, '.session.json');
+  End;
+
+ Procedure TfrmMain.SaveTabsClick(Sender : TObject);
+  Begin
+   If fController = Nil Then
+    Exit;
+   fController.SaveSession(SessionFileName);
+   fLastSavedState       := fController.SessionState;
+   fSessionSaveBlocked   := False;
+   sessionTimer.Enabled  := True;
+   miRestoreTabs.Enabled := True;
+  End;
+
+ Procedure TfrmMain.RestoreTabsClick(Sender : TObject);
+  Begin
+   If fController = Nil Then
+    Exit;
+   fController.LoadSession(SessionFileName);
+   fLastSavedState      := fController.SessionState;
+   fSessionSaveBlocked  := False;
+   sessionTimer.Enabled := True;
+  End;
+
+ Procedure TfrmMain.SessionSaveTick(Sender : TObject);
+  Var
+   State : String;
+  Begin
+   If (fController = Nil) Or fSessionSaveBlocked Or Not fSettings.General.SaveTabsWhenChanged Then
+    Exit;
+   State := fController.SessionState;
+   If State = fLastSavedState Then
+    Exit;
+   Try
+    fController.SaveSession(SessionFileName);
+    fLastSavedState       := State;
+    miRestoreTabs.Enabled := True;
+   Except
+    On E : Exception Do
+     Begin
+      sessionTimer.Enabled := False;
+      fSessionSaveBlocked  := True;
+      If fLog <> Nil Then
+       fLog.TryLogException(E, 'Autosave session');
+     End;
    End;
   End;
 
@@ -782,7 +967,7 @@ Implementation
    Else If Message.WParam = 2 Then
     Begin
      If Not Visible Then
-      Show;
+      SetTerminalVisible(True);
      SetForegroundWindow(Handle);
     End;
   End;
@@ -816,12 +1001,37 @@ Implementation
    Frame  : TfraTerminal;
    Dialog : TdmDialogs;
    Index  : Integer;
-   Name   : String;
+   Point  : TPoint;
   Begin
    If fController = Nil Then
     Exit;
    Frame := ActiveTerminalFrame;
    Case Action Of
+    gskKeybindingsLocalSearchOnWeb :
+     If Frame <> Nil Then
+      OpenExternalLink(WebSearchAddress(Frame.SelectedText, fSettings.General.SearchEngine, fSettings.General.CustomSearchEngine));
+    gskKeybindingsLocalOpenLinkUnderTerminalCursor :
+     If Frame <> Nil Then
+      Begin
+       Point := Frame.surface.ScreenToClient(Mouse.CursorPos);
+       OpenExternalLink(Frame.LinkAt(Point.x, Point.y));
+      End;
+    gskKeybindingsLocalFocusTerminalUp :
+     fController.FocusDirection(0, -1);
+    gskKeybindingsLocalFocusTerminalDown :
+     fController.FocusDirection(0, 1);
+    gskKeybindingsLocalFocusTerminalLeft :
+     fController.FocusDirection( -1, 0);
+    gskKeybindingsLocalFocusTerminalRight :
+     fController.FocusDirection(1, 0);
+    gskKeybindingsLocalMoveTerminalSplitUp :
+     fController.MoveSplit(0, -1);
+    gskKeybindingsLocalMoveTerminalSplitDown :
+     fController.MoveSplit(0, 1);
+    gskKeybindingsLocalMoveTerminalSplitLeft :
+     fController.MoveSplit( -1, 0);
+    gskKeybindingsLocalMoveTerminalSplitRight :
+     fController.MoveSplit(1, 0);
     gskKeybindingsLocalNewTabZsh :
      fController.NewTab('', 'zsh');
     gskKeybindingsLocalNewTabBash :
@@ -953,6 +1163,13 @@ Implementation
     gskKeybindingsLocalQuit :
      QuitClick(Nil);
    End;
+   If Action In [gskKeybindingsLocalFocusTerminalUp, gskKeybindingsLocalFocusTerminalDown,
+   gskKeybindingsLocalFocusTerminalLeft, gskKeybindingsLocalFocusTerminalRight] Then
+    Begin
+     Frame := ActiveTerminalFrame;
+     If (Frame <> Nil) And Frame.CanFocus Then
+      Frame.SetFocus;
+    End;
   End;
 
  Procedure TfrmMain.SearchMatched(Sender : TObject);

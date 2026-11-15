@@ -14,6 +14,8 @@ Interface
   TTerminalTests = Class
    Public
     [Test] Procedure IncrementalUnicodeAndCSI;
+    [Test] Procedure HyperlinksSearchAndDirectionalPanes;
+    [Test] Procedure SessionTreeRoundTripAndFailedRestore;
     [Test] Procedure AlternateScreenRestoresPrimary;
     [Test] Procedure ColorsCursorAndDeviceResponses;
     [Test] Procedure ScrollbackAndMargins;
@@ -36,12 +38,13 @@ Interface
     [Test] Procedure OccupiedGlobalShortcutDoesNotStopTerminal;
     [Test] Procedure FullscreenScrollOpacityAndMouseSelection;
     [Test] Procedure GitZshEnvironmentAndExitStatus;
+    [Test] Procedure DropDownAnimationReversesAndKeepsTerminalSize;
   End;
 
 Implementation
 
  Uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, System.IOUtils,
+  Guake.Links, Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, System.IOUtils,
   frmMainU, fraTerminalU, Vcl.Graphics, Vcl.Imaging.pngimage, Vcl.ComCtrls, Vcl.Controls, Guake.ConPTY, Guake.VT, Guake.Shells, Guake.Sessions, Guake.Settings, Guake.Keybindings;
 
  Type
@@ -799,6 +802,181 @@ Implementation
     End;
    Finally
     Buffer.Free;
+   End;
+  End;
+
+/// <summary>Exercises both screen edges, reversing, immediate mode and persistent animation settings.</summary>
+
+ Procedure TTerminalTests.DropDownAnimationReversesAndKeepsTerminalSize;
+  Var
+   Settings : TGuakeSettings;
+   Main     : TfrmMain;
+   Edge     : Integer;
+   Rows     : Integer;
+   Bounds   : TRect;
+  Begin
+   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Try
+    Settings.General.DefaultShell              := 'cmd';
+    Settings.General.UseTrayicon               := False;
+    Settings.Keybindings.Global.ShowHide       := 'disabled';
+    Settings.Keybindings.Global.ShowFocus      := 'disabled';
+    Settings.General.DropDownAnimation         := True;
+    Settings.General.DropDownAnimationDuration := 40;
+    Settings.Save;
+    Settings.Reload;
+    Assert.IsTrue(Settings.General.DropDownAnimation);
+    Assert.AreEqual(40, Settings.General.DropDownAnimationDuration);
+    Main := TfrmMain.Create(Nil);
+    Try
+     Main.Bind(Settings);
+     Main.StartTerminal;
+     For Edge := 0 To 1 Do
+      Begin
+       Settings.General.WindowValignment := Edge;
+       Main.ApplySettings;
+       Bounds := Main.BoundsRect;
+       Rows   := Main.ActiveTerminalFrame.Session.Buffer.Rows;
+       Main.SetTerminalVisible(True);
+       Sleep(15);
+       Main.AnimationTick(Nil);
+       Assert.AreEqual(Rows, Main.ActiveTerminalFrame.Session.Buffer.Rows);
+       Main.ToggleVisibility;
+       Sleep(60);
+       Main.AnimationTick(Nil);
+       Assert.IsFalse(Main.Visible);
+       Assert.IsFalse(Main.animationTimer.Enabled);
+       Assert.AreEqual(Bounds.Top, Main.Top);
+       Main.SetTerminalVisible(True);
+       Sleep(60);
+       Main.AnimationTick(Nil);
+       Assert.IsTrue(Main.Visible);
+       Assert.AreEqual(Bounds.Top, Main.Top);
+       Main.SetTerminalVisible(False);
+       Sleep(60);
+       Main.AnimationTick(Nil);
+      End;
+     Settings.General.DropDownAnimation := False;
+     Main.SetTerminalVisible(True);
+     Assert.IsTrue(Main.Visible);
+     Assert.IsFalse(Main.animationTimer.Enabled);
+     Main.SetTerminalVisible(False);
+     Assert.IsFalse(Main.Visible);
+    Finally
+     Main.Free;
+    End;
+   Finally
+    Settings.Free;
+   End;
+  End;
+
+/// <summary>Verifies URL boundaries, search encoding, OSC 8 across feeds and directional navigation of nested splits.</summary>
+
+ Procedure TTerminalTests.HyperlinksSearchAndDirectionalPanes;
+  Var
+   Buffer     : TTerminalBuffer;
+   Settings   : TGuakeSettings;
+   Controller : TTerminalController;
+   LeftPane   : TTerminalSession;
+   RightPane  : TTerminalSession;
+   BottomPane : TTerminalSession;
+   URI        : String;
+  Begin
+   Assert.AreEqual('https://example.org/a', TerminalLinkAt('go https://example.org/a). end', 12));
+   Assert.AreEqual('', TerminalLinkAt('go https://example.org/a). end', 26));
+   Assert.AreEqual('', NormalizeTerminalLink('javascript:alert(1)'));
+   URI := WebSearchAddress('a & b/ż', 5, 'https://example.org/?q=%s');
+   Assert.IsTrue(Pos('a+%26+b%2F', URI) > 0, URI);
+   Buffer := TTerminalBuffer.Create(80, 5);
+   Try
+    Buffer.FeedText(#27']8;id=one;https://example.org/' + #27);
+    Buffer.FeedText('\' + 'click' + #27'[31m' + 'x' + #27']8;;' + #7 + 'plain');
+    Assert.AreEqual('https://example.org/', Buffer.Cell[0, 0].Hyperlink);
+    Assert.AreEqual('https://example.org/', Buffer.Cell[5, 0].Hyperlink);
+    Assert.AreEqual('', Buffer.Cell[6, 0].Hyperlink);
+   Finally
+    Buffer.Free;
+   End;
+   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Try
+    Settings.General.DefaultShell := 'cmd';
+    Controller                    := TTerminalController.Create(Settings);
+    Try
+     Controller.NewTab;
+     LeftPane := Controller.ActiveSession;
+     Controller.Split(True);
+     RightPane := Controller.ActiveSession;
+     Controller.Split(False);
+     BottomPane := Controller.ActiveSession;
+     Assert.IsTrue(Controller.FocusDirection(0, -1));
+     Assert.AreSame(RightPane, Controller.ActiveSession);
+     Assert.IsTrue(Controller.FocusDirection( -1, 0));
+     Assert.AreSame(LeftPane, Controller.ActiveSession);
+     Assert.IsFalse(Controller.FocusDirection( -1, 0));
+     Controller.FocusSession(BottomPane);
+     Assert.IsTrue(Controller.MoveSplit(1, 0));
+     Assert.AreEqual(55, Controller.ActiveTab.Root.Ratio);
+     Assert.IsTrue(Controller.MoveSplit(0, -1));
+     Assert.AreEqual(45, Controller.ActiveTab.Root.Second.Ratio);
+    Finally
+     Controller.Free;
+    End;
+   Finally
+    Settings.Free;
+   End;
+  End;
+
+/// <summary>Restores mixed split trees, custom titles, active panes and disk files; malformed input keeps live sessions.</summary>
+
+ Procedure TTerminalTests.SessionTreeRoundTripAndFailedRestore;
+  Var
+   Settings   : TGuakeSettings;
+   Controller : TTerminalController;
+   State      : String;
+   Path       : String;
+   ActiveId   : String;
+   Original   : TTerminalSession;
+  Begin
+   Path     := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName + '.json');
+   Settings := TGuakeSettings.Create(Path + '.ini');
+   Try
+    Settings.General.DefaultShell := 'cmd';
+    Controller                    := TTerminalController.Create(Settings);
+    Try
+     Controller.NewTab;
+     Controller.ActiveTab.Name := 'Pierwsza';
+     Controller.Split(True);
+     Controller.MoveSplit(1, 0);
+     Controller.Split(False);
+     Controller.MoveSplit(0, -1);
+     ActiveId                             := Controller.ActiveSession.Id;
+     Controller.ActiveSession.CustomTitle := 'Panel żółty';
+     Controller.NewTab;
+     Controller.ActiveTab.Name := 'Druga';
+     Controller.SelectTab(0);
+     Controller.SaveSession(Path);
+     State := Controller.SessionState;
+     Controller.CloseTab(0);
+     Controller.LoadSession(Path);
+     Assert.AreEqual(2, Controller.Count);
+     Assert.AreEqual(Integer(tnVertical), Integer(Controller.ActiveTab.Root.Kind));
+     Assert.AreEqual(55, Controller.ActiveTab.Root.Ratio);
+     Assert.AreEqual(Integer(tnHorizontal), Integer(Controller.ActiveTab.Root.Second.Kind));
+     Assert.AreEqual(45, Controller.ActiveTab.Root.Second.Ratio);
+     Assert.AreEqual(ActiveId, Controller.ActiveSession.Id);
+     Assert.AreEqual('Panel żółty', Controller.ActiveSession.CustomTitle);
+     Assert.AreEqual(State, Controller.SessionState);
+     Original := Controller.ActiveSession;
+     Assert.WillRaise(Procedure Begin Controller.RestoreState('{"version":99,"tabs":[]}'); End, EArgumentException);
+     Assert.AreSame(Original, Controller.ActiveSession);
+     Assert.AreEqual(2, Controller.Count);
+    Finally
+     Controller.Free;
+    End;
+   Finally
+    Settings.Free;
+    If TFile.Exists(Path) Then
+     TFile.Delete(Path);
    End;
   End;
 
