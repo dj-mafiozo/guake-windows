@@ -350,8 +350,8 @@ Implementation
      Result.Executable := Value;
      If SameText(ExtractFileName(Value), 'bash.exe') Then
       Result.Kind := gsBash
-     Else If SameText(ExtractFileName(Value), 'zsh.exe') Then
-      Result.Kind := gsZsh
+     Else If SameText(ExtractFileName(Value), 'zsh.exe') Or SameText(ExtractFileName(Value), 'git-zsh.exe') Then
+      Result := TShellProfile.Resolve(gsZsh, fSettings.ReadString('windows', 'git-sdk-root', 'C:\git-sdk-64'))
      Else If SameText(ExtractFileName(Value), 'cmd.exe') Then
       Result.Kind := gsCmd
      Else
@@ -369,9 +369,9 @@ Implementation
       Result.Arguments := '-i';
     gsZsh :
      If fSettings.General.UseLoginShell Then
-      Result.Arguments := '-l -i'
+      Result.Arguments := '--nomintty --git-sdk-root ' + QuoteProcessArgument(fSettings.ReadString('windows', 'git-sdk-root', 'C:\git-sdk-64')) + ' --login -i'
      Else
-      Result.Arguments := '-i';
+      Result.Arguments := '--nomintty --git-sdk-root ' + QuoteProcessArgument(fSettings.ReadString('windows', 'git-sdk-root', 'C:\git-sdk-64')) + ' -i';
    End;
   End;
 
@@ -407,9 +407,9 @@ Implementation
       Profile.Arguments := '-i';
     gsZsh :
      If fSettings.General.UseLoginShell Then
-      Profile.Arguments := '-l -i'
+      Profile.Arguments := '--nomintty --git-sdk-root ' + QuoteProcessArgument(fSettings.ReadString('windows', 'git-sdk-root', 'C:\git-sdk-64')) + ' --login -i'
      Else
-      Profile.Arguments := '-i';
+      Profile.Arguments := '--nomintty --git-sdk-root ' + QuoteProcessArgument(fSettings.ReadString('windows', 'git-sdk-root', 'C:\git-sdk-64')) + ' -i';
    End;
    Target := Directory;
    If (Target = '') And fSettings.General.OpenTabCwd And (ActiveSession <> Nil) Then

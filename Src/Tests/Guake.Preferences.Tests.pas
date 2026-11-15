@@ -32,6 +32,7 @@ Interface
     [Test]     Procedure ResetOnlyCompatibility;
     [Test]     Procedure DuplicateShortcutIsRejected;
     [Test]     Procedure CaptureGraveAndTilde;
+    [Test]     Procedure CollapsibleShortcutGroups;
     [Test]     Procedure FailedSavePreservesSharedSettings;
     [Test]     Procedure PaletteUpdatesAllColors;
     [Test]     Procedure RenderAllPreferencePages;
@@ -372,20 +373,61 @@ Implementation
 
 /// <summary>Captures the OEM grave key and its shifted tilde form in the actual preferences grid.</summary>
 
+/// <summary>Collapses every group and edits a shortcut after row indices have changed.</summary>
+
+ Procedure TPreferencesTests.CollapsibleShortcutGroups;
+  Var
+   i      : Integer;
+   Count  : Integer;
+   Header : Integer;
+   Key    : Word;
+   Before : String;
+  Begin
+   fForm.Bind(fSettings);
+   Count                   := fForm.gridShortcuts.RowCount;
+   fForm.gridShortcuts.Row := 1;
+   Key                     := VK_LEFT;
+   fForm.ShortcutKeyDown(Nil, Key, []);
+   Assert.IsTrue(fForm.gridShortcuts.RowCount < Count);
+   // The next category now occupies row two; collapse it independently.
+   fForm.gridShortcuts.Row := 2;
+   Key                     := VK_LEFT;
+   fForm.ShortcutKeyDown(Nil, Key, []);
+   Assert.IsTrue(Pos('▶', fForm.gridShortcuts.Cells[0, 2]) = 1);
+   Key := VK_RIGHT;
+   fForm.ShortcutKeyDown(Nil, Key, []);
+   Before                  := fSettings.GetValue(gskKeybindingsGlobalShowHide);
+   fForm.gridShortcuts.Row := 3;
+   fForm.ShortcutDblClick(Nil);
+   Key := VK_F24;
+   fForm.ShortcutKeyDown(Nil, Key, [ssCtrl, ssAlt]);
+   Assert.AreEqual('<Control><Alt>F24', fSettings.GetValue(gskKeybindingsLocalNewTab));
+   Assert.AreEqual(Before, fSettings.GetValue(gskKeybindingsGlobalShowHide));
+   Header := 0;
+   For i  := 1 To fForm.gridShortcuts.RowCount - 1 Do
+    If (Pos('▼', fForm.gridShortcuts.Cells[0, i]) = 1) Or (Pos('▶', fForm.gridShortcuts.Cells[0, i]) = 1) Then
+     Inc(Header);
+   Assert.AreEqual(7, Header);
+   fForm.gridShortcuts.Row := 2;
+   Key                     := VK_DOWN;
+   fForm.ShortcutKeyDown(Nil, Key, []);
+   Assert.AreEqual(Word(VK_DOWN), Key);
+  End;
+
  Procedure TPreferencesTests.CaptureGraveAndTilde;
   Var
    Key : Word;
   Begin
    fForm.Bind(fSettings);
-   fForm.gridShortcuts.Row := 1;
+   fForm.gridShortcuts.Row := 2;
    fForm.ShortcutDblClick(Nil);
    Key := VK_OEM_3;
    fForm.ShortcutKeyDown(Nil, Key, []);
-   Assert.IsTrue(Pos('grave', fForm.gridShortcuts.Cells[1, 1]) > 0);
+   Assert.IsTrue(Pos('grave', fForm.gridShortcuts.Cells[1, 2]) > 0);
    fForm.ShortcutDblClick(Nil);
    Key := VK_OEM_3;
    fForm.ShortcutKeyDown(Nil, Key, [ssShift]);
-   Assert.IsTrue(Pos('asciitilde', fForm.gridShortcuts.Cells[1, 1]) > 0);
+   Assert.IsTrue(Pos('asciitilde', fForm.gridShortcuts.Cells[1, 2]) > 0);
   End;
 
 /// <summary>Verifies the reference sidebar against all existing DFM pages and the original logo.</summary>

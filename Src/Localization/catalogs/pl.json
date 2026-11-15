@@ -4236,6 +4236,14 @@
     },
     {
       "context": "",
+      "singular": "To disable a shortcut, press the \"Backspace\" key.",
+      "plural": "",
+      "translations": [
+        "Naciśnięcie klawisza „Backspace” wyłącza skrót."
+      ]
+    },
+    {
+      "context": "",
       "singular": "To select which layout mode want to use for background image.",
       "plural": "",
       "translations": [

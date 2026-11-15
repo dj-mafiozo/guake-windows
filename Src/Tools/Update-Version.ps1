@@ -2,7 +2,7 @@
 param([Parameter(Mandatory = $true)][ValidateSet('Build', 'Release')][string]$Part)
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
-$projects = @('Src\Tests\GuakeTests.dproj','Src\Tests\GuakeFormsPreview.dproj','Src\guake.dproj')
+$projects = @('Src\Tests\GuakeTests.dproj','Src\Tests\GuakeFormsPreview.dproj','Src\guake.dproj','Src\Launchers\git-zsh.dproj')
 [xml]$reference = [IO.File]::ReadAllText((Join-Path $repo $projects[0]))
 $ns = [Xml.XmlNamespaceManager]::new($reference.NameTable)
 $ns.AddNamespace('p', 'http://schemas.microsoft.com/developer/msbuild/2003')

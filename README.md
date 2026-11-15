@@ -1,4 +1,4 @@
-﻿# Guake dla Windows
+# Guake dla Windows
 
 Port Guake na Windows 64-bit w Delphi/VCL z natywnym WinAPI. Celem jest zgodność funkcji i wyglądu z Guake. Dostępne są ustawienia, formularze, backend ConPTY, podstawowy emulator VT oraz kontroler kart i podziałów. Named Pipes i pozostałe funkcje portu wymagają dalszej pracy.
 
@@ -18,13 +18,13 @@ git submodule update --init --recursive
 powershell -NoProfile -ExecutionPolicy Bypass -File Src/Tools/Test.ps1
 ```
 
-Wymagane: Delphi Win64, Python 3 i `map2pdb.exe` w PATH. Budowanie nie zmienia wersji. Na początku kolejnego przebiegu prac zwiększ build jawnie przez `Src/Tools/Update-Version.ps1 -Part Build`; przed commitem zwiększ release przez `-Part Release`. Skrypt buduje projekt główny, DUnitX oraz podgląd formularzy; generuje osobne PDB, zachowując niezmienione EXE. Raport: `bin/tests/test-results.xml`. Podglądy zakładek: `bin/tests/preferences-preview/`. Testy używają własnego katalogu tymczasowego pod `.build/`.
+Wymagane: Delphi Win64, Python 3 i `map2pdb.exe` w PATH. Budowanie nie zmienia wersji. Na początku kolejnego przebiegu prac zwiększ build jawnie przez `Src/Tools/Update-Version.ps1 -Part Build`; przed commitem zwiększ release przez `-Part Release`. Skrypt buduje projekt główny, wrapper Git Zsh, DUnitX oraz podgląd formularzy; generuje osobne PDB, zachowując niezmienione EXE. Raport: `bin/tests/test-results.xml`. Podglądy zakładek: `bin/tests/preferences-preview/`. Testy używają własnego katalogu tymczasowego pod `.build/`.
 
 Główny EXE: `bin/Win64/guake.exe`. Samodzielny edytor preferencji do sprawdzenia formularza: `bin/forms/GuakeFormsPreview.exe`. Edytor zapisuje ustawienia do `%APPDATA%/Guake/guake.ini`. Zbudowaną aplikację z PDB i lokalizacją można spakować przez `Src/Tools/Package.ps1`.
 
 [Stan portu i mapa formularzy](docs/port-status.md) opisują zakres działającego kodu i braki. [Inwentarz źródłowego Guake](docs/guake-contract.json) nie oznacza implementacji wszystkich wymienionych funkcji. [AGENTS.md](AGENTS.md) określa formatowanie, zasoby i wersjonowanie.
 
-Jeżeli uruchomiona aplikacja blokuje docelowy EXE, można zweryfikować kompilację przez `Src/Tools/Test.ps1 -MainOutput .build/verified-main`. Ten parametr zmienia katalog wyjściowy EXE, PDB i lokalizacji aplikacji głównej. Paczkę z takiego katalogu tworzy `Src/Tools/Package.ps1 -OutputDirectory .build/verified-main`. `Base` w IDE przechowuje wspólne opcje; do budowania wybierz `Debug` albo `Release`.
+Jeżeli uruchomiona aplikacja blokuje docelowy EXE, można zweryfikować kompilację przez `Src/Tools/Test.ps1 -MainOutput .build/verified-main`. Ten parametr zmienia katalog wyjściowy EXE i PDB aplikacji oraz wrappera, a także lokalizacji aplikacji. Paczkę z takiego katalogu tworzy `Src/Tools/Package.ps1 -OutputDirectory .build/verified-main`. `Base` w IDE przechowuje wspólne opcje; do budowania wybierz `Debug` albo `Release`.
 
 Konflikt skrótu globalnego nie blokuje uruchomienia terminala. Szczegóły są widoczne w podpowiedzi ikony tray; zajętą kombinację można zmienić w preferencjach. Projekty używają `ResourceBuildDependsOn` do kompilacji zasobów, zgodnie ze starszym parserem MSBuild w Delphi.
 
@@ -37,3 +37,7 @@ Obraz tła terminala obsługuje PNG, JPEG, BMP i statyczny GIF: skalowanie z zac
 Menu karty zawiera wybór Zsh, Bash, CMD i PowerShell. Każda powłoka ma własne działanie w preferencjach skrótów; domyślnie skróty są wyłączone. Są to skróty lokalne działające w terminalu Guake. Etykiety i podpowiedzi uzupełnia polski katalog portu Windows.
 
 Pasek kart używa płaskich przycisków (`TTabControl.Style = tsFlatButtons`). Menu karty jest dostępne również na pustej części paska. Lewy klik ikony nowej karty otwiera domyślną powłokę z preferencji; prawy pokazuje bezpośredni wybór Zsh/Bash/CMD/PowerShell. Jednorazowy wybór nie zmienia ustawienia powłoki domyślnej.
+
+Wrapper `bin/Win64/git-zsh.exe` bez parametrów otwiera Zsh w mintty. Z `--nomintty` korzysta z bieżącej konsoli; ten wariant jest podłączony pod profil `zsh` w Guake. Katalog Git SDK można przekazać przez `--git-sdk-root`, `GIT_SDK_ROOT`, a w Guake przez `windows/git-sdk-root` w INI. Domyślny katalog to `C:/git-sdk-64`. Wrapper wymaga zainstalowanego SDK z Zsh i mintty; nie zawiera dystrybucji tych programów.
+
+Skróty mają siedem zwijanych sekcji, obsługiwanych myszą i klawiaturą. Zaznaczenie w terminalu zaczyna się od przeciągnięcia; zwykły klik nie wybiera znaku. [Aktualna tabela stanu portu](docs/port-status.md) oddziela działające funkcje od zakresu pozostałego do przeniesienia.

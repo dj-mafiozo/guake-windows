@@ -1768,7 +1768,9 @@
           RowCount = 51
           Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goDrawFocusSelected, goRowSelect]
           ScrollBars = ssVertical
-          OnKeyDown = ShortcutKeyDown
+          OnMouseDown = ShortcutMouseDown
+            OnDrawCell = ShortcutDrawCell
+            OnKeyDown = ShortcutKeyDown
           OnDblClick = ShortcutDblClick
         end
       end

@@ -14,6 +14,7 @@ Interface
   TShellProfile = Record
    Kind       : TGuakeShell;
    Executable : String;
+   GitSdkRoot : String;
    Arguments  : String;
    Function CommandLine : String;
    Function Available : Boolean;
@@ -51,6 +52,8 @@ Implementation
  Function TShellProfile.Available : Boolean;
   Begin
    Result := (Executable <> '') And TFile.Exists(Executable);
+   If Result And (Kind = gsZsh) Then
+    Result := TFile.Exists(TPath.Combine(GitSdkRoot, 'usr\bin\zsh.exe'));
   End;
 
  Function TShellProfile.CommandLine : String;
@@ -66,8 +69,9 @@ Implementation
   WindowsRoot : String;
 
 Begin
- Result.Kind := Kind;
- WindowsRoot := GetEnvironmentVariable('SystemRoot');
+ Result.Kind       := Kind;
+ Result.GitSdkRoot := GitSdkRoot;
+ WindowsRoot       := GetEnvironmentVariable('SystemRoot');
  Case Kind Of
   gsCmd :
    Begin
@@ -86,8 +90,8 @@ Begin
    End;
   gsZsh :
    Begin
-    Result.Executable := TPath.Combine(GitSdkRoot, 'usr\bin\zsh.exe');
-    Result.Arguments  := '-l -i';
+    Result.Executable := TPath.Combine(ExtractFilePath(ParamStr(0)), 'git-zsh.exe');
+    Result.Arguments  := '--nomintty --git-sdk-root ' + QuoteProcessArgument(GitSdkRoot) + ' --login -i';
    End;
  End;
 End;

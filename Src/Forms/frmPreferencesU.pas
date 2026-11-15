@@ -237,6 +237,8 @@ Interface
     Procedure PaletteColorChanged    (Sender : TObject);
     Procedure DemoPaint              (Sender : TObject);
     Procedure ResetCompatibilityClick(Sender : TObject);
+    Procedure ShortcutMouseDown      (Sender : TObject; Button : TMouseButton; Shift : TShiftState; x, y : Integer);
+    Procedure ShortcutDrawCell       (Sender : TObject; ACol, ARow : Integer; Rect : TRect; State : TGridDrawState);
     Procedure ShortcutKeyDown        (Sender : TObject; Var Key : Word; Shift : TShiftState);
     Procedure ShortcutDblClick       (Sender : TObject);
     Procedure ApplicationException   (Sender : TObject; e : Exception);
@@ -249,16 +251,18 @@ Interface
     fCapturingShortcut : Boolean;
     fWheelRemainder    : Integer;
     fWheelTarget       : TScrollBox;
-    fShortcutKeys      : TArray<TGuakeSetting>;
+    fShortcutRows      : TArray<Integer>;
+    fCollapsedGroups   : Array[0..6] Of Boolean;
     fOnSettingsChanged : TNotifyEvent;
-    Function  Translate   (Const Source : String)                   : String;
+    Function  Translate          (Const Source : String)                   : String;
     Procedure LoadControls;
     Procedure UpdateSensitivity;
     Procedure Localize;
-    Procedure Commit      (Candidate : TGuakeSettings);
+    Procedure Commit             (Candidate : TGuakeSettings);
     Procedure LoadPalette;
     Procedure FillShortcuts;
-    Function  ControlValue(Control : TControl; Key : TGuakeSetting) : String;
+    Procedure ToggleShortcutGroup(Row : Integer);
+    Function  ControlValue       (Control : TControl; Key : TGuakeSetting) : String;
    Public
     Procedure Bind         (Settings : TGuakeSettings; Localizer : TGuakeLocalization = Nil; Log : TGuakeLog = Nil);
     Procedure SetPreference(Key : TGuakeSetting; Const Value : String);
@@ -384,7 +388,7 @@ Implementation
    lblPalette17.Caption                    := Translate('Background');
    lblBackgroundTransparency.Caption       := Translate('Transparency:');
    tabKeyboard.Caption                     := Translate('Keyboard shortcuts');
-   lblShortcutHelp.Caption                 := Translate('To change a shortcut simply click on its name.' + #13#10 + 'To disable a shortcut, press the "Backspace" key.');
+   lblShortcutHelp.Caption                 := Translate('To change a shortcut simply click on its name.') + #13#10 + Translate('To disable a shortcut, press the "Backspace" key.');
    tabQuickOpen.Caption                    := Translate('Quick Open');
    ctlQuickOpenEnable.Caption              := Translate('Enable Quick Open when Ctrl+clicking on a filename in the terminal');
    lblQuickOpenCommandLine.Caption         := Translate('Editor command line:');
@@ -472,8 +476,8 @@ Implementation
   Begin
    If Handled Or (Msg.Message <> WM_MOUSEWHEEL) Or Not Visible Then
     Exit;
-   Point.X := SmallInt(LoWord(Msg.lParam));
-   Point.Y := SmallInt(HiWord(Msg.lParam));
+   Point.x := SmallInt(LoWord(Msg.lParam));
+   Point.y := SmallInt(HiWord(Msg.lParam));
    Control := FindVCLWindow(Point);
    If (Control = Nil) Or (GetParentForm(Control) <> Self) Then
     Exit;
@@ -667,7 +671,11 @@ Implementation
            For Shell := Low(TGuakeShell) To High(TGuakeShell) Do
             Begin
              Profile := TShellProfile.Resolve(Shell);
-             If SameText(Profile.Executable, Value) Then
+             If SameText(Profile.Executable, Value) Or
+             ((Shell = gsCmd) And SameText(Value, 'cmd')) Or
+             ((Shell = gsPowerShell) And SameText(Value, 'powershell')) Or
+             ((Shell = gsBash) And SameText(Value, 'bash')) Or
+             ((Shell = gsZsh) And SameText(Value, 'zsh')) Then
               ctlDefaultShell.ItemIndex := Ord(Shell) + 1;
             End;
          End
@@ -717,10 +725,10 @@ Implementation
  Function TfrmPreferences.ControlValue(Control : TControl; Key : TGuakeSetting) : String;
   Const
    EraseBindings : Array[0..2] Of String = ('ascii-delete', 'delete-sequence', 'ascii-backspace');
+   ShellNames : Array[0..3] Of String = ('cmd', 'powershell', 'bash', 'zsh');
   Var
-   Profile : TShellProfile;
-   d       : TGuakeSettingDefinition;
-   v       : Double;
+   d : TGuakeSettingDefinition;
+   v : Double;
   Begin
    d := TGuakeSettings.Definition(Key);
    If Control Is TRadioButton Then
@@ -764,8 +772,7 @@ Implementation
         Result := ''
        Else If ctlDefaultShell.ItemIndex In [1..4] Then
         Begin
-         Profile := TShellProfile.Resolve(TGuakeShell(ctlDefaultShell.ItemIndex - 1));
-         Result  := Profile.Executable;
+         Result := ShellNames[ctlDefaultShell.ItemIndex - 1];
         End
        Else
         Result := ctlDefaultShell.Text;
@@ -992,36 +999,142 @@ Implementation
     End;
   End;
 
- Procedure TfrmPreferences.FillShortcuts;
+/// <summary>Maps the original prefs.py HOTKEYS categories, plus the four Windows shells.</summary>
+
+ Function ShortcutGroup(Key : TGuakeSetting) : Integer;
   Var
-   k        : TGuakeSetting;
-   d        : TGuakeSettingDefinition;
-   n        : Integer;
-   Selected : Integer;
+   Name : String;
   Begin
-   Selected := gridShortcuts.Row;
-   SetLength(fShortcutKeys, 0);
-   For k := Low(TGuakeSetting) To High(TGuakeSetting) Do
+   Name := ',' + TGuakeSettings.Definition(Key).Key + ',';
+   If Pos(Name, ',show-hide,show-focus,toggle-fullscreen,toggle-hide-on-lose-focus,quit,reset-terminal,search-terminal,') > 0 Then
+    Exit(0);
+   If Pos(Name, ',new-tab,new-tab-home,new-tab-cwd,close-tab,rename-current-tab,new-tab-zsh,new-tab-bash,new-tab-cmd,new-tab-powershell,') > 0 Then
+    Exit(1);
+   If Pos(Name, ',split-tab-vertical,split-tab-horizontal,close-terminal,focus-terminal-up,focus-terminal-down,focus-terminal-left,focus-terminal-right,move-terminal-split-up,move-terminal-split-down,move-terminal-split-right,move-terminal-split-left,') > 0 Then
+    Exit(2);
+   If Pos(Name, ',previous-tab,previous-tab-alt,next-tab,next-tab-alt,move-tab-left,move-tab-right,switch-tab1,switch-tab2,switch-tab3,switch-tab4,switch-tab5,switch-tab6,switch-tab7,switch-tab8,switch-tab9,switch-tab10,switch-tab-last,') > 0 Then
+    Exit(3);
+   If Pos(Name, ',zoom-out,zoom-in,zoom-in-alt,increase-height,decrease-height,increase-transparency,decrease-transparency,toggle-transparency,') > 0 Then
+    Exit(4);
+   If Pos(Name, ',clipboard-copy,clipboard-paste,select-all,') > 0 Then
+    Exit(5);
+   If Pos(Name, ',search-on-web,open-link-under-terminal-cursor,') > 0 Then
+    Exit(6);
+   Result := 6;
+  End;
+
+ Procedure TfrmPreferences.FillShortcuts;
+  Const
+   GroupNames : Array[0..6] Of String = ('General', 'Tab management', 'Split management', 'Navigation', 'Appearance', 'Clipboard', 'Extra features');
+  Var
+   k           : TGuakeSetting;
+   g           : Integer;
+   n           : Integer;
+   Selected    : Integer;
+   NewSelected : Integer;
+   d           : TGuakeSettingDefinition;
+
+   Procedure AddRow(Value : Integer);
     Begin
-     d := TGuakeSettings.Definition(k);
-     If Pos('keybindings.', d.Section) <> 1 Then
-      Continue;
-     n := Length(fShortcutKeys);
-     SetLength(fShortcutKeys, n + 1);
-     fShortcutKeys[n] := k;
+     n := Length(fShortcutRows);
+     SetLength(fShortcutRows, n + 1);
+     fShortcutRows[n] := Value;
+     If Value = Selected Then
+      NewSelected := n + 1;
     End;
-   gridShortcuts.RowCount     := Length(fShortcutKeys) + 1;
+
+  Begin
+   Selected := -1;
+   If (gridShortcuts.Row > 0) And (gridShortcuts.Row <= Length(fShortcutRows)) Then
+    Selected   := fShortcutRows[gridShortcuts.Row - 1];
+   NewSelected := 1;
+   SetLength(fShortcutRows, 0);
+   For g := 0 To 6 Do
+    Begin
+     AddRow( -g - 1);
+     If Not fCollapsedGroups[g] Then
+      For k := Low(TGuakeSetting) To High(TGuakeSetting) Do
+       If (Pos('keybindings.', TGuakeSettings.Definition(k).Section) = 1) And (ShortcutGroup(k) = g) Then
+        AddRow(Ord(k));
+    End;
+   gridShortcuts.RowCount     := Length(fShortcutRows) + 1;
    gridShortcuts.Cells[0, 0]  := Translate('Action');
    gridShortcuts.Cells[1, 0]  := Translate('Shortcut');
    gridShortcuts.ColWidths[0] := 560;
    gridShortcuts.ColWidths[1] := 300;
-   For n                      := 0 To High(fShortcutKeys) Do
+   For n                      := 0 To High(fShortcutRows) Do
     Begin
-     d                             := TGuakeSettings.Definition(fShortcutKeys[n]);
-     gridShortcuts.Cells[0, n + 1] := Translate(d.Summary);
-     gridShortcuts.Cells[1, n + 1] := fSettings.GetValue(fShortcutKeys[n]);
+     g                             := fShortcutRows[n];
+     gridShortcuts.Cells[1, n + 1] := '';
+     If g < 0 Then
+      Begin
+       g := -g - 1;
+       If fCollapsedGroups[g] Then
+        gridShortcuts.Cells[0, n + 1] := '▶ '
+       Else
+        gridShortcuts.Cells[0, n + 1] := '▼ ';
+       gridShortcuts.Cells[0, n + 1]  := gridShortcuts.Cells[0, n + 1] + Translate(GroupNames[g]);
+      End
+     Else
+      Begin
+       k                             := TGuakeSetting(g);
+       d                             := TGuakeSettings.Definition(k);
+       gridShortcuts.Cells[0, n + 1] := '    ' + Translate(d.Summary);
+       gridShortcuts.Cells[1, n + 1] := fSettings.GetValue(k);
+      End;
     End;
-   gridShortcuts.Row := EnsureRange(Selected, 1, gridShortcuts.RowCount - 1);
+   gridShortcuts.Row := EnsureRange(NewSelected, 1, gridShortcuts.RowCount - 1);
+  End;
+
+ Procedure TfrmPreferences.ToggleShortcutGroup(Row : Integer);
+  Var
+   g : Integer;
+  Begin
+   If (Row < 1) Or (Row > Length(fShortcutRows)) Then
+    Exit;
+   g := fShortcutRows[Row - 1];
+   If g >= 0 Then
+    Exit;
+   fCapturingShortcut        := False;
+   fCollapsedGroups[ -g - 1] := Not fCollapsedGroups[ -g - 1];
+   FillShortcuts;
+  End;
+
+ Procedure TfrmPreferences.ShortcutMouseDown(Sender : TObject; Button : TMouseButton; Shift : TShiftState; x, y : Integer);
+  Var
+   Col : Integer;
+   Row : Integer;
+  Begin
+   If Button <> mbLeft Then
+    Exit;
+   gridShortcuts.MouseToCell(x, y, Col, Row);
+   If (Row < 1) Or (Row > Length(fShortcutRows)) Then
+    Exit;
+   gridShortcuts.Row := Row;
+   If fShortcutRows[Row - 1] < 0 Then
+    ToggleShortcutGroup(Row)
+   Else
+    ShortcutDblClick(Sender);
+  End;
+
+ Procedure TfrmPreferences.ShortcutDrawCell(Sender : TObject; ACol, ARow : Integer; Rect : TRect; State : TGridDrawState);
+  Begin
+   If (ARow < 1) Or (ARow > Length(fShortcutRows)) Or (fShortcutRows[ARow - 1] >= 0) Then
+    Exit;
+   With gridShortcuts.Canvas Do
+    Begin
+     Brush.Color := clBtnFace;
+     If gdSelected In State Then
+      Brush.Color := clHighlight;
+     FillRect(Rect);
+     Font.Assign(gridShortcuts.Font);
+     Font.Style := [fsBold];
+     Font.Color := clWindowText;
+     If gdSelected In State Then
+      Font.Color := clHighlightText;
+     TextRect(Rect, Rect.Left + 3, Rect.Top + 4, gridShortcuts.Cells[ACol, ARow]);
+     Font.Assign(gridShortcuts.Font);
+    End;
   End;
 
  Function CanonicalShortcut(Const Value : String) : String;
@@ -1070,6 +1183,8 @@ Implementation
 
  Procedure TfrmPreferences.ShortcutDblClick(Sender : TObject);
   Begin
+   If (gridShortcuts.Row < 1) Or (gridShortcuts.Row > Length(fShortcutRows)) Or (fShortcutRows[gridShortcuts.Row - 1] < 0) Then
+    Exit;
    fCapturingShortcut                        := True;
    gridShortcuts.Cells[1, gridShortcuts.Row] := Translate('Press a key combination');
   End;
@@ -1079,6 +1194,17 @@ Implementation
    Accelerator : String;
    Name        : String;
   Begin
+   If (gridShortcuts.Row > 0) And (gridShortcuts.Row <= Length(fShortcutRows)) And (fShortcutRows[gridShortcuts.Row - 1] < 0) Then
+    Begin
+     If Key In [VK_RETURN, VK_SPACE] Then
+      ToggleShortcutGroup(gridShortcuts.Row)
+     Else If ((Key = VK_LEFT) And Not fCollapsedGroups[ -fShortcutRows[gridShortcuts.Row - 1] - 1]) Or
+     ((Key = VK_RIGHT) And fCollapsedGroups[ -fShortcutRows[gridShortcuts.Row - 1] - 1]) Then
+      ToggleShortcutGroup(gridShortcuts.Row);
+     If Key In [VK_RETURN, VK_SPACE, VK_LEFT, VK_RIGHT] Then
+      Key := 0;
+     Exit;
+    End;
    If Not fCapturingShortcut Or (gridShortcuts.Row < 1) Then
     Exit;
    If Key = VK_ESCAPE Then
@@ -1161,7 +1287,7 @@ Implementation
     End;
    Key := 0;
    Try
-    SetShortcut(fShortcutKeys[gridShortcuts.Row - 1], Accelerator);
+    SetShortcut(TGuakeSetting(fShortcutRows[gridShortcuts.Row - 1]), Accelerator);
    Finally
     fCapturingShortcut := False;
     FillShortcuts;

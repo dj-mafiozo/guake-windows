@@ -34,6 +34,8 @@ Interface
     [Test] Procedure BackgroundImageLayoutsAndRemoval;
     [Test] Procedure MainWindowCreatesTerminalAndSplitFrames;
     [Test] Procedure OccupiedGlobalShortcutDoesNotStopTerminal;
+    [Test] Procedure FullscreenScrollOpacityAndMouseSelection;
+    [Test] Procedure GitZshEnvironmentAndExitStatus;
   End;
 
 Implementation
@@ -218,7 +220,7 @@ Implementation
    Assert.IsTrue(Profile.Available, Profile.Executable);
    Case Kind Of
     gsBash       : Profile.Arguments := '--noprofile --norc -i';
-    gsZsh        : Profile.Arguments := '-d -f -i';
+    gsZsh        : Profile.Arguments := '--nomintty -d -f -i';
     gsPowerShell : Profile.Arguments := '-NoLogo -NoProfile -NoExit -Command "Set-PSReadLineOption -HistorySaveStyle SaveNothing"';
    End;
    Buffer := TTerminalBuffer.Create(120, 30, 2000);
@@ -463,7 +465,7 @@ Implementation
    Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
    Try
     Profile           := TShellProfile.Resolve(gsZsh);
-    Profile.Arguments := '-d -f -c ' + QuoteProcessArgument('printf "%s:%s " "$TERM" "$COLORTERM"; print -n -P ''%F{green}USER%f %% WHITE''');
+    Profile.Arguments := '--nomintty -d -f -c ' + QuoteProcessArgument('printf "%s:%s " "$TERM" "$COLORTERM"; print -n -P ''%F{green}USER%f %% WHITE''');
     Session           := TTerminalSession.Create(Profile, GetCurrentDir, Settings);
     Try
      Deadline := GetTickCount64 + 15000;
@@ -695,6 +697,108 @@ Implementation
     Target.Free;
     Source.Free;
     TFile.Delete(FileName);
+   End;
+  End;
+
+/// <summary>Exercises shrinking below a previous scrollbar page, fullscreen cycles and click versus drag.</summary>
+
+ Procedure TTerminalTests.FullscreenScrollOpacityAndMouseSelection;
+  Var
+   Settings : TGuakeSettings;
+   Main     : TfrmMain;
+   Frame    : TfraTerminal;
+   i        : Integer;
+   Key      : COLORREF;
+   Alpha    : Byte;
+   Flags    : DWORD;
+  Begin
+   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Try
+    Settings.General.DefaultShell          := 'cmd';
+    Settings.General.UseTrayicon           := False;
+    Settings.Keybindings.Global.ShowHide   := 'disabled';
+    Settings.Keybindings.Global.ShowFocus  := 'disabled';
+    Settings.Style.Background.Transparency := 73;
+    Main                                   := TfrmMain.Create(Nil);
+    Try
+     Main.Bind(Settings);
+     Main.HandleNeeded;
+     Main.StartTerminal;
+     Frame := Main.ActiveTerminalFrame;
+     Frame.HandleNeeded;
+     For i := 1 To 15 Do
+      Begin
+       Main.SetFullScreen(True);
+       Frame.RefreshTick(Nil);
+       Main.SetFullScreen(False);
+       Main.SetBounds(0, 0, 700, 120);
+       Frame.FrameResize(Nil);
+       Frame.RefreshTick(Nil);
+       Assert.IsTrue(Frame.scroll.PageSize <= Frame.scroll.Max);
+       Assert.IsTrue(GetLayeredWindowAttributes(Main.Handle, Key, Alpha, Flags));
+       Assert.AreEqual(MulDiv(73, 255, 100), Integer(Alpha));
+       Assert.AreEqual(Integer(LWA_ALPHA), Integer(Flags));
+      End;
+     Settings.General.WindowOntop := Not Settings.General.WindowOntop;
+     Main.ApplySettings;
+     Assert.IsTrue(GetLayeredWindowAttributes(Main.Handle, Key, Alpha, Flags));
+     Assert.AreEqual(MulDiv(73, 255, 100), Integer(Alpha));
+     Main.Show;
+     Main.SetBounds( -30000, 0, 700, 120);
+     Frame.Session.Buffer.FeedText(#27'[2J' + #27'[H' + 'selection');
+     Frame.RefreshTick(Nil);
+     Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
+     Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
+     Assert.AreEqual('', Frame.SelectedText);
+     Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
+     Frame.SurfaceMouseMove(Nil, [ssLeft], 6, 5);
+     Assert.AreEqual('', Frame.SelectedText);
+     Frame.SurfaceMouseMove(Nil, [ssLeft], 45, 5);
+     Frame.SurfaceMouseUp(Nil, mbLeft, [], 45, 5);
+     Assert.IsTrue(Length(Frame.SelectedText) > 1, Frame.SelectedText);
+    Finally
+     Main.Free;
+    End;
+   Finally
+    Settings.Free;
+   End;
+  End;
+
+/// <summary>Runs the packaged launcher under ConPTY, verifies Git environment and child exit code propagation.</summary>
+
+ Procedure TTerminalTests.GitZshEnvironmentAndExitStatus;
+  Var
+   Profile  : TShellProfile;
+   Session  : TConPtySession;
+   Buffer   : TTerminalBuffer;
+   Deadline : UInt64;
+  Begin
+   Profile := TShellProfile.Resolve(gsZsh);
+   Assert.IsTrue(SameText(ExtractFileName(Profile.Executable), 'git-zsh.exe'));
+   Buffer := TTerminalBuffer.Create(120, 30);
+   Try
+    Session := TConPtySession.Create(Profile.Executable,
+    '--nomintty --git-sdk-root "C:\git-sdk-64" -d -f -c ' + QuoteProcessArgument(
+    'printf "SDK=%s TERM=%s HOME=%s\n" "$MSYSTEM" "$TERM" "$HOME"; command -v git; exit 37'), GetCurrentDir, 120, 30);
+    Try
+     Deadline := GetTickCount64 + 15000;
+     Repeat
+      Buffer.Feed(Session.ReadAvailable);
+      If Not Session.Running Then
+       Break;
+      Sleep(10);
+     Until GetTickCount64 >= Deadline;
+     Assert.IsFalse(Session.Running);
+     Session.CompleteOutput;
+     Buffer.Feed(Session.ReadAvailable);
+     Assert.IsTrue(Pos('SDK=MINGW64 TERM=xterm-256color HOME=', Buffer.Text) > 0, Buffer.Text);
+     Assert.IsTrue(Pos('/git', Buffer.Text) > 0, Buffer.Text);
+     Assert.AreEqual(Cardinal(37), Session.ExitCode);
+    Finally
+     Session.Free;
+    End;
+   Finally
+    Buffer.Free;
    End;
   End;
 

@@ -39,6 +39,7 @@ Interface
     fSelectionStart    : TPoint;
     fSelectionEnd      : TPoint;
     fSelecting         : Boolean;
+    fMouseAnchor       : TPoint;
     fHasSelection      : Boolean;
     fSuppressChar      : Boolean;
     fSurrogate         : Char;
@@ -99,7 +100,9 @@ Implementation
     Width  : Integer;
     Height : Integer;
    Begin
+    Canvas.Brush.Style := bsSolid;
     Canvas.Brush.Color := fPalette[17];
+    SetBkMode(Canvas.Handle, OPAQUE);
     Canvas.FillRect(Bounds);
     If (fBackground = Nil) Or (fBackground.Graphic = Nil) Or fBackground.Graphic.Empty Then
      Exit;
@@ -402,10 +405,13 @@ Implementation
      Position := scroll.Position;
      If Follow Then
       Position := Maximum;
-     scroll.SetParams(Position, 0, Max(0, fSession.Buffer.TotalLines - 1));
+     // Delphi 10.2 rejects a range smaller than the PREVIOUS page size.
+     // Reset it before changing the range, including the no-history case.
+     scroll.PageSize := 0;
+     scroll.SetParams(EnsureRange(Position, 0, Maximum), 0, Max(fSession.Buffer.Rows, fSession.Buffer.TotalLines - 1));
      scroll.PageSize    := fSession.Buffer.Rows;
      scroll.LargeChange := fSession.Buffer.Rows;
-     scroll.Position    := Position;
+     scroll.Position    := EnsureRange(Position, 0, Maximum);
      fOldMaximum        := Maximum;
      fLastRevision      := fSession.Buffer.Revision;
     End;
@@ -418,6 +424,9 @@ Implementation
 
  Procedure TfraTerminal.ScrollChanged(Sender : TObject);
   Begin
+   If fSession <> Nil Then
+    If scroll.Position > Max(0, fSession.Buffer.TotalLines - fSession.Buffer.Rows) Then
+     scroll.Position := Max(0, fSession.Buffer.TotalLines - fSession.Buffer.Rows);
    surface.Invalidate;
   End;
 
@@ -588,7 +597,8 @@ Implementation
    fSelectionStart                      := MouseCell(x, y);
    fSelectionEnd                        := fSelectionStart;
    fSelecting                           := True;
-   fHasSelection                        := True;
+   fHasSelection                        := False;
+   fMouseAnchor                         := Point(x, y);
    TControlAccess(surface).MouseCapture := True;
    surface.Invalidate;
   End;
@@ -599,6 +609,11 @@ Implementation
     Exit;
    If fSelecting Then
     Begin
+     If Not fHasSelection And
+     (Abs(x - fMouseAnchor.x) < GetSystemMetrics(SM_CXDRAG)) And
+     (Abs(y - fMouseAnchor.y) < GetSystemMetrics(SM_CYDRAG)) Then
+      Exit;
+     fHasSelection := True;
      fSelectionEnd := MouseCell(x, y);
      surface.Invalidate;
     End
@@ -617,10 +632,11 @@ Implementation
     End;
    If fSelecting Then
     Begin
-     fSelectionEnd                        := MouseCell(x, y);
+     If fHasSelection Then
+      fSelectionEnd                       := MouseCell(x, y);
      fSelecting                           := False;
      TControlAccess(surface).MouseCapture := False;
-     If fSettings.General.CopyOnSelect Then
+     If fHasSelection And fSettings.General.CopyOnSelect Then
       CopySelection;
     End;
   End;

@@ -1,137 +1,63 @@
-﻿# Stan portu Guake dla Windows
+# Stan portu Guake dla Windows
 
-Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`. Inwentarz: [guake-contract.json](guake-contract.json); odświeżenie: `Src/Tools/Export-GuakeContract.ps1` z katalogu repozytorium. Pełna zgodność funkcji i wyglądu pozostaje celem.
+Stan kodu na 15 listopada 2026, wersja 1.0.10.45. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
-## Struktura
+## Co działa, a co jeszcze wymaga implementacji
 
-| Katalog | Zawartość |
+| Obszar | Zaimplementowano | Pozostało |
+| --- | --- | --- |
+| Terminal | Osobny proces ConPTY dla każdej sesji; asynchroniczne I/O, zmiana rozmiaru, zamykanie procesów, katalog i środowisko | Dalsze testy długich sesji i programów pełnoekranowych |
+| Emulator VT | Przyrostowe UTF-8/CSI/OSC, kolory ANSI/256/RGB, kursor, historia, alternatywny ekran, region przewijania, odpowiedzi urządzenia, bracketed paste i raportowanie myszy | Pełne pokrycie sekwencji VTE/xterm, reflow historii po zmianie szerokości, pełne klastry grafemów |
+| Powłoki | CMD, PowerShell, Bash i Zsh z Git SDK; cztery osobne skróty/menu; Zsh przez `git-zsh.exe --nomintty` | Weryfikacja szerszego zestawu konfiguracji użytkowników i instalacji SDK |
+| Karty i podziały | Tworzenie, zamykanie, zmiana nazw, kolejność, wybór po identyfikatorze, podziały poziome/pionowe i fokus myszą | Kierunkowe skróty fokusu i przesuwania uchwytu podziału, kolory indywidualnej karty i ich reset, zamknięcie przyciskiem na karcie, pełne oznaczanie aktywności |
+| Widok terminala | Palety, font, kursor, obrazy PNG/JPEG/BMP/statyczny GIF, cztery układy tła, przewijanie, zaznaczenie przeciągnięciem, słowo po dwukliku, schowek i zapis tekstu | Pełna zgodność renderowania z VTE, animowany GIF; przezroczystość samego tła zamiast całego okna |
+| Okno główne | Geometria, monitor, zawsze na wierzchu, fullscreen, tray, płaski pasek kart u góry/dołu, osobne menu kart/terminala/powłok | Pełne zachowanie refocus/lazy hide, zestawy kart obszarów roboczych i zgodność wizualna ze wzorcem |
+| Skróty | Globalne przez RegisterHotKey, lokalne, grave/tylda, konflikty, wyłączanie; siedem zwijanych grup w preferencjach | Część akcji nadal czeka na obsługę: odnośniki, Internet, fokus/podział kierunkowy; definicja skrótu nie oznacza działającej akcji |
+| Preferencje | Dziewięć stron DFM, zapis od razu z walidacją i rollbackiem, zależności kontrolek, przewijanie myszą, edycja skrótów | Podłączenie efektów wszystkich przeniesionych ustawień; obecność pola i zapis INI nie oznaczają pełnej obsługi funkcji |
+| Konfiguracja | Osobna klasa TMemIniFile, hierarchiczne rekordy, 130 kluczy Guake i cztery klucze powłok Windows, zachowanie nieznanych kluczy | Odczyt `.guake.yml`, plik poleceń i brakujące integracje ustawień |
+| Sesje | Kontroler sesji w pamięci | Trwały zapis i przywracanie kart/drzewa podziałów, autosave i odtwarzanie po starcie; menu zapisu/przywracania jest nieaktywne |
+| Wyszukiwanie | Tekst/regex, kierunek, wielkość liter, zawijanie, zaznaczenie wyniku | Integracje WWW i otwieranie URL pod kursorem |
+| Integracje systemowe | Tray i natywne skróty globalne | Named Pipes z ACL bieżącego użytkownika i odrzucaniem klientów zdalnych, pojedyncza instancja, CLI sterujące, autostart, hooki start/show, powiadomienia i dzwonek |
+| Quick Open | Pola preferencji i układ menu | Rozpoznawanie plików/wierszy i wykonanie komendy edytora; pozycja menu pozostaje nieaktywna |
+| Lokalizacja | Vendor i18n, 26 źródłowych PO, odtwarzalny import i uzupełnienia polskiego PO; aplikacja ładuje polski katalog | Wybór języka w aplikacji, przegląd wszystkich komunikatów i brakujących tłumaczeń innych języków |
+| Diagnostyka | Vendor stacktrace, stack frames, szczegółowe MAP i osobne PDB; logger używa Exception.StackTrace i chroni pierwotny wyjątek | Pełne scentralizowanie obsługi wyjątków we wszystkich zdarzeniach i długotrwałe testy awarii |
+| O programie i dialogi | Autorzy/GPL wysuwani od dołu, zmiana nazwy, potwierdzenie zamknięcia, zapis tekstu | Dalsze porównanie wizualne i zachowania dialogów z oryginałem |
+
+## Bieżące poprawki
+
+Aktualizacja scrollbara najpierw zeruje poprzedni PageSize, potem zmienia zakres i przywraca nowy rozmiar strony. Eliminuje to konkretny wyjątek VCL `SScrollBarRange` po zmniejszeniu terminala/fullscreen. Test wykonuje 15 cykli i sprawdza parametry przewijania. Zgłoszony późniejszy Runtime error 231 nie został niezależnie odtworzony; poprawka usuwa źródło powtarzających się wyjątków scrollbara.
+
+Alfa okna jest stosowana jako wartość bezwzględna po zmianie ustawień i odtworzeniu HWND; rysowanie tła zaczyna od pełnego wypełnienia kolorem palety. Test sprawdza niezmienną alfę WinAPI po fullscreen i zmianie FormStyle. Nie zastępuje to obserwacji przezroczystości na pulpicie użytkownika. Obecna implementacja VCL obejmuje alfą całe okno, również tekst i pasek kart.
+
+Pojedynczy klik tylko aktywuje terminal i usuwa stare zaznaczenie. Dopiero ruch przekraczający systemowy próg przeciągania rozpoczyna zaznaczenie; kopiowanie po zaznaczeniu nie kopiuje znaku po zwykłym kliknięciu. Dwuklik nadal zaznacza słowo.
+
+Grupy skrótów odpowiadają HOTKEYS z `prefs.py`: Ogólne, Zarządzanie kartami, Zarządzanie podziałem, Nawigacja, Wygląd, Schowek i Dodatkowe funkcje. Klik nagłówka lub Enter/Spacja zwija/rozwija; strzałki lewo/prawo zamykają/otwierają grupę. Klik działania rozpoczyna przechwytywanie. Mapowanie wierszy zachowuje tożsamość ustawienia po zwinięciu innych kategorii.
+
+## Wrapper Git Zsh
+
+Projekt `Src/Launchers/git-zsh.dproj` buduje `bin/Win64/git-zsh.exe` i pasujące PDB. Bez parametrów uruchamia `usr/bin/mintty.exe` z `zsh --login -i`. `--nomintty` uruchamia Zsh w odziedziczonej konsoli/ConPTY i przekazuje kod zakończenia. Dalsze argumenty trafiają do Zsh z zachowaniem cytowania Windows.
+
+Katalog SDK: `--git-sdk-root <katalog>`, następnie `GIT_SDK_ROOT`, katalog wrappera zawierający `usr/bin/zsh.exe`, a ostatecznie `C:/git-sdk-64`. Wrapper ustawia MSYSTEM=MINGW64, MSYS2_PATH_TYPE=inherit, CHERE_INVOKING=1, TERM=xterm-256color, COLORTERM=truecolor, PATH Git SDK oraz HOME, jeśli go brak. Nie zmienia katalogu roboczego. W Guake profil `zsh` używa wrappera obok EXE i katalogu `windows/git-sdk-root` z INI; preferencja powłoki logowania nadal działa. Wrapper i PDB są częścią pakietu.
+
+## Mapa źródeł
+
+| Źródło Guake | Port Delphi |
 | --- | --- |
-| `Src/guake.dpr`, `Src/guake.dproj` | Główny projekt VCL Win64 |
-| `Src/Settings` | Klasa ustawień i hierarchia rekordów |
-| `Src/Forms` | Statyczne formularze PAS/DFM |
-| `Src/DataModules` | Moduły danych PAS/DFM, standardowe dialogi plikowe |
-| `Src/Terminal` | ConPTY, przyrostowy parser VT/UTF-8, sesje, karty, podziały i profile powłok |
-| `Src/Frames` | Widoki terminala i podziałów z DFM |
-| `Src/Resources` | Oryginalne pixmapy i niestandardowe RC |
-| `Src/Appearance` | 169 palet przeniesionych z Guake |
-| `Src/Localization` | Warstwa lokalizacji, oryginalne PO i katalogi wynikowe |
-| `Src/Diagnostics` | Logger wyjątków |
-| `Src/Common` | Submoduł Common z VersionU |
-| `Src/Vendor` | i18n i stacktrace |
-| `Src/Tests` | DUnitX, dane referencyjne i pomocniczy podgląd formularzy |
-| `Src/Tools` | Budowanie, wersjonowanie, PDB, importy i pakowanie |
+| org.guake.gschema.xml | Src/Settings/Guake.Settings.pas |
+| prefs.glade, prefs.py | Src/Forms/frmPreferencesU.pas/.dfm |
+| guake.glade, część guake_app.py | Src/Forms/frmMainU.pas/.dfm |
+| terminal.py, boxes.py, notebook.py — część działania | Src/Terminal i Src/Frames |
+| about.glade, about.py | Src/Forms/frmAboutU.pas/.dfm |
+| search.glade | Src/Forms/frmSearchU.pas/.dfm |
+| dialogs.py | Src/Forms/frmRenameU, frmConfirmU oraz Src/DataModules/dmDialogsU |
+| palety i pixmapy | Src/Appearance, Src/Resources |
 
-## Ustawienia
+To mapa odpowiedzialności, nie deklaracja przeniesienia całych modułów Python. Dalsza kolejność: integracja pojedynczej instancji/CLI przez Named Pipes, trwałość sesji, brakujące akcje podziałów i kart, Quick Open/URL/WWW, hooki i pozostałe efekty ustawień, następnie pełna macierz zgodności VT i wizualnej.
 
-Przeniesiono 130 kluczy, ich typy, nazwy sekcji, wartości domyślne i opisy z `org.guake.gschema.xml`. Hierarchia odpowiada sekcjom źródła:
+## Budowanie i weryfikacja
 
-```pascal
-Settings.General.WindowWidth := 90;
-Settings.Style.Font.CellHeightScale := 1.25;
-Settings.Style.Background.Transparency := 90;
-Settings.Keybindings.Global.ShowHide := 'F12';
-Settings.Keybindings.Local.NewTab := '<Control><Shift>t';
-Settings.Hooks.Show := 'echo gotowe';
-Settings.Save;
-```
+Cztery projekty Win64: aplikacja, wrapper, DUnitX i podgląd formularzy. DPROJ mają Base jako wspólne opcje oraz Debug/Release. Niestandardowe RC są kompilowane przez ResourceBuildDependsOn, bez BeforeTargets/AfterTargets. VersionInfo i manifest generuje MSBuild; RES nie są śledzone. StackTrace jest pierwszy w DPR, PDB powstają bez modyfikowania EXE przez map2pdb. Zapis projektu przez IDE nadal wymaga osobnego sprawdzenia.
 
-`TGuakeSettings` zarządza `TMemIniFile`, ładowaniem rekordów, walidacją i jawnym zapisem przez plik tymczasowy w katalogu docelowym. Double zapisuje z kropką niezależnie od ustawień regionalnych. Błędne dane z INI wracają do wartości domyślnych; niepoprawne bezpośrednie zmiany rekordów blokują zapis. Zachowywane są nieznane klucze. Klasa jest przeznaczona dla jednego wątku zarządzającego konfiguracją.
+Wersjonowanie jest jawne: `Src/Tools/Update-Version.ps1 -Part Build` raz na przebieg prac, `-Part Release` przed commitem. Wszystkie cztery projekty mają tę samą wersję, major/minor pozostają 1.0, build nie jest resetowany. `Src/Tools/Test.ps1` i zwykły build nie zmieniają wersji.
 
-Domyślne `General.DefaultShell` jest puste, zgodnie ze schematem Guake. Wybór powłoki domyślnej dla Windows należy do warstwy uruchamiania sesji. Istniejące aliasy `WindowWidth`, `WindowHeight`, `HistorySize` i `Shell` pozostają dostępne.
-
-## Formularze i kod
-
-| Źródło Guake | Port |
-| --- | --- |
-| `prefs.glade`, `prefs.py` | `Src/Forms/frmPreferencesU.pas/.dfm` |
-| `guake.glade`, część okienkowa `guake_app.py` | `Src/Forms/frmMainU.pas/.dfm` |
-| `about.glade`, `about.py` | `Src/Forms/frmAboutU.pas/.dfm` |
-| `search.glade`, wyszukiwanie z `boxes.py` | `Src/Forms/frmSearchU.pas/.dfm` |
-| `dialogs.py`: RenameDialog | `Src/Forms/frmRenameU.pas/.dfm` |
-| `dialogs.py`: PromptQuitDialog, PromptResetColorsDialog | `Src/Forms/frmConfirmU.pas/.dfm` |
-| `dialogs.py`: SaveTerminalDialog | `Src/DataModules/dmDialogsU.pas/.dfm` |
-
-Preferencje zachowują dziewięć kategorii i grupy ustawień; wybór strony odbywa się przez lewy pasek nawigacji. Zapis odbywa się od razu, tak jak w Guake. Kandydat konfiguracji jest walidowany i zapisywany przed zmianą obiektu współdzielonego z aplikacją; nieudany zapis nie podmienia jego danych. Działają zależności kontrolek, wybór powłoki i monitora, palety z podglądem kolorów, font i obraz tła, skróty z wykrywaniem konfliktów oraz reset wyłącznie opcji zgodności. Trzy przyciski wyrównania odpowiadają radiobuttonom z Glade. Układ używa natywnych kontrolek VCL i przewijanych stron; nie jest to jeszcze potwierdzona zgodność wizualna piksel w piksel.
-
-Wyszukiwanie obsługuje tekst, regex, kierunek, wielkość liter, zawijanie i zdarzenie wyniku. Indeksy wyniku są liczone od 1. Dialog zapisu przyjmuje tekst od kontrolera terminala i zapisuje UTF-8. Dialog informacji zachowuje logo, autorów, tłumaczy i licencję źródła oraz wpisy portu Windows:
-
-- `Copyright © 2026 DJ M@fi0z0™ - native Windows port`
-- `DJ M@fi0z0™ <inz.germanista@gmail.com>`
-
-Okno główne obsługuje geometrię i położenie, przezroczystość, pozycję paska kart, pełny ekran, tray i otwieranie preferencji oraz informacji. Start aplikacji podłącza kontroler i uruchamia powłokę. Działają nowe karty, podziały, zmiana nazw, kopiowanie, wklejanie i wyszukiwanie. Test integracyjny ładuje widoki terminala i podziału z DFM, uruchamia CMD oraz sprawdza wielokrotne sprzątanie.
-
-## Lokalizacja i diagnostyka
-
-26 oryginalnych PO pozostaje bez zmian wraz z autorami. `Src/Tools/Import-Translations.py` generuje powtarzalne katalogi przez GNU msgfmt. `Guake.Localization` korzysta z `TTranslationCatalog` i `TPluralForms` z `Src/Vendor/i18n`. Formularz preferencji używa oryginalnych tekstów do zmiany języka; usuwa znaczniki GTK i dostosowuje mnemoniki do VCL. Nieprzetłumaczone napisy pozostają angielskie. Obecne punkty startowe wczytują polski katalog; wybór języka użytkownika wymaga jeszcze integracji.
-
-`{$StackFrames On}` jest w pierwszej linii PAS i DPR. `StackTrace` jest pierwszą jednostką projektów. MSBuild generuje szczegółowy MAP, a `Src/Tools/Build-Symbols.py` wywołuje `map2pdb.exe -include:0001;0002`. PDB jest dostarczany obok właściwego EXE i trafia do ZIP. Test potwierdza przechwycony stos i rozwiązaną nazwę funkcji przy obecnym PDB. Dostępność numerów linii zależy od danych wygenerowanych przez konwerter; obecna konfiguracja nie gwarantuje ich dla każdej ramki.
-
-Logger zapisuje klasę i treść wyjątku, jego oryginalny `Exception.StackTrace`, wersję, czas, PID i wątek. Rotuje plik po 4 MiB do `.old`. Awaria logowania nie zastępuje pierwotnego wyjątku. Pliki VersionInfo i manifestu pozostają generowane przez MSBuild; repozytorium nie śledzi RES.
-
-## Weryfikacja i pozostały zakres
-
-59 testów DUnitX Win64 obejmuje wszystkie wartości domyślne schematu, zapis i odczyt rekordów, Double w polskich ustawieniach regionalnych, walidację, nieznane klucze, ładowanie DFM, zależności, natychmiastowy zapis, błędy zapisu, reset zgodności, konflikty skrótów, palety, wyszukiwanie, zapis tekstu, wszystkie katalogi tłumaczeń, Common i logowanie stosów. Raport i podglądy dziewięciu zakładek powstają w `bin/tests/`.
-
-Działają backend ConPTY, przyrostowy parser UTF-8 i VT, renderer komórek oraz kontroler kart i podziałów. Testy uruchamiają CMD, PowerShell, Bash i Zsh, sprawdzają środowisko, zakończenie procesów, zamykanie przy dużym wyjściu i zachowanie zasobów przy błędach startu. Emulator wymaga dalszego uzupełniania zgodności VT, m.in. reflow i pełnej obsługi grafemów. Nadal brakuje odtwarzania sesji, Named Pipes i zgodnego CLI. Zapis opcji w preferencjach nie oznacza jeszcze działania ich efektów poza formularzem: np. automatycznego startu, hooków, Quick Open czy ustawień renderowania. Niezaimplementowane pozostają integracje systemowe i funkcje zależne od tych modułów. Kontrolka widocznego dzwonka pozostaje wyłączona, ponieważ nie ma odpowiadającego jej klucza w źródłowym schemacie.
-
-## Wersjonowanie
-
-Początek: `1.0.0.1`. Major i minor pozostają niezmienione. Sam build i `Src/Tools/Test.ps1` nie zmieniają wersji. Build kolejnego przebiegu prac zwiększa się jawnie przez `Src/Tools/Update-Version.ps1 -Part Build`. Przed każdym commitem `Src/Tools/Update-Version.ps1 -Part Release` zwiększa release bez resetowania build. Wszystkie trzy projekty dostają tę samą wersję. Skrypt odmawia przekroczenia 65535 zamiast zawijać licznik.
-
-## Zgodność projektów z IDE
-
-DPROJ zawierają konfigurację wspólną Base oraz dziedziczące Debug i Release z kluczami Cfg_1 i Cfg_2, metadane osobowości Delphi i platformę Win64. Base oznacza wspólne opcje, a nie docelowy profil budowania. Usunięto niepublikowane zdarzenie TTabControl.OnDblClick; dwuklik jest przypisywany w FormCreate przez klasę dostępową TTabControlAccess. Sprzątanie formularza toleruje niepełne wczytanie DFM. Zapis projektu przez IDE wymaga jeszcze osobnej weryfikacji.
-
-## Zasoby graficzne i bieżąca walidacja
-
-Oryginalne pixmapy są w `Src/Resources/Pixmaps`, z sumami kontrolnymi w `pixmaps-source.json`. Klon Guake nie zawierał ICO; `guake.ico` i `tray.ico` opakowują oryginalne obrazy PNG w format ikon Windows. `Guake.Images.rc` zawiera wyłącznie niestandardowe zasoby. Ikonę główną, manifest i wersję EXE generuje MSBuild.
-
-Wersja 1.0.3.38: 48/48 testów DUnitX, kompilacja Win64 Debug i Release, generowanie pasujących PDB. Testy sprawdzają też tworzenie i zwalnianie ramek terminala oraz podziałów. Budowanie zachowało sumy kontrolne DPROJ. Ponieważ uruchomiony wcześniejszy `guake.exe` blokował zwykły katalog wyjściowy, bieżące EXE i PDB zweryfikowano w `.build/verified-main` i `.build/verified-release`. Nie potwierdzono jeszcze zapisu projektu przez IDE ani pełnej zgodności wizualnej z Guake.
-
-Dwuklik karty jest podłączany przez TTabControlAccess w FormCreate. DFM przechowuje wyłącznie publikowane zdarzenie OnCreate. Test sprawdza przypisanie OnDblClick po wczytaniu formularza. Konwersja MAP do PDB nie używa już opcji -bind i nie modyfikuje EXE; porównanie SHA-256 przed i po konwersji jest obowiązkową kontrolą skryptu. Test odczytu symbolicznego stosu przeszedł także z osobnym PDB. Wcześniejszy wariant Debug po modyfikacji przez -bind został zablokowany przez Windows kodem 225.
-
-Wersja 1.0.4.39: 48/48 testów DUnitX, ponowne kompilacje Win64 Debug i Release oraz poprawny odczyt wersji obu EXE po utworzeniu osobnych PDB. Zwykły build nie zmienił numerów ani DPROJ. Pakiet `bin/guake-1.0.4.39-Win64.zip` zawiera EXE, PDB, tłumaczenia i licencje.
-
-## Konflikty skrótów i zgodność MSBuild
-
-Zajęty skrót globalny (błąd Windows 1409) nie przerywa startu terminala. Rejestracja obu skrótów odbywa się niezależnie; dostępny skrót nadal działa. Informacja o błędzie zawiera kombinację klawiszy i kod systemowy, trafia do podpowiedzi ikony tray i OutputDebugString. Kolejna rejestracja po zmianie ustawień ponawia próbę i usuwa nieaktualny komunikat. Test rezerwuje rzeczywisty skrót WinAPI, sprawdza start CMD mimo konfliktu, drugi skrót oraz ponowną rejestrację po zwolnieniu klawisza.
-
-Wszystkie DPROJ dołączają BuildGuakeImages przez ResourceBuildDependsOn po imporcie standardowych targets. Nie używają BeforeTargets, którego starszy parser projektów Delphi nie rozpoznaje. Wszystkie trzy projekty przeszły odczyt przez Microsoft.Build.BuildEngine.Project, oprócz kompilacji współczesnym MSBuild. Kontrola odczytu nie zastępuje sprawdzenia zapisu z poziomu IDE.
-
-Wersja 1.0.5.40: 49/49 testów DUnitX, kompilacja wszystkich trzech projektów Win64 Debug, odczyt trzech DPROJ przez starszy Microsoft.Build.BuildEngine.Project i paczka `bin/guake-1.0.5.40-Win64.zip`. Test PowerShell czeka na pierwszy prompt PSReadLine i nie zapisuje historii użytkownika. Pomiar uchwytów po nieudanym starcie oddziela jednorazową inicjalizację obsługi symboli od kolejnych prób.
-
-## Odświeżanie, tylda i kolory terminala
-
-Widok terminala używa podwójnego buforowania ustawionego w DFM. Timer odświeżania unieważnia obraz dopiero po zmianie rewizji bufora albo widoczności kursora, zamiast przemalowywać całe pole co 100 ms. Aktualizacja tytułów nie ustawia ponownie niezmienionego indeksu karty. Pasek kart ma osobny panel w kolorze systemowym clBtnFace, niezależny od czarnego tła terminala.
-
-Skróty obsługują fizyczny klawisz VK_OEM_3: grave (U+0060), quoteleft i asciitilde (~), także z modyfikatorami. Edytor preferencji przechwytuje wariant zwykły i Shift; kontrola konfliktów porównuje rozpoznany klawisz i modyfikatory, więc równoważne zapisy nie omijają walidacji.
-
-Sesje Bash i Zsh otrzymują TERM=xterm-256color oraz COLORTERM=truecolor zamiast dziedziczyć przypadkowy typ terminala z procesu nadrzędnego. Pusty parametr SGR oznacza reset do domyślnych kolorów palety; działają też jawne kody 39/49. Kolory promptu pozostają zależne od danych wysyłanych przez powłokę i wybranej palety.
-
-Wersja 1.0.6.41: 53/53 testy DUnitX, kompilacje Win64 Debug i Release oraz pakiet `bin/guake-1.0.6.41-Win64.zip`. Nowe scenariusze obejmują przechwytywanie klawisza OEM w preferencjach, mapowanie literalnych znaków i nazw akceleratorów, reset kolorów SGR, rzeczywisty proces Zsh z kontrolą kolorów po resecie oraz brak unieważniania bezczynnego widoku. Podgląd offscreen: `bin/tests/terminal-preview.png`; nie zastępuje obserwacji płynności interaktywnej sesji.
-
-## Wzorzec Manjaro i bieżące zmiany interfejsu
-
-[Wzorzec wizualny](visual-reference.md) opisuje przekazane zrzuty Guake na Manjaro i mapowanie na DFM. Preferencje mają nagłówek z oryginalną ikoną i lewy pasek dziewięciu kategorii. Okno informacji rozdziela podsumowanie, autorów i GPL; panel szczegółów wysuwa się od dołu. Zmniejszono dialog zmiany nazwy i uporządkowano potwierdzenie zamknięcia.
-
-Menu terminala i karty są oddzielne. Dodano zapis zawartości przez istniejący moduł dialogów, przyciski nowej karty i wyboru sesji oraz listę wskazującą aktywną kartę. Menu tray uwzględnia kolejność ze źródła. Nieaktywne funkcje pozostają oznaczone w opisie wzorca; nie deklarujemy pełnej zgodności funkcjonalnej ani wizualnej.
-
-Wersja 1.0.7.42: 56/56 testów DUnitX, kompilacje Win64 Debug i Release, kontrola animowanego panelu autorów/GPL, lewej nawigacji i przełączania kart po trwałym identyfikatorze. Uzupełnienia napisów Windows są osobnym PO w `Src/Localization/port`; oryginalne PO pozostają bez zmian. Pakiet: `bin/guake-1.0.7.42-Win64.zip`.
-
-## Obraz tła, przewijanie i karty konkretnych powłok
-
-Renderer wczytuje wybrany obraz tła, zachowuje go w pamięci i rysuje pod komórkami z domyślnym tłem. Działają cztery układy: skalowanie proporcjonalne z kadrowaniem (jak w źródłowym BackgroundImageManager), kafelki, środek i rozciąganie. Usunięcie pliku z ustawień przywraca kolor palety; brak lub błąd pliku nie przerywa pracy terminala. PNG, JPEG, BMP i GIF są obsługiwane przez VCL; animowanie GIF nie jest zaimplementowane.
-
-Kółko myszy przewija stronę pod kursorem, z uwzględnieniem częściowych kroków i systemowej liczby wierszy. Kontrolki z własnym przewijaniem otrzymują zdarzenie zamiast strony. Obszar pod kategoriami ma systemowe tło, bez białego pustego pola.
-
-Do 130 kluczy oryginalnego schematu dodano cztery rozszerzenia Windows w `keybindings.local`: `new-tab-zsh`, `new-tab-bash`, `new-tab-cmd` i `new-tab-powershell`. Są też osobnymi polami rekordu `Keybindings.Local`. Wszystkie domyślnie mają wartość `disabled`. Nowe karty można otwierać przez podmenu powłok, a przypisane skróty działają lokalnie wewnątrz Guake. Zachowano numerację wcześniejszych kluczy i tagów DFM.
-
-Polskie uzupełnienia PO obejmują brakujące etykiety, opisy działań, podpowiedzi ustawień i nowe powłoki. Oryginalne katalogi PO pozostają bez zmian. Przyciski paska kart są TSpeedButton, a statyczny Glyph jest odtwarzalnie wyprowadzany z `Src/Resources/add_tab.png`.
-
-Wersja 1.0.8.43: 59/59 testów DUnitX, kompilacje Win64 Debug i Release oraz normalny EXE w `bin/Win64`. Testy obejmują wszystkie układy obrazu, jego usunięcie i brak pliku, częściowe kroki kółka, cztery odrębne skróty z zapisem INI oraz utworzenie karty CMD przez menu i kolejkę akcji skrótu. Sprawdzenie `Update-AddTabGlyph.ps1 -Check` potwierdza zgodność Glyph z PNG. Pakiet: `bin/guake-1.0.8.43-Win64.zip`.
-
-## Płaskie karty i rozdzielenie menu
-
-`TTabControl.Style=tsFlatButtons` zastępuje wygląd tradycyjnych zakładek. Zaznaczenie nadal wynika z aktywnego indeksu kontrolera. Wspólne menu karty jest podłączone do samej kontrolki kart oraz jej panelu, więc działa również na wolnej części paska. `btnAddTab` ma osobny popup z bezpośrednią listą czterech powłok. Zwykły klik nadal wywołuje akcję nowej karty z domyślną powłoką z ustawień.
-
-Wersja 1.0.9.44: 59/59 testów DUnitX, kompilacje Win64 Debug i Release, kontrola powiązań obu menu oraz wyboru CMD niezależnie od ustawionej domyślnej powłoki. Glyph pozostał zgodny z PNG. Pakiet: `bin/guake-1.0.9.44-Win64.zip`.
+Raport DUnitX: `bin/tests/test-results.xml`; podglądy: `bin/tests/preferences-preview/` i `bin/tests/terminal-preview.png`. Weryfikacja 1.0.10.45: 62/62 testy DUnitX, cztery projekty Win64 Debug, aplikacja i wrapper Win64 Release, osobne PDB oraz kontrola niezmienności DPROJ podczas budowania. Dodatkowa próba uruchomiła rzeczywiste mintty i potwierdziła środowisko MINGW64/xterm-256color. Sprawdzono podgląd strony skrótów. Pakiet: `bin/guake-1.0.10.45-Win64.zip`.

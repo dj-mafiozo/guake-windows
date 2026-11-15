@@ -49,3 +49,9 @@
 - Oprócz lokalnych źródeł Guake korzystaj ze zrzutów Manjaro opisanych w `docs/visual-reference.md`. Aktualizuj opis wzorca i `docs/port-status.md` razem z interfejsem.
 - W oknie informacji panel autorów i licencji wysuwa się od dołu. Zachowuj animację istniejących kontrolek DFM zamiast zastępować ją samym przełączaniem Visible.
 - Nieaktywne pozycje menu nie oznaczają zaimplementowanych funkcji. W dokumentacji rozróżniaj odtworzenie układu od działania zapisu sesji, Quick Open i pozostałych integracji.
+
+## Wrapper Zsh
+
+- `Src/Launchers/git-zsh.dproj` buduje wrapper Win64. Domyślnie mintty, `--nomintty` korzysta z odziedziczonej konsoli/ConPTY. Profil `zsh` ma używać tego trybu.
+- Zachowuj cytowanie argumentów Windows przez CommandLineToArgvW, środowisko Git SDK i kod wyjścia procesu potomnego.
+- Wersjonuj wrapper razem z aplikacją i dostarczaj jego EXE oraz PDB w pakiecie.

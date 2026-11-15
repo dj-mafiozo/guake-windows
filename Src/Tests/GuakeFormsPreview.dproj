@@ -29,10 +29,10 @@
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_MajorVer>1</VerInfo_MajorVer>
     <VerInfo_MinorVer>0</VerInfo_MinorVer>
-    <VerInfo_Release>9</VerInfo_Release>
-    <VerInfo_Build>44</VerInfo_Build>
+    <VerInfo_Release>10</VerInfo_Release>
+    <VerInfo_Build>45</VerInfo_Build>
     <VerInfo_Locale>1045</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Formularze Guake dla Windows;FileVersion=1.0.9.44;InternalName=GuakeFormsPreview;OriginalFilename=GuakeFormsPreview.exe;ProductName=Guake dla Windows;ProductVersion=1.0.9.44</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Formularze Guake dla Windows;FileVersion=1.0.10.45;InternalName=GuakeFormsPreview;OriginalFilename=GuakeFormsPreview.exe;ProductName=Guake dla Windows;ProductVersion=1.0.10.45</VerInfo_Keys>
     <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
     <DCC_MapFile>3</DCC_MapFile>
     <PostBuildEvent>python "$(MSBuildProjectDirectory)\..\Tools\Build-Symbols.py" "$(DCC_ExeOutput)\$(MSBuildProjectName).map"</PostBuildEvent>

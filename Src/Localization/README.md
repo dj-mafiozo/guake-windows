@@ -1,4 +1,4 @@
-﻿# Tłumaczenia Guake
+# Tłumaczenia Guake
 
 `po/` zawiera niezmienione katalogi z lokalnego Guake, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`. Nagłówki zachowują autorów i warunki licencji; tekst licencji źródła znajduje się w COPYING.
 
@@ -11,3 +11,5 @@ W czasie działania `Guake.Localization.pas` buduje `TTranslationCatalog` z `Src
 `port/` zawiera osobne uzupełnienia PO dla interfejsu Windows, np. napisy Zasługi i Licencja dostarczane w Linuksie przez GTK. Import scala brakujące wpisy przez ten sam GNU msgfmt i vendor/i18n; zachowuje pierwszeństwo oryginalnych tłumaczeń i nie zmienia plików w `po/`.
 
 Uzupełnienia polskie obejmują również brakujące etykiety i podpowiedzi schematu oraz cztery działania otwierania kart konkretnych powłok. Nazwy programów i wartości liczbowe pozostają bez tłumaczenia.
+
+Instrukcja edycji skrótów tłumaczy każde zdanie osobno; podział wiersza pozostaje układem formularza, dzięki czemu wpisy z oryginalnego PO są odnajdywane także w VCL. Nazwy siedmiu grup skrótów pochodzą z `prefs.py`.

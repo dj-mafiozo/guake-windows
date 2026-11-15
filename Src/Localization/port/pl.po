@@ -830,3 +830,6 @@ msgstr "Ukrywaj pasek kart w trybie pełnoekranowym."
 
 msgid "When true, the tab bar will hide when there is only one tab"
 msgstr "Ukrywaj pasek kart, jeżeli otwarta jest tylko jedna karta."
+
+msgid "To disable a shortcut, press the \"Backspace\" key."
+msgstr "Naciśnięcie klawisza „Backspace” wyłącza skrót."

@@ -13,14 +13,20 @@ $env:PATH = (Join-Path $DelphiRoot 'bin') + ';' + $env:PATH
 if (!(Get-Command map2pdb.exe -ErrorAction SilentlyContinue)) { throw 'map2pdb.exe is required to build matching PDB symbols.' }
 $projectHashes = @{}
 Get-ChildItem -Path (Join-Path $repo 'Src') -Filter '*.dproj' -Recurse | ForEach-Object { $projectHashes[$_.FullName] = (Get-FileHash -LiteralPath $_.FullName).Hash }
-foreach ($project in @('Src\Tests\GuakeTests.dproj','Src\Tests\GuakeFormsPreview.dproj','Src\guake.dproj')) {
+foreach ($project in @('Src\Launchers\git-zsh.dproj','Src\Tests\GuakeTests.dproj','Src\Tests\GuakeFormsPreview.dproj','Src\guake.dproj')) {
     $outputArguments = @()
-    if ($MainOutput -and $project -eq 'Src\guake.dproj') {
+    if ($MainOutput -and $project -in @('Src\guake.dproj','Src\Launchers\git-zsh.dproj')) {
         $MainOutput = [IO.Path]::GetFullPath($MainOutput)
         $outputArguments = @('/p:DCC_ExeOutput=' + $MainOutput)
     }
     & $msbuild (Join-Path $repo $project) @outputArguments /t:Build /p:Config=Debug /p:Platform=Win64 /v:minimal /nologo
     if ($LASTEXITCODE -ne 0) { throw "MSBuild failed: $LASTEXITCODE" }
+}
+$launcherOutput = if ($MainOutput) { $MainOutput } else { Join-Path $repo 'bin\Win64' }
+foreach ($destination in @('bin\tests','bin\forms')) {
+    foreach ($name in @('git-zsh.exe','git-zsh.pdb')) {
+        Copy-Item -LiteralPath (Join-Path $launcherOutput $name) -Destination (Join-Path $repo $destination) -Force
+    }
 }
 $locale = Join-Path $repo 'bin\forms\locale\catalogs'
 New-Item -ItemType Directory -Force -Path $locale | Out-Null

@@ -131,7 +131,8 @@ Implementation
    Assert.AreEqual('C:\SDK with spaces\usr\bin\bash.exe', Profile.Executable);
    Assert.AreEqual('--login -i', Profile.Arguments);
    Profile := TShellProfile.Resolve(gsZsh, 'C:\SDK with spaces');
-   Assert.AreEqual('"C:\SDK with spaces\usr\bin\zsh.exe" -l -i', Profile.CommandLine);
+   Assert.AreEqual('git-zsh.exe', ExtractFileName(Profile.Executable));
+   Assert.AreEqual('--nomintty --git-sdk-root "C:\SDK with spaces" --login -i', Profile.Arguments);
   End;
 
  Procedure TShellTests.ResolveWindowsShells;

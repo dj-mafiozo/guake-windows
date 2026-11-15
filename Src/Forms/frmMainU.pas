@@ -117,8 +117,11 @@ Interface
     fOnCommand   : TGuakeCommandEvent;
     fFullScreen  : Boolean;
     fSavedBounds : TRect;
+    Procedure ApplyOpacity;
     Procedure SettingsChanged(Sender : TObject);
     Procedure SetOnCommand   (Const Value : TGuakeCommandEvent);
+   Protected
+    Procedure CreateWnd; Override;
    Public
     /// <summary>Starts the default ConPTY tab, native hotkeys and session polling.</summary>
     Procedure StartTerminal;
@@ -253,9 +256,26 @@ Implementation
     tabHost.Align  := alBottom;
    tabHost.Visible := fSettings.General.WindowTabbar And Not(fFullScreen And fSettings.General.FullscreenHideTabbar)
    And Not(fSettings.General.HideTabsIfOneTab And (tabBar.Tabs.Count <= 1));
-   AlphaBlend       := fSettings.Style.Background.Transparency < 100;
-   AlphaBlendValue  := MulDiv(fSettings.Style.Background.Transparency, 255, 100);
+   ApplyOpacity;
    trayIcon.Visible := (fController <> Nil) And fSettings.General.UseTrayicon;
+  End;
+
+/// <summary>Reapplies the absolute alpha after settings changes and HWND recreation.</summary>
+
+ Procedure TfrmMain.ApplyOpacity;
+  Begin
+   If fSettings = Nil Then
+    Exit;
+   AlphaBlendValue := MulDiv(fSettings.Style.Background.Transparency, 255, 100);
+   AlphaBlend      := AlphaBlendValue < 255;
+   If HandleAllocated And AlphaBlend Then
+    Win32Check(SetLayeredWindowAttributes(Handle, 0, AlphaBlendValue, LWA_ALPHA));
+  End;
+
+ Procedure TfrmMain.CreateWnd;
+  Begin
+   Inherited;
+   ApplyOpacity;
   End;
 
  Procedure TfrmMain.SettingsChanged(Sender : TObject);

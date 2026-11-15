@@ -1,4 +1,4 @@
-﻿# Wzorzec interfejsu Guake
+# Wzorzec interfejsu Guake
 
 Wzorzec: oryginalny Guake 3.9.1.dev0 uruchomiony na Manjaro w VirtualBox. Zrzuty przekazane przez użytkownika 14 listopada 2026 uzupełniają lokalne źródła `../guake/guake/data/prefs.glade`, `prefs.py`, `menus.py` i `dialogs.py`.
 
@@ -30,7 +30,7 @@ Scenariusze DUnitX sprawdzają przechodzenie między kategoriami, obecność ory
 
 ## Dalsze zrzuty skrótów i zmiany Windows
 
-Zrzuty rozwiniętych i zwiniętych grup pokazują siedem sekcji: Ogólne, Zarządzanie kartami, Zarządzanie podziałem, Nawigacja, Wygląd, Schowek i Dodatkowe funkcje. Bieżący edytor portu pozostaje płaską tabelą; przeniesienie grupowania i zwijania jest nadal do wykonania.
+Zrzuty rozwiniętych i zwiniętych grup pokazują siedem sekcji: Ogólne, Zarządzanie kartami, Zarządzanie podziałem, Nawigacja, Wygląd, Schowek i Dodatkowe funkcje. Edytor portu odtwarza te grupy w tabeli z nagłówkami i znacznikami rozwinięcia. Klik nagłówka, Enter lub Spacja przełącza grupę, a strzałki lewo/prawo ją zwijają/rozwijają. Cztery skróty powłok Windows należą do zarządzania kartami.
 
 Obszar pod kategoriami ma ten sam kolor co pasek nawigacji. Przyciski nowej karty i listy kart są TSpeedButton; ikona nowej karty pochodzi z `Src/Resources/add_tab.png`, a jej dane bitmapowe są w DFM. Podmenu powłok i cztery osobne skróty są dodatkiem Windows do pokazanego menu oryginalnego Guake.
 
