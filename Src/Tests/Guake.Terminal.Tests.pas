@@ -6,16 +6,23 @@ Unit Guake.Terminal.Tests;
 Interface
 
  Uses
-  DUnitX.TestFramework;
+  DUnitX.TestFramework, System.Classes;
 
  Type
 
   [TestFixture]
   TTerminalTests = Class
+   Private
+    fNotices : TStringList;
+    Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
     [Test] Procedure IncrementalUnicodeAndCSI;
     [Test] Procedure ExtendedGraphemesAcrossByteFragments;
     [Test] Procedure ReflowPreservesHistoryStylesAndCursor;
+    [Test] Procedure ProjectYamlAndCustomCommandMenu;
+    [Test] Procedure StartupRestoreAutosaveAndNotifications;
+    [Test] Procedure NativeHooksAutostartAndBell;
+    [Test] Procedure TrayOnlyStyleRejectsVclMutation;
     [Test] Procedure HyperlinksSearchAndDirectionalPanes;
     [Test] Procedure SessionTreeRoundTripAndFailedRestore;
     [Test] Procedure AlternateScreenRestoresPrimary;
@@ -46,8 +53,8 @@ Interface
 Implementation
 
  Uses
-  Guake.Unicode, Guake.Links, Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, System.IOUtils,
-  frmMainU, fraTerminalU, Vcl.Graphics, Vcl.Imaging.pngimage, Vcl.ComCtrls, Vcl.Controls, Guake.ConPTY, Guake.VT, Guake.Shells, Guake.Sessions, Guake.Settings, Guake.Keybindings;
+  frmAboutU, Guake.WindowsIntegration, System.Win.Registry, Guake.ProjectConfig, System.JSON, System.Generics.Collections, Guake.Unicode, Guake.Links, Winapi.Windows, Winapi.Messages, System.SysUtils, System.IOUtils,
+  frmMainU, fraTerminalU, Vcl.Graphics, Vcl.Imaging.pngimage, Vcl.ComCtrls, Vcl.Controls, Guake.ConPTY, Guake.VT, Guake.Shells, Guake.Sessions, Guake.Settings, Guake.Keybindings, Vcl.Forms;
 
  Type
   TTabControlAccess = Class(TTabControl)
@@ -362,6 +369,7 @@ Implementation
    Try
     Settings.General.DefaultShell         := 'cmd';
     Settings.General.UseTrayicon          := False;
+    Settings.General.UsePopup             := False;
     Settings.Keybindings.Global.ShowHide  := 'disabled';
     Settings.Keybindings.Global.ShowFocus := 'disabled';
     Main                                  := TfrmMain.Create(Nil);
@@ -404,6 +412,7 @@ Implementation
     Try
      Settings.General.DefaultShell         := 'cmd';
      Settings.General.UseTrayicon          := False;
+     Settings.General.UsePopup             := False;
      Settings.Keybindings.Global.ShowHide  := '<Control><Alt><Shift>F24';
      Settings.Keybindings.Global.ShowFocus := '<Control><Alt><Shift>F23';
      Main                                  := TfrmMain.Create(Nil);
@@ -516,6 +525,7 @@ Implementation
    Try
     Settings.General.DefaultShell         := 'cmd';
     Settings.General.UseTrayicon          := False;
+    Settings.General.UsePopup             := False;
     Settings.General.WindowTabbar         := True;
     Settings.General.HideTabsIfOneTab     := False;
     Settings.Keybindings.Global.ShowHide  := 'disabled';
@@ -573,6 +583,7 @@ Implementation
    Try
     Settings.General.DefaultShell         := 'cmd';
     Settings.General.UseTrayicon          := False;
+    Settings.General.UsePopup             := False;
     Settings.Keybindings.Global.ShowHide  := 'disabled';
     Settings.Keybindings.Global.ShowFocus := 'disabled';
     Main                                  := TfrmMain.Create(Nil);
@@ -619,7 +630,7 @@ Implementation
      Assert.AreEqual(4, Main.Controller.Count);
      Assert.AreEqual(Integer(gsCmd), Integer(Main.Controller.ActiveSession.Profile.Kind));
      Assert.IsFalse(Main.miQuickOpen.Enabled);
-     Assert.IsFalse(Main.miSaveTabs.Enabled);
+     Assert.IsTrue(Main.miSaveTabs.Enabled);
     Finally
      Main.Free;
     End;
@@ -721,6 +732,7 @@ Implementation
    Try
     Settings.General.DefaultShell          := 'cmd';
     Settings.General.UseTrayicon           := False;
+    Settings.General.UsePopup              := False;
     Settings.Keybindings.Global.ShowHide   := 'disabled';
     Settings.Keybindings.Global.ShowFocus  := 'disabled';
     Settings.Style.Background.Transparency := 73;
@@ -821,6 +833,7 @@ Implementation
    Try
     Settings.General.DefaultShell              := 'cmd';
     Settings.General.UseTrayicon               := False;
+    Settings.General.UsePopup                  := False;
     Settings.Keybindings.Global.ShowHide       := 'disabled';
     Settings.Keybindings.Global.ShowFocus      := 'disabled';
     Settings.General.DropDownAnimation         := True;
@@ -843,16 +856,28 @@ Implementation
        Sleep(15);
        Main.AnimationTick(Nil);
        Assert.AreEqual(Rows, Main.ActiveTerminalFrame.Session.Buffer.Rows);
-       Main.ToggleVisibility;
+       Main.miTrayToggle.Click;
        Sleep(60);
        Main.AnimationTick(Nil);
-       Assert.IsFalse(Main.Visible);
+       Assert.IsFalse(Main.Visible, 'Terminal still visible after hiding');
        Assert.IsFalse(Main.animationTimer.Enabled);
        Assert.AreEqual(Bounds.Top, Main.Top);
        Main.SetTerminalVisible(True);
        Sleep(60);
        Main.AnimationTick(Nil);
-       Assert.IsTrue(Main.Visible);
+       Assert.IsTrue(Main.Visible, 'Terminal not visible after showing');
+       Assert.IsTrue((GetWindowLongPtr(Main.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'Main lost TOOLWINDOW');
+       Assert.IsTrue((GetWindowLongPtr(Main.Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = 0);
+       If Vcl.Forms.Application.Handle <> 0 Then
+        Begin
+         Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = 0, 'VCL proxy gained APPWINDOW');
+         Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'VCL proxy lost TOOLWINDOW');
+         // VCL dialog creation attempts to remove TOOLWINDOW from its owner. The proxy guard must reject it.
+         SetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE,
+         (GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And Not WS_EX_TOOLWINDOW) Or WS_EX_APPWINDOW);
+         Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'VCL proxy lost TOOLWINDOW');
+         Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = 0, 'VCL proxy gained APPWINDOW');
+        End;
        Assert.AreEqual(Bounds.Top, Main.Top);
        Main.SetTerminalVisible(False);
        Sleep(60);
@@ -860,10 +885,22 @@ Implementation
       End;
      Settings.General.DropDownAnimation := False;
      Main.SetTerminalVisible(True);
-     Assert.IsTrue(Main.Visible);
+     Assert.IsTrue(Main.Visible, 'Terminal not visible after showing');
+     Assert.IsTrue((GetWindowLongPtr(Main.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'Main lost TOOLWINDOW');
+     Assert.IsTrue((GetWindowLongPtr(Main.Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = 0);
+     If Vcl.Forms.Application.Handle <> 0 Then
+      Begin
+       Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = 0, 'VCL proxy gained APPWINDOW');
+       Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'VCL proxy lost TOOLWINDOW');
+       // VCL dialog creation attempts to remove TOOLWINDOW from its owner. The proxy guard must reject it.
+       SetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE,
+       (GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And Not WS_EX_TOOLWINDOW) Or WS_EX_APPWINDOW);
+       Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'VCL proxy lost TOOLWINDOW');
+       Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = 0, 'VCL proxy gained APPWINDOW');
+      End;
      Assert.IsFalse(Main.animationTimer.Enabled);
      Main.SetTerminalVisible(False);
-     Assert.IsFalse(Main.Visible);
+     Assert.IsFalse(Main.Visible, 'Terminal still visible after hiding');
     Finally
      Main.Free;
     End;
@@ -1054,6 +1091,260 @@ Implementation
     Assert.AreEqual(Before + '!', Buffer.Text);
    Finally
     Buffer.Free;
+   End;
+  End;
+
+/// <summary>Exercises project title scalars and UTF-8, then executes a nested JSON menu command only on click.</summary>
+
+ Procedure TTerminalTests.ProjectYamlAndCustomCommandMenu;
+  Var
+   Directory  : String;
+   FileName   : String;
+   OutputName : String;
+   Settings   : TGuakeSettings;
+   Main       : TfrmMain;
+   Commands   : TObjectList<TCustomCommand>;
+   Deadline   : UInt64;
+   JSON       : TJSONArray;
+   Items      : TJSONArray;
+   Args       : TJSONArray;
+   Group      : TJSONObject;
+   Command    : TJSONObject;
+  Begin
+   Assert.AreEqual('Projekt żółty', ProjectTitleFromYaml('title: Projekt żółty # uwaga'));
+   Assert.AreEqual('Żółty # 1', ProjectTitleFromYaml('title: "Żółty # 1"'));
+   Assert.AreEqual('d' + #39 + 'Artagnan', ProjectTitleFromYaml('title: ' + #39 + 'd' + #39#39 + 'Artagnan' + #39));
+   Assert.AreEqual('pierwsza druga', ProjectTitleFromYaml('title: >-' + #10 + '  pierwsza' + #10 + '  druga'));
+   Assert.AreEqual('', ProjectTitleFromYaml('title: !run command'));
+   Directory := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
+   ForceDirectories(Directory);
+   Settings := TGuakeSettings.Create(TPath.Combine(Directory, 'guake.ini'));
+   Try
+    TFile.WriteAllText(TPath.Combine(Directory, '.guake.yml'), 'title: Projekt lokalny', TEncoding.UTF8);
+    Assert.AreEqual('Projekt lokalny', ReadProjectTitle(Directory));
+    FileName   := TPath.Combine(Directory, 'commands.json');
+    OutputName := TPath.Combine(Directory, 'from-menu.txt');
+    JSON       := TJSONArray.Create;
+    Try
+     Group := TJSONObject.Create;
+     JSON.AddElement(Group);
+     Group.AddPair('type', 'menu');
+     Group.AddPair('description', 'Grupa');
+     Items := TJSONArray.Create;
+     Group.AddPair('items', Items);
+     Command := TJSONObject.Create;
+     Items.AddElement(Command);
+     Command.AddPair('description', 'Zapisz');
+     Args := TJSONArray.Create;
+     Command.AddPair('cmd', Args);
+     Args.AddElement(TJSONString.Create('echo'));
+     Args.AddElement(TJSONString.Create('from-menu>' + QuoteProcessArgument(OutputName)));
+     TFile.WriteAllText(FileName, JSON.ToJSON, TEncoding.UTF8);
+    Finally
+     JSON.Free;
+    End;
+    Commands := ReadCustomCommands(FileName);
+    Try
+     Assert.AreEqual(1, Commands.Count);
+     Assert.IsTrue(Commands[0].IsMenu);
+     Assert.AreEqual('Zapisz', Commands[0].Children[0].Description);
+    Finally
+     Commands.Free;
+    End;
+    Settings.General.DefaultShell         := 'cmd';
+    Settings.General.UseTrayicon          := False;
+    Settings.General.UsePopup             := False;
+    Settings.General.LoadGuakeYml         := True;
+    Settings.General.CustomCommandFile    := FileName;
+    Settings.Keybindings.Global.ShowHide  := 'disabled';
+    Settings.Keybindings.Global.ShowFocus := 'disabled';
+    Main                                  := TfrmMain.Create(Nil);
+    Try
+     Main.Bind(Settings);
+     Main.StartTerminal;
+     Main.Controller.NewTab(Directory, 'cmd');
+     Assert.AreEqual('Projekt lokalny', Main.Controller.ActiveSession.Title);
+     Main.TerminalMenuPopup(Nil);
+     Assert.IsTrue(Main.miCustomCommands.Visible);
+     Assert.AreEqual(1, Main.miCustomCommands.Count);
+     Assert.IsFalse(TFile.Exists(OutputName));
+     Main.miCustomCommands.Items[0].Items[0].Click;
+     Deadline := GetTickCount64 + 15000;
+     Repeat
+      Main.PollTerminal(Nil);
+      If TFile.Exists(OutputName) Then
+       Break;
+      Sleep(10);
+     Until GetTickCount64 >= Deadline;
+     Assert.IsTrue(TFile.Exists(OutputName));
+     Assert.AreEqual('from-menu', Trim(TFile.ReadAllText(OutputName)));
+    Finally
+     Main.Free;
+    End;
+   Finally
+    Settings.Free;
+    TDirectory.Delete(Directory, True);
+   End;
+  End;
+
+ Procedure TTerminalTests.CaptureNotification(Sender : TObject; Const Title, Body : String);
+  Begin
+   fNotices.Add(Title + ': ' + Body);
+  End;
+
+/// <summary>Verifies the application startup path, enabled menus, periodic saves and user-facing notifications without displaying OS popups in tests.</summary>
+
+ Procedure TTerminalTests.StartupRestoreAutosaveAndNotifications;
+  Var
+   Directory   : String;
+   Saved       : String;
+   SessionFile : String;
+   Settings    : TGuakeSettings;
+   Main        : TfrmMain;
+  Begin
+   Directory := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
+   ForceDirectories(Directory);
+   Settings := TGuakeSettings.Create(TPath.Combine(Directory, 'guake.ini'));
+   fNotices := TStringList.Create;
+   Try
+    Settings.General.DefaultShell         := 'cmd';
+    Settings.General.UseTrayicon          := False;
+    Settings.General.UsePopup             := True;
+    Settings.General.RestoreTabsStartup   := True;
+    Settings.General.SaveTabsWhenChanged  := True;
+    Settings.General.RestoreTabsNotify    := True;
+    Settings.Keybindings.Global.ShowHide  := '<Control><Alt>F24';
+    Settings.Keybindings.Global.ShowFocus := 'disabled';
+    Main                                  := TfrmMain.Create(Nil);
+    Try
+     Main.OnNotification := CaptureNotification;
+     Main.Bind(Settings);
+     Main.StartTerminal;
+     Assert.IsTrue(Pos('F24', fNotices.Text) > 0, fNotices.Text);
+     Assert.IsTrue(Main.miSaveTabs.Enabled);
+     Assert.IsTrue(Main.sessionTimer.Enabled);
+     Main.Controller.NewTab;
+     Main.Controller.ActiveTab.Name := 'Zapisana';
+     Main.Controller.Split(True);
+     Main.SessionSaveTick(Nil);
+     Assert.IsTrue(Main.miRestoreTabs.Enabled);
+     SessionFile := ChangeFileExt(Settings.FileName, '.session.json');
+     Assert.IsTrue(TFile.Exists(SessionFile));
+     Saved := Main.Controller.SessionState;
+    Finally
+     Main.Free;
+    End;
+    fNotices.Clear;
+    Main := TfrmMain.Create(Nil);
+    Try
+     Main.OnNotification := CaptureNotification;
+     Main.Bind(Settings);
+     Main.StartTerminal;
+     Assert.AreEqual(2, Main.Controller.Count);
+     Assert.AreEqual(Saved, Main.Controller.SessionState);
+     Assert.IsTrue(Main.miRestoreTabs.Enabled);
+     Main.RestoreTabsClick(Nil);
+     Assert.IsTrue(Pos('restored', fNotices.Text) > 0, fNotices.Text);
+     Settings.General.UsePopup := False;
+     fNotices.Clear;
+     Main.RestoreTabsClick(Nil);
+     Assert.AreEqual(0, fNotices.Count);
+    Finally
+     Main.Free;
+    End;
+    Settings.General.UsePopup := True;
+    fNotices.Clear;
+    TFile.WriteAllText(SessionFile, '{broken', TEncoding.UTF8);
+    Main := TfrmMain.Create(Nil);
+    Try
+     Main.OnNotification := CaptureNotification;
+     Main.Bind(Settings);
+     Main.StartTerminal;
+     Assert.AreEqual(1, Main.Controller.Count);
+     Assert.IsTrue(Pos('preserved', fNotices.Text) > 0, fNotices.Text);
+     Assert.IsFalse(Main.sessionTimer.Enabled);
+    Finally
+     Main.Free;
+    End;
+    Assert.AreEqual('{broken', TFile.ReadAllText(SessionFile, TEncoding.UTF8));
+   Finally
+    fNotices.Free;
+    fNotices := Nil;
+    Settings.Free;
+    TDirectory.Delete(Directory, True);
+   End;
+  End;
+
+/// <summary>Exercises a hidden native hook, isolated HKCU startup registration and non-repeating bell consumption.</summary>
+
+ Procedure TTerminalTests.NativeHooksAutostartAndBell;
+  Var
+   Directory    : String;
+   OutputName   : String;
+   RegistryPath : String;
+   Deadline     : UInt64;
+   Registry     : TRegistry;
+   Settings     : TGuakeSettings;
+   Controller   : TTerminalController;
+  Begin
+   Directory := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
+   ForceDirectories(Directory);
+   OutputName   := TPath.Combine(Directory, 'hook.txt');
+   RegistryPath := 'SoftwareGuakeGuakeTests' + TPath.GetRandomFileName;
+   Registry     := TRegistry.Create(KEY_READ Or KEY_WRITE);
+   Settings     := TGuakeSettings.Create(TPath.Combine(Directory, 'guake.ini'));
+   Try
+    Assert.AreEqual(Cardinal(0), StartConfiguredCommand('', Directory));
+    Assert.IsTrue(StartConfiguredCommand('echo hook-data>' + QuoteProcessArgument(OutputName), Directory) > 0);
+    Deadline := GetTickCount64 + 5000;
+    While Not TFile.Exists(OutputName) And (GetTickCount64 < Deadline) Do
+     Sleep(10);
+    Assert.AreEqual('hook-data', Trim(TFile.ReadAllText(OutputName)));
+    ConfigureAutoStart(True, ParamStr(0), RegistryPath);
+    Registry.RootKey := HKEY_CURRENT_USER;
+    Assert.IsTrue(Registry.OpenKeyReadOnly(RegistryPath));
+    Assert.AreEqual(QuoteProcessArgument(ExpandFileName(ParamStr(0))) + ' --hidden', Registry.ReadString('Guake'));
+    Registry.CloseKey;
+    ConfigureAutoStart(False, ParamStr(0), RegistryPath);
+    Assert.IsTrue(Registry.OpenKeyReadOnly(RegistryPath));
+    Assert.IsFalse(Registry.ValueExists('Guake'));
+    Registry.CloseKey;
+    Settings.General.DefaultShell := 'cmd';
+    Controller                    := TTerminalController.Create(Settings);
+    Try
+     Controller.NewTab;
+     Controller.ActiveSession.Buffer.FeedText(#7#7);
+     Assert.IsTrue(Controller.ActiveSession.TakeBell);
+     Assert.IsFalse(Controller.ActiveSession.TakeBell);
+    Finally
+     Controller.Free;
+    End;
+   Finally
+    Registry.CloseKey;
+    Registry.DeleteKey(RegistryPath);
+    Registry.Free;
+    Settings.Free;
+    TDirectory.Delete(Directory, True);
+   End;
+  End;
+
+/// <summary>Exercises the same guarded proxy style on a real hidden DFM window, including console test hosts without an Application HWND.</summary>
+
+ Procedure TTerminalTests.TrayOnlyStyleRejectsVclMutation;
+  Var
+   Window : TfrmAbout;
+  Begin
+   Window := TfrmAbout.Create(Nil);
+   Try
+    Window.HandleNeeded;
+    ConfigureTrayOnlyWindow(Window.Handle, True);
+    Assert.IsTrue((GetWindowLongPtr(Window.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'Initial proxy TOOLWINDOW');
+    SetWindowLongPtr(Window.Handle, GWL_EXSTYLE,
+    (GetWindowLongPtr(Window.Handle, GWL_EXSTYLE) And Not WS_EX_TOOLWINDOW) Or WS_EX_APPWINDOW);
+    Assert.IsTrue((GetWindowLongPtr(Window.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'Proxy style guard did not reject TOOLWINDOW removal');
+    Assert.IsTrue((GetWindowLongPtr(Window.Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = 0, 'Proxy style guard allowed APPWINDOW');
+   Finally
+    Window.Free;
    End;
   End;
 

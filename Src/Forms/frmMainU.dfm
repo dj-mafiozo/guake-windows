@@ -110,6 +110,10 @@
   object trayMenu: TPopupMenu
     Left = 88
     Top = 40
+    object miTrayToggle: TMenuItem
+      Caption = 'Wyświetl'
+      OnClick = TrayDblClick
+    end
     object miTrayNewTab: TMenuItem
       Caption = 'Nowa karta'
       Enabled = False
@@ -228,6 +232,10 @@
     object miTerminalSeparator5: TMenuItem
       Caption = '-'
     end
+    object miCustomCommands: TMenuItem
+      Caption = 'Polecenia użytkownika'
+      Visible = False
+    end
     object miTerminalPreferences: TMenuItem
       Caption = 'Preferencje'
       OnClick = PreferencesClick
@@ -329,5 +337,10 @@
     Enabled = False
     Interval = 1000
     OnTimer = SessionSaveTick
+  end
+  object notificationTimer: TTimer
+    Enabled = False
+    Interval = 8000
+    OnTimer = NotificationExpired
   end
 end

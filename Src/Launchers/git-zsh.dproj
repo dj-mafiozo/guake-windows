@@ -1,8 +1,8 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectGuid>{62899163-AC1C-4F32-97DC-B35585FEE440}</ProjectGuid>
     <MainSource>git-zsh.dpr</MainSource>
-    <Base>true</Base>
+    <Base>True</Base>
     <Config Condition="'$(Config)'==''">Debug</Config>
     <Platform Condition="'$(Platform)'==''">Win64</Platform>
     <TargetedPlatforms>2</TargetedPlatforms>
@@ -10,49 +10,89 @@
     <FrameworkType>None</FrameworkType>
     <ProjectVersion>18.4</ProjectVersion>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Config)'=='Base' or '$(Base)'!=''">
+    <Base>true</Base>
+  </PropertyGroup>
+  <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Base)'=='true') or '$(Base_Win64)'!=''">
+    <Base_Win64>true</Base_Win64>
+    <CfgParent>Base</CfgParent>
+    <Base>true</Base>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Config)'=='Release' or '$(Cfg_2)'!=''">
+    <Cfg_2>true</Cfg_2>
+    <CfgParent>Base</CfgParent>
+    <Base>true</Base>
+  </PropertyGroup>
+  <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Cfg_2)'=='true') or '$(Cfg_2_Win64)'!=''">
+    <Cfg_2_Win64>true</Cfg_2_Win64>
+    <CfgParent>Cfg_2</CfgParent>
     <Cfg_2>true</Cfg_2>
     <Base>true</Base>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Config)'=='Debug' or '$(Cfg_1)'!=''">
     <Cfg_1>true</Cfg_1>
+    <CfgParent>Base</CfgParent>
+    <Base>true</Base>
+  </PropertyGroup>
+  <PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win64)'!=''">
+    <Cfg_1_Win64>true</Cfg_1_Win64>
+    <CfgParent>Cfg_1</CfgParent>
+    <Cfg_1>true</Cfg_1>
     <Base>true</Base>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Base)'!=''">
-    <DCC_Namespace>System;Winapi;System.Win;Xml;Data;Vcl;System;Winapi;System.Win;Xml;$(DCC_Namespace)</DCC_Namespace>
-    <DCC_UnitSearchPath>..\Vendor\i18n\Packages;..\Vendor\stacktrace\source;$(BDS)\source\DUnitX;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+    <DCC_Namespace>System;Winapi;System.Win;Xml;Data;Vcl;$(DCC_Namespace)</DCC_Namespace>
+    <DCC_UnitSearchPath>$(MSBuildProjectDirectory)\..\Vendor\i18n\Packages;$(MSBuildProjectDirectory)\..\Vendor\stacktrace\source;$(BDS)\source\DUnitX;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
     <DCC_IncludePath>$(BDS)\source\DUnitX;$(DCC_IncludePath)</DCC_IncludePath>
-    <DCC_ExeOutput>..\..\bin\Win64</DCC_ExeOutput>
-    <DCC_DcuOutput>..\..\.build\git-zsh\$(Platform)\$(Config)</DCC_DcuOutput>
+    <DCC_ExeOutput>$(MSBuildProjectDirectory)\..\..\bin\Win64</DCC_ExeOutput>
+    <DCC_DcuOutput>$(MSBuildProjectDirectory)\..\..\.build\git-zsh\$(Platform)\$(Config)</DCC_DcuOutput>
     <DCC_DebugInformation>2</DCC_DebugInformation>
     <DCC_Optimize>false</DCC_Optimize>
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_MajorVer>1</VerInfo_MajorVer>
     <VerInfo_MinorVer>0</VerInfo_MinorVer>
-    <VerInfo_Release>12</VerInfo_Release>
-    <VerInfo_Build>46</VerInfo_Build>
+    <VerInfo_Release>13</VerInfo_Release>
+    <VerInfo_Build>47</VerInfo_Build>
     <VerInfo_Locale>1045</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Guake dla Windows;FileVersion=1.0.12.46;InternalName=git-zsh;OriginalFilename=git-zsh.exe;ProductName=Guake dla Windows;ProductVersion=1.0.12.46</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Guake dla Windows;FileVersion=1.0.13.47;InternalName=git-zsh;OriginalFilename=git-zsh.exe;ProductName=Guake dla Windows;ProductVersion=1.0.13.47</VerInfo_Keys>
     <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
     <DCC_MapFile>3</DCC_MapFile>
-    <PostBuildEvent>python "$(MSBuildProjectDirectory)\..\Tools\Build-Symbols.py" "$(DCC_ExeOutput)\$(MSBuildProjectName).map"</PostBuildEvent>
+    <PostBuildEvent>powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(MSBuildProjectDirectory)\..\Tools\Complete-Build.ps1" -ProjectFile "$(MSBuildProjectDirectory)\git-zsh.dproj" -OutputDirectory "$(DCC_ExeOutput)\."</PostBuildEvent>
     <PostBuildEventIgnoreExitCode>false</PostBuildEventIgnoreExitCode>
-    <DCC_ResourcePath>Resources;$(BDS)\lib\win64\release;$(DCC_ResourcePath)</DCC_ResourcePath>
+    <DCC_ResourcePath>$(MSBuildProjectDirectory)\..\Resources;$(BDS)\lib\$(Platform)\release;$(DCC_ResourcePath)</DCC_ResourcePath>
     <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
+    <SanitizedProjectName>git_zsh</SanitizedProjectName>
+    <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
+    <Icon_MainIcon>$(MSBuildProjectDirectory)\..\Resources\Pixmaps\guake.ico</Icon_MainIcon>
+    <PreBuildEvent>powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(MSBuildProjectDirectory)\..\Tools\Prepare-Build.ps1" -ProjectFile "$(MSBuildProjectDirectory)\git-zsh.dproj" -OutputDirectory "$(DCC_ExeOutput)\." -Config "$(Config)" -Platform "$(Platform)" -DelphiRoot "$(BDS)\."</PreBuildEvent>
+    <PreBuildEventIgnoreExitCode>false</PreBuildEventIgnoreExitCode>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Base_Win64)'!=''">
+    <DCC_Namespace>Winapi;System.Win;$(DCC_Namespace)</DCC_Namespace>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Cfg_2)'!=''">
     <DCC_Optimize>true</DCC_Optimize>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
+    <BT_BuildType>Release</BT_BuildType>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Cfg_1)'!=''">
     <DCC_Optimize>false</DCC_Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
+    <BT_BuildType>Debug</BT_BuildType>
   </PropertyGroup>
   <ItemGroup>
     <DelphiCompile Include="$(MainSource)">
       <MainSource>MainSource</MainSource>
     </DelphiCompile>
-    <DCCReference Include="Guake.GitZsh.pas" />
-    <DCCReference Include="..\Terminal\Guake.Shells.pas" />
     <DCCReference Include="..\Vendor\stacktrace\source\StackTrace.pas" />
+    <DCCReference Include="..\Terminal\Guake.Shells.pas" />
+    <DCCReference Include="Guake.GitZsh.pas" />
+    <BuildConfiguration Include="Release">
+      <Key>Cfg_2</Key>
+      <CfgParent>Base</CfgParent>
+    </BuildConfiguration>
     <BuildConfiguration Include="Base">
       <Key>Base</Key>
     </BuildConfiguration>
@@ -60,12 +100,7 @@
       <Key>Cfg_1</Key>
       <CfgParent>Base</CfgParent>
     </BuildConfiguration>
-    <BuildConfiguration Include="Release">
-      <Key>Cfg_2</Key>
-      <CfgParent>Base</CfgParent>
-    </BuildConfiguration>
   </ItemGroup>
-  <Import Project="$(BDS)\Bin\CodeGear.Delphi.Targets" />
   <ProjectExtensions>
     <Borland.Personality>Delphi.Personality.12</Borland.Personality>
     <BorlandProject>
@@ -75,10 +110,13 @@
         </Source>
       </Delphi.Personality>
       <Platforms>
-        <Platform value="Win64">True</Platform>
         <Platform value="Win32">False</Platform>
+        <Platform value="Win64">True</Platform>
       </Platforms>
     </BorlandProject>
     <Borland.ProjectType />
+    <ProjectFileVersion>12</ProjectFileVersion>
   </ProjectExtensions>
+  <Import Project="$(BDS)\Bin\CodeGear.Delphi.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Delphi.Targets')" />
+  <Import Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj" Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')" />
 </Project>

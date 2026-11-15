@@ -47,6 +47,7 @@ Interface
     fAttr              : TTerminalCell;
     fState             : TVTState;
     fSequence          : String;
+    fBellCount         : UInt64;
     fTitle             : String;
     fHyperlink         : String;
     fDirectory         : String;
@@ -109,6 +110,7 @@ Interface
     Property BracketedPaste       : Boolean Read fBracketedPaste;
     Property MouseMode            : Integer Read fMouseMode;
     Property SGRMouse             : Boolean Read fSGRMouse;
+    Property BellCount            : UInt64 Read fBellCount;
     Property Title                : String Read fTitle;
     Property DirectoryURI         : String Read fDirectory;
     Property Revision             : Int64 Read fRevision;
@@ -621,8 +623,10 @@ Implementation
    Case fState Of
     vsGround :
      Case Code Of
-      0, 7 :
+      0 :
        ;
+      7 :
+       Inc(fBellCount);
       8 :
        Begin
         fX           := Max(0, fX - 1);

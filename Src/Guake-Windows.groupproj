@@ -1,0 +1,48 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{B2F3A2EA-A68D-48CA-8D9F-D0FE097DB698}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="guake.dproj">
+            <Dependencies>Launchers\git-zsh.dproj</Dependencies>
+        </Projects>
+        <Projects Include="Launchers\git-zsh.dproj">
+            <Dependencies />
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType />
+        <BorlandProject>
+            <Default.Personality />
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="guake">
+        <MSBuild Projects="guake.dproj" />
+    </Target>
+    <Target Name="guake:Clean">
+        <MSBuild Projects="guake.dproj" Targets="Clean" />
+    </Target>
+    <Target Name="guake:Make">
+        <MSBuild Projects="guake.dproj" Targets="Make" />
+    </Target>
+    <Target Name="git-zsh">
+        <MSBuild Projects="Launchers\git-zsh.dproj" />
+    </Target>
+    <Target Name="git-zsh:Clean">
+        <MSBuild Projects="Launchers\git-zsh.dproj" Targets="Clean" />
+    </Target>
+    <Target Name="git-zsh:Make">
+        <MSBuild Projects="Launchers\git-zsh.dproj" Targets="Make" />
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="git-zsh;guake" />
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="git-zsh:Clean;guake:Clean" />
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="git-zsh:Make;guake:Make" />
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')" />
+</Project>

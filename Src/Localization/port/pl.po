@@ -845,3 +845,21 @@ msgstr "Animuj wysuwanie i chowanie okna terminala."
 
 msgid "Duration of the drop-down animation in milliseconds."
 msgstr "Czas animacji wysuwania terminala w milisekundach."
+
+msgid "Custom commands"
+msgstr "Polecenia użytkownika"
+
+msgid "Could not restore tabs. The existing session file has been preserved."
+msgstr "Nie udało się przywrócić kart. Dotychczasowy plik sesji został zachowany."
+
+msgid "Could not register a global shortcut. Choose another shortcut in Preferences."
+msgstr "Nie udało się zarejestrować skrótu globalnego. Wybierz inny skrót w preferencjach."
+
+msgid "Guake is now running. Assign an activation shortcut in Preferences."
+msgstr "Program Guake jest uruchomiony. Przypisz skrót aktywacji w preferencjach."
+
+msgid "Could not execute a remote command. See the log for details."
+msgstr "Nie udało się wykonać polecenia zdalnego. Szczegóły znajdują się w dzienniku."
+
+msgid "Could not configure Windows startup. See the log for details."
+msgstr "Nie udało się skonfigurować autostartu Windows. Szczegóły znajdują się w dzienniku."

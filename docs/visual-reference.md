@@ -37,3 +37,5 @@ Obszar pod kategoriami ma ten sam kolor co pasek nawigacji. Przyciski nowej kart
 Pasek Windows używa stylu `tsFlatButtons`: aktywna karta jest wyróżniona jak wciśnięty przycisk. Kontener paska nadal może znajdować się u góry lub u dołu okna zgodnie z preferencjami. Menu kart działa na kartach i pustym obszarze paska. Ikona nowej karty ma osobne menu czterech powłok pod prawym przyciskiem myszy; lewy przycisk zachowuje domyślną powłokę.
 
 Menu zapisu i przywracania kart jest aktywne i korzysta z pliku sesji JSON. Animacja wysuwania jest rozszerzeniem Windows konfigurowanym na stronie ogólnej.
+
+Powiadomienie startowe korzysta z tytułu „Terminal Guake”, oryginalnej ikony i nazwy głównego skrótu w treści. Kolejka Windows obejmuje również odtworzenie kart i komunikaty błędów. „Wyświetl” w trayu oznacza przełączenie widoczności, nie samo pokazanie. Okno terminala i proxy VCL mają pomijać pasek zadań oraz Alt+Tab przez cały czas działania.

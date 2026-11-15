@@ -2,8 +2,9 @@
 param([string]$ResourceCompiler)
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
+if (!$ResourceCompiler -and $env:RC_EXE) { $ResourceCompiler = $env:RC_EXE }
 if (!$ResourceCompiler) {
-    $sdk = 'C:\Program Files (x86)\Windows Kits\10\bin'
+    $sdk = Join-Path ${env:ProgramFiles(x86)} 'Windows Kits\10\bin'
     $ResourceCompiler = Get-ChildItem -LiteralPath $sdk -Directory |
         Sort-Object Name -Descending |
         ForEach-Object { Join-Path $_.FullName 'x64\rc.exe' } |

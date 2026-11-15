@@ -1,10 +1,10 @@
 # Guake dla Windows
 
-Port Guake na Windows 64-bit w Delphi/VCL z natywnym WinAPI. Celem jest zgodność funkcji i wyglądu z Guake. Dostępne są ustawienia, formularze, backend ConPTY, podstawowy emulator VT oraz kontroler kart i podziałów. Named Pipes i pozostałe funkcje portu wymagają dalszej pracy.
+Port Guake na Windows 64-bit w Delphi/VCL z natywnym WinAPI. Celem jest zgodność funkcji i wyglądu z Guake. Dostępne są ustawienia, formularze, backend ConPTY, podstawowy emulator VT oraz kontroler kart i podziałów. Działają też pojedyncza instancja i CLI przez prywatne Named Pipes; pozostałe różnice opisuje stan portu.
 
 Główny projekt: [Src/guake.dpr](Src/guake.dpr), [Src/guake.dproj](Src/guake.dproj). Cały kod, projekty, narzędzia i dane lokalizacji znajdują się pod `Src/`. Wyniki budowania trafiają do ignorowanego `bin/`, pliki pośrednie do `.build/`.
 
-- [Ustawienia](Src/Settings/Guake.Settings.pas): 130 kluczy z oryginalnego schematu i cztery skróty powłok dla Windows, hierarchiczne rekordy i osobna klasa z `TMemIniFile`.
+- [Ustawienia](Src/Settings/Guake.Settings.pas): 130 kluczy z oryginalnego schematu, cztery skróty powłok dla Windows i dwie opcje animacji, hierarchiczne rekordy i osobna klasa z `TMemIniFile`.
 - [Preferencje](Src/Forms/frmPreferencesU.pas): dziewięć kategorii z lewym paskiem nawigacji według `prefs.glade`, zapis zmian, zależności kontrolek, skróty, 169 palet i dialogi plikowe.
 - [Formularze](Src/Forms): okno główne, preferencje, informacje o programie, wyszukiwanie, zmiana nazwy i potwierdzenia. [Moduły danych](Src/DataModules) zawierają komponenty dialogów plikowych.
 - [Lokalizacja](Src/Localization/README.md): 26 oryginalnych PO Guake i osobne uzupełnienia portu Windows, import przez GNU msgfmt, biblioteka `Src/Vendor/i18n`.
@@ -26,7 +26,7 @@ Główny EXE: `bin/Win64/guake.exe`. Samodzielny edytor preferencji do sprawdzen
 
 Jeżeli uruchomiona aplikacja blokuje docelowy EXE, można zweryfikować kompilację przez `Src/Tools/Test.ps1 -MainOutput .build/verified-main`. Ten parametr zmienia katalog wyjściowy EXE i PDB aplikacji oraz wrappera, a także lokalizacji aplikacji. Paczkę z takiego katalogu tworzy `Src/Tools/Package.ps1 -OutputDirectory .build/verified-main`. `Base` w IDE przechowuje wspólne opcje; do budowania wybierz `Debug` albo `Release`.
 
-Konflikt skrótu globalnego nie blokuje uruchomienia terminala. Szczegóły są widoczne w podpowiedzi ikony tray; zajętą kombinację można zmienić w preferencjach. Projekty używają `ResourceBuildDependsOn` do kompilacji zasobów, zgodnie ze starszym parserem MSBuild w Delphi.
+Konflikt skrótu globalnego nie blokuje uruchomienia terminala. Szczegóły są widoczne w podpowiedzi ikony tray; zajętą kombinację można zmienić w preferencjach. Projekty używają standardowych `PreBuildEvent`/`PostBuildEvent`, tak samo przy budowaniu z IDE i MSBuild: przygotowują niestandardowe zasoby, wrapper, PDB i tłumaczenia. Otwórz `Src/Guake-Windows.groupproj` albo bezpośrednio `Src/guake.dproj`. Wymagane są Windows SDK (rc.exe), Python i map2pdb dostępne dla procesu IDE.
 
 Skróty z klawiszem grave (U+0060) i tyldą (~) można przechwytywać w preferencjach; rozpoznawane są również te znaki zapisane bezpośrednio w INI. Sesje Bash/Zsh mają jawnie ustawiony typ terminala `xterm-256color`.
 
@@ -45,3 +45,7 @@ Skróty mają siedem zwijanych sekcji, obsługiwanych myszą i klawiaturą. Zazn
 Preferencje ogólne pozwalają włączyć animację wysuwania/chowania i ustawić jej czas. Działają skróty kierunkowego fokusu i przesuwania granicy podziału, otwieranie URL/OSC 8 oraz wyszukiwanie zaznaczenia w WWW. Menu tray zapisuje i przywraca karty z drzewem podziałów. Odtwarzanie po starcie i autosave korzystają z pliku `.session.json` obok INI i uruchamiają nowe powłoki w zapisanych katalogach.
 
 Historia i ekran główny są ponownie zawijane po zmianie szerokości. Segmentacja grafemów używa systemowego ICU; nie trzeba dostarczać biblioteki wraz z aplikacją. Na starszych systemach bez odpowiednich eksportów ICU działa uproszczony wariant opisany w stanie portu.
+
+Guake działa jako pojedyncza instancja użytkownika w sesji Windows. Kolejne uruchomienie przełącza widoczność; `guake.exe --help` pokazuje dostępne polecenia CLI. Komunikacja korzysta z prywatnego Named Pipe, nie z D-Bus. Tryb `--hidden` służy m.in. autostartowi. Menu tray „Wyświetl” przełącza widoczność jak główny skrót. Ikona nie ma pojawiać się na pasku zadań ani po aktywacji terminala.
+
+Działają powiadomienia startowe i diagnostyczne z ikoną Guake, hooki start/show, autostart HKCU oraz dzwonek BEL. `.guake.yml` może nadawać tytuł projektu, a plik poleceń JSON tworzy menu użytkownika. Zakres parsera i ograniczenia integracji opisuje [stan portu](docs/port-status.md).

@@ -7,14 +7,19 @@ Interface
  Uses
   System.SysUtils, System.Classes, System.Generics.Collections, Winapi.Windows, Winapi.Messages,
   Vcl.Forms, Vcl.Controls, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.Menus, Vcl.StdCtrls, Vcl.Buttons,
-  Guake.Settings, Guake.Localization, Guake.Logging, Guake.Sessions, fraTerminalU, frmSearchU;
+  Guake.IPC, Guake.Settings, Guake.Localization, Guake.Logging, Guake.Sessions, fraTerminalU, frmSearchU;
 
  Type
   TGuakeWindowCommand = (gwNewTab, gwCloseTab, gwSplitHorizontal, gwSplitVertical, gwCopy, gwPaste, gwSearch);
 
+  TGuakeNotificationEvent = Procedure(Sender : TObject; Const Title, Body : String) Of Object;
+
   TGuakeCommandEvent = Procedure(Sender : TObject; Command : TGuakeWindowCommand) Of Object;
 
   TfrmMain = Class(TForm)
+    miTrayToggle          : TMenuItem;
+    notificationTimer     : TTimer;
+    miCustomCommands      : TMenuItem;
     sessionTimer          : TTimer;
     animationTimer        : TTimer;
     pollTimer             : TTimer;
@@ -72,6 +77,8 @@ Interface
     miPopupBash           : TMenuItem;
     miPopupCmd            : TMenuItem;
     miPopupPowerShell     : TMenuItem;
+    Procedure NotificationExpired(Sender : TObject);
+    Procedure CustomCommandClick (Sender : TObject);
     Procedure SaveTabsClick      (Sender : TObject);
     Procedure RestoreTabsClick   (Sender : TObject);
     Procedure SessionSaveTick    (Sender : TObject);
@@ -99,25 +106,39 @@ Interface
     Procedure TabChanged         (Sender : TObject);
     Procedure TabDoubleClick     (Sender : TObject);
    Private
-    fController   : TTerminalController;
-    fViews        : TDictionary<TTerminalSession, TfraTerminal>;
-    fRootView     : TControl;
-    fSearch       : TfrmSearch;
-    fUpdatingTabs : Boolean;
-    fPolling      : Boolean;
-    fHotkeyErrors : String;
+    fPopupLink          : String;
+    fNotificationQueue  : TQueue<String>;
+    fNotificationWindow : HWND;
+    fNotificationAdded  : Boolean;
+    fOnNotification     : TGuakeNotificationEvent;
+    fAutoStartState     : Boolean;
+    fInstance           : TGuakeInstance;
+    fController         : TTerminalController;
+    fViews              : TDictionary<TTerminalSession, TfraTerminal>;
+    fRootView           : TControl;
+    fSearch             : TfrmSearch;
+    fUpdatingTabs       : Boolean;
+    fPolling            : Boolean;
+    fHotkeyErrors       : String;
+    Procedure ExecuteConfiguredHook(Const Value : String);
+    Procedure ShowNotification     (Const Text : String);
+    Procedure ShowNextNotification;
+    Procedure DeleteNotificationIcon;
+    Procedure WMNotification       (Var Message : TMessage); Message WM_APP + 43;
+    Function  StartupMessage                            : String;
+    Procedure LoadCustomCommands;
     Procedure ClearTerminalViews;
-    Procedure ControllerChanged(Sender : TObject);
+    Procedure ControllerChanged    (Sender : TObject);
     Procedure RenderTerminalTree;
     Procedure UpdateTerminalTitles;
-    Procedure TerminalActivated(Sender : TObject);
-    Procedure TerminalShortcut (Sender : TObject; Key : Word; Shift : TShiftState; Var Handled : Boolean);
+    Procedure TerminalActivated    (Sender : TObject);
+    Procedure TerminalShortcut     (Sender : TObject; Key : Word; Shift : TShiftState; Var Handled : Boolean);
     Procedure RegisterGlobalHotkeys;
-    Procedure WMHotKey         (Var Message : TMessage); Message WM_HOTKEY;
-    Procedure WMTerminalAction (Var Message : TMessage); Message WM_APP + 42;
-    Procedure OpenExternalLink (Const Value : String);
-    Procedure SearchMatched    (Sender : TObject);
-    Function  ConfirmClose     (Quitting : Boolean) : Boolean;
+    Procedure WMHotKey             (Var Message : TMessage); Message WM_HOTKEY;
+    Procedure WMTerminalAction     (Var Message : TMessage); Message WM_APP + 42;
+    Procedure OpenExternalLink     (Const Value : String);
+    Procedure SearchMatched        (Sender : TObject);
+    Function  ConfirmClose         (Quitting : Boolean) : Boolean;
    Private
     fSettings           : TGuakeSettings;
     fLocalizer          : TGuakeLocalization;
@@ -137,9 +158,14 @@ Interface
     Procedure SettingsChanged(Sender : TObject);
     Procedure SetOnCommand   (Const Value : TGuakeCommandEvent);
    Protected
+    Procedure CreateParams(Var Params : TCreateParams); Override;
     Procedure CreateWnd; Override;
    Public
     /// <summary>Starts the default ConPTY tab, native hotkeys and session polling.</summary>
+    /// <summary>Executes an accepted command on the VCL thread.</summary>
+    Procedure ExecuteIPCCommand(Const Command : String);
+    /// <summary>The DPR owns the single-instance transport; the form borrows it.</summary>
+    Property Instance : TGuakeInstance Read fInstance Write fInstance;
     Procedure StartTerminal;
     /// <summary>Detaches views before destroying session-owned processes and buffers.</summary>
     Procedure StopTerminal;
@@ -153,13 +179,14 @@ Interface
     Procedure SetTerminalVisible(Value : Boolean);
     Procedure ToggleVisibility;
     Procedure SetFullScreen     (Value : Boolean);
-    Property OnCommand : TGuakeCommandEvent Read fOnCommand Write SetOnCommand;
+    Property OnNotification : TGuakeNotificationEvent Read fOnNotification Write fOnNotification;
+    Property OnCommand      : TGuakeCommandEvent Read fOnCommand Write SetOnCommand;
   End;
 
 Implementation
 
  Uses
-  Guake.Links, Winapi.ShellAPI, System.NetEncoding, System.IOUtils, frmPreferencesU, frmAboutU, frmRenameU, frmConfirmU, dmDialogsU, fraSplitU, Guake.Keybindings, System.Math, Guake.Resources;
+  Guake.WindowsIntegration, Guake.ProjectConfig, Guake.Links, Winapi.ShellAPI, System.NetEncoding, System.IOUtils, System.JSON, frmPreferencesU, frmAboutU, frmRenameU, frmConfirmU, dmDialogsU, fraSplitU, Guake.Keybindings, System.Math, Guake.Resources;
 
  Type
   TTabControlAccess = Class(TTabControl)
@@ -170,6 +197,13 @@ Implementation
   TTabListItem = Class(TMenuItem)
    Public
     TabId : String;
+  End;
+
+/// <summary>A menu entry created from user command data, rather than static form layout.</summary>
+
+  TCustomCommandItem = Class(TMenuItem)
+   Public
+    CommandText : String;
   End;
 
 {$R *.dfm}
@@ -187,15 +221,18 @@ Implementation
    If (fController <> Nil) And (fController.Count = 0) Then
     fController.NewTab;
    ApplySettings;
+   If fSettings <> Nil Then
+    ExecuteConfiguredHook(fSettings.Hooks.Show);
   End;
 
  Procedure TfrmMain.Bind(Settings : TGuakeSettings; Localizer : TGuakeLocalization; Log : TGuakeLog);
   Begin
    If Settings = Nil Then
     Raise EArgumentNilException.Create('Settings');
-   fSettings  := Settings;
-   fLocalizer := Localizer;
-   fLog       := Log;
+   fSettings       := Settings;
+   fAutoStartState := Settings.General.StartAtLogin;
+   fLocalizer      := Localizer;
+   fLog            := Log;
    If Localizer <> Nil Then
     Begin
      miPreferences.Caption         := Localizer.Text('Preferences');
@@ -222,8 +259,11 @@ Implementation
      miSaveTabs.Caption            := Localizer.Text('Save Tabs');
      miRestoreTabs.Caption         := Localizer.Text('Restore Tabs');
 
-     miAbout.Caption := Localizer.Text('About');
-     miQuit.Caption  := Localizer.Text('Quit');
+     miTrayToggle.Caption     := Localizer.Text('Show');
+     miTrayToggle.Caption     := Localizer.Text('Show');
+     miCustomCommands.Caption := Localizer.Text('Custom commands');
+     miAbout.Caption          := Localizer.Text('About');
+     miQuit.Caption           := Localizer.Text('Quit');
     End;
    ApplySettings;
   End;
@@ -289,9 +329,20 @@ Implementation
     Win32Check(SetLayeredWindowAttributes(Handle, 0, AlphaBlendValue, LWA_ALPHA));
   End;
 
+/// <summary>Keeps the terminal owned by the tray-only VCL proxy across HWND recreation.</summary>
+
+ Procedure TfrmMain.CreateParams(Var Params : TCreateParams);
+  Begin
+   Inherited;
+   Params.ExStyle   := (Params.ExStyle Or WS_EX_TOOLWINDOW) And Not WS_EX_APPWINDOW;
+   Params.WndParent := Application.Handle;
+  End;
+
  Procedure TfrmMain.CreateWnd;
   Begin
    Inherited;
+   ConfigureTrayOnlyWindow(Handle);
+   ConfigureTrayOnlyWindow(Application.Handle, True);
    ApplyOpacity;
   End;
 
@@ -299,6 +350,12 @@ Implementation
   Var
    Frame : TfraTerminal;
   Begin
+   If fAutoStartState <> fSettings.General.StartAtLogin Then
+    Begin
+     ConfigureAutoStart(fSettings.General.StartAtLogin, ParamStr(0));
+     fAutoStartState := fSettings.General.StartAtLogin;
+    End;
+
    ApplySettings;
    If fViews <> Nil Then
     For Frame In fViews.Values Do
@@ -449,18 +506,213 @@ Implementation
    If Sender = miSearchWeb Then
     ExecuteTerminalAction(gskKeybindingsLocalSearchOnWeb)
    Else
-    ExecuteTerminalAction(gskKeybindingsLocalOpenLinkUnderTerminalCursor);
+    OpenExternalLink(fPopupLink);
+  End;
+
+/// <summary>Builds the original startup message without GTK markup.</summary>
+
+ Function TfrmMain.StartupMessage : String;
+  Var
+   LabelText : String;
+  Begin
+   LabelText := fSettings.Keybindings.Global.ShowHide;
+   If (LabelText = '') Or SameText(LabelText, 'disabled') Then
+    Begin
+     Result := 'Guake is now running. Assign an activation shortcut in Preferences.';
+     If fLocalizer <> Nil Then
+      Result := fLocalizer.Text(Result);
+     Exit;
+    End;
+   LabelText := StringReplace(LabelText, '<Control>', 'Ctrl+', [rfReplaceAll, rfIgnoreCase]);
+   LabelText := StringReplace(LabelText, '<Primary>', 'Ctrl+', [rfReplaceAll, rfIgnoreCase]);
+   LabelText := StringReplace(LabelText, '<Alt>', 'Alt+', [rfReplaceAll, rfIgnoreCase]);
+   LabelText := StringReplace(LabelText, '<Shift>', 'Shift+', [rfReplaceAll, rfIgnoreCase]);
+   LabelText := StringReplace(LabelText, '<Super>', 'Win+', [rfReplaceAll, rfIgnoreCase]);
+   LabelText := StringReplace(LabelText, 'grave', '`', [rfReplaceAll, rfIgnoreCase]);
+   LabelText := StringReplace(LabelText, 'asciitilde', '~', [rfReplaceAll, rfIgnoreCase]);
+   Result    := 'Guake is now running,' + #10 + 'press <b>{!s}</b> to use it.';
+   If fLocalizer <> Nil Then
+    Result := fLocalizer.Text(Result);
+   Result  := StringReplace(Result, '<b>', '', [rfReplaceAll]);
+   Result  := StringReplace(Result, '</b>', '', [rfReplaceAll]);
+   Result  := StringReplace(Result, '{!s}', LabelText, [rfReplaceAll]);
+  End;
+
+ Procedure TfrmMain.ExecuteConfiguredHook(Const Value : String);
+  Var
+   Directory : String;
+  Begin
+   If Trim(Value) = '' Then
+    Exit;
+   Directory := '';
+   If (fController <> Nil) And (fController.ActiveSession <> Nil) Then
+    Directory := fController.ActiveSession.Directory;
+   Try
+    StartConfiguredCommand(Value, Directory);
+   Except
+    On E : Exception Do
+     If fLog <> Nil Then
+      fLog.TryLogException(E, 'Configured hook');
+   End;
+  End;
+
+ Procedure TfrmMain.DeleteNotificationIcon;
+  Var
+   Data : TNotifyIconData;
+  Begin
+   If Not fNotificationAdded Then
+    Exit;
+   FillChar(Data, SizeOf(Data), 0);
+   Data.cbSize := SizeOf(Data);
+   Data.Wnd    := fNotificationWindow;
+   Data.uID    := $4755;
+   Shell_NotifyIcon(NIM_DELETE, @Data);
+   fNotificationAdded := False;
+  End;
+
+ Procedure TfrmMain.ShowNotification(Const Text : String);
+  Var
+   Title : String;
+   Body  : String;
+  Begin
+   If Not fSettings.General.UsePopup Then
+    Exit;
+   Title := 'Guake Terminal';
+   Body  := Text;
+   If fLocalizer <> Nil Then
+    Begin
+     Title := fLocalizer.Text(Title);
+     Body  := fLocalizer.Text(Body);
+    End;
+   If Assigned(fOnNotification) Then
+    Begin
+     fOnNotification(Self, Title, Body);
+     Exit;
+    End;
+   If fNotificationQueue = Nil Then
+    fNotificationQueue := TQueue<String>.Create;
+   If fNotificationQueue.Count >= 32 Then
+    fNotificationQueue.Dequeue;
+   fNotificationQueue.Enqueue(Body);
+   If Not notificationTimer.Enabled Then
+    ShowNextNotification;
+  End;
+
+ Procedure TfrmMain.ShowNextNotification;
+  Var
+   Data  : TNotifyIconData;
+   Title : String;
+   Body  : String;
+  Begin
+   If (fNotificationQueue = Nil) Or (fNotificationQueue.Count = 0) Then
+    Exit;
+   DeleteNotificationIcon;
+   LoadGuakeTrayIcon(trayIcon.Icon);
+   FillChar(Data, SizeOf(Data), 0);
+   Data.cbSize           := SizeOf(Data);
+   fNotificationWindow   := Handle;
+   Data.Wnd              := fNotificationWindow;
+   Data.uID              := $4755;
+   Data.uFlags           := NIF_ICON Or NIF_MESSAGE Or NIF_TIP;
+   Data.uCallbackMessage := WM_APP + 43;
+   Data.hIcon            := trayIcon.Icon.Handle;
+   StrPLCopy(Data.szTip, 'Guake', Length(Data.szTip) - 1);
+   fNotificationAdded := Shell_NotifyIcon(NIM_ADD, @Data);
+   If Not fNotificationAdded Then
+    Exit;
+   Title := 'Guake Terminal';
+   If fLocalizer <> Nil Then
+    Title      := fLocalizer.Text(Title);
+   Body        := fNotificationQueue.Dequeue;
+   Data.uFlags := NIF_INFO;
+   StrPLCopy(Data.szInfoTitle, Title, Length(Data.szInfoTitle) - 1);
+   StrPLCopy(Data.szInfo, Body, Length(Data.szInfo) - 1);
+   Data.dwInfoFlags  := NIIF_USER Or $20;
+   Data.hBalloonIcon := trayIcon.Icon.Handle;
+   Shell_NotifyIcon(NIM_MODIFY, @Data);
+   notificationTimer.Enabled := True;
+  End;
+
+ Procedure TfrmMain.NotificationExpired(Sender : TObject);
+  Begin
+   notificationTimer.Enabled := False;
+   DeleteNotificationIcon;
+   ShowNextNotification;
+  End;
+
+ Procedure TfrmMain.WMNotification(Var Message : TMessage);
+  Begin
+   If (LoWord(Message.LParam) = NIN_BALLOONUSERCLICK) Or (LoWord(Message.LParam) = WM_LBUTTONUP) Then
+    Begin
+     SetTerminalVisible(True);
+     SetForegroundWindow(Handle);
+    End;
+  End;
+
+ Procedure TfrmMain.LoadCustomCommands;
+  Var
+   Commands : TObjectList<TCustomCommand>;
+
+   Procedure AddItems(Parent : TMenuItem; Items : TObjectList<TCustomCommand>);
+    Var
+     Command : TCustomCommand;
+     Item    : TCustomCommandItem;
+    Begin
+     For Command In Items Do
+      Begin
+       Item := TCustomCommandItem.Create(miCustomCommands);
+       Parent.Add(Item);
+       Item.Caption     := StringReplace(Command.Description, '&', '&&', [rfReplaceAll]);
+       Item.CommandText := Command.Command;
+       If Command.IsMenu Then
+        AddItems(Item, Command.Children)
+       Else
+        Item.OnClick := CustomCommandClick;
+      End;
+    End;
+
+  Begin
+   miCustomCommands.Clear;
+   miCustomCommands.Visible := False;
+   If fSettings.General.CustomCommandFile = '' Then
+    Exit;
+   Try
+    Commands := ReadCustomCommands(fSettings.General.CustomCommandFile);
+    Try
+     AddItems(miCustomCommands, Commands);
+    Finally
+     Commands.Free;
+    End;
+    miCustomCommands.Visible := miCustomCommands.Count > 0;
+   Except
+    On E : Exception Do
+     Begin
+      miCustomCommands.Clear;
+      If fLog <> Nil Then
+       fLog.TryLogException(E, 'Custom command file');
+     End;
+   End;
+  End;
+
+ Procedure TfrmMain.CustomCommandClick(Sender : TObject);
+  Begin
+   If (fController = Nil) Or (fController.ActiveSession = Nil) Then
+    Exit;
+   fController.ActiveSession.SendText(TCustomCommandItem(Sender).CommandText + #13);
   End;
 
  Procedure TfrmMain.TerminalMenuPopup(Sender : TObject);
   Var
    Frame : TfraTerminal;
   Begin
+   LoadCustomCommands;
+   fPopupLink          := '';
    Frame               := ActiveTerminalFrame;
    miSearchWeb.Enabled := (Frame <> Nil) And (Frame.SelectedText <> '');
    miOpenLink.Enabled  := False;
    If Frame <> Nil Then
-    miOpenLink.Enabled     := Frame.LinkAt(Frame.surface.ScreenToClient(Mouse.CursorPos).x, Frame.surface.ScreenToClient(Mouse.CursorPos).y) <> '';
+    fPopupLink             := Frame.LinkAt(Frame.surface.ScreenToClient(Mouse.CursorPos).x, Frame.surface.ScreenToClient(Mouse.CursorPos).y);
+   miOpenLink.Enabled      := fPopupLink <> '';
    miCopy.Enabled          := (Frame <> Nil) And (Frame.SelectedText <> '');
    miPaste.Enabled         := (Frame <> Nil) And IsClipboardFormatAvailable(CF_UNICODETEXT);
    miFullscreen.Enabled    := fController <> Nil;
@@ -622,6 +874,13 @@ Implementation
   Begin
    If fFullScreen = Value Then
     Exit;
+   If fAnimating Then
+    Begin
+     animationTimer.Enabled := False;
+     BoundsRect             := fAnimationBounds;
+     SetWindowRgn(Handle, 0, True);
+     fAnimating := False;
+    End;
    fFullScreen := Value;
    If Value Then
     Begin
@@ -655,7 +914,27 @@ Implementation
    fController           := TTerminalController.Create(fSettings);
    fController.OnChanged := ControllerChanged;
    Try
-    fController.NewTab;
+    fSessionSaveBlocked := False;
+    If fSettings.General.RestoreTabsStartup And TFile.Exists(SessionFileName) Then
+     Begin
+      Try
+       fController.LoadSession(SessionFileName);
+       fLastSavedState := fController.SessionState;
+      Except
+       On E : Exception Do
+        Begin
+         fSessionSaveBlocked := True;
+         If fLog <> Nil Then
+          fLog.TryLogException(E, 'Restore session at startup');
+         ShowNotification('Could not restore tabs. The existing session file has been preserved.');
+        End;
+      End;
+     End;
+    If fController.Count = 0 Then
+     fController.NewTab;
+    sessionTimer.Enabled  := Not fSessionSaveBlocked;
+    miSaveTabs.Enabled    := True;
+    miRestoreTabs.Enabled := TFile.Exists(SessionFileName);
     RegisterGlobalHotkeys;
     pollTimer.Enabled         := True;
     miNewTab.Enabled          := True;
@@ -669,6 +948,22 @@ Implementation
     miPaste.Enabled           := True;
     miSearch.Enabled          := True;
     ApplySettings;
+    If fSettings.General.StartAtLogin Then
+     Try
+      ConfigureAutoStart(True, ParamStr(0));
+     Except
+      On E : Exception Do
+       Begin
+        If fLog <> Nil Then
+         fLog.TryLogException(E, 'Windows startup registration');
+        ShowNotification('Could not configure Windows startup. See the log for details.');
+       End;
+     End;
+    If Not FindCmdLineSwitch('no-startup-script') Then
+     ExecuteConfiguredHook(fSettings.General.StartupScript);
+    ShowNotification(StartupMessage);
+    If fHotkeyErrors <> '' Then
+     ShowNotification('Could not register a global shortcut. Choose another shortcut in Preferences.');
     If fSettings.General.StartFullscreen Then
      SetFullScreen(True);
    Except
@@ -711,6 +1006,10 @@ Implementation
 
  Procedure TfrmMain.FormDestroy(Sender : TObject);
   Begin
+   If notificationTimer <> Nil Then
+    notificationTimer.Enabled := False;
+   DeleteNotificationIcon;
+   FreeAndNil(fNotificationQueue);
    If animationTimer <> Nil Then
     animationTimer.Enabled := False;
    StopTerminal;
@@ -822,10 +1121,21 @@ Implementation
   Begin
    If fController = Nil Then
     Exit;
-   fController.LoadSession(SessionFileName);
-   fLastSavedState      := fController.SessionState;
-   fSessionSaveBlocked  := False;
-   sessionTimer.Enabled := True;
+   Try
+    fController.LoadSession(SessionFileName);
+    fLastSavedState      := fController.SessionState;
+    fSessionSaveBlocked  := False;
+    sessionTimer.Enabled := True;
+    If fSettings.General.RestoreTabsNotify Then
+     ShowNotification('Your tabs has been restored!');
+   Except
+    On E : Exception Do
+     Begin
+      If fLog <> Nil Then
+       fLog.TryLogException(E, 'Restore session');
+      ShowNotification('Could not restore tabs. The existing session file has been preserved.');
+     End;
+   End;
   End;
 
  Procedure TfrmMain.SessionSaveTick(Sender : TObject);
@@ -886,6 +1196,81 @@ Implementation
     End;
   End;
 
+/// <summary>Dispatches protocol actions without evaluating JSON as executable code.</summary>
+
+ Procedure TfrmMain.ExecuteIPCCommand(Const Command : String);
+  Var
+   Root   : TJSONValue;
+   Obj    : TJSONObject;
+   Action : String;
+
+   Function Field(Const Name : String) : String;
+    Var
+     Value : TJSONValue;
+    Begin
+     Value := Obj.GetValue(Name);
+     If Value = Nil Then
+      Result := ''
+     Else
+      Result := Value.Value;
+    End;
+
+  Begin
+   If Not ValidIPCCommand(Command) Then
+    Raise EArgumentException.Create('Invalid named pipe command');
+   Root := TJSONObject.ParseJSONValue(Command);
+   Try
+    Obj    := TJSONObject(Root);
+    Action := Field('action');
+    If Action = 'show' Then
+     SetTerminalVisible(True)
+    Else If Action = 'hide' Then
+     SetTerminalVisible(False)
+    Else If Action = 'toggle' Then
+     ToggleVisibility
+    Else If Action = 'new-tab' Then
+     Begin
+      fController.NewTab(Field('directory'), Field('shell'));
+      SetTerminalVisible(True);
+     End
+    Else If Action = 'close-tab' Then
+     ExecuteTerminalAction(gskKeybindingsLocalCloseTab)
+    Else If Action = 'select-tab' Then
+     fController.SelectTab(StrToInt(Field('index')))
+    Else If Action = 'rename-tab' Then
+     Begin
+      If fController.ActiveTab <> Nil Then
+       fController.ActiveTab.Name := Field('name');
+      UpdateTerminalTitles;
+     End
+    Else If Action = 'split-horizontal' Then
+     ExecuteTerminalAction(gskKeybindingsLocalSplitTabHorizontal)
+    Else If Action = 'split-vertical' Then
+     ExecuteTerminalAction(gskKeybindingsLocalSplitTabVertical)
+    Else If Action = 'execute' Then
+     Begin
+      If fController.ActiveSession <> Nil Then
+       fController.ActiveSession.SendText(Field('text') + #13);
+     End
+    Else If Action = 'preferences' Then
+     PreferencesClick(Nil)
+    Else If Action = 'about' Then
+     AboutClick(Nil)
+    Else If Action = 'quit' Then
+     QuitClick(Nil)
+    Else If Action = 'save-session' Then
+     SaveTabsClick(Nil)
+    Else If Action = 'restore-session' Then
+     RestoreTabsClick(Nil)
+    Else If Action = 'fullscreen' Then
+     SetFullScreen(True)
+    Else If Action = 'unfullscreen' Then
+     SetFullScreen(False);
+   Finally
+    Root.Free;
+   End;
+  End;
+
  Procedure TfrmMain.PollTerminal(Sender : TObject);
   Var
    i         : Integer;
@@ -893,13 +1278,35 @@ Implementation
    Session   : TTerminalSession;
    AllExited : Boolean;
    List      : TList<TTerminalSession>;
+   Command   : String;
   Begin
    If (fController = Nil) Or fPolling Then
     Exit;
    fPolling := True;
    Try
+    If fInstance <> Nil Then
+     For i := 1 To 16 Do
+      Begin
+       If Not fInstance.TryReceive(Command) Then
+        Break;
+       Try
+        ExecuteIPCCommand(Command);
+       Except
+        On E : Exception Do
+         Begin
+          If fLog <> Nil Then
+           fLog.TryLogException(E, 'Named pipe command');
+          ShowNotification('Could not execute a remote command. See the log for details.');
+         End;
+       End;
+      End;
+
     If fController.Poll Then
      UpdateTerminalTitles;
+    For Session In fController.Sessions Do
+     If Session.TakeBell And fSettings.General.UseAudibleBell Then
+      MessageBeep(MB_OK);
+
     If Not fSettings.ReadBool('windows', 'keep-exited-tabs', False) Then
      For i := fController.Count - 1 Downto 0 Do
       Begin

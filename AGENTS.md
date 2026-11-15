@@ -42,7 +42,7 @@
 - Umieszczaj `{$StackFrames On}` w pierwszej linii każdego PAS i DPR. Budowanie ma generować PDB z MAP przez map2pdb i dostarczać PDB obok właściwego EXE, także w paczkach.
 - Zachowaj w credits: `Copyright © 2026 DJ M@fi0z0™ - native Windows port` i `DJ M@fi0z0™ <inz.germanista@gmail.com>`, obok oryginalnych autorów i licencji.
 - Aktualizuj pliki Markdown razem ze zmianami kodu, układu katalogów, poleceń, testów i rzeczywistego zakresu funkcji. Usuń nieaktualne opisy zamiast dopisywać sprzeczne uzupełnienia.
-- W DPROJ używaj list zależności targets, np. ResourceBuildDependsOn, zamiast BeforeTargets i AfterTargets nierozpoznawanych przez starszy parser IDE.
+- W DPROJ używaj standardowych PreBuildEvent/PostBuildEvent, wspólnych dla IDE i MSBuild. Nie używaj BeforeTargets/AfterTargets nierozpoznawanych przez starszy parser IDE. Prepare-Build.ps1 przygotowuje niestandardowe RC i wrapper, Complete-Build.ps1 generuje PDB i kopiuje katalogi lokalizacji. Katalog wyjściowy pobieraj z DCC_ExeOutput; build nie zmienia wersji.
 
 ## Wzorzec wizualny
 

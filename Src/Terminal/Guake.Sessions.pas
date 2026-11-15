@@ -14,17 +14,23 @@ Interface
   /// <summary>A session owns one ConPTY process and one UI-thread VT model.</summary>
   TTerminalSession = Class
    Private
-    fId            : String;
-    fDirectory     : String;
-    fName          : String;
-    fProfile       : TShellProfile;
-    fPty           : TConPtySession;
-    fBuffer        : TTerminalBuffer;
-    fExitCode      : Cardinal;
-    fExited        : Boolean;
-    fReportedError : String;
+    fLastBell         : UInt64;
+    fId               : String;
+    fDirectory        : String;
+    fName             : String;
+    fProfile          : TShellProfile;
+    fPty              : TConPtySession;
+    fBuffer           : TTerminalBuffer;
+    fExitCode         : Cardinal;
+    fExited           : Boolean;
+    fReportedError    : String;
+    fSettings         : TGuakeSettings;
+    fProjectTitle     : String;
+    fProjectDirectory : String;
+    fProjectNextCheck : UInt64;
     Function GetTitle : String;
    Public
+    Function TakeBell : Boolean;
     /// <summary>Initializes this service and acquires the resources whose lifetime it owns.</summary>
     Constructor Create(Const Profile : TShellProfile; Const Directory : String; Settings : TGuakeSettings);
     /// <summary>Releases owned resources; borrowed settings and view references are not freed.</summary>
@@ -129,7 +135,7 @@ Interface
 Implementation
 
  Uses
-  Winapi.Windows, System.JSON, System.Types, System.IOUtils, System.Math, System.NetEncoding;
+  Guake.ProjectConfig, Winapi.Windows, System.JSON, System.Types, System.IOUtils, System.Math, System.NetEncoding;
 
  Function NewId : String;
   Var
@@ -146,6 +152,7 @@ Implementation
    Sdk   : String;
   Begin
    Inherited Create;
+   fSettings  := Settings;
    fId        := NewId;
    fProfile   := Profile;
    fDirectory := Directory;
@@ -233,10 +240,30 @@ Implementation
    fPty.SendText(Value);
   End;
 
+ Function TTerminalSession.TakeBell : Boolean;
+  Begin
+   Result    := fBuffer.BellCount <> fLastBell;
+   fLastBell := fBuffer.BellCount;
+  End;
+
  Function TTerminalSession.GetTitle : String;
   Begin
+   If fSettings.General.LoadGuakeYml Then
+    Begin
+     If (fProjectDirectory <> fDirectory) Or (GetTickCount64 >= fProjectNextCheck) Then
+      Begin
+       fProjectDirectory := fDirectory;
+       fProjectNextCheck := GetTickCount64 + 1000;
+       fProjectTitle     := ReadProjectTitle(fDirectory);
+      End;
+    End
+   Else
+    fProjectTitle := '';
+
    If fName <> '' Then
     Result := fName
+   Else If fProjectTitle <> '' Then
+    Result := fProjectTitle
    Else If fBuffer.Title <> '' Then
     Result := fBuffer.Title
    Else

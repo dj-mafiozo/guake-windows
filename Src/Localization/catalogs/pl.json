@@ -2740,6 +2740,38 @@
     },
     {
       "context": "",
+      "singular": "Could not configure Windows startup. See the log for details.",
+      "plural": "",
+      "translations": [
+        "Nie udało się skonfigurować autostartu Windows. Szczegóły znajdują się w dzienniku."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Could not execute a remote command. See the log for details.",
+      "plural": "",
+      "translations": [
+        "Nie udało się wykonać polecenia zdalnego. Szczegóły znajdują się w dzienniku."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Could not register a global shortcut. Choose another shortcut in Preferences.",
+      "plural": "",
+      "translations": [
+        "Nie udało się zarejestrować skrótu globalnego. Wybierz inny skrót w preferencjach."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Could not restore tabs. The existing session file has been preserved.",
+      "plural": "",
+      "translations": [
+        "Nie udało się przywrócić kart. Dotychczasowy plik sesji został zachowany."
+      ]
+    },
+    {
+      "context": "",
       "singular": "Credits",
       "plural": "",
       "translations": [
@@ -2768,6 +2800,14 @@
       "plural": "",
       "translations": [
         "Własna wyszukiwarka:"
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Custom commands",
+      "plural": "",
+      "translations": [
+        "Polecenia użytkownika"
       ]
     },
     {
@@ -3024,6 +3064,14 @@
       "plural": "",
       "translations": [
         "Globalny skrót wywołujący uruchomione Guake z dowolnego programu bez używania myszy."
+      ]
+    },
+    {
+      "context": "",
+      "singular": "Guake is now running. Assign an activation shortcut in Preferences.",
+      "plural": "",
+      "translations": [
+        "Program Guake jest uruchomiony. Przypisz skrót aktywacji w preferencjach."
       ]
     },
     {
