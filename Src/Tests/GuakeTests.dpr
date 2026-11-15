@@ -14,6 +14,8 @@ Uses
  Guake.WindowsIntegration In '..\Integration\Guake.WindowsIntegration.pas',
  Guake.ProjectConfig      In '..\Integration\Guake.ProjectConfig.pas',
  Guake.Unicode            In '..\Terminal\Guake.Unicode.pas',
+ Guake.Composition        In '..\Appearance\Guake.Composition.pas',
+ Guake.AnimatedBackground In '..\Appearance\Guake.AnimatedBackground.pas',
  Guake.Links              In '..\Terminal\Guake.Links.pas',
  Guake.Resources          In '..\Resources\Guake.Resources.pas',
  Guake.ConPTY             In '..\Terminal\Guake.ConPTY.pas',

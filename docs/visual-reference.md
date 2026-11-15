@@ -39,3 +39,5 @@ Pasek Windows używa stylu `tsFlatButtons`: aktywna karta jest wyróżniona jak 
 Menu zapisu i przywracania kart jest aktywne i korzysta z pliku sesji JSON. Animacja wysuwania jest rozszerzeniem Windows konfigurowanym na stronie ogólnej.
 
 Powiadomienie startowe korzysta z tytułu „Terminal Guake”, oryginalnej ikony i nazwy głównego skrótu w treści. Kolejka Windows obejmuje również odtworzenie kart i komunikaty błędów. „Wyświetl” w trayu oznacza przełączenie widoczności, nie samo pokazanie. Okno terminala i proxy VCL mają pomijać pasek zadań oraz Alt+Tab przez cały czas działania.
+
+Przezroczystość terminala jest obecnie składana dla samego tła i obrazu; tekst, zaznaczenie, jawne tła SGR i pasek kart zachowują krycie. Dodano animowane GIF-y. Pozostaje porównanie na rzeczywistym pulpicie i dalsza zgodność renderowania z VTE.

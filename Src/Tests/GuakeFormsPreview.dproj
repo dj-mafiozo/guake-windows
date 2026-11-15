@@ -1,4 +1,4 @@
-﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectGuid>{972ACB47-F770-4B97-884F-699B771B5F19}</ProjectGuid>
     <MainSource>GuakeFormsPreview.dpr</MainSource>
@@ -51,10 +51,10 @@
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_MajorVer>1</VerInfo_MajorVer>
     <VerInfo_MinorVer>0</VerInfo_MinorVer>
-    <VerInfo_Release>13</VerInfo_Release>
-    <VerInfo_Build>47</VerInfo_Build>
+    <VerInfo_Release>14</VerInfo_Release>
+    <VerInfo_Build>48</VerInfo_Build>
     <VerInfo_Locale>1045</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Formularze Guake dla Windows;FileVersion=1.0.13.47;InternalName=GuakeFormsPreview;OriginalFilename=GuakeFormsPreview.exe;ProductName=Guake dla Windows;ProductVersion=1.0.13.47</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Formularze Guake dla Windows;FileVersion=1.0.14.48;InternalName=GuakeFormsPreview;OriginalFilename=GuakeFormsPreview.exe;ProductName=Guake dla Windows;ProductVersion=1.0.14.48</VerInfo_Keys>
     <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
     <DCC_MapFile>3</DCC_MapFile>
     <PostBuildEvent>powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(MSBuildProjectDirectory)\..\Tools\Complete-Build.ps1" -ProjectFile "$(MSBuildProjectDirectory)\GuakeFormsPreview.dproj" -OutputDirectory "$(DCC_ExeOutput)\."</PostBuildEvent>
@@ -91,6 +91,8 @@
     <DCCReference Include="..\Integration\Guake.WindowsIntegration.pas" />
     <DCCReference Include="..\Integration\Guake.ProjectConfig.pas" />
     <DCCReference Include="..\Terminal\Guake.Unicode.pas" />
+    <DCCReference Include="..\Appearance\Guake.Composition.pas" />
+    <DCCReference Include="..\Appearance\Guake.AnimatedBackground.pas" />
     <DCCReference Include="..\Terminal\Guake.Links.pas" />
     <DCCReference Include="..\Settings\Guake.Settings.pas" />
     <DCCReference Include="..\Terminal\Guake.Shells.pas" />

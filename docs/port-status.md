@@ -1,6 +1,6 @@
 # Stan portu Guake dla Windows
 
-Stan kodu na 15 listopada 2026, wersja 1.0.13.47. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 15 listopada 2026, wersja 1.0.14.48. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -10,7 +10,7 @@ Stan kodu na 15 listopada 2026, wersja 1.0.13.47. Punkt odniesienia: lokalny `..
 | Emulator VT | Przyrostowe UTF-8/CSI/OSC, kolory ANSI/256/RGB, kursor, historia, alternatywny ekran, region przewijania, odpowiedzi urządzenia, bracketed paste, raportowanie myszy, reflow historii i klastry ICU | Pełne pokrycie sekwencji VTE/xterm, dalsze testy reflow i segmentacji grafemów |
 | Powłoki | CMD, PowerShell, Bash i Zsh z Git SDK; cztery osobne skróty/menu; Zsh przez `git-zsh.exe --nomintty` | Weryfikacja szerszego zestawu konfiguracji użytkowników i instalacji SDK |
 | Karty i podziały | Tworzenie, zamykanie, zmiana nazw, kolejność, wybór po identyfikatorze, podziały poziome/pionowe oraz fokus myszą i kierunkowo, przesuwanie granic podziałów | kolory indywidualnej karty i ich reset, zamknięcie przyciskiem na karcie, pełne oznaczanie aktywności |
-| Widok terminala | Palety, font, kursor, obrazy PNG/JPEG/BMP/statyczny GIF, cztery układy tła, przewijanie, zaznaczenie przeciągnięciem, słowo po dwukliku, schowek i zapis tekstu | Pełna zgodność renderowania z VTE, animowany GIF; przezroczystość samego tła zamiast całego okna |
+| Widok terminala | Palety, font, kursor, obrazy PNG/JPEG/BMP/animowany GIF, przezroczystość samego tła, cztery układy tła, przewijanie, zaznaczenie przeciągnięciem, słowo po dwukliku, schowek i zapis tekstu | Pełna zgodność renderowania i układu grafemów z VTE oraz dalsze porównania wizualne |
 | Okno główne | Animacja wysuwania/chowania z regulacją czasu, geometria, monitor, zawsze na wierzchu, fullscreen, tray, płaski pasek kart u góry/dołu, osobne menu kart/terminala/powłok | Pełne zachowanie refocus/lazy hide, zestawy kart obszarów roboczych i zgodność wizualna ze wzorcem |
 | Skróty | Globalne i lokalne, grave/tylda, konflikty, siedem zwijanych grup; akcje WWW/URL i kierunkowe podziały | Dalsza macierz pozostałych akcji i integracji |
 | Preferencje | Dziewięć stron DFM, zapis od razu z walidacją i rollbackiem, zależności kontrolek, przewijanie myszą, edycja skrótów | Podłączenie efektów wszystkich przeniesionych ustawień; obecność pola i zapis INI nie oznaczają pełnej obsługi funkcji |
@@ -27,7 +27,7 @@ Stan kodu na 15 listopada 2026, wersja 1.0.13.47. Punkt odniesienia: lokalny `..
 
 Aktualizacja scrollbara najpierw zeruje poprzedni PageSize, potem zmienia zakres i przywraca nowy rozmiar strony. Eliminuje to konkretny wyjątek VCL `SScrollBarRange` po zmniejszeniu terminala/fullscreen. Test wykonuje 15 cykli i sprawdza parametry przewijania. Zgłoszony późniejszy Runtime error 231 nie został niezależnie odtworzony; poprawka usuwa źródło powtarzających się wyjątków scrollbara.
 
-Alfa okna jest stosowana jako wartość bezwzględna po zmianie ustawień i odtworzeniu HWND; rysowanie tła zaczyna od pełnego wypełnienia kolorem palety. Test sprawdza niezmienną alfę WinAPI po fullscreen i zmianie FormStyle. Nie zastępuje to obserwacji przezroczystości na pulpicie użytkownika. Obecna implementacja VCL obejmuje alfą całe okno, również tekst i pasek kart.
+UpdateLayeredWindow składa okno z alfą dla każdego piksela. Regulacja obejmuje wyłącznie domyślne tło terminala i obraz; tekst, zaznaczenie, jawne tła SGR oraz kontrolki pozostają nieprzezroczyste. Antyaliasing tekstu wykorzystuje maskę pokrycia i premultiplikowane ARGB, bez stałej alfy całego okna. Przy ustawieniu 0% nieprzezroczystości tło zachowuje alfę 1/255, aby Windows nadal kierował kliknięcia do terminala. Przy 100% używany jest zwykły widok VCL. Testy pikseli i cykli fullscreen nie zastępują obserwacji na pulpicie użytkownika.
 
 Pojedynczy klik tylko aktywuje terminal i usuwa stare zaznaczenie. Dopiero ruch przekraczający systemowy próg przeciągania rozpoczyna zaznaczenie; kopiowanie po zaznaczeniu nie kopiuje znaku po zwykłym kliknięciu. Dwuklik nadal zaznacza słowo.
 
@@ -52,7 +52,7 @@ Katalog SDK: `--git-sdk-root <katalog>`, następnie `GIT_SDK_ROOT`, katalog wrap
 | dialogs.py | Src/Forms/frmRenameU, frmConfirmU oraz Src/DataModules/dmDialogsU |
 | palety i pixmapy | Src/Appearance, Src/Resources |
 
-To mapa odpowiedzialności, nie deklaracja przeniesienia całych modułów Python. Dalsza kolejność: przezroczystość samego tła i animowany GIF, pozostałe sekwencje VT i macierz renderowania, Quick Open, brakujące akcje kart i efekty ustawień. Integracje wykonane w bieżącym etapie opisano poniżej.
+To mapa odpowiedzialności, nie deklaracja przeniesienia całych modułów Python. Dalsza kolejność: Quick Open, brakujące akcje kart i efekty ustawień, pozostałe sekwencje VT i pełna macierz renderowania. Integracje wykonane w bieżącym etapie opisano poniżej.
 
 ## Budowanie i weryfikacja
 
@@ -99,3 +99,9 @@ Weryfikacja: 74/74 scenariusze DUnitX obejmujące także prywatny transport, odr
 ## Projekty Delphi — 1.0.13.47
 
 Przywrócono wspólne opcje Base, dziedziczenie Debug/Release dla Win64, pojedynczy import CodeGear oraz standardowe zdarzenia budowania. Grupa zachowuje identyfikator projektu i zależność aplikacji od wrappera. Bezpośredni Build aplikacji Debug i grupy Release przygotował EXE, PDB, wrapper i katalogi lokalizacji bez skryptu testowego. Test.ps1 nie kopiuje już brakujących zależności; uruchamia kontrolę projektu i 74 scenariusze DUnitX. Potwierdzono niezmienność DPROJ oraz wersji 1.0.13.47 podczas budowania. Osobny test chroni styl TOOLWINDOW przed zmianą przez VCL. Weryfikacja graficzna Build i ponownego zapisu projektu w IDE pozostaje do wykonania z powodu niedostępnego pomocnika pulpitu.
+
+## Tło terminala — 1.0.14.48
+
+Kompozycja ARGB obejmuje wszystkie widoczne panele i zachowuje nieprzezroczysty pasek kart oraz scrollbar. Bitmapa jest aktualizowana po zmianie danych, zaznaczenia, kursora, geometrii lub klatki GIF-a, a nie bezwarunkowo podczas bezczynności. GIF korzysta z istniejącego timera ramki, obsługuje czasy klatek z minimum 20 ms, częściowe klatki, disposal i skończone lub nieskończone powtórzenia. Brak rozszerzenia pętli oznacza pojedyncze odtworzenie. Ukrycie okna wstrzymuje animację; zmiana obrazu lub palety odtwarza cache. Dla ochrony UI pojedynczy krok wykonuje najwyżej 32 przejścia klatek. Semantyka powtórzeń Netscape uwzględnia pierwsze odtworzenie, zgodnie z [analizą implementacji WebKit](https://bugs.webkit.org/show_bug.cgi?id=39857).
+
+Weryfikacja etapu: 78 scenariuszy DUnitX, w tym wartości premultiplikowanej alfy, krycie tekstu i jawnego tła SGR, rysowanie natywnych zakładek, zmiana 0/40/100%, fullscreen oraz opóźnienia, disposal, przesunięcia klatek i skończone powtórzenia GIF-a. Zapisany podgląd `bin/tests/terminal-alpha-preview.png` służy do kontroli zawartości kompozycji; sama przezroczystość jest sprawdzana w bitmapie ARGB, ponieważ ten podgląd PNG zapisuje RGB. Nie deklarujemy jeszcze pełnej zgodności renderowania z VTE ani weryfikacji na pulpicie użytkownika.

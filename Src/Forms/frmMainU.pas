@@ -6,7 +6,7 @@ Interface
 
  Uses
   System.SysUtils, System.Classes, System.Generics.Collections, Winapi.Windows, Winapi.Messages,
-  Vcl.Forms, Vcl.Controls, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.Menus, Vcl.StdCtrls, Vcl.Buttons,
+  Vcl.Graphics, Vcl.Forms, Vcl.Controls, Vcl.ExtCtrls, Vcl.ComCtrls, Vcl.Menus, Vcl.StdCtrls, Vcl.Buttons,
   Guake.IPC, Guake.Settings, Guake.Localization, Guake.Logging, Guake.Sessions, fraTerminalU, frmSearchU;
 
  Type
@@ -106,6 +106,13 @@ Interface
     Procedure TabChanged         (Sender : TObject);
     Procedure TabDoubleClick     (Sender : TObject);
    Private
+    fLayeredDirty    : Boolean;
+    fComposing       : Boolean;
+    fWindowSurface   : TBitmap;
+    fTerminalSurface : TBitmap;
+    Procedure VisualChanged(Sender : TObject);
+    Procedure PresentLayeredWindow;
+   Private
     fPopupLink          : String;
     fNotificationQueue  : TQueue<String>;
     fNotificationWindow : HWND;
@@ -160,6 +167,7 @@ Interface
    Protected
     Procedure CreateParams(Var Params : TCreateParams); Override;
     Procedure CreateWnd; Override;
+    Procedure WndProc     (Var Message : TMessage); Override;
    Public
     /// <summary>Starts the default ConPTY tab, native hotkeys and session polling.</summary>
     /// <summary>Executes an accepted command on the VCL thread.</summary>
@@ -174,8 +182,10 @@ Interface
     Property Controller : TTerminalController Read fController;
     /// <summary>Registration failures for unavailable global shortcuts; terminal startup remains operational.</summary>
     Property HotkeyErrors : String Read fHotkeyErrors;
-    Procedure Bind              (Settings : TGuakeSettings; Localizer : TGuakeLocalization = Nil; Log : TGuakeLog = Nil);
+    Procedure Bind(Settings : TGuakeSettings; Localizer : TGuakeLocalization = Nil; Log : TGuakeLog = Nil);
     Procedure ApplySettings;
+    /// <summary>Builds the native UI with opaque controls and premultiplied terminal background alpha.</summary>
+    Procedure RenderWindow      (Destination : TBitmap);
     Procedure SetTerminalVisible(Value : Boolean);
     Procedure ToggleVisibility;
     Procedure SetFullScreen     (Value : Boolean);
@@ -221,6 +231,7 @@ Implementation
    If (fController <> Nil) And (fController.Count = 0) Then
     fController.NewTab;
    ApplySettings;
+   PresentLayeredWindow;
    If fSettings <> Nil Then
     ExecuteConfiguredHook(fSettings.Hooks.Show);
   End;
@@ -317,16 +328,158 @@ Implementation
    trayIcon.Visible := (fController <> Nil) And fSettings.General.UseTrayicon;
   End;
 
-/// <summary>Reapplies the absolute alpha after settings changes and HWND recreation.</summary>
+/// <summary>Selects per-pixel background composition after settings changes and HWND recreation.</summary>
 
  Procedure TfrmMain.ApplyOpacity;
+  Var
+   Style : NativeInt;
   Begin
    If fSettings = Nil Then
     Exit;
-   AlphaBlendValue := MulDiv(fSettings.Style.Background.Transparency, 255, 100);
-   AlphaBlend      := AlphaBlendValue < 255;
-   If HandleAllocated And AlphaBlend Then
-    Win32Check(SetLayeredWindowAttributes(Handle, 0, AlphaBlendValue, LWA_ALPHA));
+   // VCL AlphaBlend uses constant alpha for the WHOLE window and conflicts with UpdateLayeredWindow.
+   AlphaBlend := False;
+   If HandleAllocated Then
+    Begin
+     Style := GetWindowLongPtr(Handle, GWL_EXSTYLE);
+     If fSettings.Style.Background.Transparency < 100 Then
+      Style := Style Or WS_EX_LAYERED
+     Else
+      Style := Style And Not WS_EX_LAYERED;
+     SetWindowLongPtr(Handle, GWL_EXSTYLE, Style);
+    End;
+   fLayeredDirty := True;
+   Invalidate;
+  End;
+
+ Procedure TfrmMain.VisualChanged(Sender : TObject);
+  Begin
+   fLayeredDirty := True;
+  End;
+
+ Procedure TfrmMain.WndProc(Var Message : TMessage);
+  Begin
+   If Not fComposing And ((Message.Msg = WM_PAINT) Or (Message.Msg = WM_SIZE) Or
+   (Message.Msg = WM_WINDOWPOSCHANGED) Or (Message.Msg = WM_SHOWWINDOW)) Then
+    fLayeredDirty := True;
+   Inherited;
+  End;
+
+ Procedure TfrmMain.RenderWindow(Destination : TBitmap);
+  Var
+   Frame    : TfraTerminal;
+   Position : TPoint;
+   x        : Integer;
+   y        : Integer;
+   Left     : Integer;
+   Right    : Integer;
+   Top      : Integer;
+   Bottom   : Integer;
+   Pixel    : PRGBQuad;
+   Source   : PByte;
+   Target   : PByte;
+   Opacity  : Byte;
+
+   Procedure PaintNative(Control : TWinControl);
+    Var
+     Origin : TPoint;
+     Saved  : Integer;
+    Begin
+     Origin := ScreenToClient(Control.Parent.ClientToScreen(Point(Control.Left, Control.Top)));
+     Saved  := SaveDC(Destination.Canvas.Handle);
+     Try
+      SetViewportOrgEx(Destination.Canvas.Handle, Origin.x, Origin.y, Nil);
+      IntersectClipRect(Destination.Canvas.Handle, 0, 0, Control.Width, Control.Height);
+      Destination.Canvas.Brush.Color := clBtnFace;
+      Destination.Canvas.FillRect(Rect(0, 0, Control.Width, Control.Height));
+      Control.Perform(WM_PRINTCLIENT, Destination.Canvas.Handle, PRF_CLIENT Or PRF_ERASEBKGND);
+     Finally
+      RestoreDC(Destination.Canvas.Handle, Saved);
+     End;
+    End;
+
+  Begin
+   If fComposing Or (ClientWidth <= 0) Or (ClientHeight <= 0) Then
+    Exit;
+   fComposing := True;
+   Try
+    Destination.PixelFormat := pf32bit;
+    Destination.AlphaFormat := afIgnored;
+    Destination.SetSize(ClientWidth, ClientHeight);
+    Destination.Canvas.Brush.Color := Color;
+    Destination.Canvas.FillRect(ClientRect);
+    PaintTo(Destination.Canvas.Handle, 0, 0);
+    // PaintTo uses WM_PAINT with a DC, which omits native common-control content.
+    If tabHost.Visible Then
+     Begin
+      PaintNative(tabHost);
+      PaintNative(tabBar);
+     End;
+    If fViews <> Nil Then
+     For Frame In fViews.Values Do
+      If Frame.Visible And Frame.scroll.Visible Then
+       PaintNative(Frame.scroll);
+    For y := 0 To Destination.Height - 1 Do
+     Begin
+      Pixel := Destination.ScanLine[y];
+      For x := 0 To Destination.Width - 1 Do
+       Begin
+        Pixel.rgbReserved := 255;
+        Inc(Pixel);
+       End;
+     End;
+    Destination.AlphaFormat := afPremultiplied;
+    If fTerminalSurface = Nil Then
+     fTerminalSurface := TBitmap.Create;
+    Opacity           := Max(1, MulDiv(fSettings.Style.Background.Transparency, 255, 100));
+    If fViews <> Nil Then
+     For Frame In fViews.Values Do
+      If Frame.Visible And (Frame.surface.Width > 0) And (Frame.surface.Height > 0) Then
+       Begin
+        Position := ScreenToClient(Frame.surface.ClientToScreen(Point(0, 0)));
+        Frame.RenderAlpha(fTerminalSurface, Opacity);
+        Left   := Max(0, Position.x);
+        Right  := Min(Destination.Width, Position.x + fTerminalSurface.Width);
+        Top    := Max(0, Position.y);
+        Bottom := Min(Destination.Height, Position.y + fTerminalSurface.Height);
+        For y  := Top To Bottom - 1 Do
+         If Right > Left Then
+          Begin
+           Source := fTerminalSurface.ScanLine[y - Position.y];
+           Inc(Source, (Left - Position.x) * SizeOf(TRGBQuad));
+           Target := Destination.ScanLine[y];
+           Inc(Target, Left * SizeOf(TRGBQuad));
+           Move(Source^, Target^, (Right - Left) * SizeOf(TRGBQuad));
+          End;
+       End;
+   Finally
+    fComposing := False;
+   End;
+  End;
+
+ Procedure TfrmMain.PresentLayeredWindow;
+  Var
+   Position : TPoint;
+   Origin   : TPoint;
+   Size     : TSize;
+   Blend    : TBlendFunction;
+  Begin
+   If Not Visible Or Not fLayeredDirty Or fComposing Or (fSettings = Nil) Or
+   (fSettings.Style.Background.Transparency = 100) Then
+    Exit;
+   If fWindowSurface = Nil Then
+    fWindowSurface := TBitmap.Create;
+   RenderWindow(fWindowSurface);
+   Position                  := Point(Left, Top);
+   Origin                    := Point(0, 0);
+   Size.cx                   := ClientWidth;
+   Size.cy                   := ClientHeight;
+   Blend.BlendOp             := AC_SRC_OVER;
+   Blend.BlendFlags          := 0;
+   Blend.SourceConstantAlpha := 255;
+   Blend.AlphaFormat         := AC_SRC_ALPHA;
+   Win32Check(UpdateLayeredWindow(Handle, 0, @Position, @Size, fWindowSurface.Canvas.Handle,
+   @Origin, 0, @Blend, ULW_ALPHA));
+   fLayeredDirty := False;
   End;
 
 /// <summary>Keeps the terminal owned by the tray-only VCL proxy across HWND recreation.</summary>
@@ -362,6 +515,7 @@ Implementation
      Frame.ApplySettings;
    If fController <> Nil Then
     RegisterGlobalHotkeys;
+   PresentLayeredWindow;
   End;
 
  Procedure TfrmMain.PreferencesClick(Sender : TObject);
@@ -1013,6 +1167,8 @@ Implementation
    If animationTimer <> Nil Then
     animationTimer.Enabled := False;
    StopTerminal;
+   FreeAndNil(fWindowSurface);
+   FreeAndNil(fTerminalSurface);
   End;
 
  Function TfrmMain.ActiveTerminalFrame : TfraTerminal;
@@ -1036,6 +1192,7 @@ Implementation
        Frame.Align             := alClient;
        Frame.PopupMenu         := terminalMenu;
        Frame.surface.PopupMenu := terminalMenu;
+       Frame.OnVisualChanged   := VisualChanged;
        Frame.OnActivate        := TerminalActivated;
        Frame.OnShortcut        := TerminalShortcut;
        Frame.Bind(Node.Session, fSettings);
@@ -1328,6 +1485,7 @@ Implementation
       End;
     If fController.Count = 0 Then
      Hide;
+    PresentLayeredWindow;
    Finally
     fPolling := False;
    End;

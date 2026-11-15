@@ -16,6 +16,10 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure PerPixelAlphaComposition;
+    [Test] Procedure TerminalBackgroundAlphaAndWindowControls;
+    [Test] Procedure AnimatedGifBackgroundDelaysAndRemoval;
+    [Test] Procedure AnimatedGifDisposalAndFiniteLoop;
     [Test] Procedure IncrementalUnicodeAndCSI;
     [Test] Procedure ExtendedGraphemesAcrossByteFragments;
     [Test] Procedure ReflowPreservesHistoryStylesAndCursor;
@@ -53,7 +57,7 @@ Interface
 Implementation
 
  Uses
-  frmAboutU, Guake.WindowsIntegration, System.Win.Registry, Guake.ProjectConfig, System.JSON, System.Generics.Collections, Guake.Unicode, Guake.Links, Winapi.Windows, Winapi.Messages, System.SysUtils, System.IOUtils,
+  System.Types, Guake.Composition, Guake.AnimatedBackground, Vcl.Imaging.GIFImg, frmAboutU, Guake.WindowsIntegration, System.Win.Registry, Guake.ProjectConfig, System.JSON, System.Generics.Collections, Guake.Unicode, Guake.Links, Winapi.Windows, Winapi.Messages, System.SysUtils, System.IOUtils,
   frmMainU, fraTerminalU, Vcl.Graphics, Vcl.Imaging.pngimage, Vcl.ComCtrls, Vcl.Controls, Guake.ConPTY, Guake.VT, Guake.Shells, Guake.Sessions, Guake.Settings, Guake.Keybindings, Vcl.Forms;
 
  Type
@@ -76,6 +80,274 @@ Implementation
     Sleep(10);
    Until GetTickCount64 >= Deadline;
    Result := False;
+  End;
+
+ Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad;
+  Var
+   Pixel : PRGBQuad;
+  Begin
+   Pixel := Bitmap.ScanLine[y];
+   Inc(Pixel, x);
+   Result := Pixel^;
+  End;
+
+ Procedure TTerminalTests.PerPixelAlphaComposition;
+  Var
+   Color      : TBitmap;
+   Background : TBitmap;
+   Mask       : TBitmap;
+   Output     : TBitmap;
+   Pixel      : TRGBQuad;
+  Begin
+   Color      := TBitmap.Create;
+   Background := TBitmap.Create;
+   Mask       := TBitmap.Create;
+   Output     := TBitmap.Create;
+   Try
+    Color.PixelFormat      := pf32bit;
+    Background.PixelFormat := pf32bit;
+    Mask.PixelFormat       := pf32bit;
+    Color.SetSize(3, 1);
+    Background.SetSize(3, 1);
+    Mask.SetSize(3, 1);
+    Background.Canvas.Brush.Color := RGB(40, 80, 120);
+    Background.Canvas.FillRect(Rect(0, 0, 3, 1));
+    Color.Assign(Background);
+    Color.Canvas.Pixels[1, 0] := RGB(200, 100, 60);
+    Color.Canvas.Pixels[2, 0] := RGB(120, 90, 90);
+    Mask.Canvas.Pixels[0, 0]  := clBlack;
+    Mask.Canvas.Pixels[1, 0]  := clWhite;
+    Mask.Canvas.Pixels[2, 0]  := RGB(128, 128, 128);
+    ComposeTerminalAlpha(Color, Background, Mask, Output, 128);
+    Pixel := PixelAt(Output, 0, 0);
+    Assert.AreEqual(128, Integer(Pixel.rgbReserved));
+    Assert.AreEqual(20, Integer(Pixel.rgbRed));
+    Assert.AreEqual(40, Integer(Pixel.rgbGreen));
+    Assert.AreEqual(60, Integer(Pixel.rgbBlue));
+    Pixel := PixelAt(Output, 1, 0);
+    Assert.AreEqual(255, Integer(Pixel.rgbReserved));
+    Assert.AreEqual(200, Integer(Pixel.rgbRed));
+    Pixel := PixelAt(Output, 2, 0);
+    Assert.AreEqual(192, Integer(Pixel.rgbReserved));
+    Assert.AreEqual(110, Integer(Pixel.rgbRed));
+    ComposeTerminalAlpha(Color, Background, Mask, Output, 0);
+    Assert.AreEqual(0, Integer(PixelAt(Output, 0, 0).rgbReserved));
+    Assert.AreEqual(255, Integer(PixelAt(Output, 1, 0).rgbReserved));
+    ComposeTerminalAlpha(Color, Background, Mask, Output, 255);
+    Assert.AreEqual(255, Integer(PixelAt(Output, 0, 0).rgbReserved));
+    Assert.AreEqual(40, Integer(PixelAt(Output, 0, 0).rgbRed));
+   Finally
+    Output.Free;
+    Mask.Free;
+    Background.Free;
+    Color.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.TerminalBackgroundAlphaAndWindowControls;
+  Var
+   Settings     : TGuakeSettings;
+   Main         : TfrmMain;
+   Frame        : TfraTerminal;
+   Output       : TBitmap;
+   Preview      : TPngImage;
+   Point        : TPoint;
+   x            : Integer;
+   y            : Integer;
+   OpaquePixels : Integer;
+  Begin
+   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Output   := TBitmap.Create;
+   Try
+    Settings.General.DefaultShell          := 'cmd';
+    Settings.General.UseTrayicon           := False;
+    Settings.General.UsePopup              := False;
+    Settings.General.DropDownAnimation     := False;
+    Settings.Keybindings.Global.ShowHide   := 'disabled';
+    Settings.Keybindings.Global.ShowFocus  := 'disabled';
+    Settings.Style.Background.Transparency := 40;
+    Main                                   := TfrmMain.Create(Nil);
+    Try
+     Main.Bind(Settings);
+     Main.StartTerminal;
+     Main.Show;
+     Main.SetBounds( -30000, 0, 700, 200);
+     Main.PollTerminal(Nil);
+     Frame := Main.ActiveTerminalFrame;
+     Frame.Session.Buffer.FeedText(#27'[2J' + #27'[H' + #27'[?25l' + 'M' + #27'[41m '#27'[0m');
+     Frame.RefreshTick(Nil);
+     Frame.RenderAlpha(Output, 102);
+     Assert.AreEqual(102, Integer(PixelAt(Output, 1, 1).rgbReserved), 'Background opacity');
+     OpaquePixels := 0;
+     For y        := 4 To 18 Do
+      For x       := 4 To 10 Do
+       If PixelAt(Output, x, y).rgbReserved = 255 Then
+        Inc(OpaquePixels);
+     Assert.IsTrue(OpaquePixels > 0, 'Foreground glyph must remain opaque');
+     Assert.AreEqual(255, Integer(PixelAt(Output, 12, 5).rgbReserved), 'Explicit SGR background');
+     Main.RenderWindow(Output);
+     Point := Main.ScreenToClient(Frame.surface.ClientToScreen(System.Types.Point(1, 1)));
+     Assert.AreEqual(102, Integer(PixelAt(Output, Point.x, Point.y).rgbReserved));
+     Point := Main.ScreenToClient(Main.tabHost.ClientToScreen(System.Types.Point(2, 2)));
+     Assert.AreEqual(255, Integer(PixelAt(Output, Point.x, Point.y).rgbReserved), 'Tab bar opacity');
+     Assert.IsTrue(Main.tabHost.Visible);
+     Assert.IsTrue((Point.x >= 0) And (Point.y >= 0) And (Point.x < Output.Width) And (Point.y < Output.Height));
+     Assert.IsTrue(Integer(PixelAt(Output, Point.x, Point.y).rgbRed) + PixelAt(Output, Point.x, Point.y).rgbGreen + PixelAt(Output, Point.x, Point.y).rgbBlue > 0, 'Native tab control must be painted, not a black rectangle');
+     Preview := TPngImage.Create;
+     Try
+      Preview.Assign(Output);
+      Preview.SaveToFile(TPath.Combine(ExtractFilePath(ParamStr(0)), 'terminal-alpha-preview.png'));
+     Finally
+      Preview.Free;
+     End;
+     Main.SetFullScreen(True);
+     Main.PollTerminal(Nil);
+     Main.SetFullScreen(False);
+     Main.PollTerminal(Nil);
+     Main.RenderWindow(Output);
+     Point := Main.ScreenToClient(Frame.surface.ClientToScreen(System.Types.Point(1, 1)));
+     Assert.AreEqual(102, Integer(PixelAt(Output, Point.x, Point.y).rgbReserved), 'Fullscreen must not multiply opacity');
+     Settings.Style.Background.Transparency := 100;
+     Main.ApplySettings;
+     Assert.IsTrue((GetWindowLongPtr(Main.Handle, GWL_EXSTYLE) And WS_EX_LAYERED) = 0);
+     Settings.Style.Background.Transparency := 0;
+     Main.ApplySettings;
+     Main.PollTerminal(Nil);
+     Main.RenderWindow(Output);
+     Point := Main.ScreenToClient(Frame.surface.ClientToScreen(System.Types.Point(1, 1)));
+     Assert.AreEqual(1, Integer(PixelAt(Output, Point.x, Point.y).rgbReserved), 'Transparent background retains mouse hit testing');
+    Finally
+     Main.Free;
+    End;
+   Finally
+    Output.Free;
+    Settings.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.AnimatedGifDisposalAndFiniteLoop;
+  Var
+   Image     : TGIFImage;
+   Bitmap    : TBitmap;
+   Frame     : TGIFFrame;
+   Animation : TAnimatedBackground;
+  Begin
+   Image  := TGIFImage.Create;
+   Bitmap := TBitmap.Create;
+   Try
+    Bitmap.SetSize(2, 2);
+    Bitmap.Canvas.Brush.Color := clRed;
+    Bitmap.Canvas.FillRect(Rect(0, 0, 2, 2));
+    Frame                                           := Image.Add(Bitmap);
+    TGIFGraphicControlExtension.Create(Frame).Delay := 2;
+    Bitmap.Canvas.Brush.Color                       := clBlue;
+    Bitmap.Canvas.FillRect(Rect(0, 0, 2, 2));
+    Frame := Image.Add(Bitmap);
+    With TGIFGraphicControlExtension.Create(Frame) Do
+     Begin
+      Delay    := 2;
+      Disposal := dmPrevious;
+     End;
+    Bitmap.SetSize(1, 1);
+    Bitmap.Canvas.Pixels[0, 0]                      := clLime;
+    Frame                                           := Image.Add(Bitmap);
+    Frame.Left                                      := 1;
+    Frame.Top                                       := 1;
+    TGIFGraphicControlExtension.Create(Frame).Delay := 2;
+    Animation                                       := TAnimatedBackground.Create(Image, clBlack);
+    Try
+     Assert.AreEqual(Integer(clRed), Integer(Animation.Bitmap.Canvas.Pixels[0, 0]));
+     Assert.IsTrue(Animation.Advance(20));
+     Assert.AreEqual(Integer(clBlue), Integer(Animation.Bitmap.Canvas.Pixels[0, 0]));
+     Assert.IsTrue(Animation.Advance(20));
+     Assert.AreEqual(Integer(clRed), Integer(Animation.Bitmap.Canvas.Pixels[0, 0]), 'Previous frame disposal');
+     Assert.AreEqual(Integer(clLime), Integer(Animation.Bitmap.Canvas.Pixels[1, 1]), 'Partial frame offset');
+     Assert.IsFalse(Animation.Advance(20), 'GIF without loop extension plays once');
+     Assert.IsFalse(Animation.Advance(1000));
+     Assert.AreEqual(Integer(clLime), Integer(Animation.Bitmap.Canvas.Pixels[1, 1]));
+    Finally
+     Animation.Free;
+    End;
+    TGIFAppExtNSLoop.Create(Image.Images[0]).Loops := 1;
+    Animation                                      := TAnimatedBackground.Create(Image, clBlack);
+    Try
+     Assert.IsTrue(Animation.Advance(20));
+     Assert.IsTrue(Animation.Advance(20));
+     Assert.IsTrue(Animation.Advance(20), 'One repetition includes a second full playback');
+     Assert.AreEqual(Integer(clRed), Integer(Animation.Bitmap.Canvas.Pixels[0, 0]));
+     Assert.IsTrue(Animation.Advance(20));
+     Assert.IsTrue(Animation.Advance(20));
+     Assert.IsFalse(Animation.Advance(20));
+    Finally
+     Animation.Free;
+    End;
+   Finally
+    Bitmap.Free;
+    Image.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.AnimatedGifBackgroundDelaysAndRemoval;
+  Var
+   Image    : TGIFImage;
+   Bitmap   : TBitmap;
+   Output   : TBitmap;
+   Frame    : TGIFFrame;
+   View     : TfraTerminal;
+   Main     : TfrmMain;
+   Settings : TGuakeSettings;
+   FileName : String;
+  Begin
+   FileName := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName + '.gif');
+   Image    := TGIFImage.Create;
+   Bitmap   := TBitmap.Create;
+   Output   := TBitmap.Create;
+   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Try
+    Bitmap.SetSize(2, 2);
+    Bitmap.Canvas.Brush.Color := clRed;
+    Bitmap.Canvas.FillRect(Rect(0, 0, 2, 2));
+    Frame                                           := Image.Add(Bitmap);
+    TGIFGraphicControlExtension.Create(Frame).Delay := 2;
+    TGIFAppExtNSLoop.Create(Frame).Loops            := 0;
+    Bitmap.Canvas.Brush.Color                       := clBlue;
+    Bitmap.Canvas.FillRect(Rect(0, 0, 2, 2));
+    Frame                                           := Image.Add(Bitmap);
+    TGIFGraphicControlExtension.Create(Frame).Delay := 8;
+    Image.SaveToFile(FileName);
+    Settings.General.BackgroundImageFile       := FileName;
+    Settings.General.BackgroundImageLayoutMode := 3;
+    Main                                       := TfrmMain.Create(Nil);
+    Try
+     View        := TfraTerminal.Create(Main);
+     View.Parent := Main;
+     View.Bind(Nil, Settings);
+     Output.SetSize(10, 10);
+     View.DrawBackground(Output.Canvas, Rect(0, 0, 10, 10));
+     Assert.AreEqual(Integer(clRed), Integer(Output.Canvas.Pixels[5, 5]));
+     Assert.IsFalse(View.AdvanceBackground(19));
+     Assert.IsTrue(View.AdvanceBackground(1));
+     View.DrawBackground(Output.Canvas, Rect(0, 0, 10, 10));
+     Assert.AreEqual(Integer(clBlue), Integer(Output.Canvas.Pixels[5, 5]));
+     Assert.IsFalse(View.AdvanceBackground(79));
+     Assert.IsTrue(View.AdvanceBackground(1));
+     View.DrawBackground(Output.Canvas, Rect(0, 0, 10, 10));
+     Assert.AreEqual(Integer(clRed), Integer(Output.Canvas.Pixels[5, 5]));
+     Settings.General.BackgroundImageFile := '';
+     View.ApplySettings;
+     Assert.IsFalse(View.AdvanceBackground(100));
+     View.DrawBackground(Output.Canvas, Rect(0, 0, 10, 10));
+     Assert.AreEqual(Integer(clBlack), Integer(Output.Canvas.Pixels[5, 5]));
+    Finally
+     Main.Free;
+    End;
+   Finally
+    Settings.Free;
+    Output.Free;
+    Bitmap.Free;
+    Image.Free;
+    TFile.Delete(FileName);
+   End;
   End;
 
  Procedure TTerminalTests.IncrementalUnicodeAndCSI;
@@ -724,9 +996,6 @@ Implementation
    Main     : TfrmMain;
    Frame    : TfraTerminal;
    i        : Integer;
-   Key      : COLORREF;
-   Alpha    : Byte;
-   Flags    : DWORD;
   Begin
    Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
    Try
@@ -752,14 +1021,12 @@ Implementation
        Frame.FrameResize(Nil);
        Frame.RefreshTick(Nil);
        Assert.IsTrue(Frame.scroll.PageSize <= Frame.scroll.Max);
-       Assert.IsTrue(GetLayeredWindowAttributes(Main.Handle, Key, Alpha, Flags));
-       Assert.AreEqual(MulDiv(73, 255, 100), Integer(Alpha));
-       Assert.AreEqual(Integer(LWA_ALPHA), Integer(Flags));
+       Assert.IsTrue((GetWindowLongPtr(Main.Handle, GWL_EXSTYLE) And WS_EX_LAYERED) <> 0);
+       Assert.IsFalse(Main.AlphaBlend, 'Constant window alpha would also fade the text');
       End;
      Settings.General.WindowOntop := Not Settings.General.WindowOntop;
      Main.ApplySettings;
-     Assert.IsTrue(GetLayeredWindowAttributes(Main.Handle, Key, Alpha, Flags));
-     Assert.AreEqual(MulDiv(73, 255, 100), Integer(Alpha));
+     Assert.IsTrue((GetWindowLongPtr(Main.Handle, GWL_EXSTYLE) And WS_EX_LAYERED) <> 0);
      Main.Show;
      Main.SetBounds( -30000, 0, 700, 120);
      Frame.Session.Buffer.FeedText(#27'[2J' + #27'[H' + 'selection');

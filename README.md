@@ -32,7 +32,7 @@ Skróty z klawiszem grave (U+0060) i tyldą (~) można przechwytywać w preferen
 
 [Wzorzec interfejsu na Manjaro](docs/visual-reference.md) opisuje układ ze zrzutów oryginalnego Guake, mapowanie na formularze DFM i pozostałe różnice.
 
-Obraz tła terminala obsługuje PNG, JPEG, BMP i statyczny GIF: skalowanie z zachowaniem proporcji i kadrowaniem, kafelkowanie, wyśrodkowanie i rozciąganie. Jawne kolory tła aplikacji terminalowych i zaznaczenie pozostają nieprzezroczyste.
+Obraz tła terminala obsługuje PNG, JPEG, BMP i animowany GIF: skalowanie z zachowaniem proporcji i kadrowaniem, kafelkowanie, wyśrodkowanie i rozciąganie. Przezroczystość dotyczy domyślnego tła i obrazu, a tekst, pasek kart, scrollbar, jawne kolory tła aplikacji terminalowych i zaznaczenie pozostają nieprzezroczyste. GIF zachowuje czasy klatek, usuwanie klatek i liczbę powtórzeń; animacja jest wstrzymywana, gdy terminal jest ukryty.
 
 Menu karty zawiera wybór Zsh, Bash, CMD i PowerShell. Każda powłoka ma własne działanie w preferencjach skrótów; domyślnie skróty są wyłączone. Są to skróty lokalne działające w terminalu Guake. Etykiety i podpowiedzi uzupełnia polski katalog portu Windows.
 

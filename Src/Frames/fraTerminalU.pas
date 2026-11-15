@@ -9,7 +9,7 @@ Interface
  Uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, System.Types,
   Vcl.Forms, Vcl.Controls, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Graphics,
-  Guake.Sessions, Guake.Settings;
+  Guake.Sessions, Guake.Settings, Guake.AnimatedBackground;
 
  Type
   TTerminalKeyEvent = Procedure(Sender : TObject; Key : Word; Shift : TShiftState; Var Handled : Boolean) Of Object;
@@ -26,6 +26,15 @@ Interface
     Procedure ScrollChanged   (Sender : TObject);
     Procedure RefreshTick     (Sender : TObject);
     Procedure FrameResize     (Sender : TObject);
+   Private
+    fAnimation       : TAnimatedBackground;
+    fBackgroundTick  : UInt64;
+    fColorSurface    : TBitmap;
+    fBackSurface     : TBitmap;
+    fMaskSurface     : TBitmap;
+    fOnVisualChanged : TNotifyEvent;
+    Procedure InvalidateSurface;
+    Procedure PaintSurface(Canvas : TCanvas; Mask : Boolean);
    Private
     fBackground        : TPicture;
     fSession           : TTerminalSession;
@@ -63,6 +72,11 @@ Interface
     Destructor Destroy; Override;
     /// <summary>Draws the configured image behind default-background cells in scale, tile, center or stretch mode.</summary>
     Procedure DrawBackground(Canvas : TCanvas; Const Bounds : TRect);
+    /// <summary>Renders foreground coverage and background opacity into premultiplied ARGB.</summary>
+    Procedure RenderAlpha(Destination : TBitmap; Opacity : Byte);
+    /// <summary>Advances the configured GIF using elapsed milliseconds, without a second GUI timer.</summary>
+    Function AdvanceBackground(ElapsedMilliseconds : Cardinal) : Boolean;
+    Property OnVisualChanged : TNotifyEvent Read fOnVisualChanged Write fOnVisualChanged;
     /// <summary>Binds a borrowed session and settings. It never creates or closes a terminal process.</summary>
     Procedure Bind         (Session : TTerminalSession; Settings : TGuakeSettings);
     Procedure ApplySettings;
@@ -81,7 +95,7 @@ Interface
 Implementation
 
  Uses
-  Guake.Links, System.Math, System.Character, System.StrUtils, Vcl.Clipbrd, Winapi.ShellAPI, Guake.VT, Guake.Shells, Vcl.Imaging.pngimage, Vcl.Imaging.jpeg, Vcl.Imaging.GIFImg;
+  Guake.Composition, Guake.Links, System.Math, System.Character, System.StrUtils, Vcl.Clipbrd, Winapi.ShellAPI, Guake.VT, Guake.Shells, Vcl.Imaging.pngimage, Vcl.Imaging.jpeg, Vcl.Imaging.GIFImg;
 {$R *.dfm}
 
  Type
@@ -89,18 +103,23 @@ Implementation
 
   Destructor TfraTerminal.Destroy;
    Begin
+    fAnimation.Free;
+    fColorSurface.Free;
+    fBackSurface.Free;
+    fMaskSurface.Free;
     fBackground.Free;
     Inherited;
    End;
 
   Procedure TfraTerminal.DrawBackground(Canvas : TCanvas; Const Bounds : TRect);
    Var
-    Target : TRect;
-    Ratio  : Double;
-    x      : Integer;
-    y      : Integer;
-    Width  : Integer;
-    Height : Integer;
+    Target  : TRect;
+    Ratio   : Double;
+    x       : Integer;
+    y       : Integer;
+    Width   : Integer;
+    Height  : Integer;
+    Graphic : TGraphic;
    Begin
     Canvas.Brush.Style := bsSolid;
     Canvas.Brush.Color := fPalette[17];
@@ -108,8 +127,11 @@ Implementation
     Canvas.FillRect(Bounds);
     If (fBackground = Nil) Or (fBackground.Graphic = Nil) Or fBackground.Graphic.Empty Then
      Exit;
-    Width  := fBackground.Width;
-    Height := fBackground.Height;
+    Graphic := fBackground.Graphic;
+    If fAnimation <> Nil Then
+     Graphic := fAnimation.Bitmap;
+    Width    := Graphic.Width;
+    Height   := Graphic.Height;
     If (Width <= 0) Or (Height <= 0) Then
      Exit;
     If fSettings.General.BackgroundImageLayoutMode = 1 Then
@@ -120,7 +142,7 @@ Implementation
         x := Bounds.Left;
         While x < Bounds.Right Do
          Begin
-          Canvas.Draw(x, y, fBackground.Graphic);
+          Canvas.Draw(x, y, Graphic);
           Inc(x, Width);
          End;
         Inc(y, Height);
@@ -147,7 +169,7 @@ Implementation
        Target.Bottom := Target.Top + Height;
       End;
     End;
-    Canvas.StretchDraw(Target, fBackground.Graphic);
+    Canvas.StretchDraw(Target, Graphic);
   End;
 
  Procedure TfraTerminal.CreateWnd;
@@ -189,6 +211,8 @@ Implementation
     Exit;
    If fBackground = Nil Then
     fBackground := TPicture.Create;
+   FreeAndNil(fAnimation);
+   fBackgroundTick := GetTickCount64;
    fBackground.Assign(Nil);
    If fSettings.General.BackgroundImageFile <> '' Then
     Try
@@ -212,6 +236,7 @@ Implementation
       Font.Name := Name;
      Font.Size  := EnsureRange(Size, 4, 72);
     End;
+   Font.Quality := fqAntialiased;
    surface.Canvas.Font.Assign(Font);
    fCellWidth  := Max(1, Round(surface.Canvas.TextWidth('M') * fSettings.Style.Font.CellWidthScale));
    fCellHeight := Max(1, Round(surface.Canvas.TextHeight('Mg') * fSettings.Style.Font.CellHeightScale));
@@ -228,14 +253,20 @@ Implementation
         fPalette[i] := RGB(StrToIntDef('$' + Copy(s, 1, 4), 0) Div 257, StrToIntDef('$' + Copy(s, 5, 4), 0) Div 257, StrToIntDef('$' + Copy(s, 9, 4), 0) Div 257);
       End;
     End;
-   scroll.Visible := fSettings.General.UseScrollbar;
+   If fBackground.Graphic Is TGIFImage Then
+    fAnimation := TAnimatedBackground.Create(TGIFImage(fBackground.Graphic), fPalette[17]);
+   If fAnimation <> Nil Then
+    refreshTimer.Interval := 20
+   Else
+    refreshTimer.Interval := 100;
+   scroll.Visible         := fSettings.General.UseScrollbar;
    If fSession <> Nil Then
     If fSettings.General.InfiniteHistory Then
      fSession.Buffer.SetHistoryLimit( -1)
     Else
      fSession.Buffer.SetHistoryLimit(fSettings.General.HistorySize);
    FrameResize(Nil);
-   surface.Invalidate;
+   InvalidateSurface;
   End;
 
  Procedure TfraTerminal.FrameResize(Sender : TObject);
@@ -303,7 +334,7 @@ Implementation
    Result := (p >= a) And (p <= b);
   End;
 
- Procedure TfraTerminal.SurfacePaint(Sender : TObject);
+ Procedure TfraTerminal.PaintSurface(Canvas : TCanvas; Mask : Boolean);
   Var
    x               : Integer;
    y               : Integer;
@@ -318,10 +349,16 @@ Implementation
    TransparentCell : Boolean;
    Options         : Cardinal;
   Begin
-   DrawBackground(surface.Canvas, surface.ClientRect);
+   If Mask Then
+    Begin
+     Canvas.Brush.Color := clBlack;
+     Canvas.FillRect(surface.ClientRect);
+    End
+   Else
+    DrawBackground(Canvas, surface.ClientRect);
    If (fSession = Nil) Or (fCellWidth = 0) Or (fCellHeight = 0) Then
     Exit;
-   surface.Canvas.Font.Assign(Font);
+   Canvas.Font.Assign(Font);
    For y  := 0 To fSession.Buffer.Rows - 1 Do
     For x := 0 To fSession.Buffer.Columns - 1 Do
      Begin
@@ -347,20 +384,24 @@ Implementation
        Include(Style, fsItalic);
       If c.Underline Then
        Include(Style, fsUnderline);
-      surface.Canvas.Font.Style := Style;
-      TransparentCell           := (fBackground <> Nil) And (fBackground.Graphic <> Nil) And
-      (c.Background = -2) And Not c.Inverse And Not IsSelected(x, WorldY);
+      Canvas.Font.Style := Style;
+      TransparentCell   := (c.Background = -2) And Not c.Inverse And Not IsSelected(x, WorldY);
+      If Mask Then
+       Begin
+        Fore := clWhite;
+        Back := clWhite;
+       End;
       Options := ETO_CLIPPED;
       If TransparentCell Then
-       SetBkMode(surface.Canvas.Handle, TRANSPARENT)
+       SetBkMode(Canvas.Handle, TRANSPARENT)
       Else
        Begin
-        SetBkMode(surface.Canvas.Handle, OPAQUE);
+        SetBkMode(Canvas.Handle, OPAQUE);
         Options := Options Or ETO_OPAQUE;
        End;
-      SetTextColor(surface.Canvas.Handle, ColorToRGB(Fore));
-      SetBkColor(surface.Canvas.Handle, ColorToRGB(Back));
-      ExtTextOut(surface.Canvas.Handle, r.Left, r.Top, Options, @r, PChar(c.Text), Length(c.Text), Nil);
+      SetTextColor(Canvas.Handle, ColorToRGB(Fore));
+      SetBkColor(Canvas.Handle, ColorToRGB(Back));
+      ExtTextOut(Canvas.Handle, r.Left, r.Top, Options, @r, PChar(c.Text), Length(c.Text), Nil);
      End;
    If Focused And fSession.Buffer.CursorVisible And Not fSession.Exited And
    ((fSettings.Style.CursorBlinkMode = 2) Or ((GetTickCount64 Div 500) Mod 2 = 0)) Then
@@ -370,17 +411,60 @@ Implementation
       Begin
        r := Rect(4 + fSession.Buffer.CursorX * fCellWidth, 4 + CursorRow * fCellHeight,
        4 + (fSession.Buffer.CursorX + 1) * fCellWidth, 4 + (CursorRow + 1) * fCellHeight);
-       surface.Canvas.Brush.Color := fPalette[16];
+       If Mask Then
+        Canvas.Brush.Color := clWhite
+       Else
+        Canvas.Brush.Color := fPalette[16];
        Case fSettings.Style.CursorShape Of
         1 : r.Right := r.Left + 2;
         2 : r.Top := r.Bottom - 2;
        End;
        If fSettings.Style.CursorShape = 0 Then
-        surface.Canvas.FrameRect(r)
+        Canvas.FrameRect(r)
        Else
-        surface.Canvas.FillRect(r);
+        Canvas.FillRect(r);
       End;
     End;
+  End;
+
+ Procedure TfraTerminal.InvalidateSurface;
+  Begin
+   surface.Invalidate;
+   If Assigned(fOnVisualChanged) Then
+    fOnVisualChanged(Self);
+  End;
+
+ Procedure TfraTerminal.SurfacePaint(Sender : TObject);
+  Begin
+   PaintSurface(surface.Canvas, False);
+  End;
+
+ Procedure TfraTerminal.RenderAlpha(Destination : TBitmap; Opacity : Byte);
+  Var
+   Bitmap : TBitmap;
+  Begin
+   If fColorSurface = Nil Then
+    fColorSurface := TBitmap.Create;
+   If fBackSurface = Nil Then
+    fBackSurface := TBitmap.Create;
+   If fMaskSurface = Nil Then
+    fMaskSurface := TBitmap.Create;
+   For Bitmap In TArray<TBitmap>.Create(fColorSurface, fBackSurface, fMaskSurface) Do
+    Begin
+     Bitmap.PixelFormat := pf32bit;
+     Bitmap.SetSize(surface.Width, surface.Height);
+    End;
+   DrawBackground(fBackSurface.Canvas, surface.ClientRect);
+   PaintSurface(fColorSurface.Canvas, False);
+   PaintSurface(fMaskSurface.Canvas, True);
+   ComposeTerminalAlpha(fColorSurface, fBackSurface, fMaskSurface, Destination, Opacity);
+  End;
+
+ Function TfraTerminal.AdvanceBackground(ElapsedMilliseconds : Cardinal) : Boolean;
+  Begin
+   Result := (fAnimation <> Nil) And fAnimation.Advance(ElapsedMilliseconds);
+   If Result Then
+    InvalidateSurface;
   End;
 
  Procedure TfraTerminal.FollowOutput;
@@ -396,7 +480,12 @@ Implementation
    Follow        : Boolean;
    Changed       : Boolean;
    CursorVisible : Boolean;
+   Tick          : UInt64;
   Begin
+   Tick := GetTickCount64;
+   If IsWindowVisible(Handle) Then
+    AdvanceBackground(Min(Tick - fBackgroundTick, UInt64(60000)));
+   fBackgroundTick := Tick;
    If fSession = Nil Then
     Exit;
    Changed := fLastRevision <> fSession.Buffer.Revision;
@@ -420,7 +509,7 @@ Implementation
    CursorVisible := Focused And fSession.Buffer.CursorVisible And Not fSession.Exited And
    ((fSettings.Style.CursorBlinkMode = 2) Or ((GetTickCount64 Div 500) Mod 2 = 0));
    If Changed Or (CursorVisible <> fLastCursorVisible) Then
-    surface.Invalidate;
+    InvalidateSurface;
    fLastCursorVisible := CursorVisible;
   End;
 
@@ -429,7 +518,7 @@ Implementation
    If fSession <> Nil Then
     If scroll.Position > Max(0, fSession.Buffer.TotalLines - fSession.Buffer.Rows) Then
      scroll.Position := Max(0, fSession.Buffer.TotalLines - fSession.Buffer.Rows);
-   surface.Invalidate;
+   InvalidateSurface;
   End;
 
  Procedure TfraTerminal.Send(Const Value : String);
@@ -602,7 +691,7 @@ Implementation
    fHasSelection                        := False;
    fMouseAnchor                         := Point(x, y);
    TControlAccess(surface).MouseCapture := True;
-   surface.Invalidate;
+   InvalidateSurface;
   End;
 
  Procedure TfraTerminal.SurfaceMouseMove(Sender : TObject; Shift : TShiftState; x, y : Integer);
@@ -617,7 +706,7 @@ Implementation
       Exit;
      fHasSelection := True;
      fSelectionEnd := MouseCell(x, y);
-     surface.Invalidate;
+     InvalidateSurface;
     End
    Else If Not(ssShift In Shift) And ((fSession.Buffer.MouseMode = 1003) Or ((fSession.Buffer.MouseMode = 1002) And (ssLeft In Shift))) Then
     SendMouse(32, False, Shift, x, y);
@@ -670,7 +759,7 @@ Implementation
    fHasSelection                        := True;
    fSelecting                           := False;
    TControlAccess(surface).MouseCapture := False;
-   surface.Invalidate;
+   InvalidateSurface;
    If fSettings.General.CopyOnSelect Then
     CopySelection;
   End;
@@ -764,7 +853,7 @@ Implementation
    fSelectionStart := Point(0, 0);
    fSelectionEnd   := Point(fSession.Buffer.Columns - 1, fSession.Buffer.TotalLines - 1);
    fHasSelection   := True;
-   surface.Invalidate;
+   InvalidateSurface;
   End;
 
  Procedure TfraTerminal.WMDropFiles(Var Message : TMessage);
@@ -840,7 +929,7 @@ Implementation
    fSelectionEnd   := Locate(Start + Count - 1);
    fHasSelection   := True;
    scroll.Position := Min(fSelectionStart.y, Max(0, fSession.Buffer.TotalLines - fSession.Buffer.Rows));
-   surface.Invalidate;
+   InvalidateSurface;
   End;
 
 End.
