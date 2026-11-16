@@ -1,6 +1,6 @@
 # Pokrycie emulatora VT
 
-Stan: 1.0.23.56. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.26.59. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -10,11 +10,12 @@ Stan: 1.0.23.56. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | Ruch | CUU/CUD/CUF/CUB, CNL/CPL, CHA/HPA, VPA, CUP/HVP, HPR/VPR | Pełne zachowanie marginesów, dodatkowe tryby i warianty |
 | Edycja | ED/EL, ICH/DCH/ECH, IL/DL, SU/SD, DECSTBM | Selective erase i chronione komórki; prostokąty DEC; poziome marginesy; szerokie znaki przecinające granice edycji |
 | Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS | Chronione komórki/selective erase, DECSTR i zapisywanie trybów prywatnych |
+| Kursor | Widoczność DECTCEM, DECSCUSR 0–6: preferencje lub blok/podkreślenie/pionowa kreska, warianty migające i stałe; odczyt przez DECRQSS | Dalsza zgodność geometrii i wypełnienia bloku z VTE; wariant xterm 7 nie jest obsługiwany |
 | Ekrany | Ekran główny i alternatywny, 47/1047/1049, historia i reflow ekranu głównego | Osobna macierz wariantów przełączania i zapisów kursora, przypadki brzegowe reflow |
 | SGR | Reset, bold/faint, italic, conceal, strike, overline, inverse; pięć stylów podkreślenia i jego kolor 58/59; miganie 5/6/25; ANSI 16/256 i RGB przez średniki i dwukropki | Dalsze warianty SGR, integracja systemowych preferencji migania i porównanie geometrii dekoracji z VTE |
-| Odpowiedzi | DSR 5, CPR 6, DECXCPR ?6; wiersz względem regionu przy DECOM; DA/DECID i DA2, DECRQM/DECRPM dla obsługiwanych trybów, rozmiar w znakach CSI 18 t, DECRQSS SGR i marginesów | Tertiary DA, pozostałe DECRQSS, raporty rozmiaru w pikselach/monitora i pozostałe zapytania |
+| Odpowiedzi | DSR 5, CPR 6, DECXCPR ?6; wiersz względem regionu przy DECOM; DA/DECID i DA2, DECRQM/DECRPM dla obsługiwanych trybów, rozmiar w znakach CSI 18 t, DECRQSS SGR, marginesów i stylu kursora | Tertiary DA, pozostałe DECRQSS, raporty rozmiaru w pikselach/monitora i pozostałe zapytania |
 | OSC | 0/2: tytuł, 7: katalog, 8: odnośniki | Paleta i zapytania kolorów, stos tytułów, pozostałe OSC; polityka dostępu do schowka |
-| DCS/APC/PM | DCS DECRQSS dla SGR i marginesów; pozostałe DCS/APC/PM/SOS są konsumowane | Pozostałe DCS i dalsze porównania ciągów z VTE |
+| DCS/APC/PM | DCS DECRQSS dla SGR, marginesów i stylu kursora; pozostałe DCS/APC/PM/SOS są konsumowane | Pozostałe DCS i dalsze porównania ciągów z VTE |
 | Zestawy znaków | UTF-8, ASCII B, brytyjski A, DEC Special Graphics 0 w G0–G3; SI/SO, LS2/LS3, SS2/SS3 | Pozostałe zestawy narodowe, GR i 96-znakowe zestawy, warianty ESC z bajtami pośrednimi |
 | Wejście | Application cursor, bracketed paste, tryby myszy 1000/1002/1003 i 1006, fokus 1004, LNM 20 dla LF/Enter, aplikacyjna klawiatura numeryczna ESC = / ESC > / 66 | Pełna macierz modyfikatorów klawiatury, pozostałe protokoły klawiatury i myszy, niezależne nakładanie trybów myszy |
 | Grafemy i widok | Segmentacja ICU, szerokie komórki, znaki łączące, reflow; cache wierszy renderera | Pełny shaping, bidi i zgodność wizualna z VTE; segmentacja zależy od systemowego ICU |
@@ -92,3 +93,11 @@ DCS $ q m ST zwraca bieżące obsługiwane atrybuty i kolory SGR jako DCS 1 $ r 
 ESC = oraz prywatny tryb 66 włączają klawiaturę numeryczną aplikacyjną; ESC >, reset trybu i RIS ją wyłączają. Cyfry, operatory, separator, kropka i osobny Enter wysyłają sekwencje SS3. Widok rozróżnia rozszerzony bit komunikatu Windows, więc główne strzałki/Enter zachowują swoje znaczenie, a klawisze numeryczne przy wyłączonym Num Lock pozostają klawiszami numerycznymi. WM_CHAR po obsłużonym klawiszu cyfry/operatora/Enter jest konsumowany, aby nie dopisać znaku drugi raz. Rozszerzona macierz Shift/Ctrl/Alt i dodatkowe klawisze rzadkich układów nadal wymagają pracy.
 
 Test natywny rozszerza proces wejścia VT o żądanie klawiatury aplikacyjnej i sprawdza dostarczone odpowiedzi DCS, cyfrę, numeryczny Enter, zwykłą strzałkę, strzałkę z części numerycznej i powrót do zwykłej cyfry. Test modelu odtwarza atrybuty z odpowiedzi DECRQSS i sprawdza nieznane/przerwane/przepełnione żądania.
+
+## Styl kursora i jego odczyt — 1.0.26.59
+
+CSI Ps SP q (DECSCUSR) przyjmuje wartości 0–6. Wartość 0 lub brak parametru przywraca kształt i miganie z preferencji, zgodnie z [wyborem domyślnego kursora w VTE](https://github.com/GNOME/vte/blob/master/src/vte.cc). 1/2 wybiera blok, 3/4 podkreślenie, 5/6 pionową kreskę; nieparzyste wartości migają, parzyste są stałe. Zmiana stylu nie włącza ukrytego kursora ani nie zmienia preferencji INI. Parametry spoza zakresu i błędne warianty składni są ignorowane. Dalszy punkt odniesienia: [DECSCUSR i DECRQSS w VTE](https://github.com/GNOME/vte/blob/master/src/vteseq.cc), [sekwencje xterm](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html).
+
+DCS $q SP q ST odpowiada DCS 1$r Ps SP q ST z bieżącą wartością stylu. Zapytanie i ustawienie nie zmieniają pozycji ani oczekującego zawinięcia. Styl należy do terminala: jest wspólny dla ekranów i nie wchodzi do zapisu DECSC/DECRC; RIS przywraca 0. Odpowiedź przechodzi zwykłą drogą do wejścia ConPTY.
+
+Widok stosuje tę samą funkcję fazy w rysowaniu, cache alfy i odświeżaniu. Jawne miganie ma okres półfazy 500 ms; ustawienie systemowe przy stylu 0 odczytuje GetCaretBlinkTime, również wyłączenie migania. Reset do 0 ponownie udostępnia preferencje. Zmiana stylu odświeża wiersz kursora i usuwa piksele poprzedniego kształtu. Testy porównują alfę kształtów oraz deterministyczne fazy migania, a natywny odbiorca ConPTY sprawdza bajty odpowiedzi. Obecny blok pozostaje obrysem GDI; pełne wypełnienie i geometria kursora zgodne z VTE wymagają dalszych prac i porównań.

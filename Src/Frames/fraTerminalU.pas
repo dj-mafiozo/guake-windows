@@ -101,6 +101,7 @@ Interface
     Function  ResolveColor(Value : Integer; Foreground, Bold : Boolean) : TColor;
     Procedure SendMouse   (Button : Integer; Release : Boolean; Shift : TShiftState; x, y : Integer);
     Procedure Send        (Const Value : String);
+    Function  EffectiveCursorShape                                      : Integer;
     Procedure FollowOutput;
     Procedure WMDropFiles (Var Message : TMessage); Message WM_DROPFILES;
    Protected
@@ -116,6 +117,8 @@ Interface
     Procedure DrawBackground(Canvas : TCanvas; Const Bounds : TRect);
     /// <summary>Renders foreground coverage and background opacity into premultiplied ARGB.</summary>
     Procedure RenderAlpha(Destination : TBitmap; Opacity : Byte);
+    /// <summary>Resolves visibility and blink phase consistently for paint, alpha cache and timer updates.</summary>
+    Function CursorVisibleAt(Tick : UInt64) : Boolean;
     /// <summary>Suppresses a duplicate surface paint while the parent captures native window chrome.</summary>
     Property CaptureBackgroundOnly : Boolean Read fCaptureBackgroundOnly Write fCaptureBackgroundOnly;
     /// <summary>Counts actual alpha renders so idle and unchanged-pane reuse can be verified.</summary>
@@ -700,8 +703,7 @@ Implementation
         DrawDecorations;
        End;
      End;
-    If Focused And fSession.Buffer.CursorVisible And Not fSession.Exited And
-    ((fSettings.Style.CursorBlinkMode = 2) Or ((GetTickCount64 Div 500) Mod 2 = 0)) Then
+    If CursorVisibleAt(GetTickCount64) Then
      Begin
       CursorRow := fSession.Buffer.TotalLines - fSession.Buffer.Rows + fSession.Buffer.CursorY - scroll.Position;
       If (CursorRow >= 0) And (CursorRow < fSession.Buffer.Rows) Then
@@ -712,11 +714,11 @@ Implementation
          Canvas.Brush.Color := clWhite
         Else
          Canvas.Brush.Color := ResolveColor( -1, True, False);
-        Case fSettings.Style.CursorShape Of
+        Case EffectiveCursorShape Of
          1 : r.Right := r.Left + 2;
          2 : r.Top := r.Bottom - 2;
         End;
-        If fSettings.Style.CursorShape = 0 Then
+        If EffectiveCursorShape = 0 Then
          Canvas.FrameRect(r)
         Else
          Canvas.FillRect(r);
@@ -726,6 +728,42 @@ Implementation
     If Clip <> 0 Then
      DeleteObject(Clip);
    End;
+  End;
+
+/// <summary>Application-selected cursor styles override preferences until DECSCUSR 0 or RIS.</summary>
+
+ Function TfraTerminal.EffectiveCursorShape : Integer;
+  Begin
+   Result := fSettings.Style.CursorShape;
+   If fSession = Nil Then
+    Exit;
+   Case fSession.Buffer.CursorStyle Of
+    1, 2 : Result := 0;
+    3, 4 : Result := 2;
+    5, 6 : Result := 1;
+   End;
+  End;
+
+ Function TfraTerminal.CursorVisibleAt(Tick : UInt64) : Boolean;
+  Var
+   Style    : Integer;
+   Interval : Cardinal;
+  Begin
+   Result := False;
+   If Not Focused Or (fSession = Nil) Or Not fSession.Buffer.CursorVisible Or fSession.Exited Then
+    Exit;
+   Style    := fSession.Buffer.CursorStyle;
+   Interval := 500;
+   If Style = 0 Then
+    Case fSettings.Style.CursorBlinkMode Of
+     0 : Interval := GetCaretBlinkTime;
+     2 : Interval := INFINITE;
+    End
+   Else If Style Mod 2 = 0 Then
+    Interval := INFINITE;
+   Result    := (Interval = 0) Or (Interval = INFINITE);
+   If Not Result Then
+    Result := (Tick Div Interval) Mod 2 = 0;
   End;
 
  Procedure TfraTerminal.InvalidateSurface(Full : Boolean);
@@ -806,8 +844,7 @@ Implementation
    Revision := -1;
    If fSession <> Nil Then
     Revision := fSession.Buffer.Revision;
-   Cursor    := Focused And (fSession <> Nil) And fSession.Buffer.CursorVisible And Not fSession.Exited And
-   ((fSettings.Style.CursorBlinkMode = 2) Or ((GetTickCount64 Div 500) Mod 2 = 0));
+   Cursor    := CursorVisibleAt(GetTickCount64);
    If (fAlphaSurface = Nil) Or (fAlphaSurface.Width <> surface.Width) Or (fAlphaSurface.Height <> surface.Height) Or
    (fAlphaVisualRevision <> fVisualRevision) Or (fAlphaBufferRevision <> Revision) Or
    (fAlphaOpacity <> Opacity) Or (fAlphaScroll <> scroll.Position) Or (fAlphaCursor <> Cursor) Or
@@ -976,8 +1013,7 @@ Implementation
      fOldMaximum        := Maximum;
      fLastRevision      := fSession.Buffer.Revision;
     End;
-   CursorVisible := Focused And fSession.Buffer.CursorVisible And Not fSession.Exited And
-   ((fSettings.Style.CursorBlinkMode = 2) Or ((GetTickCount64 Div 500) Mod 2 = 0));
+   CursorVisible := CursorVisibleAt(GetTickCount64);
    If Changed Or (CursorVisible <> fLastCursorVisible) Then
     InvalidateSurface(False);
    fLastCursorVisible := CursorVisible;

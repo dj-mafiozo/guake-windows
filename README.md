@@ -75,3 +75,5 @@ Wrapper git-zsh.exe używa ikony lokalnego Zsh z Git SDK. Emulator odpowiada na 
 Dwuklik w terminalu zaznacza słowo według `word-chars`. Środkowy przycisk wkleja ostatnie zaznaczenie terminala w bieżącym miejscu wejścia powłoki (bez Enter). Gdy aplikacja przechwytuje mysz, użyj Shift. URL i ścieżki Quick Open mogą przechodzić przez automatycznie zawinięte wiersze.
 
 Opcja `window-refocus` przywraca fokus widocznemu terminalowi po użyciu głównego skrótu zamiast go chować. `lazy-losefocus` opóźnia chowanie po utracie fokusu o 300 ms; powrót fokusu anuluje chowanie. Dialogi aplikacji pozostają chronione przed automatycznym ukryciem terminala.
+
+Aplikacje terminalowe mogą wybierać kształt i miganie kursora przez `DECSCUSR 0–6` oraz odczytać styl przez `DECRQSS`. Styl 0 przywraca preferencje terminala; ustawienia aplikacji nie zmieniają INI. Systemowy tryb migania używa czasu kursora Windows.

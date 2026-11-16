@@ -89,6 +89,7 @@ Interface
     fInsert            : Boolean;
     fAlternate         : Boolean;
     fCursorVisible     : Boolean;
+    fCursorStyle       : Integer;
     fApplicationCursor : Boolean;
     fApplicationKeypad : Boolean;
     fFocusReporting    : Boolean;
@@ -148,19 +149,21 @@ Interface
     Property CursorX              : Integer Read fX;
     Property CursorY              : Integer Read fY;
     Property TotalLines           : Integer Read GetTotalLines;
-    Property CursorVisible        : Boolean Read fCursorVisible;
-    Property AlternateScreen      : Boolean Read fAlternate;
-    Property ApplicationCursor    : Boolean Read fApplicationCursor;
-    Property ApplicationKeypad    : Boolean Read fApplicationKeypad;
-    Property FocusReporting       : Boolean Read fFocusReporting;
-    Property NewLineMode          : Boolean Read fNewLineMode;
-    Property BracketedPaste       : Boolean Read fBracketedPaste;
-    Property MouseMode            : Integer Read fMouseMode;
-    Property SGRMouse             : Boolean Read fSGRMouse;
-    Property BellCount            : UInt64 Read fBellCount;
-    Property Title                : String Read fTitle;
-    Property DirectoryURI         : String Read fDirectory;
-    Property Revision             : Int64 Read fRevision;
+    /// <summary>DECSCUSR 0 follows terminal preferences; 1..6 override shape and blink, globally across screens.</summary>
+    Property CursorStyle       : Integer Read fCursorStyle;
+    Property CursorVisible     : Boolean Read fCursorVisible;
+    Property AlternateScreen   : Boolean Read fAlternate;
+    Property ApplicationCursor : Boolean Read fApplicationCursor;
+    Property ApplicationKeypad : Boolean Read fApplicationKeypad;
+    Property FocusReporting    : Boolean Read fFocusReporting;
+    Property NewLineMode       : Boolean Read fNewLineMode;
+    Property BracketedPaste    : Boolean Read fBracketedPaste;
+    Property MouseMode         : Integer Read fMouseMode;
+    Property SGRMouse          : Boolean Read fSGRMouse;
+    Property BellCount         : UInt64 Read fBellCount;
+    Property Title             : String Read fTitle;
+    Property DirectoryURI      : String Read fDirectory;
+    Property Revision          : Int64 Read fRevision;
   End;
 
 Implementation
@@ -247,6 +250,7 @@ Implementation
    fPrimary           := Nil;
    fAlternate         := False;
    fCursorVisible     := True;
+   fCursorStyle       := 0;
    fApplicationCursor := False;
    fApplicationKeypad := False;
    fFocusReporting    := False;
@@ -577,6 +581,8 @@ Implementation
    Request := Copy(fSequence, 3, MaxInt);
    If Request = 'm' Then
     Reply := SGRState + 'm'
+   Else If Request = ' q' Then
+    Reply := IntToStr(fCursorStyle) + ' q'
    Else If Request = 'r' Then
     Reply := Format('%d;%dr', [fTop + 1, fBottom + 1])
    Else
@@ -664,6 +670,20 @@ Implementation
     End;
 
   Begin
+   If (Final = 'q') And (Copy(fSequence, Length(fSequence), 1) = ' ') Then
+    Begin
+     Prefix := Copy(fSequence, 1, Length(fSequence) - 1);
+     For i  := 1 To Length(Prefix) Do
+      If Not CharInSet(Prefix[i], ['0'..'9']) Then
+       Exit;
+     If Prefix = '' Then
+      n := 0
+     Else If Not TryStrToInt(Prefix, n) Then
+      Exit;
+     If (n >= 0) And (n <= 6) Then
+      fCursorStyle := n;
+     Exit;
+    End;
    ModeQuery := (Final = 'p') And (Copy(fSequence, Length(fSequence), 1) = '$');
    If ModeQuery Then
     Delete(fSequence, Length(fSequence), 1);

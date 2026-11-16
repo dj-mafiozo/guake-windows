@@ -16,6 +16,8 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure CursorStyleParsingQueriesAndReset;
+    [Test] Procedure CursorStyleRendersAndOverridesPreferences;
     [Test] Procedure RefocusAndLazyHideRespectForeground;
     [Test] Procedure LogicalLinesJoinSoftWrapsAndMapCells;
     [Test] Procedure UnchangedSplitPanesReuseComposition;
@@ -264,6 +266,132 @@ Implementation
   End;
 
 /// <summary>Soft wraps preserve UTF-16 hit positions; explicit newlines remain separate.</summary>
+
+/// <summary>DECSCUSR preserves content and pending wrap, accepts fragments and reports the stored VTE style.</summary>
+
+ Procedure TTerminalTests.CursorStyleParsingQueriesAndReset;
+  Var
+   Buffer   : TTerminalBuffer;
+   Style    : Integer;
+   Split    : Integer;
+   Sequence : String;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 4);
+   Try
+    For Style := 0 To 6 Do
+     Begin
+      Sequence  := #27'[' + IntToStr(Style) + ' q' + #27'P$q q'#27'\';
+      For Split := 0 To Length(Sequence) Do
+       Begin
+        Buffer.Reset;
+        Buffer.FeedText(Copy(Sequence, 1, Split));
+        Buffer.FeedText(Copy(Sequence, Split + 1, MaxInt));
+        Assert.AreEqual(Style, Buffer.CursorStyle);
+        Assert.AreEqual(#27'P1$r' + IntToStr(Style) + ' q'#27'\', Buffer.TakeResponses);
+       End;
+     End;
+    Buffer.FeedText(#27'[4 q');
+    Buffer.FeedText(#27'[7 q'#27'[?5 q'#27'[>6 q'#27'[1;2 q'#27'[999999999999 q');
+    Assert.AreEqual(4, Buffer.CursorStyle, 'Invalid or unsupported styles do not replace the current style');
+    Buffer.FeedText(#27'[5 '#24'q');
+    Assert.AreEqual(4, Buffer.CursorStyle, 'CAN cancels the incomplete style sequence');
+    Buffer.FeedText(#27'[ q');
+    Assert.AreEqual(0, Buffer.CursorStyle);
+    Buffer.Reset;
+    Buffer.FeedText('12345678'#27'[6 q'#27'P$q q'#27'\' + 'X');
+    Assert.AreEqual('12345678', Buffer.LineText(0));
+    Assert.AreEqual('X', Buffer.LineText(1));
+    Assert.AreEqual(6, Buffer.CursorStyle);
+    Buffer.FeedText(#27'7'#27'[4 q'#27'8');
+    Assert.AreEqual(4, Buffer.CursorStyle, 'Cursor style is terminal state, not DECSC rendition');
+    Buffer.FeedText(#27'[?1049h'#27'[2 q'#27'[?1049l');
+    Assert.AreEqual(2, Buffer.CursorStyle, 'Cursor style is shared across screens');
+    Buffer.FeedText(#27'[?25l'#27'[5 q');
+    Assert.IsFalse(Buffer.CursorVisible, 'Changing style must not force cursor visibility');
+    Buffer.FeedText(#27'c');
+    Assert.AreEqual(0, Buffer.CursorStyle);
+    Assert.IsTrue(Buffer.CursorVisible);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Checks actual cursor pixels and cache invalidation, deterministic blink phases and preference fallback.</summary>
+
+ Procedure TTerminalTests.CursorStyleRendersAndOverridesPreferences;
+  Var
+   Settings : TGuakeSettings;
+   Main     : TfrmMain;
+   Frame    : TfraTerminal;
+   Output   : TBitmap;
+   Width    : Integer;
+   Height   : Integer;
+   Style    : Integer;
+  Begin
+   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Main     := Nil;
+   Output   := TBitmap.Create;
+   Try
+    Settings.General.DefaultShell         := 'cmd';
+    Settings.General.UseTrayicon          := False;
+    Settings.General.UsePopup             := False;
+    Settings.General.SaveTabsWhenChanged  := False;
+    Settings.Keybindings.Global.ShowHide  := 'disabled';
+    Settings.Keybindings.Global.ShowFocus := 'disabled';
+    Settings.Style.CursorShape            := 1;
+    Settings.Style.CursorBlinkMode        := 2;
+    Main                                  := TfrmMain.Create(Nil);
+    Main.Bind(Settings);
+    Main.StartTerminal;
+    Main.SetTerminalVisible(True);
+    Main.SetBounds( -30000, 0, 500, 200);
+    Main.pollTimer.Enabled     := False;
+    Frame                      := Main.ActiveTerminalFrame;
+    Frame.refreshTimer.Enabled := False;
+    Frame.Session.Buffer.Reset;
+    Frame.SetFocus;
+    Assert.IsTrue(Frame.Focused);
+    Output.Canvas.Font.Assign(Frame.Font);
+    Width  := Output.Canvas.TextWidth('M');
+    Height := Output.Canvas.TextHeight('Mg');
+    Assert.IsTrue((Width > 4) And (Height > 4));
+    For Style := 1 To 6 Do
+     Begin
+      Frame.Session.Buffer.FeedText(#27'[' + IntToStr(Style) + ' q');
+      Assert.IsTrue(Frame.CursorVisibleAt(0));
+      Assert.AreEqual(Style Mod 2 = 0, Frame.CursorVisibleAt(500));
+     End;
+    Frame.Session.Buffer.FeedText(#27'[4 q');
+    Frame.RenderAlpha(Output, 96);
+    Assert.AreEqual(255, Integer(PixelAt(Output, 4 + Width - 1, 4 + Height - 1).rgbReserved));
+    Assert.AreEqual(96, Integer(PixelAt(Output, 4, 4).rgbReserved));
+    Frame.Session.Buffer.FeedText(#27'[6 q');
+    Frame.RenderAlpha(Output, 96);
+    Assert.AreEqual(255, Integer(PixelAt(Output, 4, 4).rgbReserved));
+    Assert.AreEqual(96, Integer(PixelAt(Output, 4 + Width - 1, 4 + Height - 1).rgbReserved), 'Old Underline pixels must be cleared');
+    Frame.Session.Buffer.FeedText(#27'[2 q');
+    Frame.RenderAlpha(Output, 96);
+    Assert.AreEqual(255, Integer(PixelAt(Output, 4 + Width - 1, 4).rgbReserved));
+    Assert.AreEqual(96, Integer(PixelAt(Output, 4 + Width Div 2, 4 + Height Div 2).rgbReserved));
+    Frame.Session.Buffer.FeedText(#27'[0 q');
+    Frame.RenderAlpha(Output, 96);
+    Assert.AreEqual(255, Integer(PixelAt(Output, 4, 4).rgbReserved));
+    Assert.AreEqual(96, Integer(PixelAt(Output, 4 + Width - 1, 4).rgbReserved));
+    Assert.IsTrue(Frame.CursorVisibleAt(500));
+    Settings.Style.CursorBlinkMode := 1;
+    Assert.IsFalse(Frame.CursorVisibleAt(500));
+    Assert.AreEqual(1, Settings.Style.CursorShape, 'Application sequences Do Not modify preferences');
+    Frame.Session.Buffer.FeedText(#27'[?25l');
+    Assert.IsFalse(Frame.CursorVisibleAt(0));
+    Frame.Session.Buffer.FeedText(#27'[?25h');
+    Main.Hide;
+    Assert.IsFalse(Frame.CursorVisibleAt(0), 'An unfocused Terminal does Not paint the active Cursor');
+   Finally
+    Output.Free;
+    Main.Free;
+    Settings.Free;
+   End;
+  End;
 
 /// <summary>Uses a separate native foreground process to verify activation, deferred hiding and dialog protection.</summary>
 
@@ -528,6 +656,9 @@ Implementation
     Session.Buffer.FeedText(#27'[0m'#27'P$qm'#27'\');
     Session.Poll;
     Expected := Expected + #27'P1$r0m'#27'\';
+    Session.Buffer.FeedText(#27'[6 q'#27'P$q q'#27'\');
+    Session.Poll;
+    Expected := Expected + #27'P1$r6 q'#27'\';
     Frame.Perform(WM_KEYDOWN, VK_NUMPAD1, 0);
     Frame.Perform(WM_CHAR, Ord('1'), 0);
     Frame.Perform(WM_KEYDOWN, VK_RETURN, $01000000);
