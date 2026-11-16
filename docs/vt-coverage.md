@@ -1,6 +1,6 @@
 # Pokrycie emulatora VT
 
-Stan: 1.0.19.52. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.20.53. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -11,7 +11,7 @@ Stan: 1.0.19.52. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | Edycja | ED/EL, ICH/DCH/ECH, IL/DL, SU/SD, DECSTBM | Selective erase i chronione komórki; prostokąty DEC; poziome marginesy; szerokie znaki przecinające granice edycji |
 | Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS | Chronione komórki/selective erase, DECSTR i zapisywanie trybów prywatnych |
 | Ekrany | Ekran główny i alternatywny, 47/1047/1049, historia i reflow ekranu głównego | Osobna macierz wariantów przełączania i zapisów kursora, przypadki brzegowe reflow |
-| SGR | Reset, bold, italic, underline, inverse, ich wyłączenie; ANSI 16/256 i RGB; kolory przez średniki i dwukropki, podkreślenie 4:0/4:1 | Faint, conceal, strike, overline, pozostałe style i kolory podkreślenia; dalsze warianty SGR |
+| SGR | Reset, bold/faint, italic, conceal, strike, overline, inverse; pięć stylów podkreślenia i jego kolor 58/59; ANSI 16/256 i RGB przez średniki i dwukropki | Miganie tekstu 5/6/25, dalsze warianty SGR i porównanie geometrii dekoracji z VTE |
 | Odpowiedzi | DSR 5, CPR 6, DECXCPR ?6; wiersz względem regionu przy DECOM; podstawowe DA/DECID | Secondary/tertiary DA, DECRQM, DECRQSS, raporty rozmiaru i pozostałe zapytania |
 | OSC | 0/2: tytuł, 7: katalog, 8: odnośniki | Paleta i zapytania kolorów, stos tytułów, pozostałe OSC; polityka dostępu do schowka |
 | DCS/APC/PM | Pomijanie DCS/APC/PM/SOS; nowy ESC może przerwać ciąg i rozpocząć nowe polecenie | Brak implementacji funkcji DCS; dalsze porównania ciągów z VTE |
@@ -29,7 +29,7 @@ Stan: 1.0.19.52. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 
 ## Następne etapy
 
-1. Brakujące atrybuty SGR i ich faktyczne renderowanie, potem zapytania i tryby wejścia.
+1. Miganie tekstu wraz z oszczędnym odświeżaniem, potem zapytania i tryby wejścia.
 2. Edycja szerokich komórek, marginesy i reflow; porównania strumieni i obrazów z VTE.
 3. Dalsze przypadki błędnych strumieni, C1 i ciągów sterujących.
 
@@ -54,3 +54,13 @@ Limity pozostają ochronne: 256 znaków CSI i 4096 jednostek UTF-16 OSC. Przekro
 SGR zachowuje granice grup oddzielanych średnikami i podparametrów oddzielanych dwukropkami. Obsługiwane kolory: `38;5;n`, `48;5;n`, `38:5:n`, `48:5:n`, `38;2;r;g;b`, `48;2;r;g;b`, `38:2:r:g:b`, `48:2:r:g:b` oraz warianty z pustym identyfikatorem przestrzeni kolorów, np. `38:2::r:g:b`. Składowe muszą mieścić się w 0–255; niepuste identyfikatory przestrzeni nie są obsługiwane. Niepełne lub błędne składowe nie stają się osobnymi poleceniami SGR. `4:0` i `4:1` wyłączają/włączają obsługiwane pojedyncze podkreślenie; pozostałe style nadal wymagają widoku. Parametry koloru podkreślenia SGR 58 są konsumowane bez zmiany innych atrybutów; jego renderowanie nie jest jeszcze zaimplementowane.
 
 Punkt odniesienia dla składni i konsumowania parametrów: [parser SGR VTE](https://github.com/GNOME/vte/blob/master/src/sgr.hh). Test podziału danych porównuje ekran, kolory, kursor, tytuł, dzwonek i odpowiedź urządzenia dla każdego miejsca podziału oraz dalszych odczytów po pojedynczym bajcie. Nie zastępuje to pełnej macierzy różnic z uruchomionym VTE.
+
+## Atrybuty i dekoracje tekstu — 1.0.20.53
+
+SGR 2 przyciemnia tekst; 22 wyłącza zarówno bold, jak i faint. SGR 8/28 ukrywa/przywraca glify i dekoracje bez kasowania tekstu z modelu, historii i kopiowanego zaznaczenia. Nie jest to mechanizm usuwania poufnych danych. SGR 9/29 steruje przekreśleniem, a 53/55 linią nad tekstem.
+
+SGR 4:0–5 wybiera brak podkreślenia, pojedynczą linię, linię podwójną, falistą, kropkowaną albo kreskowaną. Zwykłe 4 wybiera pojedyncze, 21 podwójne, 24 wyłącza. Nieobsługiwany numer stylu nie zmienia poprzedniego. SGR 58 przyjmuje paletę albo RGB przez średniki/dwukropki; 59 przywraca kolor bieżącego tekstu. Te pola są przechowywane w komórkach, reflow oraz zapisie DECSC/DECRC i resetowane przez SGR 0/RIS.
+
+Widok rysuje zwykłe jednokolorowe podkreślenie i przekreślenie przez GDI; kolorowe i pozostałe podkreślenia oraz overline rysuje w granicach komórek. Wzór linii jest zakotwiczony we współrzędnych widoku, więc grupowanie ASCII nie zmienia jego fazy. Faint uśrednia składowe RGB koloru tekstu i rozwiązanego koloru tła przed inwersją; obraz tła nie jest próbkowany do tego obliczenia. Maska pokrycia zachowuje nieprzezroczystość dekoracji niezależnie od nieprzezroczystości tła. Conceal nie ujawnia tekstu po zaznaczeniu, ale jawne tło SGR pozostaje widoczne.
+
+Cache wierszy oraz grupowanie ASCII uwzględniają wszystkie nowe atrybuty. Testy sprawdzają stan i reset, zachowanie przy zapisie kursora/reflow, pięć widocznych stylów, kolor i alfę dekoracji, conceal przy tle domyślnym/jawnym, przygaszenie, przekreślenie spacji i odświeżenie jednego wiersza po zmianie samego atrybutu. Podgląd: bin/tests/sgr-preview.png. Geometria GDI nadal wymaga porównań z Pango/VTE dla różnych fontów i DPI; miganie tekstu nie jest jeszcze obsługiwane.

@@ -457,6 +457,42 @@ Implementation
    Clip            : HRGN;
    ViewOrigin      : TPoint;
    WindowOrigin    : TPoint;
+   Decoration      : TColor;
+   UnderlineKind   : Integer;
+
+   Procedure DrawDecorations;
+    Var
+     xx    : Integer;
+     yy    : Integer;
+     BaseY : Integer;
+    Begin
+     If c.Conceal Then
+      Exit;
+     Canvas.Brush.Color := Fore;
+     If c.Overline Then
+      Canvas.FillRect(Rect(r.Left, r.Top + 1, r.Right, r.Top + 2));
+     If Not c.Underline Or ((UnderlineKind = 1) And (c.UnderlineColor = -1)) Then
+      Exit;
+     Canvas.Brush.Color := Decoration;
+     BaseY              := r.Bottom - 2;
+     For xx             := r.Left To r.Right - 1 Do
+      Begin
+       yy := BaseY;
+       Case UnderlineKind Of
+        3 :
+         yy := BaseY - Abs((xx Mod 4) - 2);
+        4 :
+         If (xx Mod 4) >= 2 Then
+          Continue;
+        5 :
+         If (xx Mod 6) >= 4 Then
+          Continue;
+       End;
+       Canvas.FillRect(Rect(xx, yy, xx + 1, yy + 1));
+       If UnderlineKind = 2 Then
+        Canvas.FillRect(Rect(xx, Max(r.Top, BaseY - 2), xx + 1, Max(r.Top, BaseY - 2) + 1));
+      End;
+    End;
 
    Function AsciiCell(Const Cell : TTerminalCell) : Boolean;
     Begin
@@ -528,7 +564,7 @@ Implementation
           Inc(x);
           Continue;
          End;
-        If (c.Background = -2) And Not c.Inverse And Not c.Underline And Not IsSelected(x, WorldY) And
+        If (c.Background = -2) And Not c.Inverse And Not c.Underline And Not c.Strike And Not c.Overline And Not IsSelected(x, WorldY) And
         ((c.Text = '') Or (c.Text = ' ')) Then
          Begin
           Inc(x);
@@ -537,6 +573,10 @@ Implementation
         Selected := IsSelected(x, WorldY);
         Fore     := ResolveColor(c.Foreground, True, c.Bold);
         Back     := ResolveColor(c.Background, False, False);
+        If c.Faint Then
+         Fore := RGB((GetRValue(ColorToRGB(Fore)) + GetRValue(ColorToRGB(Back))) Div 2,
+         (GetGValue(ColorToRGB(Fore)) + GetGValue(ColorToRGB(Back))) Div 2,
+         (GetBValue(ColorToRGB(Fore)) + GetBValue(ColorToRGB(Back))) Div 2);
         If c.Inverse Or Selected Then
          Begin
           Temp := Fore;
@@ -557,6 +597,9 @@ Implementation
             If Not AsciiCell(NextCell) Or (NextCell.Foreground <> c.Foreground) Or
             (NextCell.Background <> c.Background) Or (NextCell.Bold <> c.Bold) Or
             (NextCell.Italic <> c.Italic) Or (NextCell.Underline <> c.Underline) Or
+            (NextCell.UnderlineStyle <> c.UnderlineStyle) Or (NextCell.UnderlineColor <> c.UnderlineColor) Or
+            (NextCell.Faint <> c.Faint) Or (NextCell.Conceal <> c.Conceal) Or
+            (NextCell.Strike <> c.Strike) Or (NextCell.Overline <> c.Overline) Or
             (NextCell.Inverse <> c.Inverse) Or (IsSelected(x + RunLength, WorldY) <> Selected) Then
              Break;
             Inc(RunLength);
@@ -570,8 +613,14 @@ Implementation
          Include(Style, fsBold);
         If c.Italic Then
          Include(Style, fsItalic);
-        If c.Underline Then
-         Include(Style, fsUnderline);
+        UnderlineKind := Max(1, c.UnderlineStyle);
+        If Not c.Conceal Then
+         Begin
+          If c.Underline And (UnderlineKind = 1) And (c.UnderlineColor = -1) Then
+           Include(Style, fsUnderline);
+          If c.Strike Then
+           Include(Style, fsStrikeOut);
+         End;
         Canvas.Font.Style := Style;
         TransparentCell   := (c.Background = -2) And Not c.Inverse And Not Selected;
         If Mask Then
@@ -587,18 +636,29 @@ Implementation
           SetBkMode(Canvas.Handle, OPAQUE);
           Options := Options Or ETO_OPAQUE;
          End;
+        Decoration := Fore;
+        If c.UnderlineColor <> -1 Then
+         Decoration := ResolveColor(c.UnderlineColor, True, False);
+        If Mask Then
+         Decoration := clWhite;
         SetTextColor(Canvas.Handle, ColorToRGB(Fore));
         SetBkColor(Canvas.Handle, ColorToRGB(Back));
         If RunLength > 0 Then
          Begin
+          If c.Conceal Then
+           RunText := StringOfChar(' ', RunLength);
           DrawAsciiRun;
           x := RunStart + RunLength;
          End
         Else
          Begin
-          ExtTextOut(Canvas.Handle, r.Left, r.Top, Options, @r, PChar(c.Text), Length(c.Text), Nil);
+          If c.Conceal Then
+           ExtTextOut(Canvas.Handle, r.Left, r.Top, Options, @r, Nil, 0, Nil)
+          Else
+           ExtTextOut(Canvas.Handle, r.Left, r.Top, Options, @r, PChar(c.Text), Length(c.Text), Nil);
           Inc(x);
          End;
+        DrawDecorations;
        End;
      End;
     If Focused And fSession.Buffer.CursorVisible And Not fSession.Exited And

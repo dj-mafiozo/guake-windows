@@ -61,3 +61,5 @@ Emulator obsługuje programowalne tabulatory (HT, HTS, TBC, CHT, CBT i DECST8C) 
 Zestawy DEC Special Graphics, ASCII i brytyjski działają w G0–G3. Emulator obsługuje SI/SO, LS2/LS3, SS2/SS3 oraz zapis i odtwarzanie atrybutów, mapowania znaków i trybów kursora przez DECSC/DECRC, CSI s/u i 1048; 1049 przywraca je po wyjściu z ekranu alternatywnego. Pełny zakres i braki pozostają w macierzy VT.
 
 Parser VT obsługuje kontrolki C0 wewnątrz sekwencji, odrzuca przepełnione CSI/OSC w całości i rozróżnia średniki oraz dwukropki w kolorach SGR, w tym RGB `38:2::r:g:b`. Niepełne kolory nie są interpretowane jako osobne atrybuty tekstu.
+
+Renderer obsługuje przygaszenie, ukrywanie tekstu, przekreślenie, linię nad tekstem oraz podkreślenie pojedyncze, podwójne, faliste, kropkowane i kreskowane z osobnym kolorem SGR 58/59. Dekoracje zachowują krycie przy przezroczystym tle. Conceal ukrywa glify, ale zachowuje tekst w historii i schowku.

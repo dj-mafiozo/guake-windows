@@ -28,6 +28,9 @@ Interface
     [Test] Procedure TerminalBackgroundAlphaAndWindowControls;
     [Test] Procedure AnimatedGifBackgroundDelaysAndRemoval;
     [Test] Procedure AnimatedGifDisposalAndFiniteLoop;
+    [Test] Procedure ExtendedSGRStateAndCursorRestore;
+    [Test] Procedure SGRDecorationsRenderWithOpaqueCoverage;
+    [Test] Procedure FaintConcealAndIncrementalAttributeRefresh;
     [Test] Procedure C0ControlsInsideFragmentedSequences;
     [Test] Procedure OverlongCSIAndNumericOverflowAreDiscarded;
     [Test] Procedure OverlongOSCDoesNotPublishTruncatedValues;
@@ -109,6 +112,207 @@ Implementation
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+ Procedure TTerminalTests.ExtendedSGRStateAndCursorRestore;
+  Var
+   Buffer : TTerminalBuffer;
+   Cell   : TTerminalCell;
+   i      : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(24, 5);
+   Try
+    Buffer.FeedText(#27'[1;2;8;9;53;4:3;58:2::17:34:51mA'#27'7');
+    Cell := Buffer.Cell[0, 0];
+    Assert.IsTrue(Cell.Bold And Cell.Faint And Cell.Conceal And Cell.Strike And Cell.Overline);
+    Assert.AreEqual(3, Integer(Cell.UnderlineStyle));
+    Assert.AreEqual($01332211, Cell.UnderlineColor);
+    Buffer.FeedText(#27'[22;28;29;55;24;59mB');
+    Cell := Buffer.Cell[1, 0];
+    Assert.IsFalse(Cell.Bold Or Cell.Faint Or Cell.Conceal Or Cell.Strike Or Cell.Overline Or Cell.Underline);
+    Assert.AreEqual( -1, Cell.UnderlineColor);
+    Buffer.FeedText(#27'8C');
+    Cell := Buffer.Cell[1, 0];
+    Assert.IsTrue(Cell.Faint And Cell.Conceal And Cell.Strike And Cell.Overline);
+    Assert.AreEqual(3, Integer(Cell.UnderlineStyle));
+    Buffer.Resize(12, 5);
+    Assert.IsTrue(Buffer.Cell[0, 0].Conceal);
+    Assert.IsTrue(Pos('AC', Buffer.Text) > 0);
+    Buffer.FeedText(#27'[0m'#13#10);
+    For i := 0 To 5 Do
+     Buffer.FeedText(#27'[4:' + IntToStr(i) + 'mX');
+    For i := 0 To 5 Do
+     Assert.AreEqual(i, Integer(Buffer.Cell[i, 1].UnderlineStyle));
+    Buffer.FeedText(#27'[4:99mY');
+    Assert.AreEqual(5, Integer(Buffer.Cell[6, 1].UnderlineStyle));
+    Buffer.FeedText(#27'[21mZ'#27'[0mR');
+    Assert.AreEqual(2, Integer(Buffer.Cell[7, 1].UnderlineStyle));
+    Assert.AreEqual( -1, Buffer.Cell[8, 1].UnderlineColor);
+    Assert.IsFalse(Buffer.Cell[8, 1].Underline);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.SGRDecorationsRenderWithOpaqueCoverage;
+  Var
+   Settings : TGuakeSettings;
+   Main     : TfrmMain;
+   Frame    : TfraTerminal;
+   Output   : TBitmap;
+   Preview  : TPngImage;
+   Width    : Integer;
+   Height   : Integer;
+   i        : Integer;
+   x        : Integer;
+   y        : Integer;
+   RedCount : Integer;
+   Pixel    : TRGBQuad;
+  Begin
+   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Output   := TBitmap.Create;
+   Try
+    Settings.General.DefaultShell         := 'cmd';
+    Settings.General.UseTrayicon          := False;
+    Settings.General.UsePopup             := False;
+    Settings.Keybindings.Global.ShowHide  := 'disabled';
+    Settings.Keybindings.Global.ShowFocus := 'disabled';
+    Main                                  := TfrmMain.Create(Nil);
+    Try
+     Main.Bind(Settings);
+     Main.StartTerminal;
+     Main.HandleNeeded;
+     Main.SetBounds( -30000, 0, 500, 200);
+     Frame := Main.ActiveTerminalFrame;
+     Frame.Session.Buffer.Reset;
+     Frame.Session.Buffer.FeedText(#27'[?25l'#27'[38;2;255;255;255;58;2;255;0;0m');
+     For i := 1 To 5 Do
+      Frame.Session.Buffer.FeedText(#27'[4:' + IntToStr(i) + 'm ');
+     Frame.Session.Buffer.FeedText(#13#10#27'[4:0;59;53m '#27'[55;8mM'#27'[28;9m ');
+     Frame.RefreshTick(Nil);
+     Frame.RenderAlpha(Output, 96);
+     Output.Canvas.Font.Assign(Frame.Font);
+     Width  := Output.Canvas.TextWidth('M');
+     Height := Output.Canvas.TextHeight('Mg');
+     For i  := 0 To 4 Do
+      Begin
+       RedCount := 0;
+       For y    := 4 To 4 + Height - 1 Do
+        For x   := 4 + i * Width To 4 + (i + 1) * Width - 1 Do
+         Begin
+          Pixel := PixelAt(Output, x, y);
+          If (Pixel.rgbRed = 255) And (Pixel.rgbGreen = 0) And (Pixel.rgbBlue = 0) Then
+           Begin
+            Inc(RedCount);
+            Assert.AreEqual(255, Integer(Pixel.rgbReserved));
+           End;
+         End;
+       Assert.IsTrue(RedCount > 0, 'Every underline style must draw a visible red decoration');
+      End;
+     Pixel := PixelAt(Output, 4 + Width, 4 + Height - 4);
+     Assert.AreEqual(255, Integer(Pixel.rgbRed));
+     Pixel := PixelAt(Output, 4, 4 + Height + 1);
+     Assert.AreEqual(255, Integer(Pixel.rgbReserved));
+     For y  := 4 + Height To 4 + 2 * Height - 1 Do
+      For x := 4 + Width To 4 + 2 * Width - 1 Do
+       Assert.AreEqual(96, Integer(PixelAt(Output, x, y).rgbReserved));
+     RedCount := 0;
+     For y    := 4 + Height To 4 + 2 * Height - 1 Do
+      For x   := 4 + 2 * Width To 4 + 3 * Width - 1 Do
+       If PixelAt(Output, x, y).rgbReserved = 255 Then
+        Inc(RedCount);
+     Assert.IsTrue(RedCount > 0, 'Strikethrough must also decorate a space');
+     Preview := TPngImage.Create;
+     Try
+      Preview.Assign(Output);
+      Preview.SaveToFile(TPath.Combine(ExtractFilePath(ParamStr(0)), 'sgr-preview.png'));
+     Finally
+      Preview.Free;
+     End;
+    Finally
+     Main.Free;
+    End;
+   Finally
+    Output.Free;
+    Settings.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.FaintConcealAndIncrementalAttributeRefresh;
+  Var
+   Settings   : TGuakeSettings;
+   Main       : TfrmMain;
+   Frame      : TfraTerminal;
+   Output     : TBitmap;
+   Previous   : TBitmap;
+   Width      : Integer;
+   Height     : Integer;
+   x          : Integer;
+   y          : Integer;
+   NormalMax  : Integer;
+   FaintMax   : Integer;
+   RowsBefore : UInt64;
+   Pixel      : TRGBQuad;
+  Begin
+   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Output   := TBitmap.Create;
+   Previous := TBitmap.Create;
+   Try
+    Settings.General.DefaultShell         := 'cmd';
+    Settings.General.UseTrayicon          := False;
+    Settings.General.UsePopup             := False;
+    Settings.Keybindings.Global.ShowHide  := 'disabled';
+    Settings.Keybindings.Global.ShowFocus := 'disabled';
+    Main                                  := TfrmMain.Create(Nil);
+    Try
+     Main.Bind(Settings);
+     Main.StartTerminal;
+     Main.HandleNeeded;
+     Main.SetBounds( -30000, 0, 500, 200);
+     Frame := Main.ActiveTerminalFrame;
+     Frame.Session.Buffer.Reset;
+     Frame.Session.Buffer.FeedText(#27'[?25l'#27'[38;2;255;255;255;48;2;0;0;0mM'#13#10#27'[2mM');
+     Frame.RefreshTick(Nil);
+     Frame.RenderAlpha(Output, 96);
+     Output.Canvas.Font.Assign(Frame.Font);
+     Width     := Output.Canvas.TextWidth('M');
+     Height    := Output.Canvas.TextHeight('Mg');
+     NormalMax := 0;
+     FaintMax  := 0;
+     For y     := 4 To 4 + Height - 1 Do
+      For x    := 4 To 4 + Width - 1 Do
+       Begin
+        Pixel := PixelAt(Output, x, y);
+        If Pixel.rgbRed > NormalMax Then
+         NormalMax := Pixel.rgbRed;
+        Pixel      := PixelAt(Output, x, y + Height);
+        If Pixel.rgbRed > FaintMax Then
+         FaintMax := Pixel.rgbRed;
+       End;
+     Assert.IsTrue((FaintMax > 0) And (FaintMax < NormalMax));
+     Previous.Assign(Output);
+     RowsBefore := Frame.RasterRowCount;
+     Frame.Session.Buffer.FeedText(#27'[H'#27'[8mM');
+     Frame.RefreshTick(Nil);
+     Frame.RenderAlpha(Output, 96);
+     Assert.AreEqual(UInt64(1), Frame.RasterRowCount - RowsBefore);
+     For y  := 4 To 4 + Height - 1 Do
+      For x := 4 To 4 + Width - 1 Do
+       Begin
+        Pixel := PixelAt(Output, x, y);
+        Assert.AreEqual(0, Integer(Pixel.rgbRed));
+        Assert.AreEqual(255, Integer(Pixel.rgbReserved));
+        Assert.AreEqual(Cardinal(PixelAt(Previous, x, y + Height).rgbRed), Cardinal(PixelAt(Output, x, y + Height).rgbRed));
+       End;
+     Assert.IsTrue(Pos('M', Frame.Session.Buffer.Text) > 0);
+    Finally
+     Main.Free;
+    End;
+   Finally
+    Previous.Free;
+    Output.Free;
+    Settings.Free;
+   End;
+  End;
 
  Procedure TTerminalTests.C0ControlsInsideFragmentedSequences;
   Var

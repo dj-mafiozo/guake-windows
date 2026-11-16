@@ -9,17 +9,23 @@ Interface
 
  Type
   TTerminalCell = Record
-   Text         : String;
-   Hyperlink    : String;
-   SoftWrapped  : Boolean;
-   WrapPadding  : Boolean;
-   Foreground   : Integer;
-   Background   : Integer;
-   Bold         : Boolean;
-   Italic       : Boolean;
-   Underline    : Boolean;
-   Inverse      : Boolean;
-   Continuation : Boolean;
+   Text           : String;
+   Hyperlink      : String;
+   SoftWrapped    : Boolean;
+   WrapPadding    : Boolean;
+   Foreground     : Integer;
+   Background     : Integer;
+   Bold           : Boolean;
+   Italic         : Boolean;
+   Underline      : Boolean;
+   UnderlineStyle : Byte;
+   UnderlineColor : Integer;
+   Faint          : Boolean;
+   Conceal        : Boolean;
+   Strike         : Boolean;
+   Overline       : Boolean;
+   Inverse        : Boolean;
+   Continuation   : Boolean;
   End;
 
   TTerminalLine = TArray<TTerminalCell>;
@@ -202,20 +208,21 @@ Implementation
    Alternate : Boolean;
   Begin
    SetLength(fTabStops, fColumns);
-   For i            := 0 To High(fTabStops) Do
-    fTabStops[i]    := (i > 0) And (i Mod 8 = 0);
-   fHyperlink       := '';
-   fAttr            := Default(TTerminalCell);
-   fAttr.Foreground := -1;
-   fAttr.Background := -2;
-   fX               := 0;
-   fY               := 0;
-   For i            := 0 To High(fCharsets) Do
-    fCharsets[i]    := 'B';
-   fGL              := 0;
-   fCharsetSlot     := 0;
-   fSingleShift     := -1;
-   For Alternate    := False To True Do
+   For i                := 0 To High(fTabStops) Do
+    fTabStops[i]        := (i > 0) And (i Mod 8 = 0);
+   fHyperlink           := '';
+   fAttr                := Default(TTerminalCell);
+   fAttr.Foreground     := -1;
+   fAttr.Background     := -2;
+   fAttr.UnderlineColor := -1;
+   fX                   := 0;
+   fY                   := 0;
+   For i                := 0 To High(fCharsets) Do
+    fCharsets[i]        := 'B';
+   fGL                  := 0;
+   fCharsetSlot         := 0;
+   fSingleShift         := -1;
+   For Alternate        := False To True Do
     Begin
      fDECSaved[Alternate]             := Default(TTerminalSavedCursor);
      fDECSaved[Alternate].Attributes  := fAttr;
@@ -761,31 +768,61 @@ Implementation
      Case a Of
       0 :
        Begin
-        fAttr            := Default(TTerminalCell);
-        fAttr.Foreground := -1;
-        fAttr.Background := -2;
+        fAttr                := Default(TTerminalCell);
+        fAttr.Foreground     := -1;
+        fAttr.Background     := -2;
+        fAttr.UnderlineColor := -1;
        End;
       1 :
        fAttr.Bold := True;
       3 :
        fAttr.Italic := True;
+      2 :
+       fAttr.Faint := True;
       4 :
-       If Length(Sub) = 1 Then
-        fAttr.Underline := True
-       Else If Sub[1] = '0' Then
-        fAttr.Underline := False
-       Else If (Sub[1] = '') Or (Sub[1] = '1') Then
-        fAttr.Underline := True;
+       Begin
+        Mode := 1;
+        If (Length(Sub) > 1) And (Sub[1] <> '') Then
+         Mode := Number(Sub[1]);
+        If (Mode >= 0) And (Mode <= 5) Then
+         Begin
+          fAttr.Underline      := Mode <> 0;
+          fAttr.UnderlineStyle := Mode;
+         End;
+       End;
       21 :
-       fAttr.Underline := True;
+       Begin
+        fAttr.Underline      := True;
+        fAttr.UnderlineStyle := 2;
+       End;
+      8 :
+       fAttr.Conceal := True;
+      9 :
+       fAttr.Strike := True;
+      28 :
+       fAttr.Conceal := False;
+      29 :
+       fAttr.Strike := False;
+      53 :
+       fAttr.Overline := True;
+      55 :
+       fAttr.Overline := False;
+      59 :
+       fAttr.UnderlineColor := -1;
       7 :
        fAttr.Inverse := True;
       22 :
-       fAttr.Bold := False;
+       Begin
+        fAttr.Bold  := False;
+        fAttr.Faint := False;
+       End;
       23 :
        fAttr.Italic := False;
       24 :
-       fAttr.Underline := False;
+       Begin
+        fAttr.Underline      := False;
+        fAttr.UnderlineStyle := 0;
+       End;
       27 :
        fAttr.Inverse := False;
       30..37 :
@@ -846,7 +883,9 @@ Implementation
          If a = 38 Then
           fAttr.Foreground := Color
          Else If a = 48 Then
-          fAttr.Background := Color;
+          fAttr.Background := Color
+         Else
+          fAttr.UnderlineColor := Color;
        End;
      End;
      Inc(i);
