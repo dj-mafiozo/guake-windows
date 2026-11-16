@@ -33,6 +33,7 @@ Interface
     fScreen            : TTerminalScreen;
     fPrimary           : TTerminalScreen;
     fHistory           : TList<TTerminalLine>;
+    fTabStops          : TArray<Boolean>;
     fColumns           : Integer;
     fRows              : Integer;
     fX                 : Integer;
@@ -72,6 +73,7 @@ Interface
     Procedure ProcessCode   (Code : Cardinal);
     Procedure PutCode       (Code : Cardinal);
     Procedure LineFeed;
+    Procedure MoveTab       (Count : Integer; ForwardTab : Boolean);
     Procedure Scroll        (Up : Boolean; Count : Integer);
     Procedure ExecuteCSI    (Final : Char);
     Procedure ExecuteOSC;
@@ -170,7 +172,12 @@ Implementation
   End;
 
  Procedure TTerminalBuffer.Reset;
+  Var
+   i : Integer;
   Begin
+   SetLength(fTabStops, fColumns);
+   For i              := 0 To High(fTabStops) Do
+    fTabStops[i]      := (i > 0) And (i Mod 8 = 0);
    fHyperlink         := '';
    fAttr              := Default(TTerminalCell);
    fAttr.Foreground   := -1;
@@ -381,6 +388,25 @@ Implementation
     End;
   End;
 
+/// <summary>Moves between programmed tab stops without inserting text or crossing a screen edge.</summary>
+
+ Procedure TTerminalBuffer.MoveTab(Count : Integer; ForwardTab : Boolean);
+  Var
+   Step, i : Integer;
+  Begin
+   If ForwardTab Then
+    Step := 1
+   Else
+    Step := -1;
+   For i := 1 To Min(Count, fColumns) Do
+    Begin
+     Repeat
+      fX := EnsureRange(fX + Step, 0, fColumns - 1);
+     Until(fX = 0) Or (fX = fColumns - 1) Or fTabStops[fX];
+    End;
+   fWrapPending := False;
+  End;
+
  Procedure TTerminalBuffer.ExecuteCSI(Final : Char);
   Var
    Parts                                                  : TArray<String>;
@@ -407,8 +433,17 @@ Implementation
 
   Begin
    PrivateMode := Copy(fSequence, 1, 1) = '?';
-   If PrivateMode Or (Copy(fSequence, 1, 1) = '>') Then
-    Delete(fSequence, 1, 1);
+   If PrivateMode Then
+    Begin
+     If Not CharInSet(Final, ['h', 'l', 'n', 'W']) Then
+      Exit;
+     Delete(fSequence, 1, 1);
+    End;
+   For i := 1 To Length(fSequence) Do
+    If Not CharInSet(fSequence[i], ['0'..'9', ';', ':']) Then
+     Exit;
+   If (Pos(':', fSequence) > 0) And (Final <> 'm') Then
+    Exit;
    Parts := StringReplace(fSequence, ':', ';', [rfReplaceAll]).Split([';']);
    SetLength(Params, Max(1, Length(Parts)));
    For i      := 0 To High(Parts) Do
@@ -417,6 +452,25 @@ Implementation
     fWrapPending := False;
    n             := Min(P(0, 1), Max(fColumns, fRows));
    Case Final Of
+    'W' :
+     If PrivateMode And (P(0, 0) = 5) Then
+      For x         := 0 To High(fTabStops) Do
+       fTabStops[x] := (x > 0) And (x Mod 8 = 0);
+    'I' :
+     If Not PrivateMode Then
+      MoveTab(P(0, 1), True);
+    'Z' :
+     If Not PrivateMode Then
+      MoveTab(P(0, 1), False);
+    'g' :
+     If Not PrivateMode Then
+      Case P(0, 0) Of
+       0 :
+        fTabStops[fX] := False;
+       3 :
+        For x         := 0 To High(fTabStops) Do
+         fTabStops[x] := False;
+      End;
     'A' :
      MoveCursor(fX, fY - n);
     'B', 'e' :
@@ -536,8 +590,16 @@ Implementation
        fInsert := Final = 'h';
     'n' :
      If P(0, 0) = 6 Then
-      fResponses := fResponses + Format(#27'[%d;%dR', [fY + 1, fX + 1])
-     Else If P(0, 0) = 5 Then
+      Begin
+       a := fY + 1;
+       If fOrigin Then
+        Dec(a, fTop);
+       If PrivateMode Then
+        fResponses := fResponses + Format(#27'[?%d;%dR', [a, fX + 1])
+       Else
+        fResponses := fResponses + Format(#27'[%d;%dR', [a, fX + 1]);
+      End
+     Else If (P(0, 0) = 5) And Not PrivateMode Then
       fResponses := fResponses + #27'[0n';
     'c' :
      fResponses := fResponses + #27'[?1;2c';
@@ -636,7 +698,7 @@ Implementation
        End;
       9 :
        Begin
-        fX           := Min(fColumns - 1, ((fX Div 8) + 1) * 8);
+        MoveTab(1, True);
         fWrapPending := False;
        End;
       10, 11, 12 :
@@ -680,6 +742,8 @@ Implementation
          fX := EnsureRange(fSavedX, 0, fColumns - 1);
          fY := EnsureRange(fSavedY, 0, fRows - 1);
         End;
+       Ord('H') :
+        fTabStops[fX] := True;
        Ord('D') :
         LineFeed;
        Ord('E') :
@@ -802,6 +866,7 @@ Implementation
   Var
    NewScreen  : TTerminalScreen;
    NewPending : Boolean;
+   TabIndex   : Integer;
 
    Procedure ResizeGrid(Var Screen : TTerminalScreen);
     Var
@@ -965,6 +1030,16 @@ Implementation
     Raise EArgumentOutOfRangeException.Create('Terminal size');
    If (Columns = fColumns) And (Rows = fRows) Then
     Exit;
+   If Columns > Length(fTabStops) Then
+    Begin
+     TabIndex := Length(fTabStops);
+     SetLength(fTabStops, Columns);
+     While TabIndex < Columns Do
+      Begin
+       fTabStops[TabIndex] := (TabIndex > 0) And (TabIndex Mod 8 = 0);
+       Inc(TabIndex);
+      End;
+    End;
    NewPending := False;
    If fAlternate Then
     Begin

@@ -55,3 +55,5 @@ Quick Open otwiera istniejący plik z numerem wiersza przez Ctrl+klik albo menu 
 Pasek kart obsługuje opcjonalne przyciski zamykania i pogrubienie tytułu po aktywności w tle, z okresami ignorowania po utworzeniu karty i utracie fokusu. Kolory można ustawiać przez CLI (`--bgcolor`, `--fgcolor`, warianty `-current`) i przywracać z menu karty lub `--reset-colors`. Kolory paneli są zapisywane razem z sesją.
 
 Renderer buforuje niezmienione panele i wiersze, grupuje znaki ASCII z zachowaniem przycinania do komórek i przelicza alfę bez ponownego rysowania całego tekstu. Testy zapisują pomiar kompozycji 1920×1080 do `bin/tests/composition-latency.txt` oraz sprawdzają zgodność pikseli i ponowne użycie paneli.
+
+Emulator obsługuje programowalne tabulatory (HT, HTS, TBC, CHT, CBT i DECST8C) oraz raporty pozycji kursora względem regionu origin. [Macierz pokrycia VT](docs/vt-coverage.md) oddziela działające grupy sekwencji od pozostałych braków.

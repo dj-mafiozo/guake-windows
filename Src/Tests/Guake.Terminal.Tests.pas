@@ -28,6 +28,10 @@ Interface
     [Test] Procedure TerminalBackgroundAlphaAndWindowControls;
     [Test] Procedure AnimatedGifBackgroundDelaysAndRemoval;
     [Test] Procedure AnimatedGifDisposalAndFiniteLoop;
+    [Test] Procedure UnsupportedCSIHasNoAliasedEffects;
+    [Test] Procedure OriginRelativeCursorReports;
+    [Test] Procedure ProgrammableTabStops;
+    [Test] Procedure TabStopsResizeAndReset;
     [Test] Procedure IncrementalUnicodeAndCSI;
     [Test] Procedure ExtendedGraphemesAcrossByteFragments;
     [Test] Procedure ReflowPreservesHistoryStylesAndCursor;
@@ -91,6 +95,96 @@ Implementation
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+ Procedure TTerminalTests.UnsupportedCSIHasNoAliasedEffects;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(20, 4);
+   Try
+    Buffer.FeedText('abc'#27'[3;4H');
+    Buffer.FeedText(#27'[ A'#27'[?2J'#27'[>2J'#27'[1:2H');
+    Assert.AreEqual(3, Buffer.CursorX);
+    Assert.AreEqual(2, Buffer.CursorY);
+    Assert.AreEqual('abc', Buffer.LineText(0));
+    Buffer.FeedText(#27'[?3g'#13#9);
+    Assert.AreEqual(8, Buffer.CursorX);
+    Buffer.FeedText(#27'[3g'#27'[?5W'#13#9);
+    Assert.AreEqual(8, Buffer.CursorX);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.OriginRelativeCursorReports;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(20, 8);
+   Try
+    Buffer.FeedText(#27'[3;7r'#27'[?6h'#27'[2;4H'#27'[6n'#27'[?6n');
+    Assert.AreEqual(#27'[2;4R'#27'[?2;4R', Buffer.TakeResponses);
+    Buffer.FeedText(#27'[?5n');
+    Assert.AreEqual('', Buffer.TakeResponses);
+    Buffer.FeedText(#27'[?6l'#27'[6n');
+    Assert.AreEqual(#27'[1;1R', Buffer.TakeResponses);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.ProgrammableTabStops;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(24, 3);
+   Try
+    Buffer.FeedText(#9);
+    Assert.AreEqual(8, Buffer.CursorX);
+    Buffer.FeedText(#27'[3g'#13#9);
+    Assert.AreEqual(23, Buffer.CursorX);
+    Buffer.FeedText(#13#27'[5G'#27);
+    Buffer.FeedText('H'#13#9);
+    Assert.AreEqual(4, Buffer.CursorX);
+    Buffer.FeedText(#27'[12G'#27'H'#13#27'[2I');
+    Assert.AreEqual(11, Buffer.CursorX);
+    Buffer.FeedText(#27'[Z');
+    Assert.AreEqual(4, Buffer.CursorX);
+    Buffer.FeedText(#27'[g'#13#27'[I');
+    Assert.AreEqual(11, Buffer.CursorX);
+    Buffer.FeedText(#27'[999Z');
+    Assert.AreEqual(0, Buffer.CursorX);
+    Assert.AreEqual('', Trim(Buffer.Text));
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.TabStopsResizeAndReset;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(20, 3);
+   Try
+    Buffer.FeedText(#27'[3g'#27'[6G'#27'H');
+    Buffer.Resize(10, 3);
+    Buffer.FeedText(#13#9);
+    Assert.AreEqual(5, Buffer.CursorX);
+    Buffer.Resize(32, 3);
+    Buffer.FeedText(#13#27'[2I');
+    Assert.AreEqual(24, Buffer.CursorX);
+    Buffer.FeedText(#27'c'#9);
+    Assert.AreEqual(8, Buffer.CursorX);
+    Buffer.FeedText(#27'[2I');
+    Assert.AreEqual(24, Buffer.CursorX);
+    Buffer.FeedText(#27'[I');
+    Assert.AreEqual(31, Buffer.CursorX);
+    Buffer.FeedText(#27'[Z');
+    Assert.AreEqual(24, Buffer.CursorX);
+   Finally
+    Buffer.Free;
+   End;
+  End;
 
  Procedure TTerminalTests.UnchangedSplitPanesReuseComposition;
   Var
