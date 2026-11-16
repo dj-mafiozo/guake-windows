@@ -236,6 +236,11 @@ Implementation
      Exit;
     End;
    Inherited;
+   If Not(csDestroying In ComponentState) And (fSession <> Nil) And Not fSession.Exited And fSession.Buffer.FocusReporting Then
+    Case Message.Msg Of
+     WM_SETFOCUS  : fSession.SendText(#27'[I');
+     WM_KILLFOCUS : fSession.SendText(#27'[O');
+    End;
   End;
 
  Procedure TfraTerminal.Bind(Session : TTerminalSession; Settings : TGuakeSettings);
@@ -1060,6 +1065,8 @@ Implementation
    If Key = #0 Then
     Exit;
    s := Key;
+   If (Key = #13) And (fSession <> Nil) And fSession.Buffer.NewLineMode Then
+    s := #13#10;
    If (Key >= #$D800) And (Key <= #$DBFF) Then
     Begin
      fSurrogate := Key;

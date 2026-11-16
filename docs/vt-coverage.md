@@ -1,6 +1,6 @@
 # Pokrycie emulatora VT
 
-Stan: 1.0.21.54. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.22.55. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -12,11 +12,11 @@ Stan: 1.0.21.54. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS | Chronione komórki/selective erase, DECSTR i zapisywanie trybów prywatnych |
 | Ekrany | Ekran główny i alternatywny, 47/1047/1049, historia i reflow ekranu głównego | Osobna macierz wariantów przełączania i zapisów kursora, przypadki brzegowe reflow |
 | SGR | Reset, bold/faint, italic, conceal, strike, overline, inverse; pięć stylów podkreślenia i jego kolor 58/59; miganie 5/6/25; ANSI 16/256 i RGB przez średniki i dwukropki | Dalsze warianty SGR, integracja systemowych preferencji migania i porównanie geometrii dekoracji z VTE |
-| Odpowiedzi | DSR 5, CPR 6, DECXCPR ?6; wiersz względem regionu przy DECOM; podstawowe DA/DECID | Secondary/tertiary DA, DECRQM, DECRQSS, raporty rozmiaru i pozostałe zapytania |
+| Odpowiedzi | DSR 5, CPR 6, DECXCPR ?6; wiersz względem regionu przy DECOM; DA/DECID i DA2, DECRQM/DECRPM dla obsługiwanych trybów, rozmiar w znakach CSI 18 t | Tertiary DA, DECRQSS, raporty rozmiaru w pikselach/monitora i pozostałe zapytania |
 | OSC | 0/2: tytuł, 7: katalog, 8: odnośniki | Paleta i zapytania kolorów, stos tytułów, pozostałe OSC; polityka dostępu do schowka |
 | DCS/APC/PM | Pomijanie DCS/APC/PM/SOS; nowy ESC może przerwać ciąg i rozpocząć nowe polecenie | Brak implementacji funkcji DCS; dalsze porównania ciągów z VTE |
 | Zestawy znaków | UTF-8, ASCII B, brytyjski A, DEC Special Graphics 0 w G0–G3; SI/SO, LS2/LS3, SS2/SS3 | Pozostałe zestawy narodowe, GR i 96-znakowe zestawy, warianty ESC z bajtami pośrednimi |
-| Wejście | Application cursor, bracketed paste, tryby myszy 1000/1002/1003 i 1006 | Klawiatura aplikacyjna, raporty fokusu, pozostałe protokoły klawiatury i myszy |
+| Wejście | Application cursor, bracketed paste, tryby myszy 1000/1002/1003 i 1006, fokus 1004, LNM 20 dla LF/Enter | Klawiatura aplikacyjna, pozostałe protokoły klawiatury i myszy, niezależne nakładanie trybów myszy |
 | Grafemy i widok | Segmentacja ICU, szerokie komórki, znaki łączące, reflow; cache wierszy renderera | Pełny shaping, bidi i zgodność wizualna z VTE; segmentacja zależy od systemowego ICU |
 
 ## Regresje objęte testami w tym etapie
@@ -74,3 +74,13 @@ Widok przełącza fazę co 500 ms, korzystając z istniejącego timera i upływu
 Cache zapamiętuje, które widoczne wiersze mają migającą treść. Informacja jest przeliczana przy zmianie wiersza albo widoku, bez przeglądania całej historii na każdym tyknięciu. Conceal, same niedekorowane spacje i kontynuacje szerokich znaków nie tworzą dodatkowej pracy. Zmiana fazy nie unieważnia cache panelu bez widocznych migających komórek. Rasteryzowane są tylko właściwe wiersze (oraz niezależnie wymagane wiersze kursora); kompozycja ARGB i prezentacja okna pozostają bitmapowe.
 
 Scenariusze sprawdzają SGR 5/6/25, reset, zapis/odtworzenie kursora i reflow, granicę 499/500 ms, ponowne użycie cache, rasteryzację jednego wiersza, tło domyślne i jawne, krycie po powrocie fazy, conceal, spacje, przewijanie historii oraz ekran alternatywny. Nie deklarują pełnej zgodności wszystkich polityk fokusu i migania VTE.
+
+## Zapytania urządzenia, fokus i nowa linia — 1.0.22.55
+
+DA1 (CSI c / CSI 0 c) zachowuje odpowiedź VT100 `CSI ? 1 ; 2 c`. DA2 (CSI > c / CSI > 0 c) odpowiada `CSI > 0 ; 0 ; 0 c`: typ VT100 i neutralne identyfikatory firmware/ROM, bez podszywania się pod numer wydania xterm lub VTE. Niezerowe żądania i odebrane odpowiedzi DA nie wywołują kolejnych odpowiedzi. CSI 18 t zwraca `CSI 8 ; rows ; columns t` dla aktualnego bufora, również po zmianie rozmiaru. Nie zgłasza rozmiaru monitora ani pikseli.
+
+DECRQM (`CSI mode $ p` / `CSI ? mode $ p`) zwraca DECRPM ze statusem 1 dla włączonego, 2 dla wyłączonego oraz 0 dla nieznanego trybu. Standardowe tryby: 4 i 20. Prywatne: 1, 6, 7, 25, 47/1047/1049, 1000/1002/1003, 1004, 1006 i 2004. Raporty odzwierciedlają aktualny stan implementacji, nie gwarantują pełnego pokrycia każdego wariantu tych trybów w VTE. Zapytania nie zmieniają oczekującego zawinięcia na prawej krawędzi.
+
+Prywatny tryb 1004 włącza wysyłanie CSI I / CSI O przy WM_SETFOCUS / WM_KILLFOCUS ramki terminala. Raporty trafiają bezpośrednio do wejścia sesji, bez działań właściwych dla pisania, np. usuwania zaznaczenia. Wyłączenie trybu i reset blokują dalsze raporty. LNM (standardowy tryb 20) zmienia LF na początek następnego wiersza oraz Enter z CR na CR LF. Domyślnie jest wyłączony. Klawiatura numeryczna aplikacyjna i DECRQSS pozostają do przeniesienia.
+
+Punkty odniesienia: [Xterm Control Sequences](https://www.xfree86.org/current/ctlseqs.html) i [obsługa sekwencji w VTE](https://github.com/GNOME/vte/blob/master/src/vteseq.cc). Test transportu używa potomnego PowerShell/C# z wejściem konsoli w trybie VT; proces sam włącza raporty fokusu, a test sprawdza dotarcie jego żądania do modelu. Scenariusz wysyła komunikaty fokusu do ramki oraz sprawdza odebrane kody znaków. To weryfikacja drogi parser–sesja–ConPTY i zdarzeń ramki, nie pełny test przełączania rzeczywistych okien na pulpicie.

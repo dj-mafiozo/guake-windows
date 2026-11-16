@@ -28,6 +28,10 @@ Interface
     [Test] Procedure TerminalBackgroundAlphaAndWindowControls;
     [Test] Procedure AnimatedGifBackgroundDelaysAndRemoval;
     [Test] Procedure AnimatedGifDisposalAndFiniteLoop;
+    [Test] Procedure DeviceModeQueriesReflectImplementedState;
+    [Test] Procedure DeviceRepliesPreserveWrapAndRejectReplyLoops;
+    [Test] Procedure NewLineModeControlsLineFeed;
+    [Test] Procedure FocusNewLineAndQueryRepliesReachConPTY;
     [Test] Procedure BlinkSGRStateResetRestoreAndReflow;
     [Test] Procedure BlinkOnlyRasterizesAffectedVisibleRows;
     [Test] Procedure BlinkIgnoresConcealBlankCellsAndOffscreenHistory;
@@ -93,6 +97,9 @@ Implementation
   frmMainU, fraTerminalU, Vcl.Graphics, Vcl.Imaging.pngimage, Vcl.ComCtrls, Vcl.Controls, Guake.ConPTY, Guake.VT, Guake.Shells, Guake.Sessions, Guake.Settings, Guake.Keybindings, Vcl.Forms;
 
  Type
+  TTerminalFrameAccess = Class(TfraTerminal)
+  End;
+
   TTabControlAccess = Class(TTabControl)
   End;
 
@@ -115,6 +122,180 @@ Implementation
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+ Procedure TTerminalTests.DeviceModeQueriesReflectImplementedState;
+  Var
+   Buffer : TTerminalBuffer;
+   Mode   : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(20, 5);
+   Try
+    For Mode In TArray<Integer>.Create(1, 6, 7, 25, 1000, 1002, 1003, 1004, 1006, 2004) Do
+     Begin
+      Buffer.FeedText(Format(#27'[?%dh'#27'[?%d$p', [Mode, Mode]));
+      Assert.AreEqual(Format(#27'[?%d;1$y', [Mode]), Buffer.TakeResponses);
+      Buffer.FeedText(Format(#27'[?%dl'#27'[?%d$p', [Mode, Mode]));
+      Assert.AreEqual(Format(#27'[?%d;2$y', [Mode]), Buffer.TakeResponses);
+     End;
+    Buffer.FeedText(#27'[4;20h'#27'[4;20$p'#27'[?9999$p');
+    Assert.AreEqual(#27'[4;1$y'#27'[20;1$y'#27'[?9999;0$y', Buffer.TakeResponses);
+    Buffer.FeedText(#27'[4;20l'#27'[4;20$p'#27'[9999$p');
+    Assert.AreEqual(#27'[4;2$y'#27'[20;2$y'#27'[9999;0$y', Buffer.TakeResponses);
+    Buffer.Reset;
+    Assert.IsFalse(Buffer.FocusReporting Or Buffer.NewLineMode);
+    Buffer.FeedText(#27'[?7;25;1004$p');
+    Assert.AreEqual(#27'[?7;1$y'#27'[?25;1$y'#27'[?1004;2$y', Buffer.TakeResponses);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.DeviceRepliesPreserveWrapAndRejectReplyLoops;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(4, 2);
+   Try
+    Buffer.FeedText('ABCD'#27'[c'#27'[>c'#27'[18t'#27'[6n'#27'[?7$pX');
+    Assert.AreEqual(#27'[?1;2c'#27'[>0;0;0c'#27'[8;2;4t'#27'[1;4R'#27'[?7;1$y', Buffer.TakeResponses);
+    Assert.AreEqual('ABCD', Buffer.LineText(0));
+    Assert.AreEqual('X', Buffer.LineText(1));
+    Buffer.FeedText(#27'[?1;2c'#27'[>0;0;0c'#27'[1c'#27'[>1c'#27'[?7;1$y');
+    Assert.AreEqual('', Buffer.TakeResponses);
+    Buffer.Resize(32, 8);
+    Buffer.FeedText(#27'[18t');
+    Assert.AreEqual(#27'[8;8;32t', Buffer.TakeResponses);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.NewLineModeControlsLineFeed;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(20, 6);
+   Try
+    Buffer.FeedText('ab'#10'C');
+    Assert.AreEqual('C', Buffer.Cell[2, 1].Text);
+    Buffer.FeedText(#27'[20h'#10'D');
+    Assert.IsTrue(Buffer.NewLineMode);
+    Assert.AreEqual('D', Buffer.Cell[0, 2].Text);
+    Buffer.FeedText(#27'[20l'#10'E');
+    Assert.AreEqual('E', Buffer.Cell[1, 3].Text);
+    Buffer.FeedText(#27'[?1004h');
+    Assert.IsTrue(Buffer.FocusReporting);
+    Buffer.FeedText(#27'c');
+    Assert.IsFalse(Buffer.NewLineMode Or Buffer.FocusReporting);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.FocusNewLineAndQueryRepliesReachConPTY;
+  Var
+   Settings      : TGuakeSettings;
+   Main          : TfrmMain;
+   Frame         : TfraTerminal;
+   Session       : TTerminalSession;
+   Profile       : TShellProfile;
+   ScriptName    : String;
+   OutputName    : String;
+   Expected      : String;
+   ExpectedCodes : String;
+   Deadline      : UInt64;
+   Key           : Char;
+   i             : Integer;
+  Begin
+   Settings   := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   ScriptName := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName + '.ps1');
+   OutputName := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
+   Session    := Nil;
+   Main       := Nil;
+   Frame      := Nil;
+   Try
+    TFile.WriteAllText(ScriptName,
+    'Add-Type -TypeDefinition @'''#13#10 +
+    'using System; using System.IO; using System.Collections.Generic; using System.Runtime.InteropServices;'#13#10 +
+    'public static class Probe {'#13#10 +
+    '[DllImport("kernel32.dll")] static extern IntPtr GetStdHandle(int n);'#13#10 +
+    '[DllImport("kernel32.dll")] static extern bool SetConsoleMode(IntPtr h,uint m);'#13#10 +
+    'public static void Run(string path) {'#13#10 +
+    'if(!SetConsoleMode(GetStdHandle(-10),0x200)) throw new Exception("SetConsoleMode");'#13#10 +
+    'if(!SetConsoleMode(GetStdHandle(-11),7)) throw new Exception("Output mode"); Console.Write("\u001b[?1004hPROBE_READY"); var data=new List<int>();'#13#10 +
+    'for(int i=0;i<256;i++){int c=Console.Read();if(c<0)throw new Exception("EOF");if(c==126){File.WriteAllText(path+".tmp",string.Join(",",data));File.Move(path+".tmp",path);return;}data.Add(c);}'#13#10 +
+    'throw new Exception("Input limit");}}'#13#10 +
+    '''@'#13#10 + '[Probe]::Run($args[0])', TEncoding.UTF8);
+    Profile                               := TShellProfile.Resolve(gsPowerShell);
+    Profile.Arguments                     := '-NoLogo -NoProfile -ExecutionPolicy Bypass -File ' + QuoteProcessArgument(ScriptName) + ' ' + QuoteProcessArgument(OutputName);
+    Session                               := TTerminalSession.Create(Profile, GetCurrentDir, Settings);
+    Settings.Keybindings.Global.ShowHide  := 'disabled';
+    Settings.Keybindings.Global.ShowFocus := 'disabled';
+    Settings.General.UseTrayicon          := False;
+    Settings.General.UsePopup             := False;
+    Main                                  := TfrmMain.Create(Nil);
+    Main.Bind(Settings);
+    Frame        := TfraTerminal.Create(Nil);
+    Frame.Parent := Main.tabHost;
+    Frame.Bind(Session, Settings);
+    Frame.HandleNeeded;
+    Frame.refreshTimer.Enabled := False;
+    Deadline                   := GetTickCount64 + 20000;
+    Repeat
+     Session.Poll;
+     If Pos('PROBE_READY', Session.Buffer.Text) > 0 Then
+      Break;
+     Sleep(10);
+    Until(GetTickCount64 >= Deadline) Or Session.Exited;
+    Assert.IsTrue(Pos('PROBE_READY', Session.Buffer.Text) > 0, 'Native input probe must be ready: ' + Session.Buffer.Text);
+    Assert.IsTrue(Session.Buffer.FocusReporting, 'Child focus request must reach the terminal model');
+    Session.Buffer.FeedText(#27'[?1004l');
+    Frame.Perform(WM_SETFOCUS, 0, 0);
+    Session.Buffer.FeedText(#27'[?1004h'#27'[18t'#27'[?1004$p');
+    Expected := Format(#27'[8;%d;%dt', [Session.Buffer.Rows, Session.Buffer.Columns]) + #27'[?1004;1$y';
+    Session.Poll;
+    Frame.Perform(WM_SETFOCUS, 0, 0);
+    Frame.Perform(WM_KILLFOCUS, 0, 0);
+    Expected := Expected + #27'[I'#27'[O';
+    Session.Buffer.FeedText(#27'[?1004l'#27'[20h');
+    Frame.Perform(WM_SETFOCUS, 0, 0);
+    Key := #13;
+    TTerminalFrameAccess(Frame).KeyPress(Key);
+    Assert.AreEqual(#0, Key);
+    Session.Buffer.FeedText(#27'[20l');
+    Key := #13;
+    TTerminalFrameAccess(Frame).KeyPress(Key);
+    Expected := Expected + #13#10#13;
+    Session.SendText('~');
+    ExpectedCodes := '';
+    For i         := 1 To Length(Expected) Do
+     Begin
+      If ExpectedCodes <> '' Then
+       ExpectedCodes := ExpectedCodes + ',';
+      ExpectedCodes  := ExpectedCodes + IntToStr(Ord(Expected[i]));
+     End;
+    Deadline := GetTickCount64 + 10000;
+    Repeat
+     Session.Poll;
+     If TFile.Exists(OutputName) Then
+      Break;
+     Sleep(10);
+    Until(GetTickCount64 >= Deadline) Or Session.Exited;
+    Assert.IsTrue(TFile.Exists(OutputName), 'Input probe must finish: ' + Session.Buffer.Text);
+    Assert.AreEqual(ExpectedCodes, TFile.ReadAllText(OutputName, TEncoding.UTF8));
+   Finally
+    Frame.Free;
+    Main.Free;
+    Session.Free;
+    Settings.Free;
+    If TFile.Exists(ScriptName) Then
+     TFile.Delete(ScriptName);
+    If TFile.Exists(OutputName) Then
+     TFile.Delete(OutputName);
+    If TFile.Exists(OutputName + '.tmp') Then
+     TFile.Delete(OutputName + '.tmp');
+   End;
+  End;
 
  Procedure TTerminalTests.BlinkSGRStateResetRestoreAndReflow;
   Var

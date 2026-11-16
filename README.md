@@ -1,6 +1,6 @@
 # Guake dla Windows
 
-Port Guake na Windows 64-bit w Delphi/VCL z natywnym WinAPI. Celem jest zgodność funkcji i wyglądu z Guake. Dostępne są ustawienia, formularze, backend ConPTY, podstawowy emulator VT oraz kontroler kart i podziałów. Działają też pojedyncza instancja i CLI przez prywatne Named Pipes; pozostałe różnice opisuje stan portu.
+Port Guake na Windows 64-bit w Delphi/VCL z natywnym WinAPI. Celem jest zgodność funkcji i wyglądu z Guake. Dostępne są ustawienia, formularze, backend ConPTY, emulator VT oraz kontroler kart i podziałów. Działają też pojedyncza instancja i CLI przez prywatne Named Pipes; pozostałe różnice opisuje stan portu.
 
 Główny projekt: [Src/guake.dpr](Src/guake.dpr), [Src/guake.dproj](Src/guake.dproj). Cały kod, projekty, narzędzia i dane lokalizacji znajdują się pod `Src/`. Wyniki budowania trafiają do ignorowanego `bin/`, pliki pośrednie do `.build/`.
 
@@ -65,3 +65,5 @@ Parser VT obsługuje kontrolki C0 wewnątrz sekwencji, odrzuca przepełnione CSI
 Renderer obsługuje przygaszenie, ukrywanie tekstu, przekreślenie, linię nad tekstem oraz podkreślenie pojedyncze, podwójne, faliste, kropkowane i kreskowane z osobnym kolorem SGR 58/59. Dekoracje zachowują krycie przy przezroczystym tle. Conceal ukrywa glify, ale zachowuje tekst w historii i schowku.
 
 Miganie tekstu SGR 5/6/25 działa niezależnie od kursora. Zmiana fazy odtwarza tylko widoczne wiersze z migającymi glifami lub dekoracjami; panele bez takiej treści zachowują cache. Przy ukrytym oknie/panelu animacja jest wstrzymana.
+
+Zapytania VT obejmują DA2, stan obsługiwanych trybów DECRQM i rozmiar terminala w znakach. Tryb 1004 przekazuje fokus do procesu, a standardowy tryb 20 steruje zachowaniem LF i Enter. Szczegóły oraz pozostałe ograniczenia opisuje macierz VT.

@@ -90,28 +90,31 @@ Interface
     fAlternate         : Boolean;
     fCursorVisible     : Boolean;
     fApplicationCursor : Boolean;
+    fFocusReporting    : Boolean;
+    fNewLineMode       : Boolean;
     fBracketedPaste    : Boolean;
     fMouseMode         : Integer;
     fSGRMouse          : Boolean;
     fRevision          : Int64;
-    Function  Blank                             : TTerminalCell;
+    Function  Blank                                                   : TTerminalCell;
     Procedure ClearLine       (Var Line : TTerminalLine; First, Last : Integer);
     Procedure AllocateScreen  (Var Screen : TTerminalScreen; Columns, Rows : Integer);
     Procedure ProcessCode     (Code : Cardinal);
     Procedure PutCode         (Code : Cardinal);
     Procedure SaveCursorState;
     Procedure RestoreCursorState;
-    Function  TranslateGraphic(Code : Cardinal) : Cardinal;
+    Function  TranslateGraphic(Code : Cardinal)                       : Cardinal;
     Procedure LineFeed;
     Procedure MoveTab         (Count : Integer; ForwardTab : Boolean);
     Procedure Scroll          (Up : Boolean; Count : Integer);
     Procedure ExecuteCSI      (Final : Char);
+    Function  ModeStatus      (Mode : Integer; PrivateMode : Boolean) : Integer;
     Procedure ExecuteSGR;
     Procedure ExecuteControl  (Code : Cardinal);
     Procedure ExecuteOSC;
     Procedure SwitchScreen    (Alternate : Boolean; SaveCursor : Boolean);
-    Function  GetCell         (x, y : Integer)  : TTerminalCell;
-    Function  GetTotalLines                     : Integer;
+    Function  GetCell         (x, y : Integer)                        : TTerminalCell;
+    Function  GetTotalLines                                           : Integer;
    Public
     /// <summary>Initializes this service and acquires the resources whose lifetime it owns.</summary>
     Constructor Create(Columns, Rows : Integer; HistoryLimit : Integer = 1000);
@@ -143,6 +146,8 @@ Interface
     Property CursorVisible        : Boolean Read fCursorVisible;
     Property AlternateScreen      : Boolean Read fAlternate;
     Property ApplicationCursor    : Boolean Read fApplicationCursor;
+    Property FocusReporting       : Boolean Read fFocusReporting;
+    Property NewLineMode          : Boolean Read fNewLineMode;
     Property BracketedPaste       : Boolean Read fBracketedPaste;
     Property MouseMode            : Integer Read fMouseMode;
     Property SGRMouse             : Boolean Read fSGRMouse;
@@ -237,6 +242,8 @@ Implementation
    fAlternate         := False;
    fCursorVisible     := True;
    fApplicationCursor := False;
+   fFocusReporting    := False;
+   fNewLineMode       := False;
    fBracketedPaste    := False;
    fMouseMode         := 0;
    fSGRMouse          := False;
@@ -295,6 +302,8 @@ Implementation
 
  Procedure TTerminalBuffer.LineFeed;
   Begin
+   If fNewLineMode Then
+    fX          := 0;
    fWrapPending := False;
    If fY = fBottom Then
     Scroll(True, 1)
@@ -522,11 +531,43 @@ Implementation
    fWrapPending := False;
   End;
 
+/// <summary>Returns DECRPM 1/2 for implemented mutable modes and 0 for unrecognized modes.</summary>
+
+ Function TTerminalBuffer.ModeStatus(Mode : Integer; PrivateMode : Boolean) : Integer;
+  Var
+   Enabled : Boolean;
+  Begin
+   Result  := 0;
+   Enabled := False;
+   If PrivateMode Then
+    Case Mode Of
+     1                : Enabled := fApplicationCursor;
+     6                : Enabled := fOrigin;
+     7                : Enabled := fAutoWrap;
+     25               : Enabled := fCursorVisible;
+     47, 1047, 1049   : Enabled := fAlternate;
+     1000, 1002, 1003 : Enabled := fMouseMode = Mode;
+     1004             : Enabled := fFocusReporting;
+     1006             : Enabled := fSGRMouse;
+     2004             : Enabled := fBracketedPaste;
+    Else Exit;
+    End
+   Else
+    Case Mode Of
+     4  : Enabled := fInsert;
+     20 : Enabled := fNewLineMode;
+    Else Exit;
+    End;
+   Result := 2 - Ord(Enabled);
+  End;
+
  Procedure TTerminalBuffer.ExecuteCSI(Final : Char);
   Var
    Parts                    : TArray<String>;
    Params                   : TArray<Integer>;
    PrivateMode              : Boolean;
+   SecondaryDA, ModeQuery   : Boolean;
+   Prefix                   : String;
    i, n, a, b, x, y, OldTop : Integer;
 
    Function P(Index, Default : Integer) : Integer;
@@ -547,10 +588,20 @@ Implementation
     End;
 
   Begin
+   ModeQuery := (Final = 'p') And (Copy(fSequence, Length(fSequence), 1) = '$');
+   If ModeQuery Then
+    Delete(fSequence, Length(fSequence), 1);
+   SecondaryDA := Copy(fSequence, 1, 1) = '>';
+   If SecondaryDA Then
+    Begin
+     If Final <> 'c' Then
+      Exit;
+     Delete(fSequence, 1, 1);
+    End;
    PrivateMode := Copy(fSequence, 1, 1) = '?';
    If PrivateMode Then
     Begin
-     If Not CharInSet(Final, ['h', 'l', 'n', 'W']) Then
+     If Not ModeQuery And Not CharInSet(Final, ['h', 'l', 'n', 'W']) Then
       Exit;
      Delete(fSequence, 1, 1);
     End;
@@ -571,7 +622,22 @@ Implementation
      Params[i] := 0
     Else If Not TryStrToInt(Parts[i], Params[i]) Then
      Exit;
-   If Not CharInSet(Final, ['m', 'h', 'l', 's', 'u']) Then
+   If ModeQuery Then
+    Begin
+     Prefix := '';
+     If PrivateMode Then
+      Prefix     := '?';
+     For i       := 0 To High(Params) Do
+      fResponses := fResponses + Format(#27'[%s%d;%d$y', [Prefix, Params[i], ModeStatus(Params[i], PrivateMode)]);
+     Exit;
+    End;
+   If SecondaryDA Then
+    Begin
+     If (Length(Params) = 1) And (Params[0] = 0) Then
+      fResponses := fResponses + #27'[>0;0;0c';
+     Exit;
+    End;
+   If Not CharInSet(Final, ['m', 'h', 'l', 's', 'u', 'n', 'c', 't']) Then
     fWrapPending := False;
    n             := Min(P(0, 1), Max(fColumns, fRows));
    Case Final Of
@@ -706,13 +772,17 @@ Implementation
           fMouseMode := Params[i]
          Else
           fMouseMode := 0;
+        1004 :
+         fFocusReporting := Final = 'h';
         1006 :
          fSGRMouse := Final = 'h';
         2004 :
          fBracketedPaste := Final = 'h';
        End
       Else If Params[i] = 4 Then
-       fInsert := Final = 'h';
+       fInsert := Final = 'h'
+      Else If Params[i] = 20 Then
+       fNewLineMode := Final = 'h';
     'n' :
      If P(0, 0) = 6 Then
       Begin
@@ -727,7 +797,11 @@ Implementation
      Else If (P(0, 0) = 5) And Not PrivateMode Then
       fResponses := fResponses + #27'[0n';
     'c' :
-     fResponses := fResponses + #27'[?1;2c';
+     If (Length(Params) = 1) And (Params[0] = 0) Then
+      fResponses := fResponses + #27'[?1;2c';
+    't' :
+     If (Length(Params) = 1) And (Params[0] = 18) Then
+      fResponses := fResponses + Format(#27'[8;%d;%dt', [fRows, fColumns]);
    End;
   End;
 

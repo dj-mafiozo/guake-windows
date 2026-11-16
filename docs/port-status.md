@@ -1,6 +1,6 @@
 # Stan portu Guake dla Windows
 
-Stan kodu na 16 listopada 2026, wersja 1.0.21.54. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 16 listopada 2026, wersja 1.0.22.55. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -171,3 +171,11 @@ SGR 5/6 włącza miganie glifów i dekoracji, 25 je wyłącza; zapis kursora, hi
 Metadane widocznych wierszy pozwalają pominąć panel bez migającej treści i odtwarzać tylko potrzebne wiersze przy zmianie fazy. Historia poza widokiem, conceal i niedekorowane spacje nie powodują dodatkowej rasteryzacji. Końcowa kompozycja i prezentacja nadal używają bitmapy ARGB całego panelu/okna; nie jest to deklaracja częściowej prezentacji przez UpdateLayeredWindow. Systemowe preferencje migania/dostępności oraz pełna macierz polityk VTE pozostają do integracji.
 
 Weryfikacja 1.0.21.54: formatter bez błędów, 110/110 scenariuszy DUnitX (trzy nowe), cztery projekty Win64 Debug oraz aplikacja i wrapper Release. Test.ps1 potwierdził zgodność projektów i niezmienność DPROJ podczas budowania. Nowe testy używają kontrolowanego upływu czasu, potwierdzają granice faz, krycie i tło, rasteryzację jednego wiersza oraz zachowanie cache przy conceal, spacjach, przewijaniu i ekranie alternatywnym. Pakiet: bin/guake-1.0.21.54-Win64.zip z pasującymi EXE/PDB.
+
+## Raporty urządzenia i tryby wejścia — 1.0.22.55
+
+Emulator odpowiada na DA2, DECRQM dla obsługiwanych trybów i CSI 18 t z bieżącym rozmiarem w znakach. Nie odpowiada ponownie na odebrane odpowiedzi DA i nie kasuje oczekującego zawinięcia przy zapytaniu. Nieznane tryby raportuje jako nieznane, bez deklarowania ich obsługi.
+
+Tryb 1004 przekazuje zdarzenia fokusu ramki do aktywnego procesu jako CSI I/O. Tryb 20 działa dla wyjściowego LF i klawisza Enter (CR LF po włączeniu, CR po wyłączeniu). Reset wyłącza oba tryby. Pełny zakres odpowiedzi, ograniczenia identyfikacji i pozostałe tryby opisuje macierz VT; klawiatura aplikacyjna i DECRQSS nadal czekają na implementację.
+
+Weryfikacja 1.0.22.55: formatter bez błędów, 114/114 scenariuszy DUnitX (cztery nowe), cztery projekty Win64 Debug oraz aplikacja i wrapper Release. Test.ps1 potwierdził zgodność projektów i niezmienność DPROJ podczas budowania. Proces testowy sam włącza fokus 1004, co dociera do modelu; jego wejście VT odbiera oczekiwane znaki odpowiedzi urządzenia, raportów fokusu i Enter. ConPTY filtruje raporty fokusu, jeżeli proces nie zażądał ich po swojej stronie; scenariusz uwzględnia ten warunek. Pakiet: bin/guake-1.0.22.55-Win64.zip z pasującymi EXE/PDB. Test zdarzeń ramki nie zastępuje dalszych prób przełączania aplikacji na pulpicie.
