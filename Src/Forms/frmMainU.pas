@@ -19,6 +19,7 @@ Interface
   TfrmMain = Class(TForm)
     miTrayToggle          : TMenuItem;
     notificationTimer     : TTimer;
+    focusTimer            : TTimer;
     miCustomCommands      : TMenuItem;
     sessionTimer          : TTimer;
     animationTimer        : TTimer;
@@ -105,6 +106,8 @@ Interface
     Procedure CommandClick       (Sender : TObject);
     Procedure TrayDblClick       (Sender : TObject);
     Procedure FormDeactivate     (Sender : TObject);
+    Procedure FormActivate       (Sender : TObject);
+    Procedure FocusLostTick      (Sender : TObject);
     Procedure FormClose          (Sender : TObject; Var Action : TCloseAction);
     Procedure FormDestroy        (Sender : TObject);
     Procedure PollTerminal       (Sender : TObject);
@@ -178,8 +181,11 @@ Interface
     fSessionSaveBlocked : Boolean;
     fLastSavedState     : String;
     fSavedBounds        : TRect;
+    Procedure FocusTerminal;
+    Function  HasTerminalFocus     : Boolean;
+    Function  OwnsForegroundWindow : Boolean;
     Procedure ApplyOpacity;
-    Function  SessionFileName : String;
+    Function  SessionFileName      : String;
     Procedure SettingsChanged(Sender : TObject);
     Procedure SetOnCommand   (Const Value : TGuakeCommandEvent);
    Protected
@@ -389,6 +395,11 @@ Implementation
    (Message.Msg = WM_WINDOWPOSCHANGED) Or (Message.Msg = WM_SHOWWINDOW)) Then
     fLayeredDirty := True;
    Inherited;
+   If Message.Msg = WM_ACTIVATEAPP Then
+    If Message.WParam = 0 Then
+     FormDeactivate(Self)
+    Else
+     FormActivate(Self);
   End;
 
  Procedure TfrmMain.RenderWindow(Destination : TBitmap);
@@ -1197,6 +1208,7 @@ Implementation
 
  Procedure TfrmMain.SetTerminalVisible(Value : Boolean);
   Begin
+   focusTimer.Enabled := False;
    If fSettings = Nil Then
     Exit;
    If Not fSettings.General.DropDownAnimation Or (fSettings.General.DropDownAnimationDuration = 0) Or fFullScreen Then
@@ -1209,7 +1221,10 @@ Implementation
       End;
      fAnimating := False;
      If Value Then
-      Show
+      Begin
+       Show;
+       FocusTerminal;
+      End
      Else
       Hide;
      Exit;
@@ -1217,7 +1232,11 @@ Implementation
    If Not fAnimating Then
     Begin
      If Visible = Value Then
-      Exit;
+      Begin
+       If Value Then
+        FocusTerminal;
+       Exit;
+      End;
      ApplySettings;
      fAnimationBounds   := BoundsRect;
      fAnimationProgress := Ord(Visible);
@@ -1229,7 +1248,7 @@ Implementation
     Begin
      AnimationTick(Nil);
      Show;
-     SetForegroundWindow(Handle);
+     FocusTerminal;
     End;
    animationTimer.Enabled := True;
   End;
@@ -1272,12 +1291,49 @@ Implementation
     End;
   End;
 
+/// <summary>Refocuses a visible terminal when requested; an explicit hide always remains available through CLI.</summary>
+
  Procedure TfrmMain.ToggleVisibility;
   Begin
+   If Application.ModalLevel > 0 Then
+    Exit;
+   If Visible And OwnsForegroundWindow And Not HasTerminalFocus Then
+    Exit;
    If fAnimating Then
     SetTerminalVisible(Not fAnimationTarget)
+   Else If Visible And (fSettings <> Nil) And fSettings.General.WindowRefocus And Not HasTerminalFocus Then
+    FocusTerminal
    Else
     SetTerminalVisible(Not Visible);
+  End;
+
+ Function TfrmMain.HasTerminalFocus : Boolean;
+  Begin
+   Result := HandleAllocated And (GetAncestor(GetForegroundWindow, GA_ROOT) = Handle);
+  End;
+
+ Function TfrmMain.OwnsForegroundWindow : Boolean;
+  Var
+   ProcessID : Cardinal;
+  Begin
+   ProcessID := 0;
+   GetWindowThreadProcessId(GetForegroundWindow, @ProcessID);
+   Result := ProcessID = GetCurrentProcessId;
+  End;
+
+/// <summary>Restores the active input pane without rerunning the show hook or restarting animation.</summary>
+
+ Procedure TfrmMain.FocusTerminal;
+  Var
+   Frame : TfraTerminal;
+  Begin
+   focusTimer.Enabled := False;
+   If Not Visible Then
+    Exit;
+   SetForegroundWindow(Handle);
+   Frame := ActiveTerminalFrame;
+   If (Frame <> Nil) And Frame.CanFocus Then
+    Frame.SetFocus;
   End;
 
  Procedure TfrmMain.TrayDblClick(Sender : TObject);
@@ -1285,10 +1341,34 @@ Implementation
    ToggleVisibility;
   End;
 
+ Procedure TfrmMain.FormActivate(Sender : TObject);
+  Begin
+   If focusTimer <> Nil Then
+    focusTimer.Enabled := False;
+  End;
+
+/// <summary>Defers evaluation until Windows has selected the next foreground window; lazy mode waits 300 ms.</summary>
+
  Procedure TfrmMain.FormDeactivate(Sender : TObject);
   Begin
-   If (fSettings <> Nil) And fSettings.General.WindowLosefocus And (Screen.ActiveForm = Self) Then
-    SetTerminalVisible(False);
+   If (csDestroying In ComponentState) Or (fSettings = Nil) Or Not fSettings.General.WindowLosefocus Or Not Visible Then
+    Exit;
+   If focusTimer.Enabled Then
+    Exit;
+   If fSettings.General.LazyLosefocus Then
+    focusTimer.Interval := 300
+   Else
+    focusTimer.Interval := 1;
+   focusTimer.Enabled   := True;
+  End;
+
+ Procedure TfrmMain.FocusLostTick(Sender : TObject);
+  Begin
+   focusTimer.Enabled := False;
+   If (csDestroying In ComponentState) Or (fSettings = Nil) Or Not Visible Or
+   Not fSettings.General.WindowLosefocus Or (Application.ModalLevel > 0) Or OwnsForegroundWindow Then
+    Exit;
+   SetTerminalVisible(False);
   End;
 
  Procedure TfrmMain.FormClose(Sender : TObject; Var Action : TCloseAction);
@@ -1403,6 +1483,8 @@ Implementation
 
  Procedure TfrmMain.StopTerminal;
   Begin
+   If focusTimer <> Nil Then
+    focusTimer.Enabled := False;
    If sessionTimer <> Nil Then
     sessionTimer.Enabled := False;
    If (fController <> Nil) And (fSettings <> Nil) And fSettings.General.SaveTabsWhenChanged And Not fSessionSaveBlocked Then

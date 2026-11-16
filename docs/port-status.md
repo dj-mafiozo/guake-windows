@@ -1,6 +1,6 @@
 # Stan portu Guake dla Windows
 
-Stan kodu na 16 listopada 2026, wersja 1.0.24.57. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 16 listopada 2026, wersja 1.0.25.58. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -11,7 +11,7 @@ Stan kodu na 16 listopada 2026, wersja 1.0.24.57. Punkt odniesienia: lokalny `..
 | Powłoki | CMD, PowerShell, Bash i Zsh z Git SDK; cztery osobne skróty/menu; Zsh przez `git-zsh.exe --nomintty` | Weryfikacja szerszego zestawu konfiguracji użytkowników i instalacji SDK |
 | Karty i podziały | Tworzenie, zamykanie, zmiana nazw, kolejność, wybór po identyfikatorze, podziały poziome/pionowe oraz fokus myszą i kierunkowo, przesuwanie granic podziałów, kolory paneli/kart i reset, przyciski zamykania, aktywność z okresami ignorowania | Dalsze testy potwierdzeń zamykania i rozpoznawania procesów potomnych |
 | Widok terminala | Palety, font, kursor, obrazy PNG/JPEG/BMP/animowany GIF, przezroczystość samego tła, cztery układy tła, przewijanie, zaznaczenie przeciągnięciem, słowo po dwukliku zgodnie z word-chars, wklejanie zaznaczenia kółkiem, schowek i zapis tekstu | Pełna zgodność renderowania i układu grafemów z VTE oraz dalsze porównania wizualne |
-| Okno główne | Animacja wysuwania/chowania z regulacją czasu, geometria, monitor, zawsze na wierzchu, fullscreen, tray, płaski pasek kart u góry/dołu, osobne menu kart/terminala/powłok | Pełne zachowanie refocus/lazy hide, zestawy kart obszarów roboczych i zgodność wizualna ze wzorcem |
+| Okno główne | Refocus widocznego okna, lazy hide 300 ms z ochroną własnych dialogów, animacja wysuwania/chowania z regulacją czasu, geometria, monitor, zawsze na wierzchu, fullscreen, tray, płaski pasek kart u góry/dołu, osobne menu kart/terminala/powłok | Testy przejść fokusu z IME i zmianą pulpitu, zestawy kart obszarów roboczych i zgodność wizualna ze wzorcem |
 | Skróty | Globalne i lokalne, grave/tylda, konflikty, siedem zwijanych grup; akcje WWW/URL i kierunkowe podziały | Dalsza macierz pozostałych akcji i integracji |
 | Preferencje | Dziewięć stron DFM, zapis od razu z walidacją i rollbackiem, zależności kontrolek, przewijanie myszą, edycja skrótów | Podłączenie efektów wszystkich przeniesionych ustawień; obecność pola i zapis INI nie oznaczają pełnej obsługi funkcji |
 | Konfiguracja | Osobna klasa TMemIniFile, hierarchiczne rekordy, 130 kluczy Guake, cztery klucze powłok Windows i dwie opcje animacji, zachowanie nieznanych kluczy; tytuł projektu z `.guake.yml` i menu poleceń JSON | Pełny parser YAML poza obsługiwanymi skalarnymi tytułami i pozostałe efekty ustawień |
@@ -199,3 +199,13 @@ Dwuklik zaznacza słowo z uwzględnieniem ustawienia word-chars (także zakresó
 Tekstowy URL i niezaznaczona ścieżka Quick Open są rozpoznawane w logicznej linii obejmującej miękkie zawinięcia. Odczyt pomija kontynuacje szerokich znaków i techniczne wypełnienie końca wiersza, mapuje pozycję kliknięcia na indeks UTF-16 i ogranicza pracę do 65536 jednostek. Parser Quick Open zachowuje własny limit 8192. To nie oznacza pełnej zgodności VTE; dalsze braki pozostają w tabeli i macierzy VT.
 
 Weryfikacja 1.0.24.57: formatter bez błędów, 118/118 scenariuszy DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Release. Natywny odbiorca ConPTY potwierdził tekst i ramki bracketed paste, także z zaznaczenia innego panelu. Testy obejmują kolejność zdarzeń VCL, word-chars, zawinięty URL, twarde końce linii i mapowanie szerokiego znaku. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.24.57-Win64.zip z pasującymi EXE/PDB.
+
+## Refocus i opóźnione chowanie — 1.0.25.58
+
+`window-refocus` działa dla głównego skrótu, menu tray i polecenia toggle: jeżeli terminal jest widoczny, ale fokus należy do innej aplikacji, akcja przywraca fokus aktywnemu panelowi zamiast chować okno. Gdy terminal ma fokus, ta sama akcja chowa okno. Wyłączony refocus zachowuje zwykłe przełączanie widoczności. Jawne polecenie CLI hide nadal chowa okno. Ponowne show już widocznego terminala przywraca fokus bez ponownego uruchamiania hooka show.
+
+`window-losefocus` sprawdza rzeczywiste okno pierwszoplanowe po zakończeniu przejścia aktywacji Windows. Przy `lazy-losefocus` czeka 300 ms, zgodnie z oryginałem. Powrót fokusu lub jawne show anuluje oczekiwanie; wyłączenie chowania przed wykonaniem callbacku zapobiega ukryciu. Własne dialogi i menu nie powodują chowania. Główny skrót nie chowa terminala za aktywnym własnym dialogiem; otwarty dialog modalny chroni okno również po przejściu do innej aplikacji. Timer jest komponentem DFM i jest zatrzymywany przy zamknięciu kontrolera; nie powstaje wątek usypiający UI.
+
+Pozostają testy rzeczywistych przejść IME, zmiany pulpitu i długotrwałej pracy z innymi aplikacjami. Implementacja używa aktywacji i okna pierwszoplanowego WinAPI, bez przenoszenia znaczników czasu X11 oraz jego filtrów zdarzeń do Windows. Zestawy kart obszarów roboczych nadal czekają na port.
+
+Weryfikacja 1.0.25.58: formatter bez błędów, 119/119 scenariuszy DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Test osobnego procesu przejmuje rzeczywisty fokus, udziela prawa do aktywacji przez AllowSetForegroundWindow i sprawdza refocus, zwykły toggle, opóźnienie 300 ms, anulowanie po powrocie, ochronę własnego dialogu, wyłączenie opcji w trakcie oczekiwania oraz zatrzymanie oczekującego timera przy StopTerminal. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.25.58-Win64.zip z pasującymi EXE/PDB.

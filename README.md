@@ -73,3 +73,5 @@ Zapytania VT obejmują DA2, stan obsługiwanych trybów DECRQM i rozmiar termina
 Wrapper git-zsh.exe używa ikony lokalnego Zsh z Git SDK. Emulator odpowiada na DECRQSS dla SGR i marginesów oraz obsługuje klawiaturę numeryczną aplikacyjną, w tym osobny Enter i klawisze przy wyłączonym Num Lock.
 
 Dwuklik w terminalu zaznacza słowo według `word-chars`. Środkowy przycisk wkleja ostatnie zaznaczenie terminala w bieżącym miejscu wejścia powłoki (bez Enter). Gdy aplikacja przechwytuje mysz, użyj Shift. URL i ścieżki Quick Open mogą przechodzić przez automatycznie zawinięte wiersze.
+
+Opcja `window-refocus` przywraca fokus widocznemu terminalowi po użyciu głównego skrótu zamiast go chować. `lazy-losefocus` opóźnia chowanie po utracie fokusu o 300 ms; powrót fokusu anuluje chowanie. Dialogi aplikacji pozostają chronione przed automatycznym ukryciem terminala.

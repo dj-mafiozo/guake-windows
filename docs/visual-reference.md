@@ -49,3 +49,7 @@ Pasek kart rysuje płaskie przyciski przez natywny motyw Windows. Ustawienie tab
 ### Zaznaczanie terminala
 
 Pojedynczy klik ustawia fokus bez zaznaczania znaku. Dwuklik zaznacza słowo, przeciągnięcie zaznacza zakres. Środkowy przycisk wkleja ostatnie zaznaczenie terminala w bieżącym miejscu wejścia powłoki; nie przestawia kursora według współrzędnych myszy. Shift omija raportowanie myszy do programu terminalowego.
+
+### Fokus i chowanie
+
+Przy aktywnym refocus główny skrót aktywuje widoczne, nieaktywne okno; kolejne użycie w aktywnym terminalu chowa okno. Lazy hide daje 300 ms na powrót fokusu. Otwarcie własnego dialogu lub menu nie powinno powodować schowania terminala. Test osobnego procesu potwierdza podstawowe przejścia Windows; zachowanie podczas IME i zmiany pulpitów wymaga dalszych obserwacji.

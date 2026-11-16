@@ -16,6 +16,7 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure RefocusAndLazyHideRespectForeground;
     [Test] Procedure LogicalLinesJoinSoftWrapsAndMapCells;
     [Test] Procedure UnchangedSplitPanesReuseComposition;
     [Test] Procedure BatchedAsciiPreservesCellPixels;
@@ -263,6 +264,164 @@ Implementation
   End;
 
 /// <summary>Soft wraps preserve UTF-16 hit positions; explicit newlines remain separate.</summary>
+
+/// <summary>Uses a separate native foreground process to verify activation, deferred hiding and dialog protection.</summary>
+
+ Procedure TTerminalTests.RefocusAndLazyHideRespectForeground;
+  Var
+   Settings       : TGuakeSettings;
+   Main           : TfrmMain;
+   Dialog         : TfrmAbout;
+   ScriptName     : String;
+   WindowFile     : String;
+   Command        : String;
+   Startup        : TStartupInfo;
+   Process        : TProcessInformation;
+   OtherWindow    : HWND;
+   PreviousWindow : HWND;
+   Deadline       : UInt64;
+
+   Procedure Pump(Milliseconds : Cardinal);
+    Var
+     UntilTick : UInt64;
+    Begin
+     UntilTick := GetTickCount64 + Milliseconds;
+     Repeat
+      Application.ProcessMessages;
+      Sleep(2);
+     Until GetTickCount64 >= UntilTick;
+    End;
+
+   Procedure ActivateOther;
+    Begin
+     SetForegroundWindow(OtherWindow);
+     Pump(30);
+     Assert.AreEqual(NativeUInt(OtherWindow), NativeUInt(GetForegroundWindow), 'External test window must own foreground');
+    End;
+
+  Begin
+   Settings   := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   ScriptName := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName + '.ps1');
+   WindowFile := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
+   Main       := Nil;
+   Dialog     := Nil;
+   FillChar(Process, SizeOf(Process), 0);
+   PreviousWindow := GetForegroundWindow;
+   Try
+    TFile.WriteAllText(ScriptName,
+    'Add-Type -TypeDefinition @'''#13#10 +
+    'using System; using System.IO; using System.Runtime.InteropServices;'#13#10 +
+    'public static class FocusProbe {'#13#10 +
+    '[DllImport("user32.dll")] static extern bool AllowSetForegroundWindow(uint pid);'#13#10 +
+    '[DllImport("user32.dll",CharSet=CharSet.Unicode)] static extern IntPtr CreateWindowEx(uint ex,string cls,string name,uint style,int x,int y,int w,int h,IntPtr p,IntPtr m,IntPtr i,IntPtr a);'#13#10 +
+    '[DllImport("user32.dll")] static extern int GetMessage(IntPtr msg,IntPtr wnd,uint a,uint b);'#13#10 +
+    '[DllImport("user32.dll")] static extern bool TranslateMessage(IntPtr msg);'#13#10 +
+    '[DllImport("user32.dll")] static extern IntPtr DispatchMessage(IntPtr msg);'#13#10 +
+    'public static void Run(string path,uint parent){var w=CreateWindowEx(0x80,"STATIC","Guake focus probe",0x90000000,-30000,0,100,30,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero);i' +
+    'f(w==IntPtr.Zero)throw new Exception("CreateWindowEx");File.WriteAllText(path+".tmp",w.ToInt64().ToString());File.Move(path+".tmp",path);new System.Threading.Thread(()=>{while(true' +
+    '){AllowSetForegroundWindow(parent);System.Threading.Thread.Sleep(10);}}){IsBackground=true}.Start();var m=Marshal.AllocHGlobal(64);try{while(GetMessage(m,IntPtr.Zero,0,0)>0){Transl' +
+    'ateMessage(m);DispatchMessage(m);}}finally{Marshal.FreeHGlobal(m);}}}'#13#10 +
+    '''@'#13#10 + '[FocusProbe]::Run($args[0],[uint32]$args[1])', TEncoding.UTF8);
+    Command := QuoteProcessArgument(TShellProfile.Resolve(gsPowerShell).Executable) +
+    ' -NoLogo -NoProfile -ExecutionPolicy Bypass -File ' + QuoteProcessArgument(ScriptName) + ' ' + QuoteProcessArgument(WindowFile) + ' ' + IntToStr(GetCurrentProcessId);
+    UniqueString(Command);
+    FillChar(Startup, SizeOf(Startup), 0);
+    Startup.cb := SizeOf(Startup);
+    Win32Check(CreateProcess(Nil, PChar(Command), Nil, Nil, False, CREATE_NO_WINDOW, Nil, Nil, Startup, Process));
+    Deadline := GetTickCount64 + 15000;
+    While Not TFile.Exists(WindowFile) And (GetTickCount64 < Deadline) Do
+     Sleep(10);
+    Assert.IsTrue(TFile.Exists(WindowFile), 'Native foreground helper must start');
+    OtherWindow := HWND(StrToInt64(TFile.ReadAllText(WindowFile)));
+    Assert.IsTrue(IsWindow(OtherWindow));
+    Settings.General.DefaultShell         := 'cmd';
+    Settings.General.UsePopup             := False;
+    Settings.General.UseTrayicon          := False;
+    Settings.General.DropDownAnimation    := False;
+    Settings.General.SaveTabsWhenChanged  := False;
+    Settings.Keybindings.Global.ShowHide  := 'disabled';
+    Settings.Keybindings.Global.ShowFocus := 'disabled';
+    Main                                  := TfrmMain.Create(Nil);
+    Main.Bind(Settings);
+    Main.StartTerminal;
+    Main.SetTerminalVisible(True);
+    Main.SetBounds( -30000, 100, 500, 180);
+    Pump(20);
+    ActivateOther;
+    Settings.General.WindowRefocus := True;
+    Main.ToggleVisibility;
+    Pump(20);
+    Assert.IsTrue(Main.Visible);
+    Assert.AreEqual(NativeUInt(Main.Handle), NativeUInt(GetAncestor(GetForegroundWindow, GA_ROOT)), 'Refocus must activate the terminal window');
+    Assert.IsTrue(Main.ActiveTerminalFrame.Focused, 'Refocus restores the active input pane');
+    Main.ToggleVisibility;
+    Assert.IsFalse(Main.Visible, 'A focused terminal still toggles off');
+    Main.SetTerminalVisible(True);
+    ActivateOther;
+    Settings.General.WindowRefocus := False;
+    Main.ToggleVisibility;
+    Assert.IsFalse(Main.Visible, 'Without refocus a visible unfocused terminal toggles off');
+    Main.SetTerminalVisible(True);
+    Settings.General.WindowLosefocus := True;
+    Settings.General.LazyLosefocus   := True;
+    ActivateOther;
+    Assert.IsTrue(Main.focusTimer.Enabled);
+    Assert.AreEqual(300, Main.focusTimer.Interval);
+    Assert.IsTrue(Main.Visible, 'Lazy hide must not hide immediately');
+    Main.SetTerminalVisible(True);
+    Pump(350);
+    Assert.IsTrue(Main.Visible, 'Returning focus cancels delayed hide');
+    Assert.IsFalse(Main.focusTimer.Enabled);
+    ActivateOther;
+    Pump(340);
+    Assert.IsFalse(Main.Visible, 'Persistent external focus hides after 300 ms');
+    Main.SetTerminalVisible(True);
+    Dialog := TfrmAbout.Create(Main);
+    Dialog.Show;
+    Pump(350);
+    Assert.IsTrue(Main.Visible, 'An owned dialog must not hide the terminal');
+    Main.ToggleVisibility;
+    Assert.IsTrue(Main.Visible, 'The global toggle must not hide behind an owned dialog');
+    Dialog.Free;
+    Dialog := Nil;
+    Main.SetTerminalVisible(True);
+    Settings.General.LazyLosefocus := False;
+    ActivateOther;
+    Pump(30);
+    Assert.IsFalse(Main.Visible, 'Non-lazy hide runs after the foreground transition');
+    Main.SetTerminalVisible(True);
+    Settings.General.LazyLosefocus := True;
+    ActivateOther;
+    Settings.General.WindowLosefocus := False;
+    Pump(340);
+    Assert.IsTrue(Main.Visible, 'Disabling hide-on-focus-loss cancels its effect');
+    Settings.General.WindowLosefocus := True;
+    Main.FormDeactivate(Nil);
+    Assert.IsTrue(Main.focusTimer.Enabled);
+    Main.StopTerminal;
+    Assert.IsFalse(Main.focusTimer.Enabled, 'Shutdown cancels deferred work');
+   Finally
+    Dialog.Free;
+    Main.Free;
+    Settings.Free;
+    If Process.hProcess <> 0 Then
+     Begin
+      TerminateProcess(Process.hProcess, 0);
+      WaitForSingleObject(Process.hProcess, 5000);
+      CloseHandle(Process.hProcess);
+     End;
+    If Process.hThread <> 0 Then
+     CloseHandle(Process.hThread);
+    If PreviousWindow <> 0 Then
+     SetForegroundWindow(PreviousWindow);
+    If TFile.Exists(ScriptName) Then
+     TFile.Delete(ScriptName);
+    If TFile.Exists(WindowFile) Then
+     TFile.Delete(WindowFile);
+    If TFile.Exists(WindowFile + '.tmp') Then
+     TFile.Delete(WindowFile + '.tmp');
+   End;
+  End;
 
  Procedure TTerminalTests.LogicalLinesJoinSoftWrapsAndMapCells;
   Var

@@ -15,6 +15,7 @@
   OnCreate = FormCreate
   OnClose = FormClose
   OnDestroy = FormDestroy
+  OnActivate = FormActivate
   OnDeactivate = FormDeactivate
   OnShow = FormShow
   PixelsPerInch = 96
@@ -348,5 +349,10 @@
     Enabled = False
     Interval = 8000
     OnTimer = NotificationExpired
+  end
+  object focusTimer: TTimer
+    Enabled = False
+    Interval = 300
+    OnTimer = FocusLostTick
   end
 end
