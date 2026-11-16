@@ -57,3 +57,5 @@ Pasek kart obsługuje opcjonalne przyciski zamykania i pogrubienie tytułu po ak
 Renderer buforuje niezmienione panele i wiersze, grupuje znaki ASCII z zachowaniem przycinania do komórek i przelicza alfę bez ponownego rysowania całego tekstu. Testy zapisują pomiar kompozycji 1920×1080 do `bin/tests/composition-latency.txt` oraz sprawdzają zgodność pikseli i ponowne użycie paneli.
 
 Emulator obsługuje programowalne tabulatory (HT, HTS, TBC, CHT, CBT i DECST8C) oraz raporty pozycji kursora względem regionu origin. [Macierz pokrycia VT](docs/vt-coverage.md) oddziela działające grupy sekwencji od pozostałych braków.
+
+Zestawy DEC Special Graphics, ASCII i brytyjski działają w G0–G3. Emulator obsługuje SI/SO, LS2/LS3, SS2/SS3 oraz zapis i odtwarzanie atrybutów, mapowania znaków i trybów kursora przez DECSC/DECRC, CSI s/u i 1048; 1049 przywraca je po wyjściu z ekranu alternatywnego. Pełny zakres i braki pozostają w macierzy VT.

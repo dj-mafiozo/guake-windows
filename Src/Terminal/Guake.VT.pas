@@ -26,6 +26,22 @@ Interface
 
   TTerminalScreen = TArray<TTerminalLine>;
 
+  TTerminalCharsets = Array[0..3] Of Char;
+
+/// <summary>DEC cursor state is saved independently for the primary and alternate screens.</summary>
+
+  TTerminalSavedCursor = Record
+   x           : Integer;
+   y           : Integer;
+   Attributes  : TTerminalCell;
+   Charsets    : TTerminalCharsets;
+   GL          : Integer;
+   SingleShift : Integer;
+   Origin      : Boolean;
+   AutoWrap    : Boolean;
+   WrapPending : Boolean;
+  End;
+
   TVTState = (vsGround, vsEscape, vsCSI, vsOSC, vsOSCEscape, vsIgnore, vsIgnoreEscape, vsCharset);
 
   TTerminalBuffer = Class
@@ -38,8 +54,11 @@ Interface
     fRows              : Integer;
     fX                 : Integer;
     fY                 : Integer;
-    fSavedX            : Integer;
-    fSavedY            : Integer;
+    fDECSaved          : Array[Boolean] Of TTerminalSavedCursor;
+    fCharsets          : TTerminalCharsets;
+    fCharsetSlot       : Integer;
+    fGL                : Integer;
+    fSingleShift       : Integer;
     fPrimaryX          : Integer;
     fPrimaryY          : Integer;
     fTop               : Integer;
@@ -67,19 +86,22 @@ Interface
     fMouseMode         : Integer;
     fSGRMouse          : Boolean;
     fRevision          : Int64;
-    Function  Blank                          : TTerminalCell;
-    Procedure ClearLine     (Var Line : TTerminalLine; First, Last : Integer);
-    Procedure AllocateScreen(Var Screen : TTerminalScreen; Columns, Rows : Integer);
-    Procedure ProcessCode   (Code : Cardinal);
-    Procedure PutCode       (Code : Cardinal);
+    Function  Blank                             : TTerminalCell;
+    Procedure ClearLine       (Var Line : TTerminalLine; First, Last : Integer);
+    Procedure AllocateScreen  (Var Screen : TTerminalScreen; Columns, Rows : Integer);
+    Procedure ProcessCode     (Code : Cardinal);
+    Procedure PutCode         (Code : Cardinal);
+    Procedure SaveCursorState;
+    Procedure RestoreCursorState;
+    Function  TranslateGraphic(Code : Cardinal) : Cardinal;
     Procedure LineFeed;
-    Procedure MoveTab       (Count : Integer; ForwardTab : Boolean);
-    Procedure Scroll        (Up : Boolean; Count : Integer);
-    Procedure ExecuteCSI    (Final : Char);
+    Procedure MoveTab         (Count : Integer; ForwardTab : Boolean);
+    Procedure Scroll          (Up : Boolean; Count : Integer);
+    Procedure ExecuteCSI      (Final : Char);
     Procedure ExecuteOSC;
-    Procedure SwitchScreen  (Alternate : Boolean; SaveCursor : Boolean);
-    Function  GetCell       (x, y : Integer) : TTerminalCell;
-    Function  GetTotalLines                  : Integer;
+    Procedure SwitchScreen    (Alternate : Boolean; SaveCursor : Boolean);
+    Function  GetCell         (x, y : Integer)  : TTerminalCell;
+    Function  GetTotalLines                     : Integer;
    Public
     /// <summary>Initializes this service and acquires the resources whose lifetime it owns.</summary>
     Constructor Create(Columns, Rows : Integer; HistoryLimit : Integer = 1000);
@@ -173,19 +195,31 @@ Implementation
 
  Procedure TTerminalBuffer.Reset;
   Var
-   i : Integer;
+   i         : Integer;
+   Alternate : Boolean;
   Begin
    SetLength(fTabStops, fColumns);
-   For i              := 0 To High(fTabStops) Do
-    fTabStops[i]      := (i > 0) And (i Mod 8 = 0);
-   fHyperlink         := '';
-   fAttr              := Default(TTerminalCell);
-   fAttr.Foreground   := -1;
-   fAttr.Background   := -2;
-   fX                 := 0;
-   fY                 := 0;
-   fSavedX            := 0;
-   fSavedY            := 0;
+   For i            := 0 To High(fTabStops) Do
+    fTabStops[i]    := (i > 0) And (i Mod 8 = 0);
+   fHyperlink       := '';
+   fAttr            := Default(TTerminalCell);
+   fAttr.Foreground := -1;
+   fAttr.Background := -2;
+   fX               := 0;
+   fY               := 0;
+   For i            := 0 To High(fCharsets) Do
+    fCharsets[i]    := 'B';
+   fGL              := 0;
+   fCharsetSlot     := 0;
+   fSingleShift     := -1;
+   For Alternate    := False To True Do
+    Begin
+     fDECSaved[Alternate]             := Default(TTerminalSavedCursor);
+     fDECSaved[Alternate].Attributes  := fAttr;
+     fDECSaved[Alternate].Charsets    := fCharsets;
+     fDECSaved[Alternate].AutoWrap    := True;
+     fDECSaved[Alternate].SingleShift := -1;
+    End;
    fTop               := 0;
    fBottom            := fRows - 1;
    fPrimary           := Nil;
@@ -267,11 +301,76 @@ Implementation
     End;
   End;
 
+/// <summary>Maps only GL graphics; UTF-8 characters outside ASCII retain their Unicode value.</summary>
+
+ Function TTerminalBuffer.TranslateGraphic(Code : Cardinal) : Cardinal;
+  Const
+   DECGraphics : String = ' ◆▒␉␌␍␊°±␤␋┘┐┌└┼⎺⎻─⎼⎽├┤┴┬│≤≥π≠£·';
+  Var
+   Slot : Integer;
+  Begin
+   Result := Code;
+   Slot   := fGL;
+   If fSingleShift >= 0 Then
+    Slot        := fSingleShift;
+   fSingleShift := -1;
+   If (Code < $20) Or (Code > $7E) Then
+    Exit;
+   Case fCharsets[Slot] Of
+    '0' :
+     If Code >= $5F Then
+      Result := Ord(DECGraphics[Code - $5F + 1]);
+    'A' :
+     If Code = Ord('#') Then
+      Result := $A3;
+   End;
+  End;
+
+/// <summary>Saves coordinates, rendition, GL character mapping and DEC origin/wrapping state.</summary>
+
+ Procedure TTerminalBuffer.SaveCursorState;
+  Begin
+   With fDECSaved[fAlternate] Do
+    Begin
+     x           := fX;
+     y           := fY;
+     Attributes  := fAttr;
+     Charsets    := fCharsets;
+     GL          := fGL;
+     SingleShift := fSingleShift;
+     Origin      := fOrigin;
+     AutoWrap    := fAutoWrap;
+     WrapPending := fWrapPending;
+    End;
+  End;
+
+/// <summary>Restores the current screen's DEC state, clamping coordinates to its current geometry.</summary>
+
+ Procedure TTerminalBuffer.RestoreCursorState;
+  Begin
+   With fDECSaved[fAlternate] Do
+    Begin
+     fAttr        := Attributes;
+     fCharsets    := Charsets;
+     fGL          := GL;
+     fSingleShift := SingleShift;
+     fOrigin      := Origin;
+     fAutoWrap    := AutoWrap;
+     fX           := EnsureRange(x, 0, fColumns - 1);
+     If fOrigin Then
+      fY := EnsureRange(y, fTop, fBottom)
+     Else
+      fY          := EnsureRange(y, 0, fRows - 1);
+     fWrapPending := WrapPending And fAutoWrap And (fX = fColumns - 1);
+    End;
+  End;
+
  Procedure TTerminalBuffer.PutCode(Code : Cardinal);
   Var
    w, i, Previous, OldWidth, NewWidth : Integer;
    Next                               : String;
   Begin
+   Code     := TranslateGraphic(Code);
    Next     := CodeText(Code);
    Previous := fX - 1;
    If fWrapPending Then
@@ -346,6 +445,8 @@ Implementation
     Exit;
    If Alternate Then
     Begin
+     If SaveCursor Then
+      SaveCursorState;
      fPrimary  := fScreen;
      fPrimaryX := fX;
      fPrimaryY := fY;
@@ -364,6 +465,8 @@ Implementation
    fTop         := 0;
    fBottom      := fRows - 1;
    fWrapPending := False;
+   If Not Alternate And SaveCursor Then
+    RestoreCursorState;
   End;
 
  Procedure TTerminalBuffer.ExecuteOSC;
@@ -448,7 +551,7 @@ Implementation
    SetLength(Params, Max(1, Length(Parts)));
    For i      := 0 To High(Parts) Do
     Params[i] := StrToIntDef(Parts[i], 0);
-   If Not CharInSet(Final, ['m', 'h', 'l']) Then
+   If Not CharInSet(Final, ['m', 'h', 'l', 's', 'u']) Then
     fWrapPending := False;
    n             := Min(P(0, 1), Max(fColumns, fRows));
    Case Final Of
@@ -553,12 +656,9 @@ Implementation
        End;
      End;
     's' :
-     Begin
-      fSavedX := fX;
-      fSavedY := fY;
-     End;
+     SaveCursorState;
     'u' :
-     MoveCursor(fSavedX, fSavedY);
+     RestoreCursorState;
     'h', 'l' :
      For i := 0 To High(Params) Do
       If PrivateMode Then
@@ -574,6 +674,11 @@ Implementation
          fAutoWrap := Final = 'h';
         25 :
          fCursorVisible := Final = 'h';
+        1048 :
+         If Final = 'h' Then
+          SaveCursorState
+         Else
+          RestoreCursorState;
         47, 1047, 1049 :
          SwitchScreen(Final = 'h', Params[i] = 1049);
         1000, 1002, 1003 :
@@ -684,6 +789,16 @@ Implementation
      End;
      Exit;
     End;
+   If ((Code = 14) Or (Code = 15)) And (fState In [vsEscape, vsCSI, vsCharset]) Then
+    Begin
+     fGL := Ord(Code = 14);
+     Exit;
+    End;
+   If (Code = 24) Or (Code = 26) Then
+    Begin
+     fState := vsGround;
+     Exit;
+    End;
    Case fState Of
     vsGround :
      Case Code Of
@@ -708,8 +823,10 @@ Implementation
         fX           := 0;
         fWrapPending := False;
        End;
-      14, 15 :
-       ;
+      14 :
+       fGL := 1;
+      15 :
+       fGL := 0;
      Else
        If Code >= 32 Then
         PutCode(Code);
@@ -731,17 +848,23 @@ Implementation
        Ord('P'), Ord('^'), Ord('_') :
         fState := vsIgnore;
        Ord('('), Ord(')'), Ord('*'), Ord('+') :
-        fState := vsCharset;
+        Begin
+         fCharsetSlot := Code - Ord('(');
+         fSequence    := '';
+         fState       := vsCharset;
+        End;
+       Ord('N') :
+        fSingleShift := 2;
+       Ord('O') :
+        fSingleShift := 3;
+       Ord('n') :
+        fGL := 2;
+       Ord('o') :
+        fGL := 3;
        Ord('7') :
-        Begin
-         fSavedX := fX;
-         fSavedY := fY;
-        End;
+        SaveCursorState;
        Ord('8') :
-        Begin
-         fX := EnsureRange(fSavedX, 0, fColumns - 1);
-         fY := EnsureRange(fSavedY, 0, fRows - 1);
-        End;
+        RestoreCursorState;
        Ord('H') :
         fTabStops[fX] := True;
        Ord('D') :
@@ -798,7 +921,14 @@ Implementation
      Else
       fState := vsIgnore;
     vsCharset :
-     fState := vsGround;
+     If (Code >= $20) And (Code <= $2F) Then
+      fSequence := 'unsupported'
+     Else
+      Begin
+       If (fSequence = '') And ((Code = Ord('0')) Or (Code = Ord('A')) Or (Code = Ord('B'))) Then
+        fCharsets[fCharsetSlot] := Char(Code);
+       fState                   := vsGround;
+      End;
    End;
   End;
 
@@ -1053,8 +1183,6 @@ Implementation
    fRows        := Rows;
    fX           := Min(fX, Columns - 1);
    fY           := Min(fY, Rows - 1);
-   fSavedX      := Min(fSavedX, Columns - 1);
-   fSavedY      := Min(fSavedY, Rows - 1);
    fTop         := 0;
    fBottom      := Rows - 1;
    fWrapPending := NewPending;

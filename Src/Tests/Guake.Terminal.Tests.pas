@@ -28,6 +28,13 @@ Interface
     [Test] Procedure TerminalBackgroundAlphaAndWindowControls;
     [Test] Procedure AnimatedGifBackgroundDelaysAndRemoval;
     [Test] Procedure AnimatedGifDisposalAndFiniteLoop;
+    [Test] Procedure SCOCursorAliasesPreserveSingleShift;
+    [Test] Procedure DECGraphicsAndCharacterShifts;
+    [Test] Procedure CharsetDesignationFragmentsAndCancellation;
+    [Test] Procedure DECCursorRestoresRenditionModesAndCharsets;
+    [Test] Procedure DECCursorPreservesPendingWrap;
+    [Test] Procedure DECCursorScreenIsolationAnd1048;
+    [Test] Procedure DECCursorDefaultsAndResize;
     [Test] Procedure UnsupportedCSIHasNoAliasedEffects;
     [Test] Procedure OriginRelativeCursorReports;
     [Test] Procedure ProgrammableTabStops;
@@ -95,6 +102,153 @@ Implementation
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+ Procedure TTerminalTests.SCOCursorAliasesPreserveSingleShift;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(4, 4);
+   Try
+    Buffer.FeedText(#27'*0'#27'[31mABCD'#27'N'#27'[s');
+    Buffer.FeedText(#27'[H'#27'[0mxx'#27'8q');
+    Assert.AreEqual('─', Buffer.Cell[0, 1].Text);
+    Assert.AreEqual(1, Buffer.Cell[0, 1].Foreground);
+    Buffer.FeedText(#27'7'#27'[H'#27'[0m'#27'[uq');
+    Assert.AreEqual('q', Buffer.Cell[1, 1].Text);
+    Assert.AreEqual(1, Buffer.Cell[1, 1].Foreground);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.DECGraphicsAndCharacterShifts;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(40, 4);
+   Try
+    Buffer.FeedText(#27'(0lqqk'#27'(Bq');
+    Assert.AreEqual('┌──┐q', Buffer.LineText(0));
+    Buffer.FeedText(#13#10#27')0'#14'x'#15'x');
+    Assert.AreEqual('│x', Buffer.LineText(1));
+    Buffer.FeedText(#27'*0'#27'+A'#27'N'#7'q' + 'q' + #27'O##');
+    Assert.AreEqual('│x─q£#', Buffer.LineText(1));
+    Buffer.FeedText(#27'nx'#27'o#'#15'q');
+    Assert.AreEqual('│x─q£#│£q', Buffer.LineText(1));
+    Buffer.FeedText(#27'(0' + 'ą😀' + #27'(B');
+    Assert.IsTrue(Pos('ą😀', Buffer.LineText(1)) > 0);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.CharsetDesignationFragmentsAndCancellation;
+  Var
+   Buffer : TTerminalBuffer;
+   Value  : Byte;
+  Begin
+   Buffer := TTerminalBuffer.Create(40, 3);
+   Try
+    For Value In TEncoding.UTF8.GetBytes(#27')0'#14'lqk'#15'q') Do
+     Buffer.Feed(TBytes.Create(Value));
+    Assert.AreEqual('┌─┐q', Buffer.LineText(0));
+    Buffer.FeedText(#27'('#14'0x'#15'x');
+    Assert.AreEqual('┌─┐q││', Buffer.LineText(0));
+    Buffer.FeedText(#27'(%5q');
+    Assert.AreEqual('─', Buffer.Cell[6, 0].Text);
+    Buffer.FeedText(#27'('#24'q'#27')'#26'q');
+    Assert.AreEqual('┌─┐q││───', Buffer.LineText(0));
+    Buffer.FeedText(#27'cqq');
+    Assert.AreEqual('qq', Buffer.LineText(0));
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.DECCursorRestoresRenditionModesAndCharsets;
+  Var
+   Buffer : TTerminalBuffer;
+   Cell   : TTerminalCell;
+  Begin
+   Buffer := TTerminalBuffer.Create(12, 8);
+   Try
+    Buffer.FeedText(#27'[3;7r'#27'[?6h'#27'[2;3H'#27'[1;3;4;7;31;44m'#27')0'#14#27'[?7l'#27'7');
+    Buffer.FeedText(#15#27')B'#27'[0m'#27'[?6l'#27'[?7h'#27'[H'#27'8q'#27'[6n');
+    Cell := Buffer.Cell[2, 3];
+    Assert.AreEqual('─', Cell.Text);
+    Assert.AreEqual(1, Cell.Foreground);
+    Assert.AreEqual(4, Cell.Background);
+    Assert.IsTrue(Cell.Bold And Cell.Italic And Cell.Underline And Cell.Inverse);
+    Assert.AreEqual(#27'[2;4R', Buffer.TakeResponses);
+    Buffer.FeedText(#27'[1;12Hqq');
+    Assert.AreEqual(2, Buffer.CursorY);
+    Assert.AreEqual(11, Buffer.CursorX);
+    Assert.AreEqual('─', Buffer.Cell[11, 2].Text);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.DECCursorPreservesPendingWrap;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(4, 3);
+   Try
+    Buffer.FeedText('ABCD'#27'7'#13'xx'#27'8Z');
+    Assert.AreEqual('xxCD', Buffer.LineText(0));
+    Assert.AreEqual('Z', Buffer.LineText(1));
+    Buffer.FeedText(#27'[?1048h'#27'[H'#27'[?1048lY');
+    Assert.AreEqual('ZY', Buffer.LineText(1));
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.DECCursorScreenIsolationAnd1048;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(20, 5);
+   Try
+    Buffer.FeedText(#27'[2;4H'#27'[31m'#27'[?1049h');
+    Buffer.FeedText(#27'[3;2H'#27'[32m'#27'7'#27'[H'#27'[0m'#27'8A');
+    Assert.AreEqual('A', Buffer.Cell[1, 2].Text);
+    Assert.AreEqual(2, Buffer.Cell[1, 2].Foreground);
+    Buffer.FeedText(#27'[?1049lP');
+    Assert.IsFalse(Buffer.AlternateScreen);
+    Assert.AreEqual('P', Buffer.Cell[3, 1].Text);
+    Assert.AreEqual(1, Buffer.Cell[3, 1].Foreground);
+    Buffer.FeedText(#27'[?1048h'#27'[H'#27'[0m'#27'[?1048lQ');
+    Assert.AreEqual('Q', Buffer.Cell[4, 1].Text);
+    Assert.AreEqual(1, Buffer.Cell[4, 1].Foreground);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.DECCursorDefaultsAndResize;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(12, 8);
+   Try
+    Buffer.FeedText(#27'[1;31m'#27'(0'#27'[?6h'#27'[?7l'#27'8q');
+    Assert.AreEqual('q', Buffer.Cell[0, 0].Text);
+    Assert.AreEqual( -1, Buffer.Cell[0, 0].Foreground);
+    Assert.IsFalse(Buffer.Cell[0, 0].Bold);
+    Buffer.FeedText(#27'[8;12H'#27'7');
+    Buffer.Resize(4, 3);
+    Buffer.FeedText(#27'8');
+    Assert.AreEqual(3, Buffer.CursorX);
+    Assert.AreEqual(2, Buffer.CursorY);
+    Buffer.FeedText(#27'c'#27'[31m'#27'8R');
+    Assert.AreEqual('R', Buffer.Cell[0, 0].Text);
+    Assert.AreEqual( -1, Buffer.Cell[0, 0].Foreground);
+   Finally
+    Buffer.Free;
+   End;
+  End;
 
  Procedure TTerminalTests.UnsupportedCSIHasNoAliasedEffects;
   Var

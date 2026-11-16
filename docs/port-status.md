@@ -1,13 +1,13 @@
 # Stan portu Guake dla Windows
 
-Stan kodu na 16 listopada 2026, wersja 1.0.17.50. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 16 listopada 2026, wersja 1.0.18.51. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
 | Obszar | Zaimplementowano | Pozostało |
 | --- | --- | --- |
 | Terminal | Osobny proces ConPTY dla każdej sesji; asynchroniczne I/O, zmiana rozmiaru, zamykanie procesów, katalog i środowisko | Dalsze testy długich sesji i programów pełnoekranowych |
-| Emulator VT | Przyrostowe UTF-8/CSI/OSC, kolory ANSI/256/RGB, kursor, historia, alternatywny ekran, region przewijania, odpowiedzi urządzenia, bracketed paste, raportowanie myszy, reflow historii, klastry ICU, programowalne tabulatory i raporty kursora względem regionu | Pełne pokrycie sekwencji VTE/xterm według [macierzy VT](vt-coverage.md), dalsze testy reflow i segmentacji grafemów |
+| Emulator VT | Przyrostowe UTF-8/CSI/OSC, kolory ANSI/256/RGB, kursor, historia, alternatywny ekran, region przewijania, odpowiedzi urządzenia, bracketed paste, raportowanie myszy, reflow historii, klastry ICU, programowalne tabulatory, raporty kursora względem regionu, DEC Special Graphics i zapis stanu kursora | Pełne pokrycie sekwencji VTE/xterm według [macierzy VT](vt-coverage.md), dalsze testy reflow i segmentacji grafemów |
 | Powłoki | CMD, PowerShell, Bash i Zsh z Git SDK; cztery osobne skróty/menu; Zsh przez `git-zsh.exe --nomintty` | Weryfikacja szerszego zestawu konfiguracji użytkowników i instalacji SDK |
 | Karty i podziały | Tworzenie, zamykanie, zmiana nazw, kolejność, wybór po identyfikatorze, podziały poziome/pionowe oraz fokus myszą i kierunkowo, przesuwanie granic podziałów, kolory paneli/kart i reset, przyciski zamykania, aktywność z okresami ignorowania | Dalsze testy potwierdzeń zamykania i rozpoznawania procesów potomnych |
 | Widok terminala | Palety, font, kursor, obrazy PNG/JPEG/BMP/animowany GIF, przezroczystość samego tła, cztery układy tła, przewijanie, zaznaczenie przeciągnięciem, słowo po dwukliku, schowek i zapis tekstu | Pełna zgodność renderowania i układu grafemów z VTE oraz dalsze porównania wizualne |
@@ -52,7 +52,7 @@ Katalog SDK: `--git-sdk-root <katalog>`, następnie `GIT_SDK_ROOT`, katalog wrap
 | dialogs.py | Src/Forms/frmRenameU, frmConfirmU oraz Src/DataModules/dmDialogsU |
 | palety i pixmapy | Src/Appearance, Src/Resources |
 
-To mapa odpowiedzialności, nie deklaracja przeniesienia całych modułów Python. Dalsza kolejność: pozostałe efekty ustawień, zachowanie okna, sekwencje VT i pełna macierz renderowania. Integracje wykonane w bieżącym etapie opisano poniżej.
+To mapa odpowiedzialności, nie deklaracja przeniesienia całych modułów Python. Bieżąca kolejność: kolejne grupy z macierzy VT, renderowanie, zachowanie okna i pozostałe efekty ustawień. Integracje wykonane w bieżącym etapie opisano poniżej.
 
 ## Budowanie i weryfikacja
 
@@ -139,3 +139,11 @@ Parser nie utożsamia już nieobsługiwanych prefiksów i bajtów pośrednich CS
 [Macierz VT](vt-coverage.md) opisuje faktyczny zakres parsera i następne grupy do przeniesienia. Pozostałe obszary z tabeli nadal wymagają implementacji; przywracanie sesji pozostaje ponownym uruchomieniem powłok, bez wznowienia pamięci procesów.
 
 Weryfikacja 1.0.17.50: formatter bez błędów, 90/90 scenariuszy DUnitX z raportem XML, cztery projekty Win64 Debug i aplikacja z wrapperem Release, zgodność DPR/DCCReference oraz niezmienność DPROJ podczas Test.ps1. Cztery nowe scenariusze obejmują tabulatory, resize/reset, odrzucanie nieobsługiwanych wariantów CSI i raporty kursora w regionie. Test autostartu używa izolowanego HKCU i wymaga uruchomienia poza ograniczonym sandboxem. Pakiet: bin/guake-1.0.17.50-Win64.zip.
+
+## Zestawy znaków i stan kursora — 1.0.18.51
+
+Emulator obsługuje DEC Special Graphics, ASCII i brytyjski zestaw znaków w G0–G3, wybór GL przez SI/SO i LS2/LS3 oraz pojedyncze przełączenie SS2/SS3. Ramki są przechowywane jako Unicode; mapowanie nie zmienia polskich znaków ani emoji. Sekwencje wyboru zestawu zachowują stan pomiędzy odczytami. CAN/SUB anuluje niekompletną sekwencję.
+
+ESC 7/8, CSI s/u i 1048 współdzielą zapis i odtwarzają pozycję, przeniesione atrybuty SGR, wybór zestawów, origin, autowrap, oczekujące zawinięcie i jednorazowe przełączenie zestawu. Zapisy ekranu głównego i alternatywnego są oddzielne. 1049 wykorzystuje ten zapis przy powrocie do głównego ekranu. Przywrócenie po zmianie rozmiaru ogranicza pozycję do dostępnej geometrii. Szczegóły i pozostałe różnice opisuje [macierz VT](vt-coverage.md).
+
+Weryfikacja 1.0.18.51: obowiązkowy formatter bez błędów, 97/97 scenariuszy DUnitX (siedem nowych), cztery projekty Win64 Debug oraz aplikacja z wrapperem Release. Test.ps1 sprawdził zgodność projektów i niezmienność DPROJ podczas budowania. Pakiet bin/guake-1.0.18.51-Win64.zip zawiera EXE/PDB, wrapper, tłumaczenia i licencje. Porównanie z VTE było źródłowe; zgodność graficzna wszystkich fontów i pełny zestaw wariantów ekranów nadal wymagają testów.
