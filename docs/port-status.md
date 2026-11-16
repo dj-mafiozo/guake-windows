@@ -1,13 +1,13 @@
 # Stan portu Guake dla Windows
 
-Stan kodu na 16 listopada 2026, wersja 1.0.18.51. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 16 listopada 2026, wersja 1.0.19.52. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
 | Obszar | Zaimplementowano | Pozostało |
 | --- | --- | --- |
 | Terminal | Osobny proces ConPTY dla każdej sesji; asynchroniczne I/O, zmiana rozmiaru, zamykanie procesów, katalog i środowisko | Dalsze testy długich sesji i programów pełnoekranowych |
-| Emulator VT | Przyrostowe UTF-8/CSI/OSC, kolory ANSI/256/RGB, kursor, historia, alternatywny ekran, region przewijania, odpowiedzi urządzenia, bracketed paste, raportowanie myszy, reflow historii, klastry ICU, programowalne tabulatory, raporty kursora względem regionu, DEC Special Graphics i zapis stanu kursora | Pełne pokrycie sekwencji VTE/xterm według [macierzy VT](vt-coverage.md), dalsze testy reflow i segmentacji grafemów |
+| Emulator VT | Przyrostowe UTF-8/CSI/OSC, kolory ANSI/256/RGB, kursor, historia, alternatywny ekran, region przewijania, odpowiedzi urządzenia, bracketed paste, raportowanie myszy, reflow historii, klastry ICU, programowalne tabulatory, raporty kursora względem regionu, DEC Special Graphics, zapis stanu kursora, C0 w sekwencjach i podparametry kolorów SGR | Pełne pokrycie sekwencji VTE/xterm według [macierzy VT](vt-coverage.md), dalsze testy reflow i segmentacji grafemów |
 | Powłoki | CMD, PowerShell, Bash i Zsh z Git SDK; cztery osobne skróty/menu; Zsh przez `git-zsh.exe --nomintty` | Weryfikacja szerszego zestawu konfiguracji użytkowników i instalacji SDK |
 | Karty i podziały | Tworzenie, zamykanie, zmiana nazw, kolejność, wybór po identyfikatorze, podziały poziome/pionowe oraz fokus myszą i kierunkowo, przesuwanie granic podziałów, kolory paneli/kart i reset, przyciski zamykania, aktywność z okresami ignorowania | Dalsze testy potwierdzeń zamykania i rozpoznawania procesów potomnych |
 | Widok terminala | Palety, font, kursor, obrazy PNG/JPEG/BMP/animowany GIF, przezroczystość samego tła, cztery układy tła, przewijanie, zaznaczenie przeciągnięciem, słowo po dwukliku, schowek i zapis tekstu | Pełna zgodność renderowania i układu grafemów z VTE oraz dalsze porównania wizualne |
@@ -147,3 +147,11 @@ Emulator obsługuje DEC Special Graphics, ASCII i brytyjski zestaw znaków w G0�
 ESC 7/8, CSI s/u i 1048 współdzielą zapis i odtwarzają pozycję, przeniesione atrybuty SGR, wybór zestawów, origin, autowrap, oczekujące zawinięcie i jednorazowe przełączenie zestawu. Zapisy ekranu głównego i alternatywnego są oddzielne. 1049 wykorzystuje ten zapis przy powrocie do głównego ekranu. Przywrócenie po zmianie rozmiaru ogranicza pozycję do dostępnej geometrii. Szczegóły i pozostałe różnice opisuje [macierz VT](vt-coverage.md).
 
 Weryfikacja 1.0.18.51: obowiązkowy formatter bez błędów, 97/97 scenariuszy DUnitX (siedem nowych), cztery projekty Win64 Debug oraz aplikacja z wrapperem Release. Test.ps1 sprawdził zgodność projektów i niezmienność DPROJ podczas budowania. Pakiet bin/guake-1.0.18.51-Win64.zip zawiera EXE/PDB, wrapper, tłumaczenia i licencje. Porównanie z VTE było źródłowe; zgodność graficzna wszystkich fontów i pełny zestaw wariantów ekranów nadal wymagają testów.
+
+## Odzyskiwanie parsera i kolory SGR — 1.0.19.52
+
+Kontrolki C0 wewnątrz ESC/CSI/wyboru zestawu wykonują funkcję bez utraty rozpoznawanej sekwencji. DEL i NUL nie drukują znaków, CAN/SUB anuluje, a nowy ESC umożliwia rozpoczęcie następnego polecenia również po przerwanym ciągu OSC/DCS/APC/PM/SOS. Nieobsługiwane ESC z bajtami pośrednimi nie pozostawiają końcowych znaków na ekranie.
+
+Przekroczenie limitu CSI/OSC odrzuca całe polecenie zamiast wykonania jego obciętej treści. Przepełnione liczby CSI nie zerują pozycji kursora. SGR nie spłaszcza dwukropków: rozpoznaje paletę i RGB zapisane średnikami lub podparametrami, w tym pustą przestrzeń kolorów w 38:2::r:g:b. Wadliwe składowe nie resetują atrybutów ani nie włączają przypadkiem bold. Pozostałe atrybuty i style podkreślenia nadal czekają na implementację renderowania; szczegóły opisuje macierz VT.
+
+Weryfikacja 1.0.19.52: formatter bez błędów, 104/104 scenariusze DUnitX z raportem XML (siedem nowych), cztery projekty Win64 Debug oraz aplikacja i wrapper Release. Test.ps1 potwierdził zgodność projektów i niezmienność DPROJ podczas budowania. Nowe testy obejmują kontrolki C0, przepełnienie CSI/OSC i liczb, przerwanie sekwencji, warianty kolorów SGR oraz każde miejsce podziału przykładowego strumienia. Pakiet: bin/guake-1.0.19.52-Win64.zip, z pasującymi EXE/PDB. Pełne renderowanie pozostałych atrybutów i dalsze różnice z VTE pozostają do wykonania.

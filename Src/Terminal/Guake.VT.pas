@@ -42,7 +42,7 @@ Interface
    WrapPending : Boolean;
   End;
 
-  TVTState = (vsGround, vsEscape, vsCSI, vsOSC, vsOSCEscape, vsIgnore, vsIgnoreEscape, vsCharset);
+  TVTState = (vsGround, vsEscape, vsCSI, vsOSC, vsOSCEscape, vsIgnore, vsIgnoreEscape, vsCharset, vsEscapeIntermediate);
 
   TTerminalBuffer = Class
    Private
@@ -67,6 +67,7 @@ Interface
     fAttr              : TTerminalCell;
     fState             : TVTState;
     fSequence          : String;
+    fSequenceInvalid   : Boolean;
     fBellCount         : UInt64;
     fTitle             : String;
     fHyperlink         : String;
@@ -98,6 +99,8 @@ Interface
     Procedure MoveTab         (Count : Integer; ForwardTab : Boolean);
     Procedure Scroll          (Up : Boolean; Count : Integer);
     Procedure ExecuteCSI      (Final : Char);
+    Procedure ExecuteSGR;
+    Procedure ExecuteControl  (Code : Cardinal);
     Procedure ExecuteOSC;
     Procedure SwitchScreen    (Alternate : Boolean; SaveCursor : Boolean);
     Function  GetCell         (x, y : Integer)  : TTerminalCell;
@@ -235,6 +238,7 @@ Implementation
    fInsert            := False;
    fState             := vsGround;
    fSequence          := '';
+   fSequenceInvalid   := False;
    fRemaining         := 0;
    fHistory.Clear;
    AllocateScreen(fScreen, fColumns, fRows);
@@ -512,10 +516,10 @@ Implementation
 
  Procedure TTerminalBuffer.ExecuteCSI(Final : Char);
   Var
-   Parts                                                  : TArray<String>;
-   Params                                                 : TArray<Integer>;
-   PrivateMode                                            : Boolean;
-   i, n, a, b, x, y, OldTop, OldBottom, r, g, Blue, Color : Integer;
+   Parts                    : TArray<String>;
+   Params                   : TArray<Integer>;
+   PrivateMode              : Boolean;
+   i, n, a, b, x, y, OldTop : Integer;
 
    Function P(Index, Default : Integer) : Integer;
     Begin
@@ -547,10 +551,18 @@ Implementation
      Exit;
    If (Pos(':', fSequence) > 0) And (Final <> 'm') Then
     Exit;
-   Parts := StringReplace(fSequence, ':', ';', [rfReplaceAll]).Split([';']);
+   If Final = 'm' Then
+    Begin
+     ExecuteSGR;
+     Exit;
+    End;
+   Parts := fSequence.Split([';']);
    SetLength(Params, Max(1, Length(Parts)));
-   For i      := 0 To High(Parts) Do
-    Params[i] := StrToIntDef(Parts[i], 0);
+   For i := 0 To High(Parts) Do
+    If Parts[i] = '' Then
+     Params[i] := 0
+    Else If Not TryStrToInt(Parts[i], Params[i]) Then
+     Exit;
    If Not CharInSet(Final, ['m', 'h', 'l', 's', 'u']) Then
     fWrapPending := False;
    n             := Min(P(0, 1), Max(fColumns, fRows));
@@ -708,73 +720,164 @@ Implementation
       fResponses := fResponses + #27'[0n';
     'c' :
      fResponses := fResponses + #27'[?1;2c';
-    'm' :
-     Begin
-      i := 0;
-      While i < Length(Params) Do
+   End;
+  End;
+
+/// <summary>Parses SGR parameters without flattening colon-delimited subparameters into separate commands.</summary>
+
+ Procedure TTerminalBuffer.ExecuteSGR;
+  Var
+   Parts, Sub                               : TArray<String>;
+   i, a, Mode, Color, r, g, b, First, Count : Integer;
+   Values                                   : TArray<String>;
+
+   Function Number(Const Value : String) : Integer;
+    Begin
+     Result := -1;
+     If Value <> '' Then
+      If Not TryStrToInt(Value, Result) Then
+       Result := -1;
+    End;
+
+   Function Channel(Index : Integer) : Integer;
+    Begin
+     Result := -1;
+     If Index < Length(Values) Then
+      Result := Number(Values[Index]);
+    End;
+
+  Begin
+   Parts := fSequence.Split([';']);
+   If Length(Parts) = 0 Then
+    Parts := TArray<String>.Create('');
+   i      := 0;
+   While i < Length(Parts) Do
+    Begin
+     Sub := Parts[i].Split([':']);
+     If Parts[i] = '' Then
+      a := 0
+     Else
+      a := Number(Sub[0]);
+     Case a Of
+      0 :
        Begin
-        a := Params[i];
-        Case a Of
-         0 :
-          Begin
-           fAttr            := Default(TTerminalCell);
-           fAttr.Foreground := -1;
-           fAttr.Background := -2;
-          End;
-         1 :
-          fAttr.Bold := True;
-         3 :
-          fAttr.Italic := True;
-         4, 21 :
-          fAttr.Underline := True;
-         7 :
-          fAttr.Inverse := True;
-         22 :
-          fAttr.Bold := False;
-         23 :
-          fAttr.Italic := False;
-         24 :
-          fAttr.Underline := False;
-         27 :
-          fAttr.Inverse := False;
-         30..37 :
-          fAttr.Foreground := a - 30;
-         40..47 :
-          fAttr.Background := a - 40;
-         90..97 :
-          fAttr.Foreground := a - 90 + 8;
-         100..107 :
-          fAttr.Background := a - 100 + 8;
-         39 :
-          fAttr.Foreground := -1;
-         49 :
-          fAttr.Background := -2;
-         38, 48 :
-          Begin
-           Color := -1;
-           If (i + 2 < Length(Params)) And (Params[i + 1] = 5) Then
-            Begin
-             Color := EnsureRange(Params[i + 2], 0, 255);
-             Inc(i, 2);
-            End
-           Else If (i + 4 < Length(Params)) And (Params[i + 1] = 2) Then
-            Begin
-             r     := EnsureRange(Params[i + 2], 0, 255);
-             g     := EnsureRange(Params[i + 3], 0, 255);
-             Blue  := EnsureRange(Params[i + 4], 0, 255);
-             Color := $01000000 Or r Or (g Shl 8) Or (Blue Shl 16);
-             Inc(i, 4);
-            End;
-           If Color <> -1 Then
-            If a = 38 Then
-             fAttr.Foreground := Color
-            Else
-             fAttr.Background := Color;
-          End;
-        End;
-        Inc(i);
+        fAttr            := Default(TTerminalCell);
+        fAttr.Foreground := -1;
+        fAttr.Background := -2;
+       End;
+      1 :
+       fAttr.Bold := True;
+      3 :
+       fAttr.Italic := True;
+      4 :
+       If Length(Sub) = 1 Then
+        fAttr.Underline := True
+       Else If Sub[1] = '0' Then
+        fAttr.Underline := False
+       Else If (Sub[1] = '') Or (Sub[1] = '1') Then
+        fAttr.Underline := True;
+      21 :
+       fAttr.Underline := True;
+      7 :
+       fAttr.Inverse := True;
+      22 :
+       fAttr.Bold := False;
+      23 :
+       fAttr.Italic := False;
+      24 :
+       fAttr.Underline := False;
+      27 :
+       fAttr.Inverse := False;
+      30..37 :
+       fAttr.Foreground := a - 30;
+      40..47 :
+       fAttr.Background := a - 40;
+      90..97 :
+       fAttr.Foreground := a - 90 + 8;
+      100..107 :
+       fAttr.Background := a - 100 + 8;
+      39 :
+       fAttr.Foreground := -1;
+      49 :
+       fAttr.Background := -2;
+      38, 48, 58 :
+       Begin
+        Color := -1;
+        If Length(Sub) > 1 Then
+         Begin
+          Values := Sub;
+          Mode   := Number(Sub[1]);
+          First  := 2;
+          If (Mode = 2) And (Length(Sub) > 5) Then
+           Begin
+            Inc(First);
+            If Sub[2] <> '' Then
+             Mode := -1;
+           End;
+         End
+        Else
+         Begin
+          Values := Parts;
+          Inc(i);
+          Mode  := Channel(i);
+          First := i + 1;
+          Count := 0;
+          If Mode = 2 Then
+           Count := 3
+          Else If Mode = 5 Then
+           Count := 1;
+          Inc(i, Count);
+         End;
+        If Mode = 5 Then
+         Begin
+          r := Channel(First);
+          If (r >= 0) And (r <= 255) Then
+           Color := r;
+         End
+        Else If Mode = 2 Then
+         Begin
+          r := Channel(First);
+          g := Channel(First + 1);
+          b := Channel(First + 2);
+          If (r >= 0) And (r <= 255) And (g >= 0) And (g <= 255) And (b >= 0) And (b <= 255) Then
+           Color := $01000000 Or r Or (g Shl 8) Or (b Shl 16);
+         End;
+        If Color <> -1 Then
+         If a = 38 Then
+          fAttr.Foreground := Color
+         Else If a = 48 Then
+          fAttr.Background := Color;
        End;
      End;
+     Inc(i);
+    End;
+  End;
+
+/// <summary>Executes C0 controls without consuming the surrounding escape or CSI sequence.</summary>
+
+ Procedure TTerminalBuffer.ExecuteControl(Code : Cardinal);
+  Begin
+   Case Code Of
+    7 :
+     Inc(fBellCount);
+    8 :
+     Begin
+      fX           := Max(0, fX - 1);
+      fWrapPending := False;
+     End;
+    9 :
+     MoveTab(1, True);
+    10, 11, 12 :
+     LineFeed;
+    13 :
+     Begin
+      fX           := 0;
+      fWrapPending := False;
+     End;
+    14 :
+     fGL := 1;
+    15 :
+     fGL := 0;
    End;
   End;
 
@@ -789,63 +892,41 @@ Implementation
      End;
      Exit;
     End;
-   If ((Code = 14) Or (Code = 15)) And (fState In [vsEscape, vsCSI, vsCharset]) Then
-    Begin
-     fGL := Ord(Code = 14);
-     Exit;
-    End;
    If (Code = 24) Or (Code = 26) Then
     Begin
-     fState := vsGround;
+     fState           := vsGround;
+     fSequence        := '';
+     fSequenceInvalid := False;
+     Exit;
+    End;
+   If Code = 127 Then
+    Exit;
+   If (Code < 32) And (fState In [vsGround, vsEscape, vsCSI, vsCharset, vsEscapeIntermediate]) Then
+    Begin
+     ExecuteControl(Code);
      Exit;
     End;
    Case fState Of
     vsGround :
-     Case Code Of
-      0 :
-       ;
-      7 :
-       Inc(fBellCount);
-      8 :
-       Begin
-        fX           := Max(0, fX - 1);
-        fWrapPending := False;
-       End;
-      9 :
-       Begin
-        MoveTab(1, True);
-        fWrapPending := False;
-       End;
-      10, 11, 12 :
-       LineFeed;
-      13 :
-       Begin
-        fX           := 0;
-        fWrapPending := False;
-       End;
-      14 :
-       fGL := 1;
-      15 :
-       fGL := 0;
-     Else
-       If Code >= 32 Then
-        PutCode(Code);
-     End;
+     If Code >= 32 Then
+      PutCode(Code);
     vsEscape :
      Begin
       fState := vsGround;
       Case Code Of
        Ord('[') :
         Begin
-         fSequence := '';
-         fState    := vsCSI;
+         fSequence        := '';
+         fSequenceInvalid := False;
+         fState           := vsCSI;
         End;
        Ord(']') :
         Begin
-         fSequence := '';
-         fState    := vsOSC;
+         fSequence        := '';
+         fSequenceInvalid := False;
+         fState           := vsOSC;
         End;
-       Ord('P'), Ord('^'), Ord('_') :
+       Ord('P'), Ord('^'), Ord('_'), Ord('X') :
         fState := vsIgnore;
        Ord('('), Ord(')'), Ord('*'), Ord('+') :
         Begin
@@ -884,34 +965,56 @@ Implementation
        Ord('Z') :
         fResponses := fResponses + #27'[?1;2c';
       End;
+      If (Code >= $20) And (Code <= $2F) And ((Code < Ord('(')) Or (Code > Ord('+'))) Then
+       fState := vsEscapeIntermediate;
      End;
     vsCSI :
      If (Code >= $40) And (Code <= $7E) Then
       Begin
-       ExecuteCSI(Char(Code));
+       If Not fSequenceInvalid Then
+        ExecuteCSI(Char(Code));
        fState := vsGround;
       End
-     Else If (Code >= $20) And (Code <= $3F) And (Length(fSequence) < 256) Then
-      fSequence := fSequence + Char(Code)
-     Else If (Code = 24) Or (Code = 26) Then
-      fState := vsGround;
+     Else If (Code >= $20) And (Code <= $3F) Then
+      Begin
+       If Length(fSequence) < 256 Then
+        fSequence := fSequence + Char(Code)
+       Else
+        fSequenceInvalid := True;
+      End
+     Else
+      Begin
+       fState := vsGround;
+       If Code >= $A0 Then
+        ProcessCode(Code);
+      End;
     vsOSC :
      If Code = 7 Then
       Begin
-       ExecuteOSC;
+       If Not fSequenceInvalid Then
+        ExecuteOSC;
        fState := vsGround;
       End
-     Else If Length(fSequence) < 4096 Then
-      fSequence := fSequence + CodeText(Code);
+     Else If Code >= 32 Then
+      Begin
+       If Length(fSequence) + Length(CodeText(Code)) <= 4096 Then
+        fSequence := fSequence + CodeText(Code)
+       Else
+        fSequenceInvalid := True;
+      End;
     vsOSCEscape :
      Begin
       If Code = Ord('\') Then
        Begin
-        ExecuteOSC;
+        If Not fSequenceInvalid Then
+         ExecuteOSC;
         fState := vsGround;
        End
       Else
-       fState := vsOSC;
+       Begin
+        fState := vsEscape;
+        ProcessCode(Code);
+       End;
      End;
     vsIgnore :
      ;
@@ -919,7 +1022,17 @@ Implementation
      If Code = Ord('\') Then
       fState := vsGround
      Else
-      fState := vsIgnore;
+      Begin
+       fState := vsEscape;
+       ProcessCode(Code);
+      End;
+    vsEscapeIntermediate :
+     If (Code < $20) Or (Code > $2F) Then
+      Begin
+       fState := vsGround;
+       If Code >= $A0 Then
+        ProcessCode(Code);
+      End;
     vsCharset :
      If (Code >= $20) And (Code <= $2F) Then
       fSequence := 'unsupported'

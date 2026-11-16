@@ -1,20 +1,20 @@
 # Pokrycie emulatora VT
 
-Stan: 1.0.18.51. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.19.52. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
-| Dekoder | Przyrostowe UTF-8, znaki zastępcze dla błędnych danych, podział odczytów wewnątrz znaków | Dalsza macierz błędnych strumieni i anulowania sekwencji |
-| Kontrolki C0 | BEL, BS, HT, LF/VT/FF, CR, SI/SO; CAN/SUB anuluje sekwencję | ENQ i kompletna obsługa pozostałych C0 wewnątrz sekwencji |
+| Dekoder | Przyrostowe UTF-8, znaki zastępcze dla błędnych danych, podział odczytów wewnątrz znaków | Dalsze porównania obsługi błędnych UTF-8 i C1 z VTE |
+| Kontrolki C0 | BEL, BS, HT, LF/VT/FF, CR, SI/SO także wewnątrz ESC/CSI/oznaczeń zestawów; CAN/SUB anuluje, NUL/DEL nie drukuje | Odpowiedź ENQ jest pusta; dalsza macierz C1 i kontrolek w ciągach sterujących |
 | Tabulatory | HT, HTS (ESC H), TBC (CSI g, CSI 3 g), CHT (CSI I), CBT (CSI Z), DECST8C (CSI ? 5 W); domyślne co 8 kolumn | Testy porównawcze z VTE przy zmianach geometrii i ekranów |
 | Ruch | CUU/CUD/CUF/CUB, CNL/CPL, CHA/HPA, VPA, CUP/HVP, HPR/VPR | Pełne zachowanie marginesów, dodatkowe tryby i warianty |
 | Edycja | ED/EL, ICH/DCH/ECH, IL/DL, SU/SD, DECSTBM | Selective erase i chronione komórki; prostokąty DEC; poziome marginesy; szerokie znaki przecinające granice edycji |
 | Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS | Chronione komórki/selective erase, DECSTR i zapisywanie trybów prywatnych |
 | Ekrany | Ekran główny i alternatywny, 47/1047/1049, historia i reflow ekranu głównego | Osobna macierz wariantów przełączania i zapisów kursora, przypadki brzegowe reflow |
-| SGR | Reset, bold, italic, underline, inverse, ich wyłączenie; ANSI 16/256 i RGB | Faint, conceal, strike, overline, style/kolory podkreślenia; pełna gramatyka podparametrów z dwukropkami |
+| SGR | Reset, bold, italic, underline, inverse, ich wyłączenie; ANSI 16/256 i RGB; kolory przez średniki i dwukropki, podkreślenie 4:0/4:1 | Faint, conceal, strike, overline, pozostałe style i kolory podkreślenia; dalsze warianty SGR |
 | Odpowiedzi | DSR 5, CPR 6, DECXCPR ?6; wiersz względem regionu przy DECOM; podstawowe DA/DECID | Secondary/tertiary DA, DECRQM, DECRQSS, raporty rozmiaru i pozostałe zapytania |
 | OSC | 0/2: tytuł, 7: katalog, 8: odnośniki | Paleta i zapytania kolorów, stos tytułów, pozostałe OSC; polityka dostępu do schowka |
-| DCS/APC/PM | Pomijanie danych do zakończenia sekwencji | Brak implementacji funkcji DCS; kompletna macierz odzyskiwania po błędach i limitach |
+| DCS/APC/PM | Pomijanie DCS/APC/PM/SOS; nowy ESC może przerwać ciąg i rozpocząć nowe polecenie | Brak implementacji funkcji DCS; dalsze porównania ciągów z VTE |
 | Zestawy znaków | UTF-8, ASCII B, brytyjski A, DEC Special Graphics 0 w G0–G3; SI/SO, LS2/LS3, SS2/SS3 | Pozostałe zestawy narodowe, GR i 96-znakowe zestawy, warianty ESC z bajtami pośrednimi |
 | Wejście | Application cursor, bracketed paste, tryby myszy 1000/1002/1003 i 1006 | Klawiatura aplikacyjna, raporty fokusu, pozostałe protokoły klawiatury i myszy |
 | Grafemy i widok | Segmentacja ICU, szerokie komórki, znaki łączące, reflow; cache wierszy renderera | Pełny shaping, bidi i zgodność wizualna z VTE; segmentacja zależy od systemowego ICU |
@@ -29,9 +29,9 @@ Stan: 1.0.18.51. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 
 ## Następne etapy
 
-1. Odzyskiwanie parsera po błędach, C0 w sekwencjach i gramatyka parametrów SGR.
-2. Brakujące atrybuty, zapytania oraz tryby wejścia wraz z integracją widoku.
-3. Edycja szerokich komórek, marginesy i reflow; porównania strumieni i obrazów z VTE.
+1. Brakujące atrybuty SGR i ich faktyczne renderowanie, potem zapytania i tryby wejścia.
+2. Edycja szerokich komórek, marginesy i reflow; porównania strumieni i obrazów z VTE.
+3. Dalsze przypadki błędnych strumieni, C1 i ciągów sterujących.
 
 Samo dodanie rozpoznawania sekwencji nie wystarcza do uznania funkcji za ukończoną: tryby wejścia muszą działać w kontrolerze, a atrybuty komórek w rendererze.
 
@@ -44,3 +44,13 @@ DECSC/DECRC, SCOSC/SCORC (CSI s/u) oraz 1048 korzystają z osobnego zapisu dla k
 Porównanie źródłowe: [mapowanie znaków i zapis kursora w VTE](https://github.com/GNOME/vte/blob/master/src/vte.cc), [DECSC i SCOSC/SCORC w VTE](https://github.com/GNOME/vte/blob/master/src/vteseq.cc) oraz specyfikacja xterm. To przegląd semantyki w źródłach, bez deklaracji ukończenia porównania graficznego na uruchomionym VTE.
 
 Scenariusze tego etapu obejmują ramki DEC, wszystkie cztery sloty i przełączenia jednorazowe, sekwencje dzielone na bajty, anulowanie oznaczenia zestawu, niezmienność znaków Unicode, atrybuty i tryby po odtworzeniu, zawinięcie na prawej krawędzi, niezależność zapisów ekranów, 1048/1049, reset, zmianę rozmiaru i zamienne użycie CSI s/u z ESC 7/8. Pełne zachowanie wariantów 47/1047, reflow zapisanego kursora i renderowanie ramek z różnymi fontami pozostają do dalszych porównań.
+
+## Odzyskiwanie parsera i podparametry SGR — 1.0.19.52
+
+W ESC, CSI i oznaczeniach zestawów znane kontrolki C0 wykonują swoją funkcję bez kończenia sekwencji. NUL i DEL nie dopisują znaków. CAN/SUB anuluje rozpoznawanie. Nieobsługiwane sekwencje ESC z bajtami pośrednimi są konsumowane do końcowego znaku; samo ich pominięcie nie oznacza implementacji np. DECALN. Nowy ESC przerywa nieukończone polecenie; także OSC i ignorowane ciągi mogą ustąpić nowej sekwencji ESC/CSI. Niepoprawny znak Unicode w CSI kończy sekwencję i trafia do normalnego tekstu.
+
+Limity pozostają ochronne: 256 znaków CSI i 4096 jednostek UTF-16 OSC. Przekroczenie oznacza odrzucenie całej sekwencji przy jej zakończeniu; parser nie wykonuje obciętego CSI ani nie publikuje obciętego tytułu/odnośnika. Przepełniona liczba w zwykłym CSI nie jest zamieniana na domyślne zero. W OSC pozostałe C0 są ignorowane, BEL i ESC \ kończą ciąg, a CAN/SUB go anuluje.
+
+SGR zachowuje granice grup oddzielanych średnikami i podparametrów oddzielanych dwukropkami. Obsługiwane kolory: `38;5;n`, `48;5;n`, `38:5:n`, `48:5:n`, `38;2;r;g;b`, `48;2;r;g;b`, `38:2:r:g:b`, `48:2:r:g:b` oraz warianty z pustym identyfikatorem przestrzeni kolorów, np. `38:2::r:g:b`. Składowe muszą mieścić się w 0–255; niepuste identyfikatory przestrzeni nie są obsługiwane. Niepełne lub błędne składowe nie stają się osobnymi poleceniami SGR. `4:0` i `4:1` wyłączają/włączają obsługiwane pojedyncze podkreślenie; pozostałe style nadal wymagają widoku. Parametry koloru podkreślenia SGR 58 są konsumowane bez zmiany innych atrybutów; jego renderowanie nie jest jeszcze zaimplementowane.
+
+Punkt odniesienia dla składni i konsumowania parametrów: [parser SGR VTE](https://github.com/GNOME/vte/blob/master/src/sgr.hh). Test podziału danych porównuje ekran, kolory, kursor, tytuł, dzwonek i odpowiedź urządzenia dla każdego miejsca podziału oraz dalszych odczytów po pojedynczym bajcie. Nie zastępuje to pełnej macierzy różnic z uruchomionym VTE.
