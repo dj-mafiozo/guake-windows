@@ -25,12 +25,14 @@ Interface
   '--split-horizontal | --split-vertical | --fullscreen | --unfullscreen'#13#10 +
   '--execute-command polecenie | --save-tabs | --restore-tabs'#13#10 +
   '--preferences | --about | --quit | --no-startup-script'#13#10 +
+  '--bgcolor HEX | --fgcolor HEX | --bgcolor-current HEX | --fgcolor-current HEX'#13#10 +
+  '--reset-colors | --reset-colors-current'#13#10 +
   '--version | --help'#13#10;
 
 Implementation
 
  Uses
-  Winapi.Windows, Winapi.ShellAPI, System.SysUtils, System.JSON, System.Generics.Collections;
+  Winapi.Windows, Winapi.ShellAPI, Guake.Colors, System.SysUtils, System.JSON, System.Generics.Collections;
 
  Function AttachParentConsole(ProcessId : DWORD) : BOOL; Stdcall; External 'kernel32.dll' name 'AttachConsole';
 
@@ -128,6 +130,23 @@ Implementation
        Begin
         Add('quit');
         Result.Hidden := True;
+       End
+      Else If (Arg = '--bgcolor') Or (Arg = '--fgcolor') Or (Arg = '--bgcolor-current') Or (Arg = '--fgcolor-current') Then
+       Begin
+        Value := Parameter;
+        ParseTerminalColor(Value);
+        If Pos('--bgcolor', Arg) = 1 Then
+         Add('bgcolor', 'color', Value)
+        Else
+         Add('fgcolor', 'color', Value);
+        If Pos('-current', Arg) > 0 Then
+         Commands.Last.AddPair('current', 'true');
+       End
+      Else If (Arg = '--reset-colors') Or (Arg = '--reset-colors-current') Then
+       Begin
+        Add('reset-colors');
+        If Arg = '--reset-colors-current' Then
+         Commands.Last.AddPair('current', 'true');
        End
       Else If Arg = '--close-tab' Then
        Add('close-tab')

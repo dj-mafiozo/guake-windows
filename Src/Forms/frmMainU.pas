@@ -77,6 +77,10 @@ Interface
     miPopupBash           : TMenuItem;
     miPopupCmd            : TMenuItem;
     miPopupPowerShell     : TMenuItem;
+    Procedure DrawTerminalTab    (Control : TCustomTabControl; TabIndex : Integer; Const Rect : TRect; Active : Boolean);
+    Procedure TabMouseDown       (Sender : TObject; Button : TMouseButton; Shift : TShiftState; x, y : Integer);
+    Procedure TabMouseMove       (Sender : TObject; Shift : TShiftState; x, y : Integer);
+    Procedure ResetTabColorsClick(Sender : TObject);
     Procedure QuickOpenClick     (Sender : TObject);
     Procedure NotificationExpired(Sender : TObject);
     Procedure CustomCommandClick (Sender : TObject);
@@ -107,12 +111,18 @@ Interface
     Procedure TabChanged         (Sender : TObject);
     Procedure TabDoubleClick     (Sender : TObject);
    Private
+    fLastTabActivity : String;
+    fPendingTabClose : TQueue<String>;
+    fHoverTab        : Integer;
     fLayeredDirty    : Boolean;
     fComposing       : Boolean;
+    fChromeSurface   : TBitmap;
     fWindowSurface   : TBitmap;
     fTerminalSurface : TBitmap;
-    Procedure VisualChanged(Sender : TObject);
+    Procedure VisualChanged   (Sender : TObject);
+    Procedure PaintTerminalTab(Canvas : TCanvas; Index : Integer; Const Bounds : TRect; Active : Boolean);
     Procedure PresentLayeredWindow;
+    Procedure WMCloseTabButton(Var Message : TMessage); Message WM_APP + 44;
    Private
     fPopupQuickOpen     : TQuickOpenTarget;
     fPopupQuickSession  : String;
@@ -192,7 +202,9 @@ Interface
     Procedure Bind(Settings : TGuakeSettings; Localizer : TGuakeLocalization = Nil; Log : TGuakeLog = Nil);
     Procedure ApplySettings;
     /// <summary>Builds the native UI with opaque controls and premultiplied terminal background alpha.</summary>
-    Procedure RenderWindow      (Destination : TBitmap);
+    Procedure RenderWindow(Destination : TBitmap);
+    /// <summary>Close-button bounds in native tab-bar coordinates.</summary>
+    Function  TabCloseRect      (Index : Integer) : TRect;
     Procedure SetTerminalVisible(Value : Boolean);
     Procedure ToggleVisibility;
     Procedure SetFullScreen     (Value : Boolean);
@@ -203,7 +215,7 @@ Interface
 Implementation
 
  Uses
-  Guake.Shells, Guake.WindowsIntegration, Guake.ProjectConfig, Guake.Links, Winapi.ShellAPI, System.NetEncoding, System.IOUtils, System.JSON, frmPreferencesU, frmAboutU, frmRenameU, frmConfirmU, dmDialogsU, fraSplitU, Guake.Keybindings, System.Math, Guake.Resources;
+  Guake.Composition, Guake.Colors, Vcl.Themes, Winapi.CommCtrl, Guake.Shells, Guake.WindowsIntegration, Guake.ProjectConfig, Guake.Links, Winapi.ShellAPI, System.NetEncoding, System.IOUtils, System.JSON, frmPreferencesU, frmAboutU, frmRenameU, frmConfirmU, dmDialogsU, fraSplitU, Guake.Keybindings, System.Math, Guake.Resources;
 
  Type
   TTabControlAccess = Class(TTabControl)
@@ -229,6 +241,8 @@ Implementation
 
  Procedure TfrmMain.FormCreate(Sender : TObject);
   Begin
+   fPendingTabClose                     := TQueue<String>.Create;
+   fHoverTab                            := -1;
    TTabControlAccess(tabBar).OnDblClick := TabDoubleClick;
   End;
 
@@ -331,6 +345,11 @@ Implementation
     tabHost.Align  := alBottom;
    tabHost.Visible := fSettings.General.WindowTabbar And Not(fFullScreen And fSettings.General.FullscreenHideTabbar)
    And Not(fSettings.General.HideTabsIfOneTab And (tabBar.Tabs.Count <= 1));
+   If fSettings.General.TabCloseButtons Then
+    SendMessage(tabBar.Handle, TCM_SETPADDING, 0, MakeLParam(MulDiv(18, PixelsPerInch, 96), 3))
+   Else
+    SendMessage(tabBar.Handle, TCM_SETPADDING, 0, MakeLParam(MulDiv(6, PixelsPerInch, 96), 3));
+   tabBar.Invalidate;
    ApplyOpacity;
    trayIcon.Visible := (fController <> Nil) And fSettings.General.UseTrayicon;
   End;
@@ -373,35 +392,48 @@ Implementation
 
  Procedure TfrmMain.RenderWindow(Destination : TBitmap);
   Var
-   Frame    : TfraTerminal;
-   Position : TPoint;
-   x        : Integer;
-   y        : Integer;
-   Left     : Integer;
-   Right    : Integer;
-   Top      : Integer;
-   Bottom   : Integer;
-   Pixel    : PRGBQuad;
-   Source   : PByte;
-   Target   : PByte;
-   Opacity  : Byte;
+   Frame        : TfraTerminal;
+   Position     : TPoint;
+   y            : Integer;
+   Left         : Integer;
+   Right        : Integer;
+   Top          : Integer;
+   Bottom       : Integer;
+   SourceBase   : PByte;
+   TargetBase   : PByte;
+   SourceStride : NativeInt;
+   TargetStride : NativeInt;
+   Source       : PByte;
+   Target       : PByte;
+   Opacity      : Byte;
 
    Procedure PaintNative(Control : TWinControl);
     Var
      Origin : TPoint;
+     Index  : Integer;
      Saved  : Integer;
     Begin
      Origin := ScreenToClient(Control.Parent.ClientToScreen(Point(Control.Left, Control.Top)));
-     Saved  := SaveDC(Destination.Canvas.Handle);
+     If fChromeSurface = Nil Then
+      fChromeSurface            := TBitmap.Create;
+     fChromeSurface.PixelFormat := pf32bit;
+     fChromeSurface.SetSize(Control.Width, Control.Height);
+     fChromeSurface.Canvas.Brush.Style := bsSolid;
+     fChromeSurface.Canvas.Brush.Color := clBtnFace;
+     fChromeSurface.Canvas.FillRect(Rect(0, 0, Control.Width, Control.Height));
+     // Give native theme and owner-draw code a local DC, without the parent snapshot's viewport/clip state.
+     Saved := SaveDC(fChromeSurface.Canvas.Handle);
      Try
-      SetViewportOrgEx(Destination.Canvas.Handle, Origin.X, Origin.Y, Nil);
-      IntersectClipRect(Destination.Canvas.Handle, 0, 0, Control.Width, Control.Height);
-      Destination.Canvas.Brush.Color := clBtnFace;
-      Destination.Canvas.FillRect(Rect(0, 0, Control.Width, Control.Height));
-      Control.Perform(WM_PRINTCLIENT, Destination.Canvas.Handle, PRF_CLIENT Or PRF_ERASEBKGND);
+      Control.Perform(WM_PRINTCLIENT, fChromeSurface.Canvas.Handle, PRF_CLIENT Or PRF_ERASEBKGND);
      Finally
-      RestoreDC(Destination.Canvas.Handle, Saved);
+      RestoreDC(fChromeSurface.Canvas.Handle, Saved);
+      fChromeSurface.Canvas.Refresh;
      End;
+     If (Control = tabBar) And tabBar.OwnerDraw Then
+      For Index := 0 To tabBar.Tabs.Count - 1 Do
+       PaintTerminalTab(fChromeSurface.Canvas, Index, tabBar.TabRect(Index), Index = tabBar.TabIndex);
+     BitBlt(Destination.Canvas.Handle, Origin.x, Origin.y, Control.Width, Control.Height,
+     fChromeSurface.Canvas.Handle, 0, 0, SRCCOPY);
     End;
 
   Begin
@@ -410,8 +442,12 @@ Implementation
    fComposing := True;
    Try
     Destination.PixelFormat := pf32bit;
-    Destination.AlphaFormat := afIgnored;
     Destination.SetSize(ClientWidth, ClientHeight);
+    // Keep the premultiplied flag: resetting to afIgnored unpremultiplies every old pixel only to overwrite it.
+    Destination.AlphaFormat := afPremultiplied;
+    If fViews <> Nil Then
+     For Frame In fViews.Values Do
+      Frame.CaptureBackgroundOnly  := True;
     Destination.Canvas.Brush.Color := Color;
     Destination.Canvas.FillRect(ClientRect);
     PaintTo(Destination.Canvas.Handle, 0, 0);
@@ -425,16 +461,11 @@ Implementation
      For Frame In fViews.Values Do
       If Frame.Visible And Frame.scroll.Visible Then
        PaintNative(Frame.scroll);
-    For y := 0 To Destination.Height - 1 Do
-     Begin
-      Pixel := Destination.ScanLine[y];
-      For x := 0 To Destination.Width - 1 Do
-       Begin
-        Pixel.rgbReserved := 255;
-        Inc(Pixel);
-       End;
-     End;
-    Destination.AlphaFormat := afPremultiplied;
+    MakeBitmapOpaque(Destination);
+    TargetBase   := Destination.ScanLine[0];
+    TargetStride := 0;
+    If Destination.Height > 1 Then
+     TargetStride := NativeInt(Destination.ScanLine[1]) - NativeInt(TargetBase);
     If fTerminalSurface = Nil Then
      fTerminalSurface := TBitmap.Create;
     Opacity           := Max(1, MulDiv(fSettings.Style.Background.Transparency, 255, 100));
@@ -444,22 +475,29 @@ Implementation
        Begin
         Position := ScreenToClient(Frame.surface.ClientToScreen(Point(0, 0)));
         Frame.RenderAlpha(fTerminalSurface, Opacity);
-        Left   := Max(0, Position.X);
-        Right  := Min(Destination.Width, Position.X + fTerminalSurface.Width);
-        Top    := Max(0, Position.Y);
-        Bottom := Min(Destination.Height, Position.Y + fTerminalSurface.Height);
-        For y  := Top To Bottom - 1 Do
+        SourceBase   := fTerminalSurface.ScanLine[0];
+        SourceStride := 0;
+        If fTerminalSurface.Height > 1 Then
+         SourceStride := NativeInt(fTerminalSurface.ScanLine[1]) - NativeInt(SourceBase);
+        Left          := Max(0, Position.x);
+        Right         := Min(Destination.Width, Position.x + fTerminalSurface.Width);
+        Top           := Max(0, Position.y);
+        Bottom        := Min(Destination.Height, Position.y + fTerminalSurface.Height);
+        For y         := Top To Bottom - 1 Do
          If Right > Left Then
           Begin
-           Source := fTerminalSurface.ScanLine[y - Position.Y];
-           Inc(Source, (Left - Position.X) * SizeOf(TRGBQuad));
-           Target := Destination.ScanLine[y];
+           Source := PByte(NativeInt(SourceBase) + (y - Position.y) * SourceStride);
+           Inc(Source, (Left - Position.x) * SizeOf(TRGBQuad));
+           Target := PByte(NativeInt(TargetBase) + y * TargetStride);
            Inc(Target, Left * SizeOf(TRGBQuad));
            Move(Source^, Target^, (Right - Left) * SizeOf(TRGBQuad));
           End;
        End;
    Finally
-    fComposing := False;
+    If fViews <> Nil Then
+     For Frame In fViews.Values Do
+      Frame.CaptureBackgroundOnly := False;
+    fComposing                    := False;
    End;
   End;
 
@@ -605,10 +643,10 @@ Implementation
   Var
    Point : TPoint;
   Begin
-   Point.X := 0;
-   Point.Y := btnTabList.Height;
+   Point.x := 0;
+   Point.y := btnTabList.Height;
    Point   := btnTabList.ClientToScreen(Point);
-   tabListMenu.Popup(Point.X, Point.Y);
+   tabListMenu.Popup(Point.x, Point.y);
   End;
 
 /// <summary>Builds only the data-dependent tab list and selects by stable tab identity.</summary>
@@ -948,11 +986,11 @@ Implementation
    miSearchWeb.Enabled := (Frame <> Nil) And (Frame.SelectedText <> '');
    miOpenLink.Enabled  := False;
    If Frame <> Nil Then
-    fPopupLink := Frame.LinkAt(Frame.surface.ScreenToClient(Mouse.CursorPos).X, Frame.surface.ScreenToClient(Mouse.CursorPos).Y);
+    fPopupLink := Frame.LinkAt(Frame.surface.ScreenToClient(Mouse.CursorPos).x, Frame.surface.ScreenToClient(Mouse.CursorPos).y);
    If Frame <> Nil Then
     Begin
-     miQuickOpen.Enabled := QuickOpenTarget(Frame, Frame.surface.ScreenToClient(Mouse.CursorPos).X,
-     Frame.surface.ScreenToClient(Mouse.CursorPos).Y, fPopupQuickOpen);
+     miQuickOpen.Enabled := QuickOpenTarget(Frame, Frame.surface.ScreenToClient(Mouse.CursorPos).x,
+     Frame.surface.ScreenToClient(Mouse.CursorPos).y, fPopupQuickOpen);
      fPopupQuickSession := Frame.Session.Id;
     End;
    miOpenLink.Enabled      := fPopupLink <> '';
@@ -965,15 +1003,155 @@ Implementation
    miResetTerminal.Enabled := Frame <> Nil;
   End;
 
+ Function TfrmMain.TabCloseRect(Index : Integer) : TRect;
+  Var
+   Width : Integer;
+  Begin
+   Result      := tabBar.TabRect(Index);
+   Width       := MulDiv(18, PixelsPerInch, 96);
+   Result.Left := Result.Right - Width - 2;
+   InflateRect(Result, 0, -2);
+  End;
+
+ Procedure TfrmMain.DrawTerminalTab(Control : TCustomTabControl; TabIndex : Integer; Const Rect : TRect; Active : Boolean);
+  Begin
+   PaintTerminalTab(tabBar.Canvas, TabIndex, Rect, Active);
+  End;
+
+ Procedure TfrmMain.PaintTerminalTab(Canvas : TCanvas; Index : Integer; Const Bounds : TRect; Active : Boolean);
+  Var
+   Details   : TThemedElementDetails;
+   TextRect  : TRect;
+   CloseRect : TRect;
+   x         : Integer;
+   y         : Integer;
+   Radius    : Integer;
+   Title     : String;
+  Begin
+   If (Index < 0) Or (Index >= tabBar.Tabs.Count) Then
+    Exit;
+   Canvas.Brush.Style := bsSolid;
+   Canvas.Brush.Color := clBtnFace;
+   Canvas.FillRect(Bounds);
+   If Active Then
+    Details := StyleServices.GetElementDetails(ttbButtonChecked)
+   Else If Index = fHoverTab Then
+    Details := StyleServices.GetElementDetails(ttbButtonHot)
+   Else
+    Details := StyleServices.GetElementDetails(ttbButtonNormal);
+   StyleServices.DrawElement(Canvas.Handle, Details, Bounds);
+   Canvas.Font.Assign(tabBar.Font);
+   If (fController <> Nil) And (Index >= 0) And (Index < fController.Count) And
+   fController.Tabs[Index].HasActivity Then
+    Canvas.Font.Style := [fsBold];
+   Canvas.Font.Color  := clWindowText;
+   TextRect           := Bounds;
+   InflateRect(TextRect, -6, 0);
+   If (fSettings <> Nil) And fSettings.General.TabCloseButtons Then
+    Begin
+     CloseRect        := TabCloseRect(Index);
+     TextRect.Right   := CloseRect.Left - 2;
+     x                := (CloseRect.Left + CloseRect.Right) Div 2;
+     y                := (CloseRect.Top + CloseRect.Bottom) Div 2;
+     Radius           := Max(3, MulDiv(3, PixelsPerInch, 96));
+     Canvas.Pen.Color := clWindowText;
+     Canvas.Pen.Width := Max(1, MulDiv(1, PixelsPerInch, 96));
+     Canvas.MoveTo(x - Radius, y - Radius);
+     Canvas.LineTo(x + Radius + 1, y + Radius + 1);
+     Canvas.MoveTo(x - Radius, y + Radius);
+     Canvas.LineTo(x + Radius + 1, y - Radius - 1);
+    End;
+   Canvas.Refresh;
+   Canvas.TextWidth('M');
+   SetTextAlign(Canvas.Handle, TA_LEFT Or TA_TOP Or TA_NOUPDATECP);
+   SelectObject(Canvas.Handle, Canvas.Font.Handle);
+   SetTextColor(Canvas.Handle, ColorToRGB(clWindowText));
+   SetBkMode(Canvas.Handle, TRANSPARENT);
+   Title              := tabBar.Tabs[Index];
+   Canvas.Brush.Style := bsClear;
+   Canvas.TextRect(TextRect, TextRect.Left, TextRect.Top + Max(0, (TextRect.Bottom - TextRect.Top - Canvas.TextHeight(Title)) Div 2), Title);
+  End;
+
+ Procedure TfrmMain.TabMouseMove(Sender : TObject; Shift : TShiftState; x, y : Integer);
+  Var
+   Index : Integer;
+  Begin
+   Index := tabBar.IndexOfTabAt(x, y);
+   If Index <> fHoverTab Then
+    Begin
+     fHoverTab := Index;
+     tabBar.Invalidate;
+     VisualChanged(Self);
+    End;
+  End;
+
+ Procedure TfrmMain.TabMouseDown(Sender : TObject; Button : TMouseButton; Shift : TShiftState; x, y : Integer);
+  Var
+   Index : Integer;
+  Begin
+   If (fSettings = Nil) Or (fController = Nil) Or Not fSettings.General.TabCloseButtons Or (Button <> mbLeft) Then
+    Exit;
+   Index := tabBar.IndexOfTabAt(x, y);
+   If (Index < 0) Or (Index >= fController.Count) Then
+    Exit;
+   If PtInRect(TabCloseRect(Index), Point(x, y)) Then
+    Begin
+     fPendingTabClose.Enqueue(fController.Tabs[Index].Id);
+     PostMessage(Handle, WM_APP + 44, 0, 0);
+    End;
+  End;
+
+ Procedure TfrmMain.WMCloseTabButton(Var Message : TMessage);
+  Var
+   Id : String;
+   i  : Integer;
+  Begin
+   If (fPendingTabClose = Nil) Or (fPendingTabClose.Count = 0) Then
+    Exit;
+   Id := fPendingTabClose.Dequeue;
+   If fController = Nil Then
+    Exit;
+   For i := 0 To fController.Count - 1 Do
+    If fController.Tabs[i].Id = Id Then
+     Begin
+      fController.SelectTab(i);
+      ExecuteTerminalAction(gskKeybindingsLocalCloseTab);
+      Break;
+     End;
+  End;
+
+ Procedure TfrmMain.ResetTabColorsClick(Sender : TObject);
+  Begin
+   If fController <> Nil Then
+    fController.ResetColors(tcsTab);
+  End;
+
  Procedure TfrmMain.TabMenuPopup(Sender : TObject);
   Var
    Point : TPoint;
    Index : Integer;
+  Var
+   Session : TTerminalSession;
+   List    : TList<TTerminalSession>;
   Begin
+   miRestoreTabColors.Enabled := False;
+   If (fController <> Nil) And (fController.ActiveTab <> Nil) Then
+    Begin
+     List := TList<TTerminalSession>.Create;
+     Try
+      fController.ActiveTab.Root.Collect(List);
+      For Session In List Do
+       If (Session.CustomForeground >= 0) Or (Session.CustomBackground >= 0) Then
+        miRestoreTabColors.Enabled := True;
+     Finally
+      List.Free;
+     End;
+    End;
+
    If fController = Nil Then
     Exit;
    Point := tabBar.ScreenToClient(Mouse.CursorPos);
-   Index := tabBar.IndexOfTabAt(Point.X, Point.Y);
+   Index := tabBar.IndexOfTabAt(Point.x, Point.y);
    If Index >= 0 Then
     fController.SelectTab(Index);
    miRenameTab.Enabled := fController.ActiveTab <> Nil;
@@ -1253,9 +1431,11 @@ Implementation
     notificationTimer.Enabled := False;
    DeleteNotificationIcon;
    FreeAndNil(fNotificationQueue);
+   FreeAndNil(fPendingTabClose);
    If animationTimer <> Nil Then
     animationTimer.Enabled := False;
    StopTerminal;
+   FreeAndNil(fChromeSurface);
    FreeAndNil(fWindowSurface);
    FreeAndNil(fTerminalSurface);
   End;
@@ -1316,33 +1496,69 @@ Implementation
 
  Procedure TfrmMain.UpdateTerminalTitles;
   Var
-   i     : Integer;
-   Title : String;
+   i           : Integer;
+   Title       : String;
+   Activity    : String;
+   WindowTitle : String;
+   Changed     : Boolean;
+   ShowTabs    : Boolean;
   Begin
    If fController = Nil Then
     Exit;
+   Changed       := False;
+   Activity      := '';
    fUpdatingTabs := True;
    Try
     While tabBar.Tabs.Count > fController.Count Do
-     tabBar.Tabs.Delete(tabBar.Tabs.Count - 1);
+     Begin
+      tabBar.Tabs.Delete(tabBar.Tabs.Count - 1);
+      Changed := True;
+     End;
     For i := 0 To fController.Count - 1 Do
      Begin
       Title := fController.Tabs[i].Title;
       If Length(Title) > fSettings.General.MaxTabNameLength Then
        Title := Copy(Title, 1, fSettings.General.MaxTabNameLength);
       If i = tabBar.Tabs.Count Then
-       tabBar.Tabs.Add(Title)
+       Begin
+        tabBar.Tabs.Add(Title);
+        Changed := True;
+       End
       Else If tabBar.Tabs[i] <> Title Then
-       tabBar.Tabs[i] := Title;
+       Begin
+        tabBar.Tabs[i] := Title;
+        Changed        := True;
+       End;
+      Activity := Activity + BoolToStr(fController.Tabs[i].HasActivity);
      End;
     If tabBar.TabIndex <> fController.ActiveIndex Then
-     tabBar.TabIndex := fController.ActiveIndex;
+     Begin
+      tabBar.TabIndex := fController.ActiveIndex;
+      Changed         := True;
+     End;
     If fSettings.General.SetWindowTitle And (fController.ActiveTab <> Nil) Then
-     Caption := fController.ActiveTab.Title
+     WindowTitle := fController.ActiveTab.Title
     Else
-     Caption        := 'Guake!';
-    tabHost.Visible := fSettings.General.WindowTabbar And Not(fFullScreen And fSettings.General.FullscreenHideTabbar)
+     WindowTitle := 'Guake!';
+    If Caption <> WindowTitle Then
+     Caption := WindowTitle;
+    ShowTabs := fSettings.General.WindowTabbar And Not(fFullScreen And fSettings.General.FullscreenHideTabbar)
     And Not(fSettings.General.HideTabsIfOneTab And (fController.Count <= 1));
+    If tabHost.Visible <> ShowTabs Then
+     Begin
+      tabHost.Visible := ShowTabs;
+      Changed         := True;
+     End;
+    If Activity <> fLastTabActivity Then
+     Begin
+      fLastTabActivity := Activity;
+      Changed          := True;
+     End;
+    If Changed Then
+     Begin
+      tabBar.Invalidate;
+      VisualChanged(Self);
+     End;
    Finally
     fUpdatingTabs := False;
    End;
@@ -1480,6 +1696,20 @@ Implementation
       fController.NewTab(Field('directory'), Field('shell'));
       SetTerminalVisible(True);
      End
+    Else If (Action = 'bgcolor') Or (Action = 'fgcolor') Then
+     Begin
+      If Field('current') = 'true' Then
+       fController.SetColor(Action = 'fgcolor', ParseTerminalColor(Field('color')), tcsTerminal)
+      Else
+       fController.SetColor(Action = 'fgcolor', ParseTerminalColor(Field('color')), tcsTab);
+     End
+    Else If Action = 'reset-colors' Then
+     Begin
+      If Field('current') = 'true' Then
+       fController.ResetColors(tcsTerminal)
+      Else
+       fController.ResetColors(tcsAll);
+     End
     Else If Action = 'close-tab' Then
      ExecuteTerminalAction(gskKeybindingsLocalCloseTab)
     Else If Action = 'select-tab' Then
@@ -1526,6 +1756,7 @@ Implementation
    AllExited : Boolean;
    List      : TList<TTerminalSession>;
    Command   : String;
+   Frame     : TfraTerminal;
   Begin
    If (fController = Nil) Or fPolling Then
     Exit;
@@ -1549,7 +1780,13 @@ Implementation
       End;
 
     If fController.Poll Then
-     UpdateTerminalTitles;
+     Begin
+      UpdateTerminalTitles;
+      // Consume output and update the viewport in the same poll instead of waiting another 100 ms.
+      If fViews <> Nil Then
+       For Frame In fViews.Values Do
+        Frame.RefreshTick(Nil);
+     End;
     For Session In fController.Sessions Do
      If Session.TakeBell And fSettings.General.UseAudibleBell Then
       MessageBeep(MB_OK);
@@ -1669,7 +1906,7 @@ Implementation
      If Frame <> Nil Then
       Begin
        Point := Frame.surface.ScreenToClient(Mouse.CursorPos);
-       OpenExternalLink(Frame.LinkAt(Point.X, Point.Y));
+       OpenExternalLink(Frame.LinkAt(Point.x, Point.y));
       End;
     gskKeybindingsLocalFocusTerminalUp :
      fController.FocusDirection(0, -1);

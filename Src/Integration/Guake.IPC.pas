@@ -132,7 +132,7 @@ Implementation
     If Not(Action Is TJSONString) Then
      Exit;
     name   := ',' + Action.Value + ',';
-    Result := Pos(name, ',show,hide,toggle,new-tab,close-tab,select-tab,rename-tab,split-horizontal,split-vertical,preferences,about,quit,save-session,restore-session,execute,fullscreen,unfullscreen,') > 0;
+    Result := Pos(name, ',show,hide,toggle,new-tab,close-tab,select-tab,rename-tab,split-horizontal,split-vertical,preferences,about,quit,save-session,restore-session,execute,fullscreen,unfullscreen,bgcolor,fgcolor,reset-colors,') > 0;
    Finally
     Root.Free;
    End;

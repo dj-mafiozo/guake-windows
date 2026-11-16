@@ -12,8 +12,12 @@ Interface
 
  Type
   /// <summary>A session owns one ConPTY process and one UI-thread VT model.</summary>
+  TTerminalColorScope = (tcsAll, tcsTab, tcsTerminal);
+
   TTerminalSession = Class
    Private
+    fCustomForeground : Integer;
+    fCustomBackground : Integer;
     fLastBell         : UInt64;
     fId               : String;
     fDirectory        : String;
@@ -30,6 +34,10 @@ Interface
     fProjectNextCheck : UInt64;
     Function GetTitle : String;
    Public
+    /// <summary>Sets default-cell overrides; -1 restores the configured palette for that channel.</summary>
+    Procedure SetCustomColors(Foreground, Background : Integer);
+    Property CustomForeground : Integer Read fCustomForeground;
+    Property CustomBackground : Integer Read fCustomBackground;
     Function TakeBell : Boolean;
     /// <summary>Initializes this service and acquires the resources whose lifetime it owns.</summary>
     Constructor Create(Const Profile : TShellProfile; Const Directory : String; Settings : TGuakeSettings);
@@ -72,10 +80,12 @@ Interface
 
   TTerminalTab = Class
    Public
-    Id     : String;
-    Name   : String;
-    Root   : TTerminalNode;
-    Active : TTerminalNode;
+    HasActivity         : Boolean;
+    ActivityIgnoreUntil : UInt64;
+    Id                  : String;
+    Name                : String;
+    Root                : TTerminalNode;
+    Active              : TTerminalNode;
     /// <summary>Releases owned resources; borrowed settings and view references are not freed.</summary>
     Destructor Destroy; Override;
     Function   Title : String;
@@ -88,10 +98,12 @@ Interface
     fSettings    : TGuakeSettings;
     fActiveIndex : Integer;
     fOnChanged   : TNotifyEvent;
-    Function  GetActiveTab            : TTerminalTab;
-    Function  GetActiveSession        : TTerminalSession;
-    Function  GetCount                : Integer;
-    Function  GetTab(Index : Integer) : TTerminalTab;
+    Function  GetActiveTab                               : TTerminalTab;
+    Function  GetActiveSession                           : TTerminalSession;
+    Function  GetCount                                   : Integer;
+    Function  GetTab       (Index : Integer)             : TTerminalTab;
+    Procedure ActivateTab  (Index : Integer);
+    Function  ColorSessions(Scope : TTerminalColorScope) : TArray<TTerminalSession>;
     Procedure Changed;
    Public
     /// <summary>Initializes this service and acquires the resources whose lifetime it owns.</summary>
@@ -100,8 +112,11 @@ Interface
     Destructor Destroy; Override;
     Function   DefaultProfile : TShellProfile;
     /// <summary>Starts a shell before adding its tab, preserving the existing layout on startup failure.</summary>
-    Function  NewTab   (Const Directory : String = ''; Const Shell : String = '') : TTerminalTab;
-    Procedure SelectTab(Index : Integer);
+    /// <summary>Changes the selected channel for all panes of the active tab or a narrower scope.</summary>
+    Procedure SetColor   (Foreground : Boolean; Color : Integer; Scope : TTerminalColorScope = tcsTab);
+    Procedure ResetColors(Scope : TTerminalColorScope = tcsAll);
+    Function  NewTab     (Const Directory : String = ''; Const Shell : String = '') : TTerminalTab;
+    Procedure SelectTab  (Index : Integer);
     /// <summary>Removes a tab and destroys its owned terminal process trees.</summary>
     Procedure CloseTab(Index : Integer);
     Procedure MoveTab (FromIndex, ToIndex : Integer);
@@ -145,6 +160,14 @@ Implementation
    Result := LowerCase(Copy(GUIDToString(Id), 2, 36));
   End;
 
+ Procedure TTerminalSession.SetCustomColors(Foreground, Background : Integer);
+  Begin
+   If (Foreground < -1) Or (Foreground > $FFFFFF) Or (Background < -1) Or (Background > $FFFFFF) Then
+    Raise EArgumentOutOfRangeException.Create('Terminal color');
+   fCustomForeground := Foreground;
+   fCustomBackground := Background;
+  End;
+
  Constructor TTerminalSession.Create(Const Profile : TShellProfile; Const Directory : String; Settings : TGuakeSettings);
   Var
    Env   : TStringList;
@@ -152,6 +175,7 @@ Implementation
    Sdk   : String;
   Begin
    Inherited Create;
+   SetCustomColors( -1, -1);
    fSettings  := Settings;
    fId        := NewId;
    fProfile   := Profile;
@@ -454,15 +478,16 @@ Implementation
    Session := TTerminalSession.Create(Profile, Target, fSettings);
    Result  := TTerminalTab.Create;
    Try
-    Result.Id     := NewId;
-    Result.Root   := TTerminalNode.Create(Session);
-    Session       := Nil;
-    Result.Active := Result.Root;
-    InsertAt      := Count;
+    Result.ActivityIgnoreUntil := GetTickCount64 + UInt64(Round(fSettings.General.TabActivityNewTabGrace * 1000));
+    Result.Id                  := NewId;
+    Result.Root                := TTerminalNode.Create(Session);
+    Session                    := Nil;
+    Result.Active              := Result.Root;
+    InsertAt                   := Count;
     If fSettings.General.NewTabAfter And (fActiveIndex >= 0) Then
      InsertAt := fActiveIndex + 1;
     fTabs.Insert(InsertAt, Result);
-    fActiveIndex := InsertAt;
+    ActivateTab(InsertAt);
    Except
     Result.Free;
     Session.Free;
@@ -471,11 +496,65 @@ Implementation
    Changed;
   End;
 
+ Procedure TTerminalController.ActivateTab(Index : Integer);
+  Begin
+   If (fActiveIndex >= 0) And (fActiveIndex < Count) And (fActiveIndex <> Index) Then
+    fTabs[fActiveIndex].ActivityIgnoreUntil := Max(fTabs[fActiveIndex].ActivityIgnoreUntil,
+    GetTickCount64 + UInt64(Round(fSettings.General.TabActivityFocusLossGrace * 1000)));
+   fActiveIndex := Index;
+   If (Index >= 0) And (Index < Count) Then
+    fTabs[Index].HasActivity := False;
+  End;
+
+ Function TTerminalController.ColorSessions(Scope : TTerminalColorScope) : TArray<TTerminalSession>;
+  Var
+   List : TList<TTerminalSession>;
+  Begin
+   If Scope = tcsAll Then
+    Exit(Sessions);
+   List := TList<TTerminalSession>.Create;
+   Try
+    If Scope = tcsTerminal Then
+     Begin
+      If ActiveSession <> Nil Then
+       List.Add(ActiveSession);
+     End
+    Else If ActiveTab <> Nil Then
+     ActiveTab.Root.Collect(List);
+    Result := List.ToArray;
+   Finally
+    List.Free;
+   End;
+  End;
+
+ Procedure TTerminalController.SetColor(Foreground : Boolean; Color : Integer; Scope : TTerminalColorScope);
+  Var
+   Session : TTerminalSession;
+  Begin
+   If (Color < 0) Or (Color > $FFFFFF) Then
+    Raise EArgumentOutOfRangeException.Create('Terminal color');
+   For Session In ColorSessions(Scope) Do
+    If Foreground Then
+     Session.SetCustomColors(Color, Session.CustomBackground)
+    Else
+     Session.SetCustomColors(Session.CustomForeground, Color);
+   Changed;
+  End;
+
+ Procedure TTerminalController.ResetColors(Scope : TTerminalColorScope);
+  Var
+   Session : TTerminalSession;
+  Begin
+   For Session In ColorSessions(Scope) Do
+    Session.SetCustomColors( -1, -1);
+   Changed;
+  End;
+
  Procedure TTerminalController.SelectTab(Index : Integer);
   Begin
    If (Index < 0) Or (Index >= Count) Then
     Raise EArgumentOutOfRangeException.Create('Tab index');
-   fActiveIndex := Index;
+   ActivateTab(Index);
    Changed;
   End;
 
@@ -487,6 +566,8 @@ Implementation
    If Index < fActiveIndex Then
     Dec(fActiveIndex);
    fActiveIndex := Min(fActiveIndex, Count - 1);
+   If ActiveTab <> Nil Then
+    ActiveTab.HasActivity := False;
    Changed;
   End;
 
@@ -747,6 +828,8 @@ Implementation
         Result.AddPair('id', Node.Session.Id);
         Result.AddPair('directory', Node.Session.Directory);
         Result.AddPair('title', Node.Session.CustomTitle);
+        Result.AddPair('custom-foreground', TJSONNumber.Create(Node.Session.CustomForeground));
+        Result.AddPair('custom-background', TJSONNumber.Create(Node.Session.CustomBackground));
         Result.AddPair('shell', TJSONNumber.Create(Ord(Profile.Kind)));
         Result.AddPair('executable', Profile.Executable);
         Result.AddPair('arguments', Profile.Arguments);
@@ -807,10 +890,11 @@ Implementation
 
    Function ReadNode(Value : TJSONValue; Parent : TTerminalNode; Depth : Integer; Const ActiveId : String; Var Active : TTerminalNode) : TTerminalNode;
     Var
-     Obj                : TJSONObject;
-     Kind, Shell, Ratio : Integer;
-     Profile            : TShellProfile;
-     Session            : TTerminalSession;
+     Obj                    : TJSONObject;
+     Kind, Shell, Ratio     : Integer;
+     Foreground, Background : Integer;
+     Profile                : TShellProfile;
+     Session                : TTerminalSession;
     Begin
      If (Depth > 64) Or Not(Value Is TJSONObject) Then
       Raise EArgumentException.Create('Invalid session tree');
@@ -841,6 +925,13 @@ Implementation
         Result.Session      := Session;
         Session.fId         := Field(Obj, 'id');
         Session.CustomTitle := Field(Obj, 'title');
+        Foreground          := -1;
+        Background          := -1;
+        If Obj.GetValue('custom-foreground') <> Nil Then
+         Foreground := StrToInt(Field(Obj, 'custom-foreground'));
+        If Obj.GetValue('custom-background') <> Nil Then
+         Background := StrToInt(Field(Obj, 'custom-background'));
+        Session.SetCustomColors(Foreground, Background);
         If Session.Id = ActiveId Then
          Active := Result;
        End
@@ -882,9 +973,10 @@ Implementation
       Item := TJSONObject(Entry);
       Tab  := TTerminalTab.Create;
       NewTabs.Add(Tab);
-      Tab.Id   := Field(Item, 'id');
-      Tab.Name := Field(Item, 'name');
-      Tab.Root := ReadNode(Item.GetValue('root'), Nil, 0, Field(Item, 'active-session'), Tab.Active);
+      Tab.ActivityIgnoreUntil := GetTickCount64 + UInt64(Round(fSettings.General.TabActivityNewTabGrace * 1000));
+      Tab.Id                  := Field(Item, 'id');
+      Tab.Name                := Field(Item, 'name');
+      Tab.Root                := ReadNode(Item.GetValue('root'), Nil, 0, Field(Item, 'active-session'), Tab.Active);
       If Tab.Active = Nil Then
        Raise EArgumentException.Create('Invalid active session');
      End;
@@ -952,12 +1044,35 @@ Implementation
 
  Function TTerminalController.Poll : Boolean;
   Var
-   Session : TTerminalSession;
+   Session       : TTerminalSession;
+   Tab           : TTerminalTab;
+   List          : TList<TTerminalSession>;
+   ChangedOutput : Boolean;
   Begin
    Result := False;
-   For Session In Sessions Do
-    If Session.Poll Then
-     Result := True;
+   List   := TList<TTerminalSession>.Create;
+   Try
+    For Tab In fTabs Do
+     Begin
+      If Not fSettings.General.DisplayTabActivity And Tab.HasActivity Then
+       Begin
+        Tab.HasActivity := False;
+        Result          := True;
+       End;
+      List.Clear;
+      Tab.Root.Collect(List);
+      For Session In List Do
+       Begin
+        ChangedOutput := Session.Poll;
+        Result        := Result Or ChangedOutput;
+        If ChangedOutput And fSettings.General.DisplayTabActivity And (Tab <> ActiveTab) And
+        (GetTickCount64 >= Tab.ActivityIgnoreUntil) Then
+         Tab.HasActivity := True;
+       End;
+     End;
+   Finally
+    List.Free;
+   End;
   End;
 
 End.

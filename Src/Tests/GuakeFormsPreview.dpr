@@ -11,6 +11,7 @@ Uses
  Guake.ProjectConfig      In '..\Integration\Guake.ProjectConfig.pas',
  Guake.Unicode            In '..\Terminal\Guake.Unicode.pas',
  Guake.Composition        In '..\Appearance\Guake.Composition.pas',
+ Guake.Colors             In '..\Appearance\Guake.Colors.pas',
  Guake.AnimatedBackground In '..\Appearance\Guake.AnimatedBackground.pas',
  Guake.Links              In '..\Terminal\Guake.Links.pas',
  Guake.QuickOpen          In '..\Terminal\Guake.QuickOpen.pas',

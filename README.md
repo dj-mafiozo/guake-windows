@@ -51,3 +51,7 @@ Guake działa jako pojedyncza instancja użytkownika w sesji Windows. Kolejne ur
 Działają powiadomienia startowe i diagnostyczne z ikoną Guake, hooki start/show, autostart HKCU oraz dzwonek BEL. `.guake.yml` może nadawać tytuł projektu, a plik poleceń JSON tworzy menu użytkownika. Zakres parsera i ograniczenia integracji opisuje [stan portu](docs/port-status.md).
 
 Quick Open otwiera istniejący plik z numerem wiersza przez Ctrl+klik albo menu zaznaczenia. Obsługuje diagnostykę Python/pytest/GCC/Delphi/MSVC i ścieżki Windows/Git SDK. W preferencjach włącz funkcję i ustaw polecenie edytora dostępnego w Windows, np. `notepad.exe %(file_path)s` albo `code -g %(file_path)s:%(line_number)s`. Można uruchamiać edytor osobno lub wysyłać polecenie do bieżącej powłoki.
+
+Pasek kart obsługuje opcjonalne przyciski zamykania i pogrubienie tytułu po aktywności w tle, z okresami ignorowania po utworzeniu karty i utracie fokusu. Kolory można ustawiać przez CLI (`--bgcolor`, `--fgcolor`, warianty `-current`) i przywracać z menu karty lub `--reset-colors`. Kolory paneli są zapisywane razem z sesją.
+
+Renderer buforuje niezmienione panele i wiersze, grupuje znaki ASCII z zachowaniem przycinania do komórek i przelicza alfę bez ponownego rysowania całego tekstu. Testy zapisują pomiar kompozycji 1920×1080 do `bin/tests/composition-latency.txt` oraz sprawdzają zgodność pikseli i ponowne użycie paneli.

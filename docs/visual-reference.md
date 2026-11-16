@@ -43,3 +43,5 @@ Powiadomienie startowe korzysta z tytułu „Terminal Guake”, oryginalnej ikon
 Przezroczystość terminala jest obecnie składana dla samego tła i obrazu; tekst, zaznaczenie, jawne tła SGR i pasek kart zachowują krycie. Dodano animowane GIF-y. Pozostaje porównanie na rzeczywistym pulpicie i dalsza zgodność renderowania z VTE.
 
 Pozycja Quick Open w menu terminala jest aktywna dla rozpoznanego, istniejącego pliku, gdy funkcja jest włączona w preferencjach. Ctrl+klik i zaznaczenie korzystają z tego samego parsera diagnostyki.
+
+Pasek kart rysuje płaskie przyciski przez natywny motyw Windows. Ustawienie tab-close-buttons dodaje krzyżyki; aktywność w tle pogrubia tytuł zgodnie z okresami ignorowania z oryginału. Menu przywracania kolorów jest aktywne, gdy któryś panel karty ma własny kolor. Przezroczystość nadal obejmuje wyłącznie tło, a renderer ponownie wykorzystuje niezmienione panele.

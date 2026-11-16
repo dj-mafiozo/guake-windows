@@ -9,7 +9,7 @@ Interface
  Uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Classes, System.Types,
   Vcl.Forms, Vcl.Controls, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.Graphics,
-  Guake.Sessions, Guake.Settings, Guake.AnimatedBackground;
+  Guake.VT, Guake.Sessions, Guake.Settings, Guake.AnimatedBackground;
 
  Type
   TTerminalPointEvent = Procedure(Sender : TObject; x, y : Integer; Var Handled : Boolean) Of Object;
@@ -29,16 +29,40 @@ Interface
     Procedure RefreshTick     (Sender : TObject);
     Procedure FrameResize     (Sender : TObject);
    Private
-    fAnimation       : TAnimatedBackground;
-    fBackgroundTick  : UInt64;
-    fColorSurface    : TBitmap;
-    fBackSurface     : TBitmap;
-    fMaskSurface     : TBitmap;
-    fOnCtrlClick     : TTerminalPointEvent;
-    fConsumedClick   : Boolean;
-    fOnVisualChanged : TNotifyEvent;
-    Procedure InvalidateSurface;
-    Procedure PaintSurface(Canvas : TCanvas; Mask : Boolean);
+    fRasterLines     : TArray<TTerminalLine>;
+    fDirtyRows       : TArray<Boolean>;
+    fFullRasterDirty : Boolean;
+    fMaskValid       : Boolean;
+    fRasterCursorRow : Integer;
+    fRasterRowCount  : UInt64;
+    fOpaqueSurface   : TBitmap;
+    fAsciiClip       : Array[0..1] Of HRGN;
+    fClipColumns     : Integer;
+    fClipRows        : Integer;
+    fClipWidth       : Integer;
+    fClipHeight      : Integer;
+    Procedure PrepareAsciiClips;
+   Private
+    fCaptureBackgroundOnly : Boolean;
+    fVisualRevision        : Int64;
+    fAlphaVisualRevision   : Int64;
+    fAlphaBufferRevision   : Int64;
+    fAlphaSurface          : TBitmap;
+    fAlphaOpacity          : Byte;
+    fAlphaScroll           : Integer;
+    fAlphaCursor           : Boolean;
+    fAlphaRenderCount      : UInt64;
+    fBackgroundDirty       : Boolean;
+    fAnimation             : TAnimatedBackground;
+    fBackgroundTick        : UInt64;
+    fColorSurface          : TBitmap;
+    fBackSurface           : TBitmap;
+    fMaskSurface           : TBitmap;
+    fOnCtrlClick           : TTerminalPointEvent;
+    fConsumedClick         : Boolean;
+    fOnVisualChanged       : TNotifyEvent;
+    Procedure InvalidateSurface(Full : Boolean = True);
+    Procedure PaintSurface     (Canvas : TCanvas; Mask : Boolean; Backdrop : Boolean = True; Incremental : Boolean = False);
    Private
     fBackground        : TPicture;
     fSession           : TTerminalSession;
@@ -78,6 +102,12 @@ Interface
     Procedure DrawBackground(Canvas : TCanvas; Const Bounds : TRect);
     /// <summary>Renders foreground coverage and background opacity into premultiplied ARGB.</summary>
     Procedure RenderAlpha(Destination : TBitmap; Opacity : Byte);
+    /// <summary>Suppresses a duplicate surface paint while the parent captures native window chrome.</summary>
+    Property CaptureBackgroundOnly : Boolean Read fCaptureBackgroundOnly Write fCaptureBackgroundOnly;
+    /// <summary>Counts actual alpha renders so idle and unchanged-pane reuse can be verified.</summary>
+    Property AlphaRenderCount : UInt64 Read fAlphaRenderCount;
+    /// <summary>Counts rows rasterized after snapshot comparison, excluding reused rows.</summary>
+    Property RasterRowCount : UInt64 Read fRasterRowCount;
     /// <summary>Advances the configured GIF using elapsed milliseconds, without a second GUI timer.</summary>
     Function AdvanceBackground(ElapsedMilliseconds : Cardinal) : Boolean;
     Property OnVisualChanged : TNotifyEvent Read fOnVisualChanged Write fOnVisualChanged;
@@ -102,7 +132,7 @@ Interface
 Implementation
 
  Uses
-  Guake.Composition, Guake.Links, System.Math, System.Character, System.StrUtils, Vcl.Clipbrd, Winapi.ShellAPI, Guake.VT, Guake.Shells, Vcl.Imaging.pngimage, Vcl.Imaging.jpeg, Vcl.Imaging.GIFImg;
+  Guake.Composition, Guake.Links, System.Math, System.Character, System.StrUtils, Vcl.Clipbrd, Winapi.ShellAPI, Guake.Shells, Vcl.Imaging.pngimage, Vcl.Imaging.jpeg, Vcl.Imaging.GIFImg;
 {$R *.dfm}
 
  Type
@@ -110,6 +140,12 @@ Implementation
 
   Destructor TfraTerminal.Destroy;
    Begin
+    If fAsciiClip[0] <> 0 Then
+     DeleteObject(fAsciiClip[0]);
+    If fAsciiClip[1] <> 0 Then
+     DeleteObject(fAsciiClip[1]);
+    fOpaqueSurface.Free;
+    fAlphaSurface.Free;
     fAnimation.Free;
     fColorSurface.Free;
     fBackSurface.Free;
@@ -129,7 +165,7 @@ Implementation
     Graphic : TGraphic;
    Begin
     Canvas.Brush.Style := bsSolid;
-    Canvas.Brush.Color := fPalette[17];
+    Canvas.Brush.Color := ResolveColor( -2, False, False);
     SetBkMode(Canvas.Handle, OPAQUE);
     Canvas.FillRect(Bounds);
     If (fBackground = Nil) Or (fBackground.Graphic = Nil) Or fBackground.Graphic.Empty Then
@@ -214,6 +250,7 @@ Implementation
    s      : String;
    Name   : String;
   Begin
+   fBackgroundDirty := True;
    If fSettings = Nil Then
     Exit;
    If fBackground = Nil Then
@@ -261,7 +298,7 @@ Implementation
       End;
     End;
    If fBackground.Graphic Is TGIFImage Then
-    fAnimation := TAnimatedBackground.Create(TGIFImage(fBackground.Graphic), fPalette[17]);
+    fAnimation := TAnimatedBackground.Create(TGIFImage(fBackground.Graphic), ResolveColor( -2, False, False));
    If fAnimation <> Nil Then
     refreshTimer.Interval := 20
    Else
@@ -292,9 +329,17 @@ Implementation
    b : Integer;
   Begin
    If Value = -1 Then
-    Exit(fPalette[16]);
+    Begin
+     If (fSession <> Nil) And (fSession.CustomForeground >= 0) Then
+      Exit(fSession.CustomForeground);
+     Exit(fPalette[16]);
+    End;
    If Value = -2 Then
-    Exit(fPalette[17]);
+    Begin
+     If (fSession <> Nil) And (fSession.CustomBackground >= 0) Then
+      Exit(fSession.CustomBackground);
+     Exit(fPalette[17]);
+    End;
    If (Value And $01000000) <> 0 Then
     Exit(Value And $FFFFFF);
    If Value < 16 Then
@@ -329,8 +374,8 @@ Implementation
    Result := False;
    If Not fHasSelection Or (fSession = Nil) Then
     Exit;
-   a := Int64(fSelectionStart.Y) * fSession.Buffer.Columns + fSelectionStart.X;
-   b := Int64(fSelectionEnd.Y) * fSession.Buffer.Columns + fSelectionEnd.X;
+   a := Int64(fSelectionStart.y) * fSession.Buffer.Columns + fSelectionStart.x;
+   b := Int64(fSelectionEnd.y) * fSession.Buffer.Columns + fSelectionEnd.x;
    p := Int64(y) * fSession.Buffer.Columns + x;
    If a > b Then
     Begin
@@ -341,7 +386,53 @@ Implementation
    Result := (p >= a) And (p <= b);
   End;
 
- Procedure TfraTerminal.PaintSurface(Canvas : TCanvas; Mask : Boolean);
+ Procedure TfraTerminal.PrepareAsciiClips;
+  Var
+   Points   : TArray<TPoint>;
+   Counts   : TArray<Integer>;
+   Parity   : Integer;
+   x        : Integer;
+   Count    : Integer;
+   MaxCount : Integer;
+   Left     : Integer;
+   Bottom   : Integer;
+  Begin
+   If (fClipColumns = fSession.Buffer.Columns) And (fClipRows = fSession.Buffer.Rows) And
+   (fClipWidth = fCellWidth) And (fClipHeight = fCellHeight) Then
+    Exit;
+   // Adjacent rows merge into the same vertical strip; store each strip only once.
+   MaxCount := (fSession.Buffer.Columns + 1) Div 2;
+   SetLength(Points, MaxCount * 4);
+   SetLength(Counts, MaxCount);
+   Bottom     := 4 + fSession.Buffer.Rows * fCellHeight;
+   For Parity := 0 To 1 Do
+    Begin
+     If fAsciiClip[Parity] <> 0 Then
+      DeleteObject(fAsciiClip[Parity]);
+     fAsciiClip[Parity] := 0;
+     Count              := 0;
+     x                  := Parity;
+     While x < fSession.Buffer.Columns Do
+      Begin
+       Left                  := 4 + x * fCellWidth;
+       Points[Count * 4]     := Point(Left, 4);
+       Points[Count * 4 + 1] := Point(Left + fCellWidth, 4);
+       Points[Count * 4 + 2] := Point(Left + fCellWidth, Bottom);
+       Points[Count * 4 + 3] := Point(Left, Bottom);
+       Counts[Count]         := 4;
+       Inc(Count);
+       Inc(x, 2);
+      End;
+     fAsciiClip[Parity] := CreatePolyPolygonRgn(Points[0], Counts[0], Count, WINDING);
+     Win32Check(fAsciiClip[Parity] <> 0);
+    End;
+   fClipColumns := fSession.Buffer.Columns;
+   fClipRows    := fSession.Buffer.Rows;
+   fClipWidth   := fCellWidth;
+   fClipHeight  := fCellHeight;
+  End;
+
+ Procedure TfraTerminal.PaintSurface(Canvas : TCanvas; Mask : Boolean; Backdrop, Incremental : Boolean);
   Var
    x               : Integer;
    y               : Integer;
@@ -355,123 +446,359 @@ Implementation
    Style           : TFontStyles;
    TransparentCell : Boolean;
    Options         : Cardinal;
+   Selected        : Boolean;
+   Batch           : Boolean;
+   NextCell        : TTerminalCell;
+   RunText         : String;
+   RunLength       : Integer;
+   RunStart        : Integer;
+   i               : Integer;
+   Advances        : TArray<Integer>;
+   Clip            : HRGN;
+   ViewOrigin      : TPoint;
+   WindowOrigin    : TPoint;
+
+   Function AsciiCell(Const Cell : TTerminalCell) : Boolean;
+    Begin
+     Result := (Length(Cell.Text) = 1) And Not Cell.Continuation And (Cell.Text[1] >= #32) And (Cell.Text[1] <= #126);
+    End;
+
+   Procedure DrawAsciiRun;
+    Var
+     Parity : Integer;
+     j      : Integer;
+     Saved  : Integer;
+     Spaced : String;
+    Begin
+     For Parity := 0 To 1 Do
+      Begin
+       Spaced := RunText;
+       For j  := 1 To RunLength Do
+        If ((RunStart + j - 1) And 1) <> Parity Then
+         Spaced[j] := ' ';
+       Saved       := SaveDC(Canvas.Handle);
+       Try
+        CombineRgn(Clip, fAsciiClip[Parity], 0, RGN_COPY);
+        OffsetRgn(Clip, ViewOrigin.x - WindowOrigin.x, ViewOrigin.y - WindowOrigin.y);
+        ExtSelectClipRgn(Canvas.Handle, Clip, RGN_AND);
+        ExtTextOut(Canvas.Handle, r.Left, r.Top, Options, @r, PChar(Spaced), RunLength, @Advances[0]);
+       Finally
+        RestoreDC(Canvas.Handle, Saved);
+       End;
+      End;
+    End;
+
   Begin
-   If Mask Then
+   If Mask And Not Incremental Then
     Begin
      Canvas.Brush.Color := clBlack;
      Canvas.FillRect(surface.ClientRect);
     End
-   Else
+   Else If Not Mask And Backdrop Then
     DrawBackground(Canvas, surface.ClientRect);
    If (fSession = Nil) Or (fCellWidth = 0) Or (fCellHeight = 0) Then
     Exit;
    Canvas.Font.Assign(Font);
-   For y  := 0 To fSession.Buffer.Rows - 1 Do
-    For x := 0 To fSession.Buffer.Columns - 1 Do
-     Begin
-      WorldY := scroll.Position + y;
-      c      := fSession.Buffer.Cell[x, WorldY];
-      Fore   := ResolveColor(c.Foreground, True, c.Bold);
-      Back   := ResolveColor(c.Background, False, False);
-      If c.Inverse Or IsSelected(x, WorldY) Then
-       Begin
-        Temp := Fore;
-        Fore := Back;
-        Back := Temp;
-       End;
-      r := Rect(4 + x * fCellWidth, 4 + y * fCellHeight, 4 + (x + 1) * fCellWidth, 4 + (y + 1) * fCellHeight);
-      If c.Continuation Then
-       Continue;
-      If (x + 1 < fSession.Buffer.Columns) And fSession.Buffer.Cell[x + 1, WorldY].Continuation Then
-       Inc(r.Right, fCellWidth);
-      Style := [];
-      If c.Bold And fSettings.Style.Font.AllowBold Then
-       Include(Style, fsBold);
-      If c.Italic Then
-       Include(Style, fsItalic);
-      If c.Underline Then
-       Include(Style, fsUnderline);
-      Canvas.Font.Style := Style;
-      TransparentCell   := (c.Background = -2) And Not c.Inverse And Not IsSelected(x, WorldY);
-      If Mask Then
-       Begin
-        Fore := clWhite;
-        Back := clWhite;
-       End;
-      Options := ETO_CLIPPED;
-      If TransparentCell Then
-       SetBkMode(Canvas.Handle, TRANSPARENT)
-      Else
-       Begin
-        SetBkMode(Canvas.Handle, OPAQUE);
-        Options := Options Or ETO_OPAQUE;
-       End;
-      SetTextColor(Canvas.Handle, ColorToRGB(Fore));
-      SetBkColor(Canvas.Handle, ColorToRGB(Back));
-      ExtTextOut(Canvas.Handle, r.Left, r.Top, Options, @r, PChar(c.Text), Length(c.Text), Nil);
-     End;
-   If Focused And fSession.Buffer.CursorVisible And Not fSession.Exited And
-   ((fSettings.Style.CursorBlinkMode = 2) Or ((GetTickCount64 Div 500) Mod 2 = 0)) Then
+   Batch := (fSettings.Style.Font.CellWidthScale >= 1) And
+   (Canvas.TextWidth('i') = Canvas.TextWidth('W'));
+   Clip := 0;
+   If Batch Then
     Begin
-     CursorRow := fSession.Buffer.TotalLines - fSession.Buffer.Rows + fSession.Buffer.CursorY - scroll.Position;
-     If (CursorRow >= 0) And (CursorRow < fSession.Buffer.Rows) Then
-      Begin
-       r := Rect(4 + fSession.Buffer.CursorX * fCellWidth, 4 + CursorRow * fCellHeight,
-       4 + (fSession.Buffer.CursorX + 1) * fCellWidth, 4 + (CursorRow + 1) * fCellHeight);
-       If Mask Then
-        Canvas.Brush.Color := clWhite
-       Else
-        Canvas.Brush.Color := fPalette[16];
-       Case fSettings.Style.CursorShape Of
-        1 : r.Right := r.Left + 2;
-        2 : r.Top := r.Bottom - 2;
-       End;
-       If fSettings.Style.CursorShape = 0 Then
-        Canvas.FrameRect(r)
-       Else
-        Canvas.FillRect(r);
-      End;
+     PrepareAsciiClips;
+     Clip := CreateRectRgn(0, 0, 0, 0);
+     Win32Check(Clip <> 0);
+     GetViewportOrgEx(Canvas.Handle, ViewOrigin);
+     GetWindowOrgEx(Canvas.Handle, WindowOrigin);
     End;
+   Try
+    SetLength(Advances, fSession.Buffer.Columns);
+    For i        := 0 To High(Advances) Do
+     Advances[i] := fCellWidth;
+    For y        := 0 To fSession.Buffer.Rows - 1 Do
+     Begin
+      If Incremental And Not fDirtyRows[y] Then
+       Continue;
+      x := 0;
+      While x < fSession.Buffer.Columns Do
+       Begin
+        WorldY := scroll.Position + y;
+        c      := fSession.Buffer.Cell[x, WorldY];
+        If c.Continuation Then
+         Begin
+          Inc(x);
+          Continue;
+         End;
+        If (c.Background = -2) And Not c.Inverse And Not c.Underline And Not IsSelected(x, WorldY) And
+        ((c.Text = '') Or (c.Text = ' ')) Then
+         Begin
+          Inc(x);
+          Continue;
+         End;
+        Selected := IsSelected(x, WorldY);
+        Fore     := ResolveColor(c.Foreground, True, c.Bold);
+        Back     := ResolveColor(c.Background, False, False);
+        If c.Inverse Or Selected Then
+         Begin
+          Temp := Fore;
+          Fore := Back;
+          Back := Temp;
+         End;
+        r := Rect(4 + x * fCellWidth, 4 + y * fCellHeight, 4 + (x + 1) * fCellWidth, 4 + (y + 1) * fCellHeight);
+        If (x + 1 < fSession.Buffer.Columns) And fSession.Buffer.Cell[x + 1, WorldY].Continuation Then
+         Inc(r.Right, fCellWidth);
+        RunStart  := x;
+        RunLength := 0;
+        If Batch And AsciiCell(c) Then
+         Begin
+          SetLength(RunText, fSession.Buffer.Columns - x);
+          While x + RunLength < fSession.Buffer.Columns Do
+           Begin
+            NextCell := fSession.Buffer.Cell[x + RunLength, WorldY];
+            If Not AsciiCell(NextCell) Or (NextCell.Foreground <> c.Foreground) Or
+            (NextCell.Background <> c.Background) Or (NextCell.Bold <> c.Bold) Or
+            (NextCell.Italic <> c.Italic) Or (NextCell.Underline <> c.Underline) Or
+            (NextCell.Inverse <> c.Inverse) Or (IsSelected(x + RunLength, WorldY) <> Selected) Then
+             Break;
+            Inc(RunLength);
+            RunText[RunLength] := NextCell.Text[1];
+           End;
+          SetLength(RunText, RunLength);
+          r.Right := r.Left + RunLength * fCellWidth;
+         End;
+        Style := [];
+        If c.Bold And fSettings.Style.Font.AllowBold Then
+         Include(Style, fsBold);
+        If c.Italic Then
+         Include(Style, fsItalic);
+        If c.Underline Then
+         Include(Style, fsUnderline);
+        Canvas.Font.Style := Style;
+        TransparentCell   := (c.Background = -2) And Not c.Inverse And Not Selected;
+        If Mask Then
+         Begin
+          Fore := clWhite;
+          Back := clWhite;
+         End;
+        Options := ETO_CLIPPED;
+        If TransparentCell Then
+         SetBkMode(Canvas.Handle, TRANSPARENT)
+        Else
+         Begin
+          SetBkMode(Canvas.Handle, OPAQUE);
+          Options := Options Or ETO_OPAQUE;
+         End;
+        SetTextColor(Canvas.Handle, ColorToRGB(Fore));
+        SetBkColor(Canvas.Handle, ColorToRGB(Back));
+        If RunLength > 0 Then
+         Begin
+          DrawAsciiRun;
+          x := RunStart + RunLength;
+         End
+        Else
+         Begin
+          ExtTextOut(Canvas.Handle, r.Left, r.Top, Options, @r, PChar(c.Text), Length(c.Text), Nil);
+          Inc(x);
+         End;
+       End;
+     End;
+    If Focused And fSession.Buffer.CursorVisible And Not fSession.Exited And
+    ((fSettings.Style.CursorBlinkMode = 2) Or ((GetTickCount64 Div 500) Mod 2 = 0)) Then
+     Begin
+      CursorRow := fSession.Buffer.TotalLines - fSession.Buffer.Rows + fSession.Buffer.CursorY - scroll.Position;
+      If (CursorRow >= 0) And (CursorRow < fSession.Buffer.Rows) Then
+       Begin
+        r := Rect(4 + fSession.Buffer.CursorX * fCellWidth, 4 + CursorRow * fCellHeight,
+        4 + (fSession.Buffer.CursorX + 1) * fCellWidth, 4 + (CursorRow + 1) * fCellHeight);
+        If Mask Then
+         Canvas.Brush.Color := clWhite
+        Else
+         Canvas.Brush.Color := ResolveColor( -1, True, False);
+        Case fSettings.Style.CursorShape Of
+         1 : r.Right := r.Left + 2;
+         2 : r.Top := r.Bottom - 2;
+        End;
+        If fSettings.Style.CursorShape = 0 Then
+         Canvas.FrameRect(r)
+        Else
+         Canvas.FillRect(r);
+       End;
+     End;
+   Finally
+    If Clip <> 0 Then
+     DeleteObject(Clip);
+   End;
   End;
 
- Procedure TfraTerminal.InvalidateSurface;
+ Procedure TfraTerminal.InvalidateSurface(Full : Boolean);
   Begin
-   surface.Invalidate;
+   fFullRasterDirty := fFullRasterDirty Or Full;
+   Inc(fVisualRevision);
+   // A layered parent presents one bitmap; invalidating the child would draw the same terminal again.
+   If Not Assigned(fOnVisualChanged) Or (GetParentForm(Self) = Nil) Or
+   ((GetWindowLongPtr(GetParentForm(Self).Handle, GWL_EXSTYLE) And WS_EX_LAYERED) = 0) Then
+    surface.Invalidate;
    If Assigned(fOnVisualChanged) Then
     fOnVisualChanged(Self);
   End;
 
  Procedure TfraTerminal.SurfacePaint(Sender : TObject);
   Begin
-   PaintSurface(surface.Canvas, False);
+   If fCaptureBackgroundOnly Then
+    Exit;
+   If Assigned(fOnVisualChanged) And (GetParentForm(Self) <> Nil) And
+   ((GetWindowLongPtr(GetParentForm(Self).Handle, GWL_EXSTYLE) And WS_EX_LAYERED) <> 0) And
+   Not(csPaintCopy In ControlState) Then
+    Exit;
+   If fOpaqueSurface = Nil Then
+    fOpaqueSurface := TBitmap.Create;
+   RenderAlpha(fOpaqueSurface, 255);
+   BitBlt(surface.Canvas.Handle, 0, 0, surface.Width, surface.Height, fOpaqueSurface.Canvas.Handle, 0, 0, SRCCOPY);
   End;
 
  Procedure TfraTerminal.RenderAlpha(Destination : TBitmap; Opacity : Byte);
   Var
-   Bitmap : TBitmap;
+   Bitmap       : TBitmap;
+   Revision     : Int64;
+   Full         : Boolean;
+   CurrentLine  : TTerminalLine;
+   Row          : Integer;
+   CursorRow    : Integer;
+   Bounds       : TRect;
+   Cursor       : Boolean;
+   SourceBase   : PByte;
+   TargetBase   : PByte;
+   SourceStride : NativeInt;
+   TargetStride : NativeInt;
+   y            : Integer;
   Begin
-   If fColorSurface = Nil Then
-    fColorSurface := TBitmap.Create;
-   If fBackSurface = Nil Then
-    fBackSurface := TBitmap.Create;
-   If fMaskSurface = Nil Then
-    fMaskSurface := TBitmap.Create;
-   For Bitmap In TArray<TBitmap>.Create(fColorSurface, fBackSurface, fMaskSurface) Do
+   If fSession = Nil Then
     Begin
-     Bitmap.PixelFormat := pf32bit;
-     Bitmap.SetSize(surface.Width, surface.Height);
+     If fColorSurface = Nil Then
+      fColorSurface := TBitmap.Create;
+     If fBackSurface = Nil Then
+      fBackSurface := TBitmap.Create;
+     If fMaskSurface = Nil Then
+      fMaskSurface := TBitmap.Create;
+     For Bitmap In TArray<TBitmap>.Create(fColorSurface, fBackSurface, fMaskSurface) Do
+      Begin
+       Bitmap.PixelFormat := pf32bit;
+       Bitmap.SetSize(surface.Width, surface.Height);
+      End;
+     DrawBackground(fColorSurface.Canvas, surface.ClientRect);
+     DrawBackground(fBackSurface.Canvas, surface.ClientRect);
+     fMaskSurface.Canvas.Brush.Color := clBlack;
+     fMaskSurface.Canvas.FillRect(surface.ClientRect);
+     ComposeTerminalAlpha(fColorSurface, fBackSurface, fMaskSurface, Destination, Opacity);
+     Exit;
     End;
-   DrawBackground(fBackSurface.Canvas, surface.ClientRect);
-   PaintSurface(fColorSurface.Canvas, False);
-   PaintSurface(fMaskSurface.Canvas, True);
-   ComposeTerminalAlpha(fColorSurface, fBackSurface, fMaskSurface, Destination, Opacity);
+   Revision := -1;
+   If fSession <> Nil Then
+    Revision := fSession.Buffer.Revision;
+   Cursor    := Focused And (fSession <> Nil) And fSession.Buffer.CursorVisible And Not fSession.Exited And
+   ((fSettings.Style.CursorBlinkMode = 2) Or ((GetTickCount64 Div 500) Mod 2 = 0));
+   If (fAlphaSurface = Nil) Or (fAlphaSurface.Width <> surface.Width) Or (fAlphaSurface.Height <> surface.Height) Or
+   (fAlphaVisualRevision <> fVisualRevision) Or (fAlphaBufferRevision <> Revision) Or
+   (fAlphaOpacity <> Opacity) Or (fAlphaScroll <> scroll.Position) Or (fAlphaCursor <> Cursor) Then
+    Begin
+     Full := fFullRasterDirty Or fBackgroundDirty Or (fBackSurface = Nil) Or
+     (fAlphaScroll <> scroll.Position) Or (Length(fRasterLines) <> fSession.Buffer.Rows) Or
+     ((Opacity < 255) And Not fMaskValid) Or (fBackSurface.Width <> surface.Width) Or (fBackSurface.Height <> surface.Height);
+     If fColorSurface = Nil Then
+      fColorSurface := TBitmap.Create;
+     If fBackSurface = Nil Then
+      fBackSurface := TBitmap.Create;
+     If fMaskSurface = Nil Then
+      fMaskSurface := TBitmap.Create;
+     If fAlphaSurface = Nil Then
+      fAlphaSurface := TBitmap.Create;
+     If (fBackSurface.Width <> surface.Width) Or (fBackSurface.Height <> surface.Height) Then
+      fBackgroundDirty := True;
+     For Bitmap In TArray<TBitmap>.Create(fColorSurface, fBackSurface, fMaskSurface) Do
+      Begin
+       Bitmap.PixelFormat := pf32bit;
+       Bitmap.SetSize(surface.Width, surface.Height);
+      End;
+     If fBackgroundDirty Then
+      Begin
+       DrawBackground(fBackSurface.Canvas, surface.ClientRect);
+       fBackgroundDirty := False;
+      End;
+     SetLength(fDirtyRows, fSession.Buffer.Rows);
+     SetLength(fRasterLines, fSession.Buffer.Rows);
+     For Row := 0 To fSession.Buffer.Rows - 1 Do
+      Begin
+       CurrentLine     := fSession.Buffer.LineCells(scroll.Position + Row);
+       fDirtyRows[Row] := Full Or (Length(CurrentLine) <> Length(fRasterLines[Row])) Or
+       ((Length(CurrentLine) > 0) And Not CompareMem(@CurrentLine[0], @fRasterLines[Row][0], Length(CurrentLine) * SizeOf(TTerminalCell)));
+       If fDirtyRows[Row] Then
+        fRasterLines[Row] := Copy(CurrentLine);
+      End;
+     If (fRasterCursorRow >= 0) And (fRasterCursorRow < Length(fDirtyRows)) Then
+      fDirtyRows[fRasterCursorRow] := True;
+     CursorRow                     := -1;
+     If Cursor Then
+      CursorRow := fSession.Buffer.TotalLines - fSession.Buffer.Rows + fSession.Buffer.CursorY - scroll.Position;
+     If (CursorRow >= 0) And (CursorRow < Length(fDirtyRows)) Then
+      fDirtyRows[CursorRow] := True;
+     fRasterCursorRow       := CursorRow;
+     If Full Then
+      Begin
+       BitBlt(fColorSurface.Canvas.Handle, 0, 0, surface.Width, surface.Height, fBackSurface.Canvas.Handle, 0, 0, SRCCOPY);
+       fMaskSurface.Canvas.Brush.Color := clBlack;
+       fMaskSurface.Canvas.FillRect(surface.ClientRect);
+      End
+     Else
+      For Row := 0 To High(fDirtyRows) Do
+       If fDirtyRows[Row] Then
+        Begin
+         Bounds := Rect(0, 4 + Row * fCellHeight, surface.Width, 4 + (Row + 1) * fCellHeight);
+         BitBlt(fColorSurface.Canvas.Handle, Bounds.Left, Bounds.Top, Bounds.Right, fCellHeight,
+         fBackSurface.Canvas.Handle, Bounds.Left, Bounds.Top, SRCCOPY);
+         fMaskSurface.Canvas.Brush.Color := clBlack;
+         fMaskSurface.Canvas.FillRect(Bounds);
+        End;
+     For Row := 0 To High(fDirtyRows) Do
+      If fDirtyRows[Row] Then
+       Inc(fRasterRowCount);
+     PaintSurface(fColorSurface.Canvas, False, False, True);
+     If Opacity < 255 Then
+      PaintSurface(fMaskSurface.Canvas, True, False, True);
+     fMaskValid       := Opacity < 255;
+     fFullRasterDirty := False;
+     ComposeTerminalAlpha(fColorSurface, fBackSurface, fMaskSurface, fAlphaSurface, Opacity);
+     fAlphaVisualRevision := fVisualRevision;
+     fAlphaBufferRevision := Revision;
+     fAlphaOpacity        := Opacity;
+     fAlphaScroll         := scroll.Position;
+     fAlphaCursor         := Cursor;
+     Inc(fAlphaRenderCount);
+    End;
+   Destination.PixelFormat := pf32bit;
+   Destination.SetSize(surface.Width, surface.Height);
+   Destination.AlphaFormat := afPremultiplied;
+   If (surface.Width = 0) Or (surface.Height = 0) Then
+    Exit;
+   SourceBase   := fAlphaSurface.ScanLine[0];
+   TargetBase   := Destination.ScanLine[0];
+   SourceStride := 0;
+   TargetStride := 0;
+   If surface.Height > 1 Then
+    Begin
+     SourceStride := NativeInt(fAlphaSurface.ScanLine[1]) - NativeInt(SourceBase);
+     TargetStride := NativeInt(Destination.ScanLine[1]) - NativeInt(TargetBase);
+    End;
+   For y := 0 To surface.Height - 1 Do
+    Move(PByte(NativeInt(SourceBase) + y * SourceStride)^, PByte(NativeInt(TargetBase) + y * TargetStride)^, surface.Width * SizeOf(TRGBQuad));
   End;
 
  Function TfraTerminal.AdvanceBackground(ElapsedMilliseconds : Cardinal) : Boolean;
   Begin
    Result := (fAnimation <> Nil) And fAnimation.Advance(ElapsedMilliseconds);
    If Result Then
-    InvalidateSurface;
+    Begin
+     fBackgroundDirty := True;
+     InvalidateSurface;
+    End;
   End;
 
  Procedure TfraTerminal.FollowOutput;
@@ -516,7 +843,7 @@ Implementation
    CursorVisible := Focused And fSession.Buffer.CursorVisible And Not fSession.Exited And
    ((fSettings.Style.CursorBlinkMode = 2) Or ((GetTickCount64 Div 500) Mod 2 = 0));
    If Changed Or (CursorVisible <> fLastCursorVisible) Then
-    InvalidateSurface;
+    InvalidateSurface(False);
    fLastCursorVisible := CursorVisible;
   End;
 
@@ -645,8 +972,8 @@ Implementation
 
  Function TfraTerminal.MouseCell(x, y : Integer) : TPoint;
   Begin
-   Result.X := EnsureRange((x - 4) Div Max(1, fCellWidth), 0, fSession.Buffer.Columns - 1);
-   Result.Y := EnsureRange(scroll.Position + (y - 4) Div Max(1, fCellHeight), 0, fSession.Buffer.TotalLines - 1);
+   Result.x := EnsureRange((x - 4) Div Max(1, fCellWidth), 0, fSession.Buffer.Columns - 1);
+   Result.y := EnsureRange(scroll.Position + (y - 4) Div Max(1, fCellHeight), 0, fSession.Buffer.TotalLines - 1);
   End;
 
  Procedure TfraTerminal.SendMouse(Button : Integer; Release : Boolean; Shift : TShiftState; x, y : Integer);
@@ -655,7 +982,7 @@ Implementation
    Final : String;
   Begin
    p := MouseCell(x, y);
-   Dec(p.Y, scroll.Position);
+   Dec(p.y, scroll.Position);
    If ssShift In Shift Then
     Inc(Button, 4);
    If ssAlt In Shift Then
@@ -668,13 +995,13 @@ Implementation
       Final := 'm'
      Else
       Final := 'M';
-     Send(Format(#27'[<%d;%d;%d%s', [Button, p.X + 1, p.Y + 1, Final]));
+     Send(Format(#27'[<%d;%d;%d%s', [Button, p.x + 1, p.y + 1, Final]));
     End
-   Else If (p.X < 223) And (p.Y < 223) Then
+   Else If (p.x < 223) And (p.y < 223) Then
     Begin
      If Release Then
       Button := 3;
-     Send(#27'[M' + Char(Button + 32) + Char(p.X + 33) + Char(p.Y + 33));
+     Send(#27'[M' + Char(Button + 32) + Char(p.x + 33) + Char(p.y + 33));
     End;
   End;
 
@@ -721,8 +1048,8 @@ Implementation
    If fSelecting Then
     Begin
      If Not fHasSelection And
-     (Abs(x - fMouseAnchor.X) < GetSystemMetrics(SM_CXDRAG)) And
-     (Abs(y - fMouseAnchor.Y) < GetSystemMetrics(SM_CYDRAG)) Then
+     (Abs(x - fMouseAnchor.x) < GetSystemMetrics(SM_CXDRAG)) And
+     (Abs(y - fMouseAnchor.y) < GetSystemMetrics(SM_CYDRAG)) Then
       Exit;
      fHasSelection := True;
      fSelectionEnd := MouseCell(x, y);
@@ -765,22 +1092,22 @@ Implementation
 
    Function WordCell(Column : Integer) : Boolean;
     Begin
-     s      := fSession.Buffer.Cell[Column, p.Y].Text;
+     s      := fSession.Buffer.Cell[Column, p.y].Text;
      Result := (s <> '') And (s[1].IsLetterOrDigit Or (Pos(s[1], '-_./:@~') > 0));
     End;
 
   Begin
    If fSession = Nil Then
     Exit;
-   p := MouseCell(surface.ScreenToClient(Mouse.CursorPos).X, surface.ScreenToClient(Mouse.CursorPos).Y);
-   x := p.X;
+   p := MouseCell(surface.ScreenToClient(Mouse.CursorPos).x, surface.ScreenToClient(Mouse.CursorPos).y);
+   x := p.x;
    While (x > 0) And WordCell(x - 1) Do
     Dec(x);
-   fSelectionStart := Point(x, p.Y);
-   x               := p.X;
+   fSelectionStart := Point(x, p.y);
+   x               := p.x;
    While (x < fSession.Buffer.Columns - 1) And WordCell(x + 1) Do
     Inc(x);
-   fSelectionEnd                        := Point(x, p.Y);
+   fSelectionEnd                        := Point(x, p.y);
    fHasSelection                        := True;
    fSelecting                           := False;
    TControlAccess(surface).MouseCapture := False;
@@ -801,9 +1128,9 @@ Implementation
     Begin
      p := surface.ScreenToClient(MousePos);
      If WheelDelta > 0 Then
-      SendMouse(64, False, Shift, p.X, p.Y)
+      SendMouse(64, False, Shift, p.x, p.y)
      Else
-      SendMouse(65, False, Shift, p.X, p.Y);
+      SendMouse(65, False, Shift, p.x, p.y);
     End
    Else
     Begin
@@ -829,12 +1156,12 @@ Implementation
    If (fSession = Nil) Or Not PtInRect(surface.ClientRect, Point(x, y)) Then
     Exit;
    Cell := MouseCell(x, y);
-   While (Cell.X > 0) And fSession.Buffer.Cell[Cell.X, Cell.Y].Continuation Do
-    Dec(Cell.X);
+   While (Cell.x > 0) And fSession.Buffer.Cell[Cell.x, Cell.y].Continuation Do
+    Dec(Cell.x);
    CharacterIndex := 0;
-   For i          := 0 To Cell.X - 1 Do
-    Inc(CharacterIndex, Length(fSession.Buffer.Cell[i, Cell.Y].Text));
-   Result := fSession.Buffer.LineText(Cell.Y);
+   For i          := 0 To Cell.x - 1 Do
+    Inc(CharacterIndex, Length(fSession.Buffer.Cell[i, Cell.y].Text));
+   Result := fSession.Buffer.LineText(Cell.y);
   End;
 
  Function TfraTerminal.LinkAt(x, y : Integer) : String;
@@ -847,20 +1174,20 @@ Implementation
    If (fSession = Nil) Or Not PtInRect(surface.ClientRect, Point(x, y)) Then
     Exit;
    p      := MouseCell(x, y);
-   Result := NormalizeTerminalLink(fSession.Buffer.Cell[p.X, p.Y].Hyperlink);
+   Result := NormalizeTerminalLink(fSession.Buffer.Cell[p.x, p.y].Hyperlink);
    If Result <> '' Then
     Exit;
    Index := 0;
-   For i := 0 To p.X - 1 Do
-    Inc(Index, Length(fSession.Buffer.Cell[i, p.Y].Text));
-   Result := TerminalLinkAt(fSession.Buffer.LineText(p.Y), Index);
+   For i := 0 To p.x - 1 Do
+    Inc(Index, Length(fSession.Buffer.Cell[i, p.y].Text));
+   Result := TerminalLinkAt(fSession.Buffer.LineText(p.y), Index);
   End;
 
  Function TfraTerminal.SelectedText : String;
   Begin
    Result := '';
    If fHasSelection And (fSession <> Nil) Then
-    Result := fSession.Buffer.RangeText(fSelectionStart.X, fSelectionStart.Y, fSelectionEnd.X, fSelectionEnd.Y);
+    Result := fSession.Buffer.RangeText(fSelectionStart.x, fSelectionStart.y, fSelectionEnd.x, fSelectionEnd.y);
   End;
 
  Procedure TfraTerminal.CopySelection;
@@ -971,7 +1298,7 @@ Implementation
    fSelectionStart := Locate(Start);
    fSelectionEnd   := Locate(Start + Count - 1);
    fHasSelection   := True;
-   scroll.Position := Min(fSelectionStart.Y, Max(0, fSession.Buffer.TotalLines - fSession.Buffer.Rows));
+   scroll.Position := Min(fSelectionStart.y, Max(0, fSession.Buffer.TotalLines - fSession.Buffer.Rows));
    InvalidateSurface;
   End;
 

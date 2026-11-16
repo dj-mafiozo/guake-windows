@@ -98,6 +98,10 @@
       TabPosition = tpTop
       PopupMenu = tabMenu
       OnChange = TabChanged
+      OwnerDraw = True
+      OnDrawTab = DrawTerminalTab
+      OnMouseDown = TabMouseDown
+      OnMouseMove = TabMouseMove
     end
   end
   object trayIcon: TTrayIcon
@@ -290,6 +294,7 @@
     object miRestoreTabColors: TMenuItem
       Caption = 'Przywróć niestandardowe kolory'
       Enabled = False
+      OnClick = ResetTabColorsClick
     end
     object miCloseTab: TMenuItem
       Tag = 1

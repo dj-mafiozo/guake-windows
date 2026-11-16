@@ -1,6 +1,6 @@
 # Stan portu Guake dla Windows
 
-Stan kodu na 15 listopada 2026, wersja 1.0.15.48. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 16 listopada 2026, wersja 1.0.16.49. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -9,13 +9,13 @@ Stan kodu na 15 listopada 2026, wersja 1.0.15.48. Punkt odniesienia: lokalny `..
 | Terminal | Osobny proces ConPTY dla każdej sesji; asynchroniczne I/O, zmiana rozmiaru, zamykanie procesów, katalog i środowisko | Dalsze testy długich sesji i programów pełnoekranowych |
 | Emulator VT | Przyrostowe UTF-8/CSI/OSC, kolory ANSI/256/RGB, kursor, historia, alternatywny ekran, region przewijania, odpowiedzi urządzenia, bracketed paste, raportowanie myszy, reflow historii i klastry ICU | Pełne pokrycie sekwencji VTE/xterm, dalsze testy reflow i segmentacji grafemów |
 | Powłoki | CMD, PowerShell, Bash i Zsh z Git SDK; cztery osobne skróty/menu; Zsh przez `git-zsh.exe --nomintty` | Weryfikacja szerszego zestawu konfiguracji użytkowników i instalacji SDK |
-| Karty i podziały | Tworzenie, zamykanie, zmiana nazw, kolejność, wybór po identyfikatorze, podziały poziome/pionowe oraz fokus myszą i kierunkowo, przesuwanie granic podziałów | kolory indywidualnej karty i ich reset, zamknięcie przyciskiem na karcie, pełne oznaczanie aktywności |
+| Karty i podziały | Tworzenie, zamykanie, zmiana nazw, kolejność, wybór po identyfikatorze, podziały poziome/pionowe oraz fokus myszą i kierunkowo, przesuwanie granic podziałów, kolory paneli/kart i reset, przyciski zamykania, aktywność z okresami ignorowania | Dalsze testy potwierdzeń zamykania i rozpoznawania procesów potomnych |
 | Widok terminala | Palety, font, kursor, obrazy PNG/JPEG/BMP/animowany GIF, przezroczystość samego tła, cztery układy tła, przewijanie, zaznaczenie przeciągnięciem, słowo po dwukliku, schowek i zapis tekstu | Pełna zgodność renderowania i układu grafemów z VTE oraz dalsze porównania wizualne |
 | Okno główne | Animacja wysuwania/chowania z regulacją czasu, geometria, monitor, zawsze na wierzchu, fullscreen, tray, płaski pasek kart u góry/dołu, osobne menu kart/terminala/powłok | Pełne zachowanie refocus/lazy hide, zestawy kart obszarów roboczych i zgodność wizualna ze wzorcem |
 | Skróty | Globalne i lokalne, grave/tylda, konflikty, siedem zwijanych grup; akcje WWW/URL i kierunkowe podziały | Dalsza macierz pozostałych akcji i integracji |
 | Preferencje | Dziewięć stron DFM, zapis od razu z walidacją i rollbackiem, zależności kontrolek, przewijanie myszą, edycja skrótów | Podłączenie efektów wszystkich przeniesionych ustawień; obecność pola i zapis INI nie oznaczają pełnej obsługi funkcji |
 | Konfiguracja | Osobna klasa TMemIniFile, hierarchiczne rekordy, 130 kluczy Guake, cztery klucze powłok Windows i dwie opcje animacji, zachowanie nieznanych kluczy; tytuł projektu z `.guake.yml` i menu poleceń JSON | Pełny parser YAML poza obsługiwanymi skalarnymi tytułami i pozostałe efekty ustawień |
-| Sesje | JSON v1: zapis i przywracanie kart, aktywnej karty/panelu, profili, katalogów i proporcji drzewa; menu ręczne, autosave i odtwarzanie po starcie; atomowy zapis i transakcyjne wczytanie | procesy i pamięć terminala nie są wznawiane |
+| Sesje | JSON v1: zapis i przywracanie kart, aktywnej karty/panelu, profili, katalogów, kolorów i proporcji drzewa; menu ręczne, autosave i odtwarzanie po starcie; atomowy zapis i transakcyjne wczytanie | procesy i pamięć terminala nie są wznawiane |
 | Wyszukiwanie | Tekst/regex, kierunek, wielkość liter, zawijanie; kodowane zapytania WWW i URL tekstowe/OSC 8 pod kursorem | Tekstowe URL zawinięte między wierszami |
 | Integracje systemowe | Prywatne Named Pipes, ACL bieżącego użytkownika, blokada klientów zdalnych, pojedyncza instancja na sesję logowania, CLI, autostart HKCU, hooki start/show, powiadomienia i dzwonek | Pozostałe opcje CLI oryginału, zapytania o stan i długotrwałe testy integracji |
 | Quick Open | Ctrl+klik i menu zaznaczenia, istniejące pliki, traceback/pytest/GCC/Delphi/MSVC, wiersz i kolumna, ścieżki Windows/Git SDK, edytor osobno lub w bieżącej powłoce | Rozpoznawanie niezaznaczonych ścieżek zawiniętych między wierszami; dalsze formaty diagnostyki |
@@ -52,7 +52,7 @@ Katalog SDK: `--git-sdk-root <katalog>`, następnie `GIT_SDK_ROOT`, katalog wrap
 | dialogs.py | Src/Forms/frmRenameU, frmConfirmU oraz Src/DataModules/dmDialogsU |
 | palety i pixmapy | Src/Appearance, Src/Resources |
 
-To mapa odpowiedzialności, nie deklaracja przeniesienia całych modułów Python. Dalsza kolejność: brakujące akcje kart i efekty ustawień, pozostałe sekwencje VT i pełna macierz renderowania. Integracje wykonane w bieżącym etapie opisano poniżej.
+To mapa odpowiedzialności, nie deklaracja przeniesienia całych modułów Python. Dalsza kolejność: pozostałe efekty ustawień, zachowanie okna, sekwencje VT i pełna macierz renderowania. Integracje wykonane w bieżącym etapie opisano poniżej.
 
 ## Budowanie i weryfikacja
 
@@ -115,3 +115,17 @@ Polecenie edytora zastępuje %(file_path)s i %(line_number)s; port dodaje %(colu
 Parser ogranicza tekst do 8192 jednostek UTF-16, a odczyt źródła przy wyszukiwaniu funkcji pytest do 8 MiB. Nie otwiera nieistniejących plików i nie wznawia pracy procesów. Rozpoznawanie pod kursorem dotyczy jednego fizycznego wiersza; zaznaczenie może obejmować automatyczne zawinięcia. Wiarygodność ścieżek względnych zależy od aktualizacji katalogu sesji przez powłokę/OSC 7. Dodano polski komunikat błędu otwierania pliku.
 
 Weryfikacja Quick Open: 80/80 testów DUnitX, cztery projekty Debug i grupa Release. Scenariusze sprawdzają numery wierszy i kolumn, pytest, ścieżki ze spacjami i polskimi znakami, mapowanie Git SDK, cytowanie dla czterech powłok, kliknięcie i menu zaznaczenia oraz rzeczywiste wykonanie polecenia w bieżącej powłoce i osobnym procesie. Poprawiono też granice rozpoznawania URL: indeks TMatch w Delphi 10.2 jest liczony od 1, a indeks komórki od 0. Build nie zmienił wersji 1.0.15.48.
+
+## Reakcja terminala i karty — 1.0.16.49
+
+Usunięto regresję kompozycji: poprzednia ścieżka rasteryzowała terminal trzykrotnie, wykonywała dzielenia dla kanałów każdego piksela i przeliczała format alfy gotowego obrazu przed jego nadpisaniem. Obecnie pobiera wskaźniki DIB raz, korzysta z tablic współczynników, pomija puste komórki, grupuje sąsiednie ASCII o tych samych atrybutach i buforuje wynik każdego panelu i odtwarza tylko zmienione wiersze. Przycinanie partii ASCII zachowuje granice komórek, a porównanie pikseli sprawdza zgodność z rysowaniem pojedynczych znaków. Niezmieniony panel nie jest ponownie rasteryzowany. Zmiana wyjścia powłoki aktualizuje widok w tym samym cyklu odczytu, zamiast czekać na dodatkowy timer 100 ms; nie odświeża też niezmienionych tytułów kart. Gorąca pętla pikseli jest optymalizowana również w Debug, ze stack frames i symbolami.
+
+Osobny pomiar Debug, Consolas, 1920×1080: przed poprawką 492,132 ms dla krótkiego wiersza i 500,484 ms dla pełnego ekranu ASCII; po końcowej poprawce 14,701 ms i 15,356 ms. To koszt kompozycji bitmapy, nie pomiar całego czasu od klawisza do echa ConPTY. Wynik zależy od sprzętu, fontu i zawartości; pełne pokrycie renderowania Unicode i VTE nadal wymaga pracy. Raport pomiaru: bin/tests/composition-latency.txt.
+
+Przyciski zamykania zależą od tab-close-buttons i respektują potwierdzenie zamknięcia. Obsługa odracza zmianę drzewa do zakończenia natywnego zdarzenia myszy i identyfikuje kartę po UUID. Pasek używa natywnego motywu płaskich przycisków; aktywność pogrubia tytuł. Kontroler ignoruje wyjście podczas okresu po utworzeniu karty i po utracie fokusu, czyści oznaczenie po wyborze karty i po wyłączeniu funkcji.
+
+CLI obsługuje --bgcolor, --fgcolor, --bgcolor-current, --fgcolor-current, --reset-colors i --reset-colors-current. Kolory RGB mają 3, 6, 9 lub 12 cyfr szesnastkowych, z opcjonalnym #. Ustawienie bez -current obejmuje panele bieżącej karty; reset bez -current obejmuje wszystkie sesje, zgodnie z oryginałem. Menu karty resetuje tylko jej panele. Opcjonalne pola custom-foreground/custom-background w zapisie sesji v1 zachowują zgodność ze starszymi plikami bez tych pól; wadliwe wartości nie zastępują działających sesji.
+
+Weryfikacja etapu obejmuje 86 scenariuszy DUnitX: zgodność pikseli ASCII, wymazanie jednego wiersza bez zmiany sąsiednich, odtwarzanie tylko zmienionego wiersza i ponowne użycie drugiego panelu, alfa i GIF, zachowanie zamykania kart, kolory i ich trwałość, okresy ignorowania aktywności oraz dotychczasowe integracje. Natywne elementy kart są jawnie uwzględniane w kompozycji WM_PRINTCLIENT; test sprawdza obecność krzyżyka w bitmapie. Osobne pakiety nadal zawierają pasujące EXE/PDB.
+
+Końcowa weryfikacja 1.0.16.49: 86/86 testów DUnitX, projekty Win64 Debug i grupa Release, niezmienność DPROJ podczas budowania oraz kontrola zgodności DPR/DCCReference. Dodatkowe asercje obejmują ekran alternatywny po utworzeniu historii oraz widoczność napisów i krzyżyków kart w kompozycji. Sprawdzono podgląd paska kart. Pakiet: bin/guake-1.0.16.49-Win64.zip. Przed uruchomieniem nowego pakietu należy zakończyć poprzednią instancję z trayu; ponowne uruchomienie przy działającej instancji jedynie przekazuje jej polecenie przez Named Pipes.

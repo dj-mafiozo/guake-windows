@@ -94,8 +94,10 @@ Interface
     /// <summary>Returns and clears replies to device-status and cursor-position queries.</summary>
     Function    TakeResponses : String;
     /// <summary>Returns one history/screen line without trailing blank cells.</summary>
-    Function LineText(Index : Integer) : String;
-    Function Text                      : String;
+    /// <summary>Returns a borrowed read-only row on the UI thread; clone it before retaining a previous state.</summary>
+    Function LineCells(Index : Integer) : TTerminalLine;
+    Function LineText (Index : Integer) : String;
+    Function Text                       : String;
     /// <summary>Returns inclusive selected cells as Unicode text, excluding continuation cells.</summary>
     Function    RangeText(StartX, StartY, EndX, EndY : Integer) : String;
     Property Cell[x, y : Integer] : TTerminalCell Read GetCell;
@@ -1006,6 +1008,19 @@ Implementation
     Dec(y, fHistory.Count);
    If x < fColumns Then
     Result := fScreen[y][x];
+  End;
+
+ Function TTerminalBuffer.LineCells(Index : Integer) : TTerminalLine;
+  Begin
+   Result := Nil;
+   If (Index < 0) Or (Index >= TotalLines) Then
+    Exit;
+   If fAlternate Then
+    Result := fScreen[Index]
+   Else If Index < fHistory.Count Then
+    Result := fHistory[Index]
+   Else
+    Result := fScreen[Index - fHistory.Count];
   End;
 
  Function TTerminalBuffer.LineText(Index : Integer) : String;

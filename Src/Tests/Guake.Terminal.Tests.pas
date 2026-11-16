@@ -16,6 +16,12 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure UnchangedSplitPanesReuseComposition;
+    [Test] Procedure BatchedAsciiPreservesCellPixels;
+    [Test] Procedure TerminalCompositionLatency;
+    [Test] Procedure TabColorsScopesAndSessionRestore;
+    [Test] Procedure TabColorsRenderAndDeferredClose;
+    [Test] Procedure TabActivityHonorsGraceAndSelection;
     [Test] Procedure QuickOpenDiagnosticsAndShellQuoting;
     [Test] Procedure QuickOpenCtrlClickAndContextMenu;
     [Test] Procedure PerPixelAlphaComposition;
@@ -59,7 +65,7 @@ Interface
 Implementation
 
  Uses
-  Guake.QuickOpen, System.Types, Guake.Composition, Guake.AnimatedBackground, Vcl.Imaging.GIFImg, frmAboutU, Guake.WindowsIntegration, System.Win.Registry, Guake.ProjectConfig, System.JSON, System.Generics.Collections, Guake.Unicode, Guake.Links, Winapi.Windows, Winapi.Messages, System.SysUtils, System.IOUtils,
+  System.Diagnostics, Guake.Colors, Guake.CommandLine, Guake.QuickOpen, System.Types, Guake.Composition, Guake.AnimatedBackground, Vcl.Imaging.GIFImg, frmAboutU, Guake.WindowsIntegration, System.Win.Registry, Guake.ProjectConfig, System.JSON, System.Generics.Collections, Guake.Unicode, Guake.Links, Winapi.Windows, Winapi.Messages, System.SysUtils, System.IOUtils,
   frmMainU, fraTerminalU, Vcl.Graphics, Vcl.Imaging.pngimage, Vcl.ComCtrls, Vcl.Controls, Guake.ConPTY, Guake.VT, Guake.Shells, Guake.Sessions, Guake.Settings, Guake.Keybindings, Vcl.Forms;
 
  Type
@@ -82,6 +88,469 @@ Implementation
     Sleep(10);
    Until GetTickCount64 >= Deadline;
    Result := False;
+  End;
+
+ Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+ Procedure TTerminalTests.UnchangedSplitPanesReuseComposition;
+  Var
+   Settings    : TGuakeSettings;
+   Main        : TfrmMain;
+   Bitmap      : TBitmap;
+   Frames      : TList<TfraTerminal>;
+   FirstCount  : UInt64;
+   SecondCount : UInt64;
+   RowsBefore  : UInt64;
+
+   Procedure Collect(Host : TWinControl);
+    Var
+     i : Integer;
+    Begin
+     For i := 0 To Host.ControlCount - 1 Do
+      If Host.Controls[i] Is TfraTerminal Then
+       Frames.Add(TfraTerminal(Host.Controls[i]))
+      Else If Host.Controls[i] Is TWinControl Then
+       Collect(TWinControl(Host.Controls[i]));
+    End;
+
+  Begin
+   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Frames   := TList<TfraTerminal>.Create;
+   Bitmap   := TBitmap.Create;
+   Try
+    Settings.General.DefaultShell         := 'cmd';
+    Settings.General.UseTrayicon          := False;
+    Settings.General.UsePopup             := False;
+    Settings.General.DropDownAnimation    := False;
+    Settings.Keybindings.Global.ShowHide  := 'disabled';
+    Settings.Keybindings.Global.ShowFocus := 'disabled';
+    Main                                  := TfrmMain.Create(Nil);
+    Try
+     Main.Bind(Settings);
+     Main.StartTerminal;
+     Main.Controller.Split(True);
+     Main.HandleNeeded;
+     Main.SetBounds( -30000, 0, 800, 400);
+     Collect(Main.terminalHost);
+     Assert.AreEqual(2, Frames.Count);
+     Frames[0].Session.Buffer.FeedText(#27'[?25l');
+     Frames[1].Session.Buffer.FeedText(#27'[?25l');
+     Frames[0].RefreshTick(Nil);
+     Frames[1].RefreshTick(Nil);
+     Main.RenderWindow(Bitmap);
+     FirstCount  := Frames[0].AlphaRenderCount;
+     SecondCount := Frames[1].AlphaRenderCount;
+     Main.RenderWindow(Bitmap);
+     Assert.AreEqual(FirstCount, Frames[0].AlphaRenderCount, 'Idle pane must reuse its pixels');
+     Assert.AreEqual(SecondCount, Frames[1].AlphaRenderCount);
+     RowsBefore := Frames[0].RasterRowCount;
+     Frames[0].Session.Buffer.FeedText('new output');
+     Frames[0].RefreshTick(Nil);
+     Main.RenderWindow(Bitmap);
+     Assert.AreEqual(FirstCount + UInt64(1), Frames[0].AlphaRenderCount);
+     Assert.AreEqual(SecondCount, Frames[1].AlphaRenderCount, 'Output in another pane must not rasterize this pane');
+     Assert.AreEqual(RowsBefore + UInt64(1), Frames[0].RasterRowCount, 'Typing must rasterize only the changed row');
+     Settings.Style.Background.Transparency := 50;
+     Main.RenderWindow(Bitmap);
+     Assert.AreEqual(SecondCount + UInt64(1), Frames[1].AlphaRenderCount, 'Opacity change invalidates cached alpha');
+     Frames[0].Session.Buffer.FeedText(StringOfChar('H', Frames[0].Session.Buffer.Columns * (Frames[0].Session.Buffer.Rows + 4)));
+     Frames[0].RefreshTick(Nil);
+     Frames[0].Session.Buffer.FeedText(#27'[?1049h' + #27'[?25l' + #27'[H' + #27'[41m ' + #27'[m');
+     Frames[0].RefreshTick(Nil);
+     Frames[0].RenderAlpha(Bitmap, 255);
+     Frames[0].Session.Buffer.FeedText(#27'[H' + #27'[42m ' + #27'[m');
+     Frames[0].RefreshTick(Nil);
+     Frames[0].RenderAlpha(Bitmap, 255);
+     Assert.IsTrue(PixelAt(Bitmap, 5, 5).rgbGreen > PixelAt(Bitmap, 5, 5).rgbRed,
+     'Incremental redraw must compare the alternate screen, not primary scrollback');
+    Finally
+     Main.Free;
+    End;
+   Finally
+    Bitmap.Free;
+    Frames.Free;
+    Settings.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.BatchedAsciiPreservesCellPixels;
+  Var
+   Settings      : TGuakeSettings;
+   Main          : TfrmMain;
+   Frame         : TfraTerminal;
+   Actual        : TBitmap;
+   Reference     : TBitmap;
+   Text          : TArray<String>;
+   Palette       : TArray<String>;
+   CellWidth     : Integer;
+   CellHeight    : Integer;
+   Row           : Integer;
+   Column        : Integer;
+   x             : Integer;
+   y             : Integer;
+   Bounds        : TRect;
+   ActualPixel   : PCardinal;
+   ExpectedPixel : PCardinal;
+  Begin
+   Settings  := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Actual    := TBitmap.Create;
+   Reference := TBitmap.Create;
+   Try
+    Settings.General.DefaultShell         := 'cmd';
+    Settings.General.UseTrayicon          := False;
+    Settings.General.UsePopup             := False;
+    Settings.Keybindings.Global.ShowHide  := 'disabled';
+    Settings.Keybindings.Global.ShowFocus := 'disabled';
+    Main                                  := TfrmMain.Create(Nil);
+    Try
+     Main.Bind(Settings);
+     Main.StartTerminal;
+     Main.HandleNeeded;
+     Main.SetBounds( -30000, 0, 500, 160);
+     Frame := Main.ActiveTerminalFrame;
+     Text  := TArray<String>.Create('ASCII Wi01 % [abc] /foo', 'More monospace text 1234567890');
+     Frame.Session.Buffer.FeedText(#27'[2J' + #27'[H' + Text[0] + #13#10 + Text[1] + #27'[?25l');
+     Frame.RefreshTick(Nil);
+     Frame.RenderAlpha(Actual, 255);
+     Reference.PixelFormat := pf32bit;
+     Reference.SetSize(Actual.Width, Actual.Height);
+     Palette                      := Settings.Style.Font.Palette.Split([':']);
+     Reference.Canvas.Brush.Color := ParseTerminalColor(Palette[17]);
+     Reference.Canvas.FillRect(Rect(0, 0, Reference.Width, Reference.Height));
+     Reference.Canvas.Font.Assign(Frame.Font);
+     CellWidth  := Reference.Canvas.TextWidth('M');
+     CellHeight := Reference.Canvas.TextHeight('Mg');
+     SetBkMode(Reference.Canvas.Handle, TRANSPARENT);
+     SetTextColor(Reference.Canvas.Handle, ParseTerminalColor(Palette[16]));
+     For Row     := 0 To High(Text) Do
+      For Column := 1 To Length(Text[Row]) Do
+       Begin
+        Bounds := Rect(4 + (Column - 1) * CellWidth, 4 + Row * CellHeight,
+        4 + Column * CellWidth, 4 + (Row + 1) * CellHeight);
+        ExtTextOut(Reference.Canvas.Handle, Bounds.Left, Bounds.Top, ETO_CLIPPED, @Bounds,
+        @Text[Row][Column], 1, Nil);
+       End;
+     For y := 0 To Reference.Height - 1 Do
+      Begin
+       ActualPixel   := Actual.ScanLine[y];
+       ExpectedPixel := Reference.ScanLine[y];
+       For x         := 0 To Reference.Width - 1 Do
+        Begin
+         If (ActualPixel^ And $FFFFFF) <> (ExpectedPixel^ And $FFFFFF) Then
+          Assert.Fail(Format('ASCII grid pixel differs at %d,%d', [x, y]));
+         Inc(ActualPixel);
+         Inc(ExpectedPixel);
+        End;
+      End;
+
+     Frame.Session.Buffer.FeedText(#27'[1;1H' + #27'[2K');
+     Frame.RefreshTick(Nil);
+     Frame.RenderAlpha(Actual, 255);
+     Reference.Canvas.Brush.Color := ParseTerminalColor(Palette[17]);
+     Reference.Canvas.FillRect(Rect(0, 4, Reference.Width, 4 + CellHeight));
+     For y := 0 To Reference.Height - 1 Do
+      Begin
+       ActualPixel   := Actual.ScanLine[y];
+       ExpectedPixel := Reference.ScanLine[y];
+       For x         := 0 To Reference.Width - 1 Do
+        Begin
+         If (ActualPixel^ And $FFFFFF) <> (ExpectedPixel^ And $FFFFFF) Then
+          Assert.Fail(Format('Incremental erase changed another row or left stale pixels at %d,%d', [x, y]));
+         Inc(ActualPixel);
+         Inc(ExpectedPixel);
+        End;
+      End;
+     Assert.AreEqual(Reference.Width, Actual.Width);
+    Finally
+     Main.Free;
+    End;
+   Finally
+    Reference.Free;
+    Actual.Free;
+    Settings.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.TerminalCompositionLatency;
+  Var
+   Settings : TGuakeSettings;
+   Main     : TfrmMain;
+   Frame    : TfraTerminal;
+   Bitmap   : TBitmap;
+   Watch    : TStopwatch;
+   i        : Integer;
+   Sparse   : Double;
+   Dense    : Double;
+   Line     : String;
+  Begin
+   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Bitmap   := TBitmap.Create;
+   Try
+    Settings.General.DefaultShell          := 'cmd';
+    Settings.General.UseTrayicon           := False;
+    Settings.General.UsePopup              := False;
+    Settings.General.DropDownAnimation     := False;
+    Settings.Keybindings.Global.ShowHide   := 'disabled';
+    Settings.Keybindings.Global.ShowFocus  := 'disabled';
+    Settings.Style.Background.Transparency := 85;
+    Main                                   := TfrmMain.Create(Nil);
+    Try
+     Main.Bind(Settings);
+     Main.StartTerminal;
+     Main.HandleNeeded;
+     Main.SetBounds( -30000, 0, 1920, 1080);
+     Frame := Main.ActiveTerminalFrame;
+     Frame.Session.Buffer.FeedText(#27'[2J' + #27'[H' + 'prompt> ');
+     Frame.RefreshTick(Nil);
+     Main.RenderWindow(Bitmap);
+     Watch := TStopwatch.StartNew;
+     For i := 1 To 5 Do
+      Begin
+       Frame.Session.Buffer.FeedText('x');
+       Frame.RefreshTick(Nil);
+       Main.RenderWindow(Bitmap);
+      End;
+     Sparse := Watch.Elapsed.TotalMilliseconds / 5;
+     Line   := StringOfChar('A', Frame.Session.Buffer.Columns - 1) + #13#10;
+     For i  := 1 To Frame.Session.Buffer.Rows - 2 Do
+      Frame.Session.Buffer.FeedText(Line);
+     Frame.RefreshTick(Nil);
+     Main.RenderWindow(Bitmap);
+     Watch := TStopwatch.StartNew;
+     For i := 1 To 5 Do
+      Begin
+       Frame.Session.Buffer.FeedText('x');
+       Frame.RefreshTick(Nil);
+       Main.RenderWindow(Bitmap);
+      End;
+     Dense := Watch.Elapsed.TotalMilliseconds / 5;
+     TFile.WriteAllText(TPath.Combine(ExtractFilePath(ParamStr(0)), 'composition-latency.txt'),
+     Format('1920x1080; sparse=%.3f ms; dense=%.3f ms', [Sparse, Dense], TFormatSettings.Invariant));
+     Assert.AreEqual(1920, Bitmap.Width);
+     Assert.AreEqual(1080, Bitmap.Height);
+    Finally
+     Main.Free;
+    End;
+   Finally
+    Bitmap.Free;
+    Settings.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.TabColorsScopesAndSessionRestore;
+  Var
+   Settings   : TGuakeSettings;
+   Controller : TTerminalController;
+   Restored   : TTerminalController;
+   First      : TTerminalSession;
+   State      : String;
+   Before     : String;
+   Options    : TGuakeLaunchOptions;
+  Begin
+   Assert.AreEqual(Integer(RGB($AA, $BB, $CC)), ParseTerminalColor('abc'));
+   Assert.AreEqual(Integer(RGB(255, 0, 128)), ParseTerminalColor('#ffff00008080'));
+   Assert.WillRaise(Procedure Begin ParseTerminalColor('not-a-color'); End, EArgumentException);
+   Options := ParseGuakeArguments(TArray<String>.Create('--bgcolor', '123456', '--fgcolor-current', 'abc', '--reset-colors-current'));
+   Assert.AreEqual(3, Integer(Length(Options.Commands)));
+   Assert.IsTrue(Pos('bgcolor', Options.Commands[0]) > 0);
+   Assert.IsTrue(Pos('current', Options.Commands[1]) > 0);
+   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Try
+    Settings.General.DefaultShell := 'cmd';
+    Controller                    := TTerminalController.Create(Settings);
+    Restored                      := TTerminalController.Create(Settings);
+    Try
+     Controller.NewTab;
+     First := Controller.ActiveSession;
+     Controller.Split(True);
+     Controller.SetColor(True, clRed);
+     Assert.AreEqual(Integer(clRed), First.CustomForeground);
+     Assert.AreEqual(Integer(clRed), Controller.ActiveSession.CustomForeground);
+     Controller.SetColor(False, clBlue, tcsTerminal);
+     Assert.AreEqual( -1, First.CustomBackground);
+     Assert.AreEqual(Integer(clBlue), Controller.ActiveSession.CustomBackground);
+     Controller.NewTab;
+     Assert.AreEqual( -1, Controller.ActiveSession.CustomForeground);
+     Controller.SelectTab(0);
+     State := Controller.SessionState;
+     Restored.RestoreState(State);
+     Assert.AreEqual(2, Restored.Count);
+     Assert.AreEqual(Integer(clBlue), Restored.ActiveSession.CustomBackground);
+     Assert.AreEqual(Integer(clRed), Restored.ActiveTab.Root.First.Session.CustomForeground);
+     Restored.ResetColors(tcsTerminal);
+     Assert.AreEqual( -1, Restored.ActiveSession.CustomForeground);
+     Assert.AreEqual(Integer(clRed), Restored.ActiveTab.Root.First.Session.CustomForeground);
+     Restored.ResetColors(tcsTab);
+     Assert.AreEqual( -1, Restored.ActiveTab.Root.First.Session.CustomForeground);
+     Restored.SetColor(True, clGreen, tcsAll);
+     Restored.ResetColors;
+     Assert.AreEqual( -1, Restored.Tabs[1].Active.Session.CustomForeground);
+     Before := Restored.SessionState;
+     Assert.WillRaise(Procedure Begin Restored.RestoreState(StringReplace(Before,
+     '"custom-foreground":-1', '"custom-foreground":16777216', [rfReplaceAll])); End, EArgumentOutOfRangeException);
+     Assert.AreEqual(Before, Restored.SessionState, 'Invalid colors must not replace live sessions');
+    Finally
+     Restored.Free;
+     Controller.Free;
+    End;
+   Finally
+    Settings.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.TabColorsRenderAndDeferredClose;
+  Var
+   Settings : TGuakeSettings;
+   Main     : TfrmMain;
+   Output   : TBitmap;
+   Preview  : TPngImage;
+   Pixel    : TRGBQuad;
+   Bounds   : TRect;
+   FirstId  : String;
+   Origin   : TPoint;
+   x        : Integer;
+   y        : Integer;
+   Dark     : Integer;
+  Begin
+   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Output   := TBitmap.Create;
+   Try
+    Settings.General.DefaultShell         := 'cmd';
+    Settings.General.UseTrayicon          := False;
+    Settings.General.UsePopup             := False;
+    Settings.General.DropDownAnimation    := False;
+    Settings.General.TabCloseButtons      := True;
+    Settings.General.DisplayTabActivity   := True;
+    Settings.General.PromptOnCloseTab     := 0;
+    Settings.Keybindings.Global.ShowHide  := 'disabled';
+    Settings.Keybindings.Global.ShowFocus := 'disabled';
+    Main                                  := TfrmMain.Create(Nil);
+    Try
+     Main.Bind(Settings);
+     Main.StartTerminal;
+     Main.Show;
+     Main.SetBounds( -30000, 0, 1000, 300);
+     FirstId := Main.Controller.ActiveTab.Id;
+     Main.ExecuteIPCCommand('{"action":"bgcolor","color":"123456"}');
+     Main.ActiveTerminalFrame.RenderAlpha(Output, 255);
+     Pixel := PixelAt(Output, 1, 1);
+     Assert.AreEqual(18, Integer(Pixel.rgbRed));
+     Assert.AreEqual(52, Integer(Pixel.rgbGreen));
+     Assert.AreEqual(86, Integer(Pixel.rgbBlue));
+     Main.TabMenuPopup(Nil);
+     Assert.IsTrue(Main.miRestoreTabColors.Enabled);
+     Main.miRestoreTabColors.Click;
+     Assert.AreEqual( -1, Main.Controller.ActiveSession.CustomBackground);
+     Main.Controller.NewTab;
+     Main.Controller.SelectTab(0);
+     Main.Controller.Tabs[1].HasActivity := True;
+     Main.ApplySettings;
+     Assert.IsTrue(Main.tabBar.OwnerDraw);
+     Main.RenderWindow(Output);
+     Bounds := Main.TabCloseRect(1);
+     Origin := Main.ScreenToClient(Main.tabBar.ClientToScreen(Point(0, 0)));
+     Dark   := 0;
+     For y  := (Bounds.Top + Bounds.Bottom) Div 2 - 3 To(Bounds.Top + Bounds.Bottom) Div 2 + 3 Do
+      For x := (Bounds.Left + Bounds.Right) Div 2 - 3 To(Bounds.Left + Bounds.Right) Div 2 + 3 Do
+       Begin
+        Pixel := PixelAt(Output, Origin.x + x, Origin.y + y);
+        If (Pixel.rgbRed < 100) And (Pixel.rgbGreen < 100) And (Pixel.rgbBlue < 100) Then
+         Inc(Dark);
+       End;
+     Assert.IsTrue(Dark >= 4, 'The close icon must be present in the layered-window bitmap');
+     Assert.IsTrue(Main.tabBar.Tabs[1] <> '', 'Tab caption must not be empty');
+     Bounds       := Main.tabBar.TabRect(1);
+     Bounds.Right := Main.TabCloseRect(1).Left - 2;
+     InflateRect(Bounds, -6, -4);
+     Dark   := 0;
+     For y  := Bounds.Top To Bounds.Bottom - 1 Do
+      For x := Bounds.Left To Bounds.Right - 1 Do
+       Begin
+        Pixel := PixelAt(Output, Origin.x + x, Origin.y + y);
+        If (Pixel.rgbRed < 100) And (Pixel.rgbGreen < 100) And (Pixel.rgbBlue < 100) Then
+         Inc(Dark);
+       End;
+     Assert.IsTrue(Dark >= 3, Format('Caption [%s], text bounds %d,%d..%d,%d, dark %d', [Main.tabBar.Tabs[1], Bounds.Left, Bounds.Top, Bounds.Right, Bounds.Bottom, Dark]));
+     Preview := TPngImage.Create;
+     Try
+      Preview.Assign(Output);
+      Preview.SaveToFile(TPath.Combine(ExtractFilePath(ParamStr(0)), 'tabs-preview.png'));
+     Finally
+      Preview.Free;
+     End;
+     Bounds := Main.TabCloseRect(1);
+     Main.TabMouseDown(Main.tabBar, mbLeft, [], (Bounds.Left + Bounds.Right) Div 2, (Bounds.Top + Bounds.Bottom) Div 2);
+     Assert.AreEqual(2, Main.Controller.Count, 'Close is deferred until after the native mouse notification');
+     Main.Perform(WM_APP + 44, 0, 0);
+     Assert.AreEqual(1, Main.Controller.Count);
+     Assert.AreEqual(FirstId, Main.Controller.ActiveTab.Id);
+     Settings.General.TabCloseButtons := False;
+     Main.ApplySettings;
+     Bounds := Main.TabCloseRect(0);
+     Main.TabMouseDown(Main.tabBar, mbLeft, [], (Bounds.Left + Bounds.Right) Div 2, (Bounds.Top + Bounds.Bottom) Div 2);
+     Main.Perform(WM_APP + 44, 0, 0);
+     Assert.AreEqual(1, Main.Controller.Count, 'Disabled close button cannot close a tab');
+    Finally
+     Main.Free;
+    End;
+   Finally
+    Output.Free;
+    Settings.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.TabActivityHonorsGraceAndSelection;
+  Var
+   Settings   : TGuakeSettings;
+   Controller : TTerminalController;
+   First      : TTerminalTab;
+   Deadline   : UInt64;
+
+   Procedure WaitForOutput(Const Marker : String);
+    Begin
+     Deadline := GetTickCount64 + 5000;
+     Repeat
+      Controller.Poll;
+      If Pos(Marker, First.Root.Session.Buffer.Text) > 0 Then
+       Exit;
+      Sleep(10);
+     Until GetTickCount64 >= Deadline;
+     Assert.Fail('Background shell did not produce output');
+    End;
+
+  Begin
+   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Try
+    Settings.General.DefaultShell              := 'cmd';
+    Settings.General.DisplayTabActivity        := True;
+    Settings.General.TabActivityNewTabGrace    := 60;
+    Settings.General.TabActivityFocusLossGrace := 60;
+    Controller                                 := TTerminalController.Create(Settings);
+    Try
+     First := Controller.NewTab;
+     Controller.NewTab;
+     Assert.IsTrue(First.ActivityIgnoreUntil > GetTickCount64 + 50000);
+     First.Root.Session.SendText('echo ACTIVITY_IGNORED' + #13);
+     WaitForOutput('ACTIVITY_IGNORED');
+     Assert.IsFalse(First.HasActivity);
+     First.ActivityIgnoreUntil := 0;
+     First.Root.Session.SendText('echo ACTIVITY_MARKED' + #13);
+     WaitForOutput('ACTIVITY_MARKED');
+     Assert.IsTrue(First.HasActivity);
+     Controller.SelectTab(0);
+     Assert.IsFalse(First.HasActivity, 'Selecting a tab acknowledges its activity');
+     Controller.SelectTab(1);
+     Assert.IsTrue(First.ActivityIgnoreUntil > GetTickCount64 + 50000);
+     First.HasActivity                   := True;
+     Settings.General.DisplayTabActivity := False;
+     Controller.Poll;
+     Assert.IsFalse(First.HasActivity, 'Disabling activity clears existing highlights');
+    Finally
+     Controller.Free;
+    End;
+   Finally
+    Settings.Free;
+   End;
   End;
 
  Procedure TTerminalTests.QuickOpenDiagnosticsAndShellQuoting;
