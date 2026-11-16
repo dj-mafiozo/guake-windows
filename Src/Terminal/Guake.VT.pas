@@ -22,6 +22,7 @@ Interface
    UnderlineColor : Integer;
    Faint          : Boolean;
    Conceal        : Boolean;
+   Blink          : Boolean;
    Strike         : Boolean;
    Overline       : Boolean;
    Inverse        : Boolean;
@@ -795,6 +796,10 @@ Implementation
         fAttr.Underline      := True;
         fAttr.UnderlineStyle := 2;
        End;
+      5, 6 :
+       fAttr.Blink := True;
+      25 :
+       fAttr.Blink := False;
       8 :
        fAttr.Conceal := True;
       9 :

@@ -29,18 +29,23 @@ Interface
     Procedure RefreshTick     (Sender : TObject);
     Procedure FrameResize     (Sender : TObject);
    Private
-    fRasterLines     : TArray<TTerminalLine>;
-    fDirtyRows       : TArray<Boolean>;
-    fFullRasterDirty : Boolean;
-    fMaskValid       : Boolean;
-    fRasterCursorRow : Integer;
-    fRasterRowCount  : UInt64;
-    fOpaqueSurface   : TBitmap;
-    fAsciiClip       : Array[0..1] Of HRGN;
-    fClipColumns     : Integer;
-    fClipRows        : Integer;
-    fClipWidth       : Integer;
-    fClipHeight      : Integer;
+    fRasterLines       : TArray<TTerminalLine>;
+    fDirtyRows         : TArray<Boolean>;
+    fFullRasterDirty   : Boolean;
+    fMaskValid         : Boolean;
+    fRasterCursorRow   : Integer;
+    fRasterRowCount    : UInt64;
+    fBlinkRows         : TArray<Boolean>;
+    fHasBlinkRows      : Boolean;
+    fTextBlinkElapsed  : UInt64;
+    fTextBlinkOff      : Boolean;
+    fAlphaTextBlinkOff : Boolean;
+    fOpaqueSurface     : TBitmap;
+    fAsciiClip         : Array[0..1] Of HRGN;
+    fClipColumns       : Integer;
+    fClipRows          : Integer;
+    fClipWidth         : Integer;
+    fClipHeight        : Integer;
     Procedure PrepareAsciiClips;
    Private
     fCaptureBackgroundOnly : Boolean;
@@ -110,6 +115,8 @@ Interface
     Property RasterRowCount : UInt64 Read fRasterRowCount;
     /// <summary>Advances the configured GIF using elapsed milliseconds, without a second GUI timer.</summary>
     Function AdvanceBackground(ElapsedMilliseconds : Cardinal) : Boolean;
+    /// <summary>Advances text blink deterministically; invalidates only if a visible row has blinking foreground.</summary>
+    Function AdvanceTextBlink(ElapsedMilliseconds : Cardinal) : Boolean;
     Property OnVisualChanged : TNotifyEvent Read fOnVisualChanged Write fOnVisualChanged;
     /// <summary>Binds a borrowed session and settings. It never creates or closes a terminal process.</summary>
     Procedure Bind         (Session : TTerminalSession; Settings : TGuakeSettings);
@@ -233,9 +240,13 @@ Implementation
 
  Procedure TfraTerminal.Bind(Session : TTerminalSession; Settings : TGuakeSettings);
   Begin
-   fSession      := Session;
-   fSettings     := Settings;
-   fLastRevision := -1;
+   fSession          := Session;
+   fSettings         := Settings;
+   fLastRevision     := -1;
+   fTextBlinkElapsed := 0;
+   fTextBlinkOff     := False;
+   fHasBlinkRows     := False;
+   fBlinkRows        := Nil;
    ApplySettings;
    refreshTimer.Enabled := Session <> Nil;
    RefreshTick(Nil);
@@ -459,6 +470,7 @@ Implementation
    WindowOrigin    : TPoint;
    Decoration      : TColor;
    UnderlineKind   : Integer;
+   GlyphHidden     : Boolean;
 
    Procedure DrawDecorations;
     Var
@@ -466,7 +478,7 @@ Implementation
      yy    : Integer;
      BaseY : Integer;
     Begin
-     If c.Conceal Then
+     If GlyphHidden Then
       Exit;
      Canvas.Brush.Color := Fore;
      If c.Overline Then
@@ -570,9 +582,10 @@ Implementation
           Inc(x);
           Continue;
          End;
-        Selected := IsSelected(x, WorldY);
-        Fore     := ResolveColor(c.Foreground, True, c.Bold);
-        Back     := ResolveColor(c.Background, False, False);
+        GlyphHidden := c.Conceal Or (c.Blink And fTextBlinkOff);
+        Selected    := IsSelected(x, WorldY);
+        Fore        := ResolveColor(c.Foreground, True, c.Bold);
+        Back        := ResolveColor(c.Background, False, False);
         If c.Faint Then
          Fore := RGB((GetRValue(ColorToRGB(Fore)) + GetRValue(ColorToRGB(Back))) Div 2,
          (GetGValue(ColorToRGB(Fore)) + GetGValue(ColorToRGB(Back))) Div 2,
@@ -598,7 +611,7 @@ Implementation
             (NextCell.Background <> c.Background) Or (NextCell.Bold <> c.Bold) Or
             (NextCell.Italic <> c.Italic) Or (NextCell.Underline <> c.Underline) Or
             (NextCell.UnderlineStyle <> c.UnderlineStyle) Or (NextCell.UnderlineColor <> c.UnderlineColor) Or
-            (NextCell.Faint <> c.Faint) Or (NextCell.Conceal <> c.Conceal) Or
+            (NextCell.Faint <> c.Faint) Or (NextCell.Conceal <> c.Conceal) Or (NextCell.Blink <> c.Blink) Or
             (NextCell.Strike <> c.Strike) Or (NextCell.Overline <> c.Overline) Or
             (NextCell.Inverse <> c.Inverse) Or (IsSelected(x + RunLength, WorldY) <> Selected) Then
              Break;
@@ -614,7 +627,7 @@ Implementation
         If c.Italic Then
          Include(Style, fsItalic);
         UnderlineKind := Max(1, c.UnderlineStyle);
-        If Not c.Conceal Then
+        If Not GlyphHidden Then
          Begin
           If c.Underline And (UnderlineKind = 1) And (c.UnderlineColor = -1) Then
            Include(Style, fsUnderline);
@@ -645,14 +658,14 @@ Implementation
         SetBkColor(Canvas.Handle, ColorToRGB(Back));
         If RunLength > 0 Then
          Begin
-          If c.Conceal Then
+          If GlyphHidden Then
            RunText := StringOfChar(' ', RunLength);
           DrawAsciiRun;
           x := RunStart + RunLength;
          End
         Else
          Begin
-          If c.Conceal Then
+          If GlyphHidden Then
            ExtTextOut(Canvas.Handle, r.Left, r.Top, Options, @r, Nil, 0, Nil)
           Else
            ExtTextOut(Canvas.Handle, r.Left, r.Top, Options, @r, PChar(c.Text), Length(c.Text), Nil);
@@ -715,6 +728,19 @@ Implementation
    BitBlt(surface.Canvas.Handle, 0, 0, surface.Width, surface.Height, fOpaqueSurface.Canvas.Handle, 0, 0, SRCCOPY);
   End;
 
+/// <summary>Reports only blinking foreground that can affect a visible cell, excluding conceal and wide continuations.</summary>
+
+ Function LineHasBlink(Const Line : TTerminalLine; Columns : Integer) : Boolean;
+  Var
+   x : Integer;
+  Begin
+   Result := False;
+   For x  := 0 To Min(High(Line), Columns - 1) Do
+    If Line[x].Blink And Not Line[x].Conceal And Not Line[x].Continuation And
+    (((Line[x].Text <> '') And (Line[x].Text <> ' ')) Or Line[x].Underline Or Line[x].Strike Or Line[x].Overline) Then
+     Exit(True);
+  End;
+
  Procedure TfraTerminal.RenderAlpha(Destination : TBitmap; Opacity : Byte);
   Var
    Bitmap       : TBitmap;
@@ -758,7 +784,8 @@ Implementation
    ((fSettings.Style.CursorBlinkMode = 2) Or ((GetTickCount64 Div 500) Mod 2 = 0));
    If (fAlphaSurface = Nil) Or (fAlphaSurface.Width <> surface.Width) Or (fAlphaSurface.Height <> surface.Height) Or
    (fAlphaVisualRevision <> fVisualRevision) Or (fAlphaBufferRevision <> Revision) Or
-   (fAlphaOpacity <> Opacity) Or (fAlphaScroll <> scroll.Position) Or (fAlphaCursor <> Cursor) Then
+   (fAlphaOpacity <> Opacity) Or (fAlphaScroll <> scroll.Position) Or (fAlphaCursor <> Cursor) Or
+   (fHasBlinkRows And (fAlphaTextBlinkOff <> fTextBlinkOff)) Then
     Begin
      Full := fFullRasterDirty Or fBackgroundDirty Or (fBackSurface = Nil) Or
      (fAlphaScroll <> scroll.Position) Or (Length(fRasterLines) <> fSession.Buffer.Rows) Or
@@ -785,13 +812,20 @@ Implementation
       End;
      SetLength(fDirtyRows, fSession.Buffer.Rows);
      SetLength(fRasterLines, fSession.Buffer.Rows);
-     For Row := 0 To fSession.Buffer.Rows - 1 Do
+     SetLength(fBlinkRows, fSession.Buffer.Rows);
+     fHasBlinkRows := False;
+     For Row       := 0 To fSession.Buffer.Rows - 1 Do
       Begin
        CurrentLine     := fSession.Buffer.LineCells(scroll.Position + Row);
        fDirtyRows[Row] := Full Or (Length(CurrentLine) <> Length(fRasterLines[Row])) Or
        ((Length(CurrentLine) > 0) And Not CompareMem(@CurrentLine[0], @fRasterLines[Row][0], Length(CurrentLine) * SizeOf(TTerminalCell)));
        If fDirtyRows[Row] Then
-        fRasterLines[Row] := Copy(CurrentLine);
+        Begin
+         fRasterLines[Row] := Copy(CurrentLine);
+         fBlinkRows[Row]   := LineHasBlink(CurrentLine, fSession.Buffer.Columns);
+        End;
+       fDirtyRows[Row] := fDirtyRows[Row] Or (fBlinkRows[Row] And (fAlphaTextBlinkOff <> fTextBlinkOff));
+       fHasBlinkRows   := fHasBlinkRows Or fBlinkRows[Row];
       End;
      If (fRasterCursorRow >= 0) And (fRasterCursorRow < Length(fDirtyRows)) Then
       fDirtyRows[fRasterCursorRow] := True;
@@ -831,6 +865,7 @@ Implementation
      fAlphaOpacity        := Opacity;
      fAlphaScroll         := scroll.Position;
      fAlphaCursor         := Cursor;
+     fAlphaTextBlinkOff   := fTextBlinkOff;
      Inc(fAlphaRenderCount);
     End;
    Destination.PixelFormat := pf32bit;
@@ -861,6 +896,18 @@ Implementation
     End;
   End;
 
+ Function TfraTerminal.AdvanceTextBlink(ElapsedMilliseconds : Cardinal) : Boolean;
+  Var
+   Previous : Boolean;
+  Begin
+   Previous          := fTextBlinkOff;
+   fTextBlinkElapsed := (fTextBlinkElapsed + ElapsedMilliseconds) Mod 1000;
+   fTextBlinkOff     := fTextBlinkElapsed >= 500;
+   Result            := (Previous <> fTextBlinkOff) And fHasBlinkRows And (fSession <> Nil);
+   If Result Then
+    InvalidateSurface(False);
+  End;
+
  Procedure TfraTerminal.FollowOutput;
   Begin
    If fSession <> Nil Then
@@ -878,7 +925,10 @@ Implementation
   Begin
    Tick := GetTickCount64;
    If IsWindowVisible(Handle) Then
-    AdvanceBackground(Min(Tick - fBackgroundTick, UInt64(60000)));
+    Begin
+     AdvanceBackground(Min(Tick - fBackgroundTick, UInt64(60000)));
+     AdvanceTextBlink(Min(Tick - fBackgroundTick, UInt64(60000)));
+    End;
    fBackgroundTick := Tick;
    If fSession = Nil Then
     Exit;

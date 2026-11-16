@@ -28,6 +28,9 @@ Interface
     [Test] Procedure TerminalBackgroundAlphaAndWindowControls;
     [Test] Procedure AnimatedGifBackgroundDelaysAndRemoval;
     [Test] Procedure AnimatedGifDisposalAndFiniteLoop;
+    [Test] Procedure BlinkSGRStateResetRestoreAndReflow;
+    [Test] Procedure BlinkOnlyRasterizesAffectedVisibleRows;
+    [Test] Procedure BlinkIgnoresConcealBlankCellsAndOffscreenHistory;
     [Test] Procedure ExtendedSGRStateAndCursorRestore;
     [Test] Procedure SGRDecorationsRenderWithOpaqueCoverage;
     [Test] Procedure FaintConcealAndIncrementalAttributeRefresh;
@@ -112,6 +115,184 @@ Implementation
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+ Procedure TTerminalTests.BlinkSGRStateResetRestoreAndReflow;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(20, 5);
+   Try
+    Buffer.FeedText(#27'[5mA'#27'[25mB'#27'[6mC'#27'[0mD');
+    Assert.IsTrue(Buffer.Cell[0, 0].Blink);
+    Assert.IsFalse(Buffer.Cell[1, 0].Blink);
+    Assert.IsTrue(Buffer.Cell[2, 0].Blink);
+    Assert.IsFalse(Buffer.Cell[3, 0].Blink);
+    Buffer.FeedText(#27'[5m'#27'7'#27'[25m'#27'8E');
+    Assert.IsTrue(Buffer.Cell[4, 0].Blink);
+    Buffer.Resize(10, 5);
+    Assert.IsTrue(Buffer.Cell[0, 0].Blink);
+    Assert.IsTrue(Buffer.Cell[4, 0].Blink);
+    Assert.AreEqual('ABCDE', Buffer.LineText(0));
+    Buffer.FeedText(#27'cF');
+    Assert.IsFalse(Buffer.Cell[0, 0].Blink);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.BlinkOnlyRasterizesAffectedVisibleRows;
+  Var
+   Settings     : TGuakeSettings;
+   Main         : TfrmMain;
+   Frame        : TfraTerminal;
+   Output       : TBitmap;
+   Visible      : TBitmap;
+   Width        : Integer;
+   Height       : Integer;
+   x            : Integer;
+   y            : Integer;
+   OpaquePixels : Integer;
+   Count        : UInt64;
+   Rows         : UInt64;
+  Begin
+   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Output   := TBitmap.Create;
+   Visible  := TBitmap.Create;
+   Try
+    Settings.General.DefaultShell         := 'cmd';
+    Settings.General.UseTrayicon          := False;
+    Settings.General.UsePopup             := False;
+    Settings.Keybindings.Global.ShowHide  := 'disabled';
+    Settings.Keybindings.Global.ShowFocus := 'disabled';
+    Main                                  := TfrmMain.Create(Nil);
+    Try
+     Main.Bind(Settings);
+     Main.StartTerminal;
+     Main.HandleNeeded;
+     Main.SetBounds( -30000, 0, 500, 200);
+     Main.Hide;
+     Frame := Main.ActiveTerminalFrame;
+     Frame.Bind(Frame.Session, Settings);
+     Frame.refreshTimer.Enabled := False;
+     Frame.Session.Buffer.Reset;
+     Frame.Session.Buffer.FeedText(#27'[?25l'#27'[38;2;255;255;255;5;4:2;58;2;255;0;0mM'#27'[25;24;59mS'#13#10'stable');
+     Frame.RenderAlpha(Output, 96);
+     Visible.Assign(Output);
+     Output.Canvas.Font.Assign(Frame.Font);
+     Width  := Output.Canvas.TextWidth('M');
+     Height := Output.Canvas.TextHeight('Mg');
+     Count  := Frame.AlphaRenderCount;
+     Rows   := Frame.RasterRowCount;
+     Assert.IsFalse(Frame.AdvanceTextBlink(499));
+     Frame.RenderAlpha(Output, 96);
+     Assert.AreEqual(Count, Frame.AlphaRenderCount);
+     Assert.IsTrue(Frame.AdvanceTextBlink(1));
+     Frame.RenderAlpha(Output, 96);
+     Assert.AreEqual(Rows + UInt64(1), Frame.RasterRowCount);
+     For y  := 4 To 4 + Height - 1 Do
+      For x := 4 To 4 + Width - 1 Do
+       Assert.AreEqual(96, Integer(PixelAt(Output, x, y).rgbReserved));
+     For y  := 4 To 4 + 2 * Height - 1 Do
+      For x := 4 + Width To 4 + 6 * Width - 1 Do
+       Assert.AreEqual(Cardinal(PixelAt(Visible, x, y).rgbRed), Cardinal(PixelAt(Output, x, y).rgbRed));
+     Assert.AreEqual(Visible.Width, Output.Width);
+     Assert.IsTrue(Frame.AdvanceTextBlink(500));
+     Frame.RenderAlpha(Output, 96);
+     OpaquePixels := 0;
+     For y        := 4 To 4 + Height - 1 Do
+      For x       := 4 To 4 + Width - 1 Do
+       If PixelAt(Output, x, y).rgbReserved = 255 Then
+        Inc(OpaquePixels);
+     Assert.IsTrue(OpaquePixels > 0);
+     Assert.IsTrue(Pos('MS', Frame.Session.Buffer.Text) > 0);
+     Frame.Session.Buffer.FeedText(#27'[H'#27'[5;48;2;12;34;56mM');
+     Frame.RenderAlpha(Output, 96);
+     Assert.IsTrue(Frame.AdvanceTextBlink(500));
+     Frame.RenderAlpha(Output, 96);
+     For y  := 4 To 4 + Height - 1 Do
+      For x := 4 To 4 + Width - 1 Do
+       Begin
+        Assert.AreEqual(255, Integer(PixelAt(Output, x, y).rgbReserved));
+        Assert.AreEqual(12, Integer(PixelAt(Output, x, y).rgbRed));
+        Assert.AreEqual(34, Integer(PixelAt(Output, x, y).rgbGreen));
+        Assert.AreEqual(56, Integer(PixelAt(Output, x, y).rgbBlue));
+       End;
+    Finally
+     Main.Free;
+    End;
+   Finally
+    Visible.Free;
+    Output.Free;
+    Settings.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.BlinkIgnoresConcealBlankCellsAndOffscreenHistory;
+  Var
+   Settings : TGuakeSettings;
+   Main     : TfrmMain;
+   Frame    : TfraTerminal;
+   Output   : TBitmap;
+   Count    : UInt64;
+   i        : Integer;
+  Begin
+   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Output   := TBitmap.Create;
+   Try
+    Settings.General.DefaultShell         := 'cmd';
+    Settings.General.UseTrayicon          := False;
+    Settings.General.UsePopup             := False;
+    Settings.Keybindings.Global.ShowHide  := 'disabled';
+    Settings.Keybindings.Global.ShowFocus := 'disabled';
+    Main                                  := TfrmMain.Create(Nil);
+    Try
+     Main.Bind(Settings);
+     Main.StartTerminal;
+     Main.HandleNeeded;
+     Main.SetBounds( -30000, 0, 500, 200);
+     Main.Hide;
+     Frame := Main.ActiveTerminalFrame;
+     Frame.Bind(Frame.Session, Settings);
+     Frame.refreshTimer.Enabled := False;
+     Frame.Session.Buffer.Reset;
+     Frame.Session.Buffer.FeedText(#27'[?25l'#27'[5;8mhidden'#27'[28m   '#27'[25m');
+     Frame.RenderAlpha(Output, 255);
+     Count := Frame.AlphaRenderCount;
+     For i := 1 To 4 Do
+      Begin
+       Assert.IsFalse(Frame.AdvanceTextBlink(500));
+       Frame.RenderAlpha(Output, 255);
+      End;
+     Assert.AreEqual(Count, Frame.AlphaRenderCount);
+     Frame.Session.Buffer.Reset;
+     Frame.Session.Buffer.FeedText(#27'[?25l'#27'[5mhistory'#27'[25m');
+     For i := 1 To Frame.Session.Buffer.Rows + 2 Do
+      Frame.Session.Buffer.FeedText(#13#10'plain');
+     Frame.RefreshTick(Nil);
+     Frame.scroll.Position := Frame.Session.Buffer.TotalLines - Frame.Session.Buffer.Rows;
+     Frame.RenderAlpha(Output, 255);
+     Count := Frame.AlphaRenderCount;
+     Assert.IsFalse(Frame.AdvanceTextBlink(500));
+     Frame.RenderAlpha(Output, 255);
+     Assert.AreEqual(Count, Frame.AlphaRenderCount);
+     Frame.scroll.Position := 0;
+     Frame.RenderAlpha(Output, 255);
+     Assert.IsTrue(Frame.AdvanceTextBlink(500));
+     Frame.RenderAlpha(Output, 255);
+     Frame.Session.Buffer.FeedText(#27'[?1049h'#27'[?25l'#27'[0mplain');
+     Frame.RenderAlpha(Output, 255);
+     Count := Frame.AlphaRenderCount;
+     Assert.IsFalse(Frame.AdvanceTextBlink(500));
+     Frame.RenderAlpha(Output, 255);
+     Assert.AreEqual(Count, Frame.AlphaRenderCount);
+    Finally
+     Main.Free;
+    End;
+   Finally
+    Output.Free;
+    Settings.Free;
+   End;
+  End;
 
  Procedure TTerminalTests.ExtendedSGRStateAndCursorRestore;
   Var

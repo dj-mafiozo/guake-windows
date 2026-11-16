@@ -1,6 +1,6 @@
 # Pokrycie emulatora VT
 
-Stan: 1.0.20.53. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.21.54. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -11,7 +11,7 @@ Stan: 1.0.20.53. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | Edycja | ED/EL, ICH/DCH/ECH, IL/DL, SU/SD, DECSTBM | Selective erase i chronione komórki; prostokąty DEC; poziome marginesy; szerokie znaki przecinające granice edycji |
 | Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS | Chronione komórki/selective erase, DECSTR i zapisywanie trybów prywatnych |
 | Ekrany | Ekran główny i alternatywny, 47/1047/1049, historia i reflow ekranu głównego | Osobna macierz wariantów przełączania i zapisów kursora, przypadki brzegowe reflow |
-| SGR | Reset, bold/faint, italic, conceal, strike, overline, inverse; pięć stylów podkreślenia i jego kolor 58/59; ANSI 16/256 i RGB przez średniki i dwukropki | Miganie tekstu 5/6/25, dalsze warianty SGR i porównanie geometrii dekoracji z VTE |
+| SGR | Reset, bold/faint, italic, conceal, strike, overline, inverse; pięć stylów podkreślenia i jego kolor 58/59; miganie 5/6/25; ANSI 16/256 i RGB przez średniki i dwukropki | Dalsze warianty SGR, integracja systemowych preferencji migania i porównanie geometrii dekoracji z VTE |
 | Odpowiedzi | DSR 5, CPR 6, DECXCPR ?6; wiersz względem regionu przy DECOM; podstawowe DA/DECID | Secondary/tertiary DA, DECRQM, DECRQSS, raporty rozmiaru i pozostałe zapytania |
 | OSC | 0/2: tytuł, 7: katalog, 8: odnośniki | Paleta i zapytania kolorów, stos tytułów, pozostałe OSC; polityka dostępu do schowka |
 | DCS/APC/PM | Pomijanie DCS/APC/PM/SOS; nowy ESC może przerwać ciąg i rozpocząć nowe polecenie | Brak implementacji funkcji DCS; dalsze porównania ciągów z VTE |
@@ -29,7 +29,7 @@ Stan: 1.0.20.53. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 
 ## Następne etapy
 
-1. Miganie tekstu wraz z oszczędnym odświeżaniem, potem zapytania i tryby wejścia.
+1. Brakujące zapytania urządzenia i tryby wejścia z integracją kontrolera.
 2. Edycja szerokich komórek, marginesy i reflow; porównania strumieni i obrazów z VTE.
 3. Dalsze przypadki błędnych strumieni, C1 i ciągów sterujących.
 
@@ -63,4 +63,14 @@ SGR 4:0–5 wybiera brak podkreślenia, pojedynczą linię, linię podwójną, f
 
 Widok rysuje zwykłe jednokolorowe podkreślenie i przekreślenie przez GDI; kolorowe i pozostałe podkreślenia oraz overline rysuje w granicach komórek. Wzór linii jest zakotwiczony we współrzędnych widoku, więc grupowanie ASCII nie zmienia jego fazy. Faint uśrednia składowe RGB koloru tekstu i rozwiązanego koloru tła przed inwersją; obraz tła nie jest próbkowany do tego obliczenia. Maska pokrycia zachowuje nieprzezroczystość dekoracji niezależnie od nieprzezroczystości tła. Conceal nie ujawnia tekstu po zaznaczeniu, ale jawne tło SGR pozostaje widoczne.
 
-Cache wierszy oraz grupowanie ASCII uwzględniają wszystkie nowe atrybuty. Testy sprawdzają stan i reset, zachowanie przy zapisie kursora/reflow, pięć widocznych stylów, kolor i alfę dekoracji, conceal przy tle domyślnym/jawnym, przygaszenie, przekreślenie spacji i odświeżenie jednego wiersza po zmianie samego atrybutu. Podgląd: bin/tests/sgr-preview.png. Geometria GDI nadal wymaga porównań z Pango/VTE dla różnych fontów i DPI; miganie tekstu nie jest jeszcze obsługiwane.
+Cache wierszy oraz grupowanie ASCII uwzględniają wszystkie nowe atrybuty. Testy sprawdzają stan i reset, zachowanie przy zapisie kursora/reflow, pięć widocznych stylów, kolor i alfę dekoracji, conceal przy tle domyślnym/jawnym, przygaszenie, przekreślenie spacji i odświeżenie jednego wiersza po zmianie samego atrybutu. Podgląd: bin/tests/sgr-preview.png. Geometria GDI nadal wymaga porównań z Pango/VTE dla różnych fontów i DPI; miganie tekstu dodano w kolejnym etapie 1.0.21.54.
+
+## Miganie tekstu — 1.0.21.54
+
+SGR 5 i 6 włączają ten sam atrybut migania, a 25 go wyłącza, zgodnie z rozróżnieniem przyjętym w [parserze SGR VTE](https://github.com/GNOME/vte/blob/master/src/sgr.hh). SGR 0 i RIS przywracają brak migania. Atrybut pozostaje w komórkach, historii, reflow i zapisie kursora; faza animacji należy do widoku, nie do danych terminala. Tekst można kopiować również w fazie niewidocznej.
+
+Widok przełącza fazę co 500 ms, korzystając z istniejącego timera i upływu czasu od poprzedniego tyknięcia. Ukryte okno/panel nie przesuwa fazy. Znikają glify i dekoracje, a tło komórki, zaznaczenie i obraz pozostają. Po powrocie fazy maska pokrycia przywraca krycie tekstu i dekoracji. To mechanizm odrębny od migania kursora; ustawienie CursorBlinkMode go nie steruje. Integracja systemowych preferencji dostępności i ustawień migania tekstu pozostaje do wykonania.
+
+Cache zapamiętuje, które widoczne wiersze mają migającą treść. Informacja jest przeliczana przy zmianie wiersza albo widoku, bez przeglądania całej historii na każdym tyknięciu. Conceal, same niedekorowane spacje i kontynuacje szerokich znaków nie tworzą dodatkowej pracy. Zmiana fazy nie unieważnia cache panelu bez widocznych migających komórek. Rasteryzowane są tylko właściwe wiersze (oraz niezależnie wymagane wiersze kursora); kompozycja ARGB i prezentacja okna pozostają bitmapowe.
+
+Scenariusze sprawdzają SGR 5/6/25, reset, zapis/odtworzenie kursora i reflow, granicę 499/500 ms, ponowne użycie cache, rasteryzację jednego wiersza, tło domyślne i jawne, krycie po powrocie fazy, conceal, spacje, przewijanie historii oraz ekran alternatywny. Nie deklarują pełnej zgodności wszystkich polityk fokusu i migania VTE.
