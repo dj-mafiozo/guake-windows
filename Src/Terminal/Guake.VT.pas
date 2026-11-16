@@ -137,7 +137,9 @@ Interface
     /// <summary>Returns a borrowed read-only row on the UI thread; clone it before retaining a previous state.</summary>
     Function LineCells(Index : Integer) : TTerminalLine;
     Function LineText (Index : Integer) : String;
-    Function Text                       : String;
+    /// <summary>Joins soft-wrapped rows with a UTF-16 index at a clicked cell; rejects logical lines beyond 65536 units.</summary>
+    Function LogicalLineText(Column, Row : Integer; Out CharacterIndex : Integer) : String;
+    Function Text                                                                 : String;
     /// <summary>Returns inclusive selected cells as Unicode text, excluding continuation cells.</summary>
     Function    RangeText(StartX, StartY, EndX, EndY : Integer) : String;
     Property Cell[x, y : Integer] : TTerminalCell Read GetCell;
@@ -1575,6 +1577,60 @@ Implementation
       Result := Result + c.Text;
     End;
    Result := TrimRight(Result);
+  End;
+
+ Function TTerminalBuffer.LogicalLineText(Column, Row : Integer; Out CharacterIndex : Integer) : String;
+  Const
+   Limit = 65536;
+  Var
+   First, Last, y, x, Target, MaxRows : Integer;
+   Cell                               : TTerminalCell;
+   Builder                            : TStringBuilder;
+  Begin
+   Result         := '';
+   CharacterIndex := -1;
+   If (Column < 0) Or (Column >= fColumns) Or (Row < 0) Or (Row >= TotalLines) Then
+    Exit;
+   If GetCell(Column, Row).WrapPadding Then
+    Exit;
+   While (Column > 0) And GetCell(Column, Row).Continuation Do
+    Dec(Column);
+   First   := Row;
+   Last    := Row;
+   MaxRows := Max(1, Limit Div fColumns);
+   While (First > 0) And GetCell(fColumns - 1, First - 1).SoftWrapped Do
+    Begin
+     Dec(First);
+     If Last - First + 1 > MaxRows Then
+      Exit;
+    End;
+   While (Last + 1 < TotalLines) And GetCell(fColumns - 1, Last).SoftWrapped Do
+    Begin
+     Inc(Last);
+     If Last - First + 1 > MaxRows Then
+      Exit;
+    End;
+   Builder := TStringBuilder.Create;
+   Target  := -1;
+   Try
+    For y  := First To Last Do
+     For x := 0 To fColumns - 1 Do
+      Begin
+       If (x = Column) And (y = Row) Then
+        Target := Builder.Length;
+       Cell    := GetCell(x, y);
+       If Cell.Continuation Or Cell.WrapPadding Then
+        Continue;
+       If Builder.Length + Length(Cell.Text) > Limit Then
+        Exit;
+       Builder.Append(Cell.Text);
+      End;
+    Result := TrimRight(Builder.ToString);
+    If (Target >= 0) And (Target < Length(Result)) Then
+     CharacterIndex := Target;
+   Finally
+    Builder.Free;
+   End;
   End;
 
  Function TTerminalBuffer.RangeText(StartX, StartY, EndX, EndY : Integer) : String;

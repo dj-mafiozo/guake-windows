@@ -45,3 +45,7 @@ Przezroczystość terminala jest obecnie składana dla samego tła i obrazu; tek
 Pozycja Quick Open w menu terminala jest aktywna dla rozpoznanego, istniejącego pliku, gdy funkcja jest włączona w preferencjach. Ctrl+klik i zaznaczenie korzystają z tego samego parsera diagnostyki.
 
 Pasek kart rysuje płaskie przyciski przez natywny motyw Windows. Ustawienie tab-close-buttons dodaje krzyżyki; aktywność w tle pogrubia tytuł zgodnie z okresami ignorowania z oryginału. Menu przywracania kolorów jest aktywne, gdy któryś panel karty ma własny kolor. Przezroczystość nadal obejmuje wyłącznie tło, a renderer ponownie wykorzystuje niezmienione panele.
+
+### Zaznaczanie terminala
+
+Pojedynczy klik ustawia fokus bez zaznaczania znaku. Dwuklik zaznacza słowo, przeciągnięcie zaznacza zakres. Środkowy przycisk wkleja ostatnie zaznaczenie terminala w bieżącym miejscu wejścia powłoki; nie przestawia kursora według współrzędnych myszy. Shift omija raportowanie myszy do programu terminalowego.

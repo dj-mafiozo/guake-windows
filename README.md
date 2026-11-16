@@ -71,3 +71,5 @@ Zapytania VT obejmują DA2, stan obsługiwanych trybów DECRQM i rozmiar termina
 `guake.exe --exit` całkowicie kończy działającą instancję bez dialogu potwierdzenia, zapisując sesję przy włączonym automatycznym zapisie. Gdy Guake nie działa, polecenie nie uruchamia powłoki ani nie zmienia sesji. `--quit` zachowuje dotychczasowe potwierdzenia.
 
 Wrapper git-zsh.exe używa ikony lokalnego Zsh z Git SDK. Emulator odpowiada na DECRQSS dla SGR i marginesów oraz obsługuje klawiaturę numeryczną aplikacyjną, w tym osobny Enter i klawisze przy wyłączonym Num Lock.
+
+Dwuklik w terminalu zaznacza słowo według `word-chars`. Środkowy przycisk wkleja ostatnie zaznaczenie terminala w bieżącym miejscu wejścia powłoki (bez Enter). Gdy aplikacja przechwytuje mysz, użyj Shift. URL i ścieżki Quick Open mogą przechodzić przez automatycznie zawinięte wiersze.

@@ -16,6 +16,7 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure LogicalLinesJoinSoftWrapsAndMapCells;
     [Test] Procedure UnchangedSplitPanesReuseComposition;
     [Test] Procedure BatchedAsciiPreservesCellPixels;
     [Test] Procedure TerminalCompositionLatency;
@@ -261,11 +262,40 @@ Implementation
    End;
   End;
 
+/// <summary>Soft wraps preserve UTF-16 hit positions; explicit newlines remain separate.</summary>
+
+ Procedure TTerminalTests.LogicalLinesJoinSoftWrapsAndMapCells;
+  Var
+   Buffer : TTerminalBuffer;
+   Index  : Integer;
+   Text   : String;
+  Begin
+   Buffer := TTerminalBuffer.Create(10, 5);
+   Try
+    Buffer.FeedText('https://example.org/path');
+    Text := Buffer.LogicalLineText(3, 1, Index);
+    Assert.AreEqual('https://example.org/path', Text);
+    Assert.AreEqual(13, Index);
+    Assert.AreEqual(Text, TerminalLinkAt(Text, Index));
+    Buffer.FeedText(#13#10'next');
+    Assert.AreEqual('next', Buffer.LogicalLineText(1, 3, Index));
+    Assert.AreEqual(1, Index);
+    Buffer.FeedText(#27'c' + StringOfChar('a', 9) + #$4E2D + 'b');
+    Assert.AreEqual('', Buffer.LogicalLineText(9, 0, Index));
+    Assert.AreEqual( -1, Index);
+    Assert.AreEqual(StringOfChar('a', 9) + #$4E2D + 'b', Buffer.LogicalLineText(1, 1, Index));
+    Assert.AreEqual(9, Index, 'Continuation cell maps to the whole wide character');
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
  Procedure TTerminalTests.FocusNewLineAndQueryRepliesReachConPTY;
   Var
    Settings      : TGuakeSettings;
    Main          : TfrmMain;
    Frame         : TfraTerminal;
+   Peer          : TfraTerminal;
    Session       : TTerminalSession;
    Profile       : TShellProfile;
    ScriptName    : String;
@@ -292,7 +322,7 @@ Implementation
     'public static void Run(string path) {'#13#10 +
     'if(!SetConsoleMode(GetStdHandle(-10),0x200)) throw new Exception("SetConsoleMode");'#13#10 +
     'if(!SetConsoleMode(GetStdHandle(-11),7)) throw new Exception("Output mode"); Console.Write("\u001b[?1004h\u001b=PROBE_READY"); var data=new List<int>();'#13#10 +
-    'for(int i=0;i<256;i++){int c=Console.Read();if(c<0)throw new Exception("EOF");if(c==126){File.WriteAllText(path+".tmp",string.Join(",",data));File.Move(path+".tmp",path);return;}data.Add(c);}'#13#10 +
+    'for(int i=0;i<256;i++){int c=Console.Read();if(c<0)throw new Exception("EOF");if(c==124){File.WriteAllText(path+".tmp",string.Join(",",data));File.Move(path+".tmp",path);return;}data.Add(c);}'#13#10 +
     'throw new Exception("Input limit");}}'#13#10 +
     '''@'#13#10 + '[Probe]::Run($args[0])', TEncoding.UTF8);
     Profile                               := TShellProfile.Resolve(gsPowerShell);
@@ -350,7 +380,40 @@ Implementation
     Frame.Perform(WM_KEYDOWN, VK_NUMPAD2, 0);
     Frame.Perform(WM_CHAR, Ord('2'), 0);
     Expected := Expected + '2';
-    Session.SendText('~');
+    Main.SetBounds( -30000, 0, 700, 200);
+    Main.Show;
+    Settings.General.WordChars    := '-A-Za-z0-9_';
+    Settings.General.CopyOnSelect := False;
+    Session.Buffer.FeedText(#27'[2J'#27'[HPRIMARY_WORD rest');
+    Frame.RefreshTick(Nil);
+    Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
+    Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
+    Assert.AreEqual('', Frame.SelectedText);
+    Frame.SurfaceDblClick(Nil);
+    Frame.SurfaceMouseDown(Nil, mbLeft, [ssDouble], 5, 5);
+    Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
+    Assert.AreEqual('PRIMARY_WORD', Frame.SelectedText, 'Second mouse down must preserve double-click selection');
+    Frame.SurfaceMouseDown(Nil, mbMiddle, [], 5, 5);
+    Frame.SurfaceMouseUp(Nil, mbMiddle, [], 5, 5);
+    Expected := Expected + 'PRIMARY_WORD';
+    Assert.AreEqual('', Frame.SelectedText);
+    Session.Buffer.FeedText(#27'[?2004h');
+    Frame.SurfaceMouseDown(Nil, mbMiddle, [], 5, 5);
+    Frame.SurfaceMouseUp(Nil, mbMiddle, [], 5, 5);
+    Expected := Expected + #27'[200~PRIMARY_WORD'#27'[201~';
+    Peer     := TfraTerminal.Create(Nil);
+    Try
+     Peer.Parent := Main.tabHost;
+     Peer.Bind(Session, Settings);
+     Peer.HandleNeeded;
+     Peer.refreshTimer.Enabled := False;
+     Peer.SurfaceMouseDown(Nil, mbMiddle, [], 5, 5);
+     Peer.SurfaceMouseUp(Nil, mbMiddle, [], 5, 5);
+     Expected := Expected + #27'[200~PRIMARY_WORD'#27'[201~';
+    Finally
+     Peer.Free;
+    End;
+    Session.SendText('|');
     ExpectedCodes := '';
     For i         := 1 To Length(Expected) Do
      Begin
@@ -2758,6 +2821,17 @@ Implementation
      Frame.SurfaceMouseMove(Nil, [ssLeft], 45, 5);
      Frame.SurfaceMouseUp(Nil, mbLeft, [], 45, 5);
      Assert.IsTrue(Length(Frame.SelectedText) > 1, Frame.SelectedText);
+     Frame.Session.Buffer.FeedText(#27'[2J'#27'[Ha+b');
+     Settings.General.WordChars := '-A-Za-z0-9';
+     Frame.RefreshTick(Nil);
+     Frame.SurfaceMouseDown(Nil, mbLeft, [ssDouble], 5, 5);
+     Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
+     Assert.AreEqual('a', Frame.SelectedText);
+     Settings.General.WordChars := '-A-Za-z0-9+';
+     Frame.SurfaceMouseDown(Nil, mbLeft, [ssDouble], 5, 5);
+     Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
+     Assert.AreEqual('a+b', Frame.SelectedText);
+
     Finally
      Main.Free;
     End;

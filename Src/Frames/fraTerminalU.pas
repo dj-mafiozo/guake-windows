@@ -29,6 +29,13 @@ Interface
     Procedure RefreshTick     (Sender : TObject);
     Procedure FrameResize     (Sender : TObject);
    Private
+    Class Var fPrimarySelection : String;
+   Private
+    fMouseShift : TShiftState;
+    Procedure RememberSelection;
+    Procedure SelectWordAt(x, y : Integer);
+    Procedure PasteText   (Const Value : String);
+   Private
     fRasterLines       : TArray<TTerminalLine>;
     fDirtyRows         : TArray<Boolean>;
     fFullRasterDirty   : Boolean;
@@ -988,7 +995,11 @@ Implementation
   Begin
    If (fSession = Nil) Or fSession.Exited Then
     Exit;
-   fHasSelection := False;
+   If fHasSelection Then
+    Begin
+     fHasSelection := False;
+     InvalidateSurface;
+    End;
    If fSettings.General.ScrollKeystroke Then
     FollowOutput;
    fSession.SendText(Value);
@@ -1179,12 +1190,25 @@ Implementation
     End;
   End;
 
+/// <summary>VCL orders right before middle; VT protocols order middle before right.</summary>
+
+ Function MouseButtonCode(Button : TMouseButton) : Integer;
+  Begin
+   Case Button Of
+    mbLeft   : Result := 0;
+    mbMiddle : Result := 1;
+   Else Result := 2;
+   End;
+  End;
+
  Procedure TfraTerminal.SurfaceMouseDown(Sender : TObject; Button : TMouseButton; Shift : TShiftState; x, y : Integer);
   Var
    Handled : Boolean;
   Begin
    If fSession = Nil Then
     Exit;
+   fMouseShift  := Shift;
+   fMouseAnchor := Point(x, y);
    SetFocus;
    If Assigned(fOnActivate) Then
     fOnActivate(Self);
@@ -1201,7 +1225,18 @@ Implementation
     End;
    If (fSession.Buffer.MouseMode > 0) And Not(ssShift In Shift) Then
     Begin
-     SendMouse(Ord(Button), False, Shift, x, y);
+     SendMouse(MouseButtonCode(Button), False, Shift, x, y);
+     Exit;
+    End;
+   If Button = mbMiddle Then
+    Begin
+     fConsumedClick := True;
+     PasteText(fPrimarySelection);
+     Exit;
+    End;
+   If (Button = mbLeft) And (ssDouble In Shift) Then
+    Begin
+     SelectWordAt(x, y);
      Exit;
     End;
    If Button <> mbLeft Then
@@ -1244,7 +1279,7 @@ Implementation
     Exit;
    If (fSession.Buffer.MouseMode > 0) And Not(ssShift In Shift) Then
     Begin
-     SendMouse(Ord(Button), True, Shift, x, y);
+     SendMouse(MouseButtonCode(Button), True, Shift, x, y);
      Exit;
     End;
    If fSelecting Then
@@ -1253,41 +1288,128 @@ Implementation
       fSelectionEnd                       := MouseCell(x, y);
      fSelecting                           := False;
      TControlAccess(surface).MouseCapture := False;
-     If fHasSelection And fSettings.General.CopyOnSelect Then
-      CopySelection;
+     If fHasSelection Then
+      RememberSelection;
     End;
   End;
 
- Procedure TfraTerminal.SurfaceDblClick(Sender : TObject);
+ Procedure TfraTerminal.RememberSelection;
   Var
-   p : TPoint;
-   x : Integer;
-   s : String;
+   Value : String;
+  Begin
+   Value := SelectedText;
+   If Value <> '' Then
+    fPrimarySelection := Value;
+   If fSettings.General.CopyOnSelect Then
+    CopySelection;
+  End;
 
-   Function WordCell(Column : Integer) : Boolean;
+/// <summary>Selects whole grapheme cells of the same word class, respecting configured exceptions and soft wraps.</summary>
+
+ Procedure TfraTerminal.SelectWordAt(x, y : Integer);
+  Var
+   p         : TPoint;
+   First     : TPoint;
+   Last      : TPoint;
+   Candidate : TPoint;
+   Kind      : Integer;
+   Steps     : Integer;
+   ClickText : String;
+
+   Function Category(Const Point : TPoint) : Integer;
+    Var
+     Value   : String;
+     Pattern : String;
+     i       : Integer;
+     ch      : Char;
     Begin
-     s      := fSession.Buffer.Cell[Column, p.y].Text;
-     Result := (s <> '') And (s[1].IsLetterOrDigit Or (Pos(s[1], '-_./:@~') > 0));
+     Value := fSession.Buffer.Cell[Point.x, Point.y].Text;
+     If Trim(Value) = '' Then
+      Exit(0);
+     ch := Value[1];
+     If ch.IsLetterOrDigit Then
+      Exit(1);
+     Pattern := fSettings.General.WordChars;
+     i       := 1;
+     While i <= Length(Pattern) Do
+      Begin
+       If (i + 2 <= Length(Pattern)) And (Pattern[i + 1] = '-') Then
+        Begin
+         If (ch >= Pattern[i]) And (ch <= Pattern[i + 2]) Then
+          Exit(1);
+         Inc(i, 3);
+        End
+       Else
+        Begin
+         If ch = Pattern[i] Then
+          Exit(1);
+         Inc(i);
+        End;
+      End;
+     Result := 2;
+    End;
+
+   Function Step(Var Point : TPoint; Direction : Integer) : Boolean;
+    Begin
+     Result := False;
+     Repeat
+      Inc(Steps);
+      If Steps > 65536 Then
+       Exit;
+      Inc(Point.x, Direction);
+      If Point.x < 0 Then
+       Begin
+        If (Point.y = 0) Or Not fSession.Buffer.Cell[fSession.Buffer.Columns - 1, Point.y - 1].SoftWrapped Then
+         Exit;
+        Dec(Point.y);
+        Point.x := fSession.Buffer.Columns - 1;
+       End;
+      If Point.x >= fSession.Buffer.Columns Then
+       Begin
+        If (Point.y + 1 >= fSession.Buffer.TotalLines) Or Not fSession.Buffer.Cell[fSession.Buffer.Columns - 1, Point.y].SoftWrapped Then
+         Exit;
+        Inc(Point.y);
+        Point.x := 0;
+       End;
+     Until Not fSession.Buffer.Cell[Point.x, Point.y].Continuation And Not fSession.Buffer.Cell[Point.x, Point.y].WrapPadding;
+     Result := (Category(Point) = Kind) And ((Kind <> 2) Or (fSession.Buffer.Cell[Point.x, Point.y].Text = ClickText));
     End;
 
   Begin
    If fSession = Nil Then
     Exit;
-   p := MouseCell(surface.ScreenToClient(Mouse.CursorPos).x, surface.ScreenToClient(Mouse.CursorPos).y);
-   x := p.x;
-   While (x > 0) And WordCell(x - 1) Do
-    Dec(x);
-   fSelectionStart := Point(x, p.y);
-   x               := p.x;
-   While (x < fSession.Buffer.Columns - 1) And WordCell(x + 1) Do
-    Inc(x);
-   fSelectionEnd                        := Point(x, p.y);
+   p := MouseCell(x, y);
+   While (p.x > 0) And fSession.Buffer.Cell[p.x, p.y].Continuation Do
+    Dec(p.x);
+   Kind      := Category(p);
+   ClickText := fSession.Buffer.Cell[p.x, p.y].Text;
+   Steps     := 0;
+   First     := p;
+   Last      := p;
+   Candidate := p;
+   While Step(Candidate, -1) Do
+    First    := Candidate;
+   Candidate := p;
+   While Step(Candidate, 1) Do
+    Last                                := Candidate;
+   fSelectionStart                      := First;
+   fSelectionEnd                        := Last;
    fHasSelection                        := True;
    fSelecting                           := False;
    TControlAccess(surface).MouseCapture := False;
    InvalidateSurface;
-   If fSettings.General.CopyOnSelect Then
-    CopySelection;
+   RememberSelection;
+  End;
+
+ Procedure TfraTerminal.SurfaceDblClick(Sender : TObject);
+  Begin
+   If fSession = Nil Then
+    Exit;
+   If (fSession.Buffer.MouseMode > 0) And Not(ssShift In fMouseShift) Then
+    Exit;
+   If (ssCtrl In fMouseShift) And Assigned(fOnCtrlClick) Then
+    Exit;
+   SelectWordAt(fMouseAnchor.x, fMouseAnchor.y);
   End;
 
  Function TfraTerminal.DoMouseWheel(Shift : TShiftState; WheelDelta : Integer; MousePos : TPoint) : Boolean;
@@ -1323,19 +1445,13 @@ Implementation
  Function TfraTerminal.TextAt(x, y : Integer; Out CharacterIndex : Integer) : String;
   Var
    Cell : TPoint;
-   i    : Integer;
   Begin
    Result         := '';
    CharacterIndex := -1;
    If (fSession = Nil) Or Not PtInRect(surface.ClientRect, Point(x, y)) Then
     Exit;
-   Cell := MouseCell(x, y);
-   While (Cell.x > 0) And fSession.Buffer.Cell[Cell.x, Cell.y].Continuation Do
-    Dec(Cell.x);
-   CharacterIndex := 0;
-   For i          := 0 To Cell.x - 1 Do
-    Inc(CharacterIndex, Length(fSession.Buffer.Cell[i, Cell.y].Text));
-   Result := fSession.Buffer.LineText(Cell.y);
+   Cell   := MouseCell(x, y);
+   Result := fSession.Buffer.LogicalLineText(Cell.x, Cell.y, CharacterIndex);
   End;
 
  Function TfraTerminal.LinkAt(x, y : Integer) : String;
@@ -1347,14 +1463,14 @@ Implementation
    Result := '';
    If (fSession = Nil) Or Not PtInRect(surface.ClientRect, Point(x, y)) Then
     Exit;
-   p      := MouseCell(x, y);
+   p := MouseCell(x, y);
+   While (p.x > 0) And fSession.Buffer.Cell[p.x, p.y].Continuation Do
+    Dec(p.x);
    Result := NormalizeTerminalLink(fSession.Buffer.Cell[p.x, p.y].Hyperlink);
    If Result <> '' Then
     Exit;
-   Index := 0;
-   For i := 0 To p.x - 1 Do
-    Inc(Index, Length(fSession.Buffer.Cell[i, p.y].Text));
-   Result := TerminalLinkAt(fSession.Buffer.LineText(p.y), Index);
+   Result := fSession.Buffer.LogicalLineText(p.x, p.y, Index);
+   Result := TerminalLinkAt(Result, Index);
   End;
 
  Function TfraTerminal.SelectedText : String;
@@ -1374,12 +1490,20 @@ Implementation
   End;
 
  Procedure TfraTerminal.Paste;
+  Begin
+   If Clipboard.HasFormat(CF_UNICODETEXT) Then
+    PasteText(Clipboard.AsText);
+  End;
+
+/// <summary>Pastes at the shell's existing input caret, sharing newline handling and bracketed-paste framing.</summary>
+
+ Procedure TfraTerminal.PasteText(Const Value : String);
   Var
    s : String;
   Begin
-   If Not Clipboard.HasFormat(CF_UNICODETEXT) Or (fSession = Nil) Then
+   If (fSession = Nil) Or (Value = '') Then
     Exit;
-   s := Clipboard.AsText;
+   s := Value;
    If fSession.Buffer.BracketedPaste Then
     s := #27'[200~' + s + #27'[201~'
    Else
@@ -1398,6 +1522,7 @@ Implementation
    fSelectionEnd   := Point(fSession.Buffer.Columns - 1, fSession.Buffer.TotalLines - 1);
    fHasSelection   := True;
    InvalidateSurface;
+   RememberSelection;
   End;
 
  Procedure TfraTerminal.WMDropFiles(Var Message : TMessage);
