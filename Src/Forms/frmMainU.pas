@@ -162,6 +162,7 @@ Interface
     Procedure WMTerminalAction     (Var Message : TMessage); Message WM_APP + 42;
     Procedure OpenExternalLink     (Const Value : String);
     Procedure SearchMatched        (Sender : TObject);
+    Procedure ExitApplication      (AskConfirmation : Boolean);
     Function  ConfirmClose         (Quitting : Boolean) : Boolean;
    Private
     fSettings           : TGuakeSettings;
@@ -594,7 +595,14 @@ Implementation
 
  Procedure TfrmMain.QuitClick(Sender : TObject);
   Begin
-   If Not ConfirmClose(True) Then
+   ExitApplication(True);
+  End;
+
+/// <summary>Stops all terminals through the normal session-save path and terminates the VCL message loop.</summary>
+
+ Procedure TfrmMain.ExitApplication(AskConfirmation : Boolean);
+  Begin
+   If AskConfirmation And Not ConfirmClose(True) Then
     Exit;
    trayIcon.Visible := False;
    StopTerminal;
@@ -1733,6 +1741,8 @@ Implementation
      PreferencesClick(Nil)
     Else If Action = 'about' Then
      AboutClick(Nil)
+    Else If Action = 'exit' Then
+     ExitApplication(False)
     Else If Action = 'quit' Then
      QuitClick(Nil)
     Else If Action = 'save-session' Then

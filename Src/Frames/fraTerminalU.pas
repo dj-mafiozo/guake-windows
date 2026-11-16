@@ -84,6 +84,8 @@ Interface
     fMouseAnchor       : TPoint;
     fHasSelection      : Boolean;
     fSuppressChar      : Boolean;
+    fKeypadPhysical    : Boolean;
+    fExtendedKey       : Boolean;
     fSurrogate         : Char;
     fOnActivate        : TNotifyEvent;
     fOnShortcut        : TTerminalKeyEvent;
@@ -235,7 +237,19 @@ Implementation
      Message.Result := DLGC_WANTALLKEYS Or DLGC_WANTCHARS Or DLGC_WANTARROWS Or DLGC_WANTTAB;
      Exit;
     End;
-   Inherited;
+   If (Message.Msg = WM_KEYDOWN) Or (Message.Msg = WM_SYSKEYDOWN) Then
+    Begin
+     fExtendedKey    := (Message.LParam And $01000000) <> 0;
+     fKeypadPhysical := Not fExtendedKey;
+     Try
+      Inherited;
+     Finally
+      fKeypadPhysical := False;
+      fExtendedKey    := False;
+     End;
+    End
+   Else
+    Inherited;
    If Not(csDestroying In ComponentState) And (fSession <> Nil) And Not fSession.Exited And fSession.Buffer.FocusReporting Then
     Case Message.Msg Of
      WM_SETFOCUS  : fSession.SendText(#27'[I');
@@ -989,6 +1003,7 @@ Implementation
    Final    : String;
    Modifier : Integer;
    Number   : Integer;
+   Keypad   : Char;
   Begin
    Inherited;
    Handled := False;
@@ -1043,7 +1058,49 @@ Implementation
     Else
      s := Format(#27'[%d;%d~', [Number, Modifier]);
    If (Key = VK_TAB) And (ssShift In Shift) Then
-    s := #27'[Z';
+    s     := #27'[Z';
+   Keypad := #0;
+   If fSession.Buffer.ApplicationKeypad And (Modifier = 1) Then
+    Begin
+     If (Key >= VK_NUMPAD0) And (Key <= VK_NUMPAD9) Then
+      Keypad := Char(Ord('p') + Key - VK_NUMPAD0);
+     Case Key Of
+      VK_DECIMAL :
+       Keypad := 'n';
+      VK_DIVIDE :
+       Keypad := 'o';
+      VK_MULTIPLY :
+       Keypad := 'j';
+      VK_SUBTRACT :
+       Keypad := 'm';
+      VK_ADD :
+       Keypad := 'k';
+      VK_SEPARATOR :
+       Keypad := 'l';
+      VK_RETURN :
+       If fExtendedKey Then
+        Keypad := 'M';
+     End;
+     If fKeypadPhysical Then
+      Case Key Of
+       VK_INSERT : Keypad := 'p';
+       VK_END    : Keypad := 'q';
+       VK_DOWN   : Keypad := 'r';
+       VK_NEXT   : Keypad := 's';
+       VK_LEFT   : Keypad := 't';
+       VK_CLEAR  : Keypad := 'u';
+       VK_RIGHT  : Keypad := 'v';
+       VK_HOME   : Keypad := 'w';
+       VK_UP     : Keypad := 'x';
+       VK_PRIOR  : Keypad := 'y';
+       VK_DELETE : Keypad := 'n';
+      End;
+     If Keypad <> #0 Then
+      Begin
+       s             := #27'O' + Keypad;
+       fSuppressChar := ((Key >= VK_NUMPAD0) And (Key <= VK_DIVIDE)) Or (Key = VK_RETURN);
+      End;
+    End;
    If s <> '' Then
     Begin
      Send(s);

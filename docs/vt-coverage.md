@@ -1,6 +1,6 @@
 # Pokrycie emulatora VT
 
-Stan: 1.0.22.55. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.23.56. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -12,11 +12,11 @@ Stan: 1.0.22.55. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS | Chronione komórki/selective erase, DECSTR i zapisywanie trybów prywatnych |
 | Ekrany | Ekran główny i alternatywny, 47/1047/1049, historia i reflow ekranu głównego | Osobna macierz wariantów przełączania i zapisów kursora, przypadki brzegowe reflow |
 | SGR | Reset, bold/faint, italic, conceal, strike, overline, inverse; pięć stylów podkreślenia i jego kolor 58/59; miganie 5/6/25; ANSI 16/256 i RGB przez średniki i dwukropki | Dalsze warianty SGR, integracja systemowych preferencji migania i porównanie geometrii dekoracji z VTE |
-| Odpowiedzi | DSR 5, CPR 6, DECXCPR ?6; wiersz względem regionu przy DECOM; DA/DECID i DA2, DECRQM/DECRPM dla obsługiwanych trybów, rozmiar w znakach CSI 18 t | Tertiary DA, DECRQSS, raporty rozmiaru w pikselach/monitora i pozostałe zapytania |
+| Odpowiedzi | DSR 5, CPR 6, DECXCPR ?6; wiersz względem regionu przy DECOM; DA/DECID i DA2, DECRQM/DECRPM dla obsługiwanych trybów, rozmiar w znakach CSI 18 t, DECRQSS SGR i marginesów | Tertiary DA, pozostałe DECRQSS, raporty rozmiaru w pikselach/monitora i pozostałe zapytania |
 | OSC | 0/2: tytuł, 7: katalog, 8: odnośniki | Paleta i zapytania kolorów, stos tytułów, pozostałe OSC; polityka dostępu do schowka |
-| DCS/APC/PM | Pomijanie DCS/APC/PM/SOS; nowy ESC może przerwać ciąg i rozpocząć nowe polecenie | Brak implementacji funkcji DCS; dalsze porównania ciągów z VTE |
+| DCS/APC/PM | DCS DECRQSS dla SGR i marginesów; pozostałe DCS/APC/PM/SOS są konsumowane | Pozostałe DCS i dalsze porównania ciągów z VTE |
 | Zestawy znaków | UTF-8, ASCII B, brytyjski A, DEC Special Graphics 0 w G0–G3; SI/SO, LS2/LS3, SS2/SS3 | Pozostałe zestawy narodowe, GR i 96-znakowe zestawy, warianty ESC z bajtami pośrednimi |
-| Wejście | Application cursor, bracketed paste, tryby myszy 1000/1002/1003 i 1006, fokus 1004, LNM 20 dla LF/Enter | Klawiatura aplikacyjna, pozostałe protokoły klawiatury i myszy, niezależne nakładanie trybów myszy |
+| Wejście | Application cursor, bracketed paste, tryby myszy 1000/1002/1003 i 1006, fokus 1004, LNM 20 dla LF/Enter, aplikacyjna klawiatura numeryczna ESC = / ESC > / 66 | Pełna macierz modyfikatorów klawiatury, pozostałe protokoły klawiatury i myszy, niezależne nakładanie trybów myszy |
 | Grafemy i widok | Segmentacja ICU, szerokie komórki, znaki łączące, reflow; cache wierszy renderera | Pełny shaping, bidi i zgodność wizualna z VTE; segmentacja zależy od systemowego ICU |
 
 ## Regresje objęte testami w tym etapie
@@ -29,7 +29,7 @@ Stan: 1.0.22.55. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 
 ## Następne etapy
 
-1. Brakujące zapytania urządzenia i tryby wejścia z integracją kontrolera.
+1. Pozostałe zapytania i tryby wejścia, pełna macierz modyfikatorów klawiatury.
 2. Edycja szerokich komórek, marginesy i reflow; porównania strumieni i obrazów z VTE.
 3. Dalsze przypadki błędnych strumieni, C1 i ciągów sterujących.
 
@@ -81,6 +81,14 @@ DA1 (CSI c / CSI 0 c) zachowuje odpowiedź VT100 `CSI ? 1 ; 2 c`. DA2 (CSI > c /
 
 DECRQM (`CSI mode $ p` / `CSI ? mode $ p`) zwraca DECRPM ze statusem 1 dla włączonego, 2 dla wyłączonego oraz 0 dla nieznanego trybu. Standardowe tryby: 4 i 20. Prywatne: 1, 6, 7, 25, 47/1047/1049, 1000/1002/1003, 1004, 1006 i 2004. Raporty odzwierciedlają aktualny stan implementacji, nie gwarantują pełnego pokrycia każdego wariantu tych trybów w VTE. Zapytania nie zmieniają oczekującego zawinięcia na prawej krawędzi.
 
-Prywatny tryb 1004 włącza wysyłanie CSI I / CSI O przy WM_SETFOCUS / WM_KILLFOCUS ramki terminala. Raporty trafiają bezpośrednio do wejścia sesji, bez działań właściwych dla pisania, np. usuwania zaznaczenia. Wyłączenie trybu i reset blokują dalsze raporty. LNM (standardowy tryb 20) zmienia LF na początek następnego wiersza oraz Enter z CR na CR LF. Domyślnie jest wyłączony. Klawiatura numeryczna aplikacyjna i DECRQSS pozostają do przeniesienia.
+Prywatny tryb 1004 włącza wysyłanie CSI I / CSI O przy WM_SETFOCUS / WM_KILLFOCUS ramki terminala. Raporty trafiają bezpośrednio do wejścia sesji, bez działań właściwych dla pisania, np. usuwania zaznaczenia. Wyłączenie trybu i reset blokują dalsze raporty. LNM (standardowy tryb 20) zmienia LF na początek następnego wiersza oraz Enter z CR na CR LF. Domyślnie jest wyłączony. Klawiaturę numeryczną aplikacyjną i część DECRQSS dodano w etapie 1.0.23.56.
 
 Punkty odniesienia: [Xterm Control Sequences](https://www.xfree86.org/current/ctlseqs.html) i [obsługa sekwencji w VTE](https://github.com/GNOME/vte/blob/master/src/vteseq.cc). Test transportu używa potomnego PowerShell/C# z wejściem konsoli w trybie VT; proces sam włącza raporty fokusu, a test sprawdza dotarcie jego żądania do modelu. Scenariusz wysyła komunikaty fokusu do ramki oraz sprawdza odebrane kody znaków. To weryfikacja drogi parser–sesja–ConPTY i zdarzeń ramki, nie pełny test przełączania rzeczywistych okien na pulpicie.
+
+## DECRQSS i klawiatura numeryczna — 1.0.23.56
+
+DCS $ q m ST zwraca bieżące obsługiwane atrybuty i kolory SGR jako DCS 1 $ r ... m ST. Zapis zaczyna się od resetu 0 i pozwala odtworzyć semantycznie te same atrybuty przez CSI; nie wymaga identycznej kolejności/kodowania jak w VTE. DCS $ q r ST raportuje górny i dolny margines. Nieznany typ żądania otrzymuje DCS 0 $ r ST. Odczyt jest przyrostowy, zachowuje limit 4096 jednostek UTF-16 i odrzuca przekroczone żądanie w całości. CAN/SUB anuluje, a nowy ESC może rozpocząć inne polecenie. Pozostałe rodzaje DCS nadal są ignorowane. Punkt odniesienia: [DECRQSS w VTE](https://github.com/GNOME/vte/blob/master/src/vteseq.cc).
+
+ESC = oraz prywatny tryb 66 włączają klawiaturę numeryczną aplikacyjną; ESC >, reset trybu i RIS ją wyłączają. Cyfry, operatory, separator, kropka i osobny Enter wysyłają sekwencje SS3. Widok rozróżnia rozszerzony bit komunikatu Windows, więc główne strzałki/Enter zachowują swoje znaczenie, a klawisze numeryczne przy wyłączonym Num Lock pozostają klawiszami numerycznymi. WM_CHAR po obsłużonym klawiszu cyfry/operatora/Enter jest konsumowany, aby nie dopisać znaku drugi raz. Rozszerzona macierz Shift/Ctrl/Alt i dodatkowe klawisze rzadkich układów nadal wymagają pracy.
+
+Test natywny rozszerza proces wejścia VT o żądanie klawiatury aplikacyjnej i sprawdza dostarczone odpowiedzi DCS, cyfrę, numeryczny Enter, zwykłą strzałkę, strzałkę z części numerycznej i powrót do zwykłej cyfry. Test modelu odtwarza atrybuty z odpowiedzi DECRQSS i sprawdza nieznane/przerwane/przepełnione żądania.

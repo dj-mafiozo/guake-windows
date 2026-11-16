@@ -51,10 +51,10 @@
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_MajorVer>1</VerInfo_MajorVer>
     <VerInfo_MinorVer>0</VerInfo_MinorVer>
-    <VerInfo_Release>22</VerInfo_Release>
-    <VerInfo_Build>55</VerInfo_Build>
+    <VerInfo_Release>23</VerInfo_Release>
+    <VerInfo_Build>56</VerInfo_Build>
     <VerInfo_Locale>1045</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Guake dla Windows;FileVersion=1.0.22.55;InternalName=git-zsh;OriginalFilename=git-zsh.exe;ProductName=Guake dla Windows;ProductVersion=1.0.22.55</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Guake dla Windows;FileVersion=1.0.23.56;InternalName=git-zsh;OriginalFilename=git-zsh.exe;ProductName=Guake dla Windows;ProductVersion=1.0.23.56</VerInfo_Keys>
     <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
     <DCC_MapFile>3</DCC_MapFile>
     <PostBuildEvent>powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(MSBuildProjectDirectory)\..\Tools\Complete-Build.ps1" -ProjectFile "$(MSBuildProjectDirectory)\git-zsh.dproj" -OutputDirectory "$(DCC_ExeOutput)\."</PostBuildEvent>
@@ -63,7 +63,7 @@
     <Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
     <SanitizedProjectName>git_zsh</SanitizedProjectName>
     <AppEnableRuntimeThemes>true</AppEnableRuntimeThemes>
-    <Icon_MainIcon>$(MSBuildProjectDirectory)\..\Resources\Pixmaps\guake.ico</Icon_MainIcon>
+    <Icon_MainIcon>$(MSBuildProjectDirectory)\..\Resources\zsh.ico</Icon_MainIcon>
     <PreBuildEvent>powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(MSBuildProjectDirectory)\..\Tools\Prepare-Build.ps1" -ProjectFile "$(MSBuildProjectDirectory)\git-zsh.dproj" -OutputDirectory "$(DCC_ExeOutput)\." -Config "$(Config)" -Platform "$(Platform)" -DelphiRoot "$(BDS)\."</PreBuildEvent>
     <PreBuildEventIgnoreExitCode>false</PreBuildEventIgnoreExitCode>
   </PropertyGroup>

@@ -15,13 +15,14 @@ Interface
     [Test] Procedure SameUserTransportAndAnonymousDenial;
     [Test] Procedure IdleClientDoesNotBlockShutdown;
     [Test] Procedure CommandLineAndSecondaryProcess;
+    [Test] Procedure ExitCommandStopsInstanceAndSavesConfiguredSession;
   End;
 
 Implementation
 
  Uses
   Winapi.Windows, System.SysUtils, System.IOUtils, System.JSON,
-  Guake.IPC, Guake.CommandLine, Guake.ConPTY, Guake.Shells;
+  System.Classes, Guake.Settings, Guake.IPC, Guake.CommandLine, Guake.ConPTY, Guake.Shells;
 
  Function NativeImpersonateAnonymous(Thread : THandle) : BOOL; Stdcall; External 'advapi32.dll' name 'ImpersonateAnonymousToken';
 
@@ -157,6 +158,118 @@ Implementation
    Finally
     Primary.Free;
    End;
+  End;
+
+ Procedure TGuakeIPCTests.ExitCommandStopsInstanceAndSavesConfiguredSession;
+  Var
+   Env         : TStringList;
+   Settings    : TGuakeSettings;
+   Process     : TConPtySession;
+   Secondary   : TConPtySession;
+   Client      : TGuakeInstance;
+   Options     : TGuakeLaunchOptions;
+   Directory   : String;
+   Scope       : String;
+   Executable  : String;
+   Ready       : String;
+   SessionFile : String;
+   Deadline    : UInt64;
+   Enabled     : Boolean;
+   JSON        : TJSONValue;
+  Begin
+   Options := ParseGuakeArguments(TArray<String>.Create('--exit'));
+   Assert.IsTrue(Options.Hidden And Options.ExitOnly);
+   Assert.IsTrue(Pos('"exit"', Options.Commands[0]) > 0);
+   Assert.IsTrue(Pos('--exit', GuakeCommandLineHelp) > 0);
+   Executable  := GetEnvironmentVariable('GUAKE_TEST_EXE');
+   For Enabled := False To True Do
+    Begin
+     Directory := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
+     TDirectory.CreateDirectory(TPath.Combine(Directory, 'Guake'));
+     Ready       := TPath.Combine(Directory, 'ready.txt');
+     SessionFile := TPath.Combine(Directory, 'Guake\guake.session.json');
+     Settings    := TGuakeSettings.Create(TPath.Combine(Directory, 'Guake\guake.ini'));
+     Env         := TStringList.Create;
+     Process     := Nil;
+     Secondary   := Nil;
+     Client      := Nil;
+     Try
+      Settings.General.DefaultShell         := 'cmd';
+      Settings.General.UsePopup             := False;
+      Settings.General.UseTrayicon          := False;
+      Settings.General.StartAtLogin         := False;
+      Settings.General.RestoreTabsStartup   := False;
+      Settings.General.SaveTabsWhenChanged  := Enabled;
+      Settings.General.PromptOnQuit         := True;
+      Settings.General.PromptOnCloseTab     := 2;
+      Settings.General.StartupScript        := 'echo ready>' + QuoteProcessArgument(Ready);
+      Settings.Keybindings.Global.ShowHide  := 'disabled';
+      Settings.Keybindings.Global.ShowFocus := 'disabled';
+      Settings.Save;
+      Env.Values['APPDATA'] := Directory;
+      Scope                 := TPath.GetRandomFileName;
+      Process               := TConPtySession.Create(Executable, '--instance ' + Scope + ' --exit', GetCurrentDir, 80, 25, Env);
+      Deadline              := GetTickCount64 + 10000;
+      While Process.Running And (GetTickCount64 < Deadline) Do
+       Begin
+        Process.ReadAvailable;
+        Sleep(10);
+       End;
+      Assert.IsFalse(Process.Running);
+      Assert.AreEqual(Cardinal(0), Process.ExitCode);
+      Assert.IsFalse(TFile.Exists(Ready));
+      Assert.IsFalse(TFile.Exists(SessionFile));
+      FreeAndNil(Process);
+      If Not Enabled Then
+       TFile.WriteAllText(SessionFile, 'preserved', TEncoding.UTF8);
+      Process  := TConPtySession.Create(Executable, '--instance ' + Scope + ' --hidden', GetCurrentDir, 80, 25, Env);
+      Deadline := GetTickCount64 + 15000;
+      While Not TFile.Exists(Ready) And Process.Running And (GetTickCount64 < Deadline) Do
+       Begin
+        Process.ReadAvailable;
+        Sleep(10);
+       End;
+      Assert.IsTrue(TFile.Exists(Ready), 'Isolated instance must start');
+      Client := TGuakeInstance.Create(Scope);
+      Assert.IsFalse(Client.IsPrimary);
+      Client.SendCommand('{"action":"new-tab"}');
+      Secondary := TConPtySession.Create(Executable, '--instance ' + Scope + ' --exit', GetCurrentDir, 80, 25, Env);
+      Deadline  := GetTickCount64 + 15000;
+      While Process.Running And (GetTickCount64 < Deadline) Do
+       Begin
+        Process.ReadAvailable;
+        Sleep(10);
+       End;
+      Assert.IsFalse(Process.Running, '--exit must stop even when close confirmation is enabled');
+      Assert.AreEqual(Cardinal(0), Process.ExitCode);
+      Deadline := GetTickCount64 + 10000;
+      While Secondary.Running And (GetTickCount64 < Deadline) Do
+       Begin
+        Secondary.ReadAvailable;
+        Sleep(10);
+       End;
+      Assert.IsFalse(Secondary.Running);
+      Assert.AreEqual(Cardinal(0), Secondary.ExitCode);
+      If Enabled Then
+       Begin
+        JSON := TJSONObject.ParseJSONValue(TFile.ReadAllText(SessionFile, TEncoding.UTF8));
+        Try
+         Assert.IsTrue(JSON Is TJSONObject);
+         Assert.AreEqual(2, TJSONArray(TJSONObject(JSON).GetValue('tabs')).Count);
+        Finally
+         JSON.Free;
+        End;
+       End
+      Else
+       Assert.AreEqual('preserved', TFile.ReadAllText(SessionFile, TEncoding.UTF8));
+     Finally
+      Secondary.Free;
+      Client.Free;
+      Process.Free;
+      Env.Free;
+      Settings.Free;
+     End;
+    End;
   End;
 
 Initialization

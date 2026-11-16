@@ -1,6 +1,6 @@
 # Stan portu Guake dla Windows
 
-Stan kodu na 16 listopada 2026, wersja 1.0.22.55. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 16 listopada 2026, wersja 1.0.23.56. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -176,6 +176,16 @@ Weryfikacja 1.0.21.54: formatter bez błędów, 110/110 scenariuszy DUnitX (trzy
 
 Emulator odpowiada na DA2, DECRQM dla obsługiwanych trybów i CSI 18 t z bieżącym rozmiarem w znakach. Nie odpowiada ponownie na odebrane odpowiedzi DA i nie kasuje oczekującego zawinięcia przy zapytaniu. Nieznane tryby raportuje jako nieznane, bez deklarowania ich obsługi.
 
-Tryb 1004 przekazuje zdarzenia fokusu ramki do aktywnego procesu jako CSI I/O. Tryb 20 działa dla wyjściowego LF i klawisza Enter (CR LF po włączeniu, CR po wyłączeniu). Reset wyłącza oba tryby. Pełny zakres odpowiedzi, ograniczenia identyfikacji i pozostałe tryby opisuje macierz VT; klawiatura aplikacyjna i DECRQSS nadal czekają na implementację.
+Tryb 1004 przekazuje zdarzenia fokusu ramki do aktywnego procesu jako CSI I/O. Tryb 20 działa dla wyjściowego LF i klawisza Enter (CR LF po włączeniu, CR po wyłączeniu). Reset wyłącza oba tryby. Pełny zakres odpowiedzi, ograniczenia identyfikacji i pozostałe tryby opisuje macierz VT; klawiaturę aplikacyjną i część DECRQSS opisuje etap 1.0.23.56.
 
 Weryfikacja 1.0.22.55: formatter bez błędów, 114/114 scenariuszy DUnitX (cztery nowe), cztery projekty Win64 Debug oraz aplikacja i wrapper Release. Test.ps1 potwierdził zgodność projektów i niezmienność DPROJ podczas budowania. Proces testowy sam włącza fokus 1004, co dociera do modelu; jego wejście VT odbiera oczekiwane znaki odpowiedzi urządzenia, raportów fokusu i Enter. ConPTY filtruje raporty fokusu, jeżeli proces nie zażądał ich po swojej stronie; scenariusz uwzględnia ten warunek. Pakiet: bin/guake-1.0.22.55-Win64.zip z pasującymi EXE/PDB. Test zdarzeń ramki nie zastępuje dalszych prób przełączania aplikacji na pulpicie.
+
+## Pełne zamknięcie, ikona wrappera i dalsze VT — 1.0.23.56
+
+Parametr --exit przekazuje osobne polecenie IPC kończące proces Guake bez dialogu potwierdzenia. Korzysta ze StopTerminal, więc zapisuje aktualny układ przed zatrzymaniem procesów, gdy SaveTabsWhenChanged jest włączone i zapis nie jest zablokowany po błędzie odtwarzania. Przy wyłączonym zapisie zachowuje poprzedni plik. Gdy instancja nie działa, --exit kończy się bez tworzenia okna, startowania powłoki i zmiany pliku sesji. Nie można go łączyć z innymi poleceniami terminala; --instance może wskazać izolowaną instancję. Dotychczasowe --quit zachowuje potwierdzenie według ustawień.
+
+Ikona git-zsh.exe pochodzi z C:/git-sdk-64/usr/bin/zsh.exe. Źródłowy ICO i metadane sum kontrolnych są w Src/Resources, a odtwarzalny importer w Src/Tools/Import-ZshIcon.py. Icon_MainIcon w DPROJ pozwala wygenerować zasób MSBuild zarówno w IDE, jak i skryptem; repo nie śledzi RES. Zwykłe budowanie nie wymaga ponownego wydobywania ikony ani obecności źródłowego EXE.
+
+DECRQSS zwraca obsługiwane SGR i marginesy; klawiatura numeryczna aplikacyjna obsługuje cyfry, operatory, separator i osobny Enter. Odczyt zapytań DCS jest przyrostowy i ograniczony rozmiarem. Szczegóły i nadal brakujące warianty opisuje macierz VT.
+
+Weryfikacja 1.0.23.56: formatter bez błędów, 117/117 scenariuszy DUnitX (trzy nowe i rozszerzony test wejścia), cztery projekty Win64 Debug oraz aplikacja i wrapper Release. Test --exit uruchamia osobne instancje z izolowanym APPDATA i drugi proces CLI, sprawdza zamknięcie przy włączonych potwierdzeniach, zapis dwóch kart, zachowanie pliku przy wyłączonym zapisie oraz brak startu powłoki bez działającej instancji. Natywny odbiorca ConPTY potwierdza odpowiedź DCS i sekwencje klawiatury numerycznej. Importer porównał ikony źródłowego zsh.exe, ICO oraz wrapperów Debug/Release. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Pakiet: bin/guake-1.0.23.56-Win64.zip z pasującymi EXE/PDB.

@@ -28,6 +28,8 @@ Interface
     [Test] Procedure TerminalBackgroundAlphaAndWindowControls;
     [Test] Procedure AnimatedGifBackgroundDelaysAndRemoval;
     [Test] Procedure AnimatedGifDisposalAndFiniteLoop;
+    [Test] Procedure DCSStatusStringsRoundTripAndLimits;
+    [Test] Procedure ApplicationKeypadModeQueriesAndReset;
     [Test] Procedure DeviceModeQueriesReflectImplementedState;
     [Test] Procedure DeviceRepliesPreserveWrapAndRejectReplyLoops;
     [Test] Procedure NewLineModeControlsLineFeed;
@@ -122,6 +124,73 @@ Implementation
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+ Procedure TTerminalTests.DCSStatusStringsRoundTripAndLimits;
+  Var
+   Buffer   : TTerminalBuffer;
+   Restored : TTerminalBuffer;
+   Reply    : String;
+   Status   : String;
+   a        : TTerminalCell;
+   b        : TTerminalCell;
+   Value    : Byte;
+  Begin
+   Buffer   := TTerminalBuffer.Create(32, 8);
+   Restored := TTerminalBuffer.Create(32, 8);
+   Try
+    Buffer.FeedText(#27'[1;2;3;4:5;5;7;8;9;53;38;2;17;34;51;48;5;123;58:2::1:2:3mA');
+    For Value In TEncoding.UTF8.GetBytes(#27'P$qm'#27'\') Do
+     Buffer.Feed(TBytes.Create(Value));
+    Reply := Buffer.TakeResponses;
+    Assert.AreEqual(#27'P1$r', Copy(Reply, 1, 5));
+    Assert.AreEqual(#27'\', Copy(Reply, Length(Reply) - 1, 2));
+    Status := Copy(Reply, 6, Length(Reply) - 7);
+    Restored.FeedText(#27'[' + Status + 'A');
+    a := Buffer.Cell[0, 0];
+    b := Restored.Cell[0, 0];
+    Assert.AreEqual(a.Foreground, b.Foreground);
+    Assert.AreEqual(a.Background, b.Background);
+    Assert.AreEqual(a.UnderlineColor, b.UnderlineColor);
+    Assert.AreEqual(Integer(a.UnderlineStyle), Integer(b.UnderlineStyle));
+    Assert.IsTrue(b.Bold And b.Faint And b.Italic And b.Underline And b.Blink And b.Inverse And b.Conceal And b.Strike And b.Overline);
+    Buffer.FeedText(#27'[2;7r'#27'P$qr'#27'\'#27'P$qunknown'#27'\');
+    Assert.AreEqual(#27'P1$r2;7r'#27'\'#27'P0$r'#27'\', Buffer.TakeResponses);
+    Buffer.FeedText(#27'P$qm' + StringOfChar('x', 5000) + #27'\');
+    Assert.AreEqual('', Buffer.TakeResponses);
+    Buffer.FeedText(#27'P$qm'#24'Q');
+    Assert.AreEqual('', Buffer.TakeResponses);
+    Buffer.FeedText(#27'P$qm'#27'[0;31mR');
+    Assert.AreEqual('', Buffer.TakeResponses);
+    Assert.IsTrue(Pos('QR', Buffer.Text) > 0);
+   Finally
+    Restored.Free;
+    Buffer.Free;
+   End;
+  End;
+
+ Procedure TTerminalTests.ApplicationKeypadModeQueriesAndReset;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(20, 4);
+   Try
+    Assert.IsFalse(Buffer.ApplicationKeypad);
+    Buffer.FeedText(#27'='#27'[?66$p');
+    Assert.IsTrue(Buffer.ApplicationKeypad);
+    Assert.AreEqual(#27'[?66;1$y', Buffer.TakeResponses);
+    Buffer.FeedText(#27'>'#27'[?66$p');
+    Assert.IsFalse(Buffer.ApplicationKeypad);
+    Assert.AreEqual(#27'[?66;2$y', Buffer.TakeResponses);
+    Buffer.FeedText(#27'[?66h');
+    Assert.IsTrue(Buffer.ApplicationKeypad);
+    Buffer.FeedText(#27'[?66l');
+    Assert.IsFalse(Buffer.ApplicationKeypad);
+    Buffer.FeedText(#27'='#27'c');
+    Assert.IsFalse(Buffer.ApplicationKeypad);
+   Finally
+    Buffer.Free;
+   End;
+  End;
 
  Procedure TTerminalTests.DeviceModeQueriesReflectImplementedState;
   Var
@@ -222,7 +291,7 @@ Implementation
     '[DllImport("kernel32.dll")] static extern bool SetConsoleMode(IntPtr h,uint m);'#13#10 +
     'public static void Run(string path) {'#13#10 +
     'if(!SetConsoleMode(GetStdHandle(-10),0x200)) throw new Exception("SetConsoleMode");'#13#10 +
-    'if(!SetConsoleMode(GetStdHandle(-11),7)) throw new Exception("Output mode"); Console.Write("\u001b[?1004hPROBE_READY"); var data=new List<int>();'#13#10 +
+    'if(!SetConsoleMode(GetStdHandle(-11),7)) throw new Exception("Output mode"); Console.Write("\u001b[?1004h\u001b=PROBE_READY"); var data=new List<int>();'#13#10 +
     'for(int i=0;i<256;i++){int c=Console.Read();if(c<0)throw new Exception("EOF");if(c==126){File.WriteAllText(path+".tmp",string.Join(",",data));File.Move(path+".tmp",path);return;}data.Add(c);}'#13#10 +
     'throw new Exception("Input limit");}}'#13#10 +
     '''@'#13#10 + '[Probe]::Run($args[0])', TEncoding.UTF8);
@@ -249,6 +318,7 @@ Implementation
     Until(GetTickCount64 >= Deadline) Or Session.Exited;
     Assert.IsTrue(Pos('PROBE_READY', Session.Buffer.Text) > 0, 'Native input probe must be ready: ' + Session.Buffer.Text);
     Assert.IsTrue(Session.Buffer.FocusReporting, 'Child focus request must reach the terminal model');
+    Assert.IsTrue(Session.Buffer.ApplicationKeypad, 'Child keypad request must reach the terminal model');
     Session.Buffer.FeedText(#27'[?1004l');
     Frame.Perform(WM_SETFOCUS, 0, 0);
     Session.Buffer.FeedText(#27'[?1004h'#27'[18t'#27'[?1004$p');
@@ -266,6 +336,20 @@ Implementation
     Key := #13;
     TTerminalFrameAccess(Frame).KeyPress(Key);
     Expected := Expected + #13#10#13;
+    Session.Buffer.FeedText(#27'[0m'#27'P$qm'#27'\');
+    Session.Poll;
+    Expected := Expected + #27'P1$r0m'#27'\';
+    Frame.Perform(WM_KEYDOWN, VK_NUMPAD1, 0);
+    Frame.Perform(WM_CHAR, Ord('1'), 0);
+    Frame.Perform(WM_KEYDOWN, VK_RETURN, $01000000);
+    Frame.Perform(WM_CHAR, 13, 0);
+    Frame.Perform(WM_KEYDOWN, VK_LEFT, $01000000);
+    Frame.Perform(WM_KEYDOWN, VK_LEFT, 0);
+    Expected := Expected + #27'Oq'#27'OM'#27'[D'#27'Ot';
+    Session.Buffer.FeedText(#27'>');
+    Frame.Perform(WM_KEYDOWN, VK_NUMPAD2, 0);
+    Frame.Perform(WM_CHAR, Ord('2'), 0);
+    Expected := Expected + '2';
     Session.SendText('~');
     ExpectedCodes := '';
     For i         := 1 To Length(Expected) Do

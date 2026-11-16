@@ -77,6 +77,8 @@ Procedure RunGuake;
        Instance.SendCommand(Command);
      Exit;
     End;
+   If Options.ExitOnly Then
+    Exit;
    Application.Initialize;
    Application.ShowMainForm      := False;
    Application.MainFormOnTaskBar := False;

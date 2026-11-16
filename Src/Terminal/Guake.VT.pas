@@ -49,7 +49,7 @@ Interface
    WrapPending : Boolean;
   End;
 
-  TVTState = (vsGround, vsEscape, vsCSI, vsOSC, vsOSCEscape, vsIgnore, vsIgnoreEscape, vsCharset, vsEscapeIntermediate);
+  TVTState = (vsGround, vsEscape, vsCSI, vsOSC, vsOSCEscape, vsIgnore, vsIgnoreEscape, vsCharset, vsEscapeIntermediate, vsDCS, vsDCSEscape);
 
   TTerminalBuffer = Class
    Private
@@ -90,6 +90,7 @@ Interface
     fAlternate         : Boolean;
     fCursorVisible     : Boolean;
     fApplicationCursor : Boolean;
+    fApplicationKeypad : Boolean;
     fFocusReporting    : Boolean;
     fNewLineMode       : Boolean;
     fBracketedPaste    : Boolean;
@@ -112,6 +113,8 @@ Interface
     Procedure ExecuteSGR;
     Procedure ExecuteControl  (Code : Cardinal);
     Procedure ExecuteOSC;
+    Procedure ExecuteDCS;
+    Function  SGRState                                                : String;
     Procedure SwitchScreen    (Alternate : Boolean; SaveCursor : Boolean);
     Function  GetCell         (x, y : Integer)                        : TTerminalCell;
     Function  GetTotalLines                                           : Integer;
@@ -146,6 +149,7 @@ Interface
     Property CursorVisible        : Boolean Read fCursorVisible;
     Property AlternateScreen      : Boolean Read fAlternate;
     Property ApplicationCursor    : Boolean Read fApplicationCursor;
+    Property ApplicationKeypad    : Boolean Read fApplicationKeypad;
     Property FocusReporting       : Boolean Read fFocusReporting;
     Property NewLineMode          : Boolean Read fNewLineMode;
     Property BracketedPaste       : Boolean Read fBracketedPaste;
@@ -242,6 +246,7 @@ Implementation
    fAlternate         := False;
    fCursorVisible     := True;
    fApplicationCursor := False;
+   fApplicationKeypad := False;
    fFocusReporting    := False;
    fNewLineMode       := False;
    fBracketedPaste    := False;
@@ -512,6 +517,74 @@ Implementation
     End;
   End;
 
+/// <summary>Returns canonical supported SGR attributes and colors for DECRQSS round trips.</summary>
+
+ Function TTerminalBuffer.SGRState : String;
+
+   Procedure Add(Const Value : String);
+    Begin
+     Result := Result + ';' + Value;
+    End;
+
+   Procedure Color(Code, Value : Integer);
+    Begin
+     If Value < 0 Then
+      Exit;
+     If (Value And $01000000) <> 0 Then
+      Add(Format('%d;2;%d;%d;%d', [Code, Value And 255, (Value Shr 8) And 255, (Value Shr 16) And 255]))
+     Else
+      Add(Format('%d;5;%d', [Code, Value]));
+    End;
+
+  Begin
+   Result := '0';
+   If fAttr.Bold Then
+    Add('1');
+   If fAttr.Faint Then
+    Add('2');
+   If fAttr.Italic Then
+    Add('3');
+   If fAttr.Underline Then
+    If fAttr.UnderlineStyle <= 1 Then
+     Add('4')
+    Else
+     Add('4:' + IntToStr(fAttr.UnderlineStyle));
+   If fAttr.Blink Then
+    Add('5');
+   If fAttr.Inverse Then
+    Add('7');
+   If fAttr.Conceal Then
+    Add('8');
+   If fAttr.Strike Then
+    Add('9');
+   If fAttr.Overline Then
+    Add('53');
+   Color(38, fAttr.Foreground);
+   Color(48, fAttr.Background);
+   Color(58, fAttr.UnderlineColor);
+  End;
+
+/// <summary>Answers bounded DECRQSS requests; unknown status strings receive a negative reply.</summary>
+
+ Procedure TTerminalBuffer.ExecuteDCS;
+  Var
+   Request, Reply : String;
+  Begin
+   If Copy(fSequence, 1, 2) <> '$q' Then
+    Exit;
+   Request := Copy(fSequence, 3, MaxInt);
+   If Request = 'm' Then
+    Reply := SGRState + 'm'
+   Else If Request = 'r' Then
+    Reply := Format('%d;%dr', [fTop + 1, fBottom + 1])
+   Else
+    Begin
+     fResponses := fResponses + #27'P0$r'#27'\';
+     Exit;
+    End;
+   fResponses := fResponses + #27'P1$r' + Reply + #27'\';
+  End;
+
 /// <summary>Moves between programmed tab stops without inserting text or crossing a screen edge.</summary>
 
  Procedure TTerminalBuffer.MoveTab(Count : Integer; ForwardTab : Boolean);
@@ -547,6 +620,7 @@ Implementation
      25               : Enabled := fCursorVisible;
      47, 1047, 1049   : Enabled := fAlternate;
      1000, 1002, 1003 : Enabled := fMouseMode = Mode;
+     66               : Enabled := fApplicationKeypad;
      1004             : Enabled := fFocusReporting;
      1006             : Enabled := fSGRMouse;
      2004             : Enabled := fBracketedPaste;
@@ -760,6 +834,8 @@ Implementation
          fAutoWrap := Final = 'h';
         25 :
          fCursorVisible := Final = 'h';
+        66 :
+         fApplicationKeypad := Final = 'h';
         1048 :
          If Final = 'h' Then
           SaveCursorState
@@ -1005,6 +1081,7 @@ Implementation
     Begin
      Case fState Of
       vsOSC    : fState := vsOSCEscape;
+      vsDCS    : fState := vsDCSEscape;
       vsIgnore : fState := vsIgnoreEscape;
      Else fState := vsEscape;
      End;
@@ -1044,8 +1121,18 @@ Implementation
          fSequenceInvalid := False;
          fState           := vsOSC;
         End;
-       Ord('P'), Ord('^'), Ord('_'), Ord('X') :
+       Ord('P') :
+        Begin
+         fSequence        := '';
+         fSequenceInvalid := False;
+         fState           := vsDCS;
+        End;
+       Ord('^'), Ord('_'), Ord('X') :
         fState := vsIgnore;
+       Ord('=') :
+        fApplicationKeypad := True;
+       Ord('>') :
+        fApplicationKeypad := False;
        Ord('('), Ord(')'), Ord('*'), Ord('+') :
         Begin
          fCharsetSlot := Code - Ord('(');
@@ -1134,6 +1221,24 @@ Implementation
         ProcessCode(Code);
        End;
      End;
+    vsDCS :
+     If Code >= 32 Then
+      If Length(fSequence) + Length(CodeText(Code)) <= 4096 Then
+       fSequence := fSequence + CodeText(Code)
+      Else
+       fSequenceInvalid := True;
+    vsDCSEscape :
+     If Code = Ord('\') Then
+      Begin
+       If Not fSequenceInvalid Then
+        ExecuteDCS;
+       fState := vsGround;
+      End
+     Else
+      Begin
+       fState := vsEscape;
+       ProcessCode(Code);
+      End;
     vsIgnore :
      ;
     vsIgnoreEscape :

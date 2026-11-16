@@ -67,3 +67,7 @@ Renderer obsługuje przygaszenie, ukrywanie tekstu, przekreślenie, linię nad t
 Miganie tekstu SGR 5/6/25 działa niezależnie od kursora. Zmiana fazy odtwarza tylko widoczne wiersze z migającymi glifami lub dekoracjami; panele bez takiej treści zachowują cache. Przy ukrytym oknie/panelu animacja jest wstrzymana.
 
 Zapytania VT obejmują DA2, stan obsługiwanych trybów DECRQM i rozmiar terminala w znakach. Tryb 1004 przekazuje fokus do procesu, a standardowy tryb 20 steruje zachowaniem LF i Enter. Szczegóły oraz pozostałe ograniczenia opisuje macierz VT.
+
+`guake.exe --exit` całkowicie kończy działającą instancję bez dialogu potwierdzenia, zapisując sesję przy włączonym automatycznym zapisie. Gdy Guake nie działa, polecenie nie uruchamia powłoki ani nie zmienia sesji. `--quit` zachowuje dotychczasowe potwierdzenia.
+
+Wrapper git-zsh.exe używa ikony lokalnego Zsh z Git SDK. Emulator odpowiada na DECRQSS dla SGR i marginesów oraz obsługuje klawiaturę numeryczną aplikacyjną, w tym osobny Enter i klawisze przy wyłączonym Num Lock.

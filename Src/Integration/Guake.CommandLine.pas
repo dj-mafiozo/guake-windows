@@ -7,6 +7,7 @@ Interface
  Type
   TGuakeLaunchOptions = Record
    Hidden        : Boolean;
+   ExitOnly      : Boolean;
    Help          : Boolean;
    Version       : Boolean;
    InstanceScope : String;
@@ -24,7 +25,7 @@ Interface
   '--select-tab indeks | --close-tab | --rename-current-tab nazwa'#13#10 +
   '--split-horizontal | --split-vertical | --fullscreen | --unfullscreen'#13#10 +
   '--execute-command polecenie | --save-tabs | --restore-tabs'#13#10 +
-  '--preferences | --about | --quit | --no-startup-script'#13#10 +
+  '--preferences | --about | --quit | --exit | --no-startup-script'#13#10 +
   '--bgcolor HEX | --fgcolor HEX | --bgcolor-current HEX | --fgcolor-current HEX'#13#10 +
   '--reset-colors | --reset-colors-current'#13#10 +
   '--version | --help'#13#10;
@@ -126,6 +127,12 @@ Implementation
        Add('preferences')
       Else If (Arg = '--about') Or (Arg = '-a') Then
        Add('about')
+      Else If Arg = '--exit' Then
+       Begin
+        Add('exit');
+        Result.ExitOnly := True;
+        Result.Hidden   := True;
+       End
       Else If (Arg = '--quit') Or (Arg = '-q') Then
        Begin
         Add('quit');
@@ -193,6 +200,8 @@ Implementation
      End;
     If ((Shell <> '') Or (Directory <> '')) And (Commands.Count = 0) Then
      Add('new-tab');
+    If Result.ExitOnly And ((Commands.Count <> 1) Or (Shell <> '') Or (Directory <> '')) Then
+     Raise EArgumentException.Create('--exit cannot be combined with other terminal commands');
     SetLength(Result.Commands, Commands.Count);
     For i := 0 To Commands.Count - 1 Do
      Begin
