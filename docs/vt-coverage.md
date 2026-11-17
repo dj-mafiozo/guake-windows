@@ -1,6 +1,6 @@
 ﻿# Pokrycie emulatora VT
 
-Stan: 1.0.36.69. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.37.70. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -8,7 +8,7 @@ Stan: 1.0.36.69. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | Kontrolki C0 | BEL, BS, HT, LF/VT/FF, CR, SI/SO także wewnątrz ESC/CSI/oznaczeń zestawów; CAN/SUB anuluje, NUL/DEL nie drukuje | Odpowiedź ENQ jest pusta; dalsza macierz C1 i kontrolek w ciągach sterujących |
 | Tabulatory | HT, HTS (ESC H), TBC (CSI g, CSI 3 g), CHT (CSI I), CBT (CSI Z), DECST8C (CSI ? 5 W); domyślne co 8 kolumn | Testy porównawcze z VTE przy zmianach geometrii i ekranów |
 | Ruch | CUU/CUD/CUF/CUB, CNL/CPL, CHA/HPA, VPA, CUP/HVP, HPR/VPR | Pełne zachowanie marginesów, dodatkowe tryby i warianty |
-| Edycja | ED/EL, DECSEL/DECSED 0–2 i DECSCA, ICH/DCH/ECH, IL/DL, SU/SD, DECSTBM; ED/EL/ECH i ICH/DCH/IRM naprawiają przecięte szerokie znaki | Selektywne ?3J i prostokąty DEC; poziome marginesy; dalsze przypadki szerokich znaków i reflow |
+| Edycja | REP (CSI Ps b), ED/EL, DECSEL/DECSED 0–2 i DECSCA, ICH/DCH/ECH, IL/DL, SU/SD, DECSTBM; ED/EL/ECH i ICH/DCH/IRM naprawiają przecięte szerokie znaki | Selektywne ?3J i prostokąty DEC; poziome marginesy; dalsze przypadki szerokich znaków i reflow |
 | Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, ochrona komórek, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS i DECSTR; XTSAVE/XTRESTORE dla dziewięciu wybranych trybów | Pozostałe tryby prywatne |
 | Kursor | Widoczność DECTCEM, DECSCUSR 0–6: preferencje lub blok/podkreślenie/pionowa kreska, warianty migające i stałe; odczyt przez DECRQSS | Dalsza zgodność geometrii z VTE, w tym zewnętrzny obrys i szerokość wystających glifów; wariant xterm 7 nie jest obsługiwany |
 | Ekrany | Ekran główny i alternatywny, 47/1047/1049, historia i reflow ekranu głównego | Osobna macierz wariantów przełączania i zapisów kursora, przypadki brzegowe reflow |
@@ -173,3 +173,13 @@ Aktywny blok otrzymał pełne wypełnienie kolorem tekstu i glif w kolorze tła 
 Widoczny panel bez fokusu zachowuje stały kursor: obrys bloku lub wybraną kreskę/podkreślenie. DECTCEM nadal go ukrywa; ukryte panele i zakończone sesje nie rysują kursora. Zmiana fokusu unieważnia widok i jest osobnym kluczem cache alfy, także gdy widoczność przed i po zmianie pozostaje taka sama. Obrys obejmuje dwie komórki szerokiego znaku i pozostawia zwykły glif wewnątrz.
 
 Punkt odniesienia: [paint_cursor w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L8935). Port rysuje obecnie obrys wewnątrz komórki. VTE rozszerza go na zewnątrz i uwzględnia wystające glify oraz kierunek tekstu; te różnice geometrii, kształtowanie i IME pozostają do zaimplementowania. Nowy scenariusz DUnitX sprawdza przejścia fokusu, szeroki obrys, stałe fazy kursora nieaktywnego, DECTCEM i ukrycie panelu.
+
+## Powtarzanie poprzedniego znaku REP — 1.0.37.70
+
+CSI Ps b powtarza poprzedni znak drukowalny; brak parametru i zero oznaczają jedno powtórzenie. Liczba operacji jest ograniczona do pozostałych kolumn, także dla maksymalnego licznika Integer. Przy oczekującym zawinięciu na pełnym wierszu REP nic nie dopisuje i zachowuje zawinięcie dla następnego zwykłego znaku. Szeroki znak korzysta z normalnej ścieżki wstawiania i może zawinąć się w obrębie tej ograniczonej liczby operacji.
+
+Emulator pamięta kod sprzed mapowania zestawu DEC, korzysta z bieżących atrybutów i IRM. Dołączony akcent nie zastępuje zapamiętanej litery bazowej: po e + U+0301 REP dopisuje e bez akcentu. Nie jest to kopiowanie całej komórki ani całego klastra emoji. Dalsze przypadki złożonych klastrów wymagają porównań z VTE.
+
+Zakończone CSI, OSC/DCS, komendy ESC, oznaczenia zestawów i obsługiwane kontrolki C0 kasują pamięć REP. Samo REP również ją kasuje: kolejne REP bez nowego znaku nie powtarza poprzedniej operacji. NUL i DEL są ignorowane. Reset kasuje pamięć. Prywatne, pośrednie i dwukropkowe warianty REP oraz nadmiarowe parametry nie wykonują powtórzenia.
+
+Punkt odniesienia: [REP w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L6414) oraz [insert_char i zakończenie komend parsera](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L3131). Trzy scenariusze DUnitX obejmują fragmentację, wartości domyślne, limity, oczekujące zawinięcie, Unicode, akcent, DEC Special Graphics, IRM, atrybuty, granice komend i reset. To porównanie źródłowe i testy portu, bez deklaracji pełnego pokrycia VTE/xterm.

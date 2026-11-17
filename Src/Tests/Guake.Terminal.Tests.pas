@@ -16,6 +16,9 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure RepeatGraphicDefaultsFragmentsAndBoundaries;
+    [Test] Procedure RepeatGraphicUnicodeCharsetsAndInsertMode;
+    [Test] Procedure RepeatGraphicCommandBoundariesAndReset;
     [Test] Procedure WideInsertColumnBoundaries;
     [Test] Procedure WideDeleteAndEraseColumnBoundaries;
     [Test] Procedure InsertModeUsesAtomicColumnShift;
@@ -143,6 +146,122 @@ Implementation
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+/// <summary>Exercises REP defaults, fragmented input, column limits and pending autowrap.</summary>
+
+ Procedure TTerminalTests.RepeatGraphicDefaultsFragmentsAndBoundaries;
+  Var
+   Buffer : TTerminalBuffer;
+   Bytes  : TBytes;
+   Split  : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 3);
+   Try
+    Bytes     := TEncoding.UTF8.GetBytes('A' + #27 + '[3b');
+    For Split := 0 To Length(Bytes) Do
+     Begin
+      Buffer.Reset;
+      Buffer.Feed(Copy(Bytes, 0, Split));
+      Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+      Assert.AreEqual('AAAA', Buffer.LineText(0));
+      Assert.AreEqual(4, Buffer.CursorX);
+     End;
+    Buffer.Reset;
+    Buffer.FeedText('A' + #27 + '[bB' + #27 + '[0b');
+    Assert.AreEqual('AABB', Buffer.LineText(0));
+    Buffer.Reset;
+    Buffer.FeedText(#27 + '[3b');
+    Assert.AreEqual('', Buffer.LineText(0), 'No preceding graphic means no repetition');
+    Buffer.FeedText('X' + #27 + '[2147483647b');
+    Assert.AreEqual('XXXXXXXX', Buffer.LineText(0));
+    Assert.AreEqual('', Buffer.LineText(1));
+    Buffer.FeedText(#27 + '[bY');
+    Assert.AreEqual('Y', Buffer.LineText(1), 'REP must retain pending wrap');
+    Buffer.Reset;
+    Buffer.FeedText('12345678' + #27 + '[3bZ');
+    Assert.AreEqual('12345678', Buffer.LineText(0));
+    Assert.AreEqual('Z', Buffer.LineText(1), 'A full row has no REP capacity');
+    Buffer.Reset;
+    Buffer.FeedText('X' + #27 + '[2b' + #27 + '[2b');
+    Assert.AreEqual('XXX', Buffer.LineText(0), 'A completed REP clears the preceding graphic');
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Repeats Unicode spacing characters through normal insertion, preserving DEC mapping and attributes.</summary>
+
+ Procedure TTerminalTests.RepeatGraphicUnicodeCharsetsAndInsertMode;
+  Var
+   Buffer : TTerminalBuffer;
+   x      : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(12, 3);
+   Try
+    Buffer.FeedText(#27 + '[31m' + #$4E2D + #27 + '[2b');
+    Assert.AreEqual(String(#$4E2D) + #$4E2D + #$4E2D, Buffer.LineText(0));
+    Assert.AreEqual(6, Buffer.CursorX);
+    For x := 0 To 5 Do
+     Begin
+      Assert.AreEqual(x Mod 2 = 1, Buffer.Cell[x, 0].Continuation);
+      Assert.AreEqual(1, Buffer.Cell[x, 0].Foreground);
+     End;
+    Buffer.Reset;
+    Buffer.FeedText('e' + #$0301 + #27 + '[2b');
+    Assert.AreEqual('e' + #$0301 + 'ee', Buffer.LineText(0), 'Combining accent does not replace the base graphic');
+    Buffer.Reset;
+    Buffer.FeedText(#27 + '(0q' + #27 + '[2b');
+    Assert.AreEqual(String(#$2500) + #$2500 + #$2500, Buffer.LineText(0), 'Repeat retains the unmapped DEC graphic');
+    Buffer.Reset;
+    Buffer.FeedText('abcd' + #27 + '[1;2H' + #27 + '[4hX' + #27 + '[2b');
+    Assert.AreEqual('aXXXbcd', Buffer.LineText(0), 'REP uses IRM rather than overwriting the tail');
+    Buffer.Reset;
+    Buffer.FeedText(#27 + '[?7lA' + #27 + '[2147483647b');
+    Assert.AreEqual('AAAAAAAAAAAA', Buffer.LineText(0));
+    Assert.AreEqual('', Buffer.LineText(1), 'Autowrap disabled must not grow history');
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Checks command boundaries, ignored NUL/DEL, malformed REP and reset isolation.</summary>
+
+ Procedure TTerminalTests.RepeatGraphicCommandBoundariesAndReset;
+  Const
+   Commands : Array[0..8] Of String = (#27'[31m', #13, #7, #27'[H', #27'7', #27'(B', #27']2;title'#7, #27'[!p', #27'c');
+  Var
+   Buffer : TTerminalBuffer;
+   i      : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(12, 3);
+   Try
+    For i := Low(Commands) To High(Commands) Do
+     Begin
+      Buffer.Reset;
+      Buffer.FeedText('A' + Commands[i] + #27 + '[4b');
+      Assert.IsTrue(Pos('AA', Buffer.Text) = 0, 'Command boundary must prevent reuse: ' + IntToStr(i));
+     End;
+    Buffer.Reset;
+    Buffer.FeedText('A' + #0 + #127 + #27 + '[2b');
+    Assert.AreEqual('AAA', Buffer.LineText(0), 'Ignored NUL and DEL do not clear the graphic');
+    Buffer.Reset;
+    Buffer.FeedText('A' + #27 + '[?3b' + #27 + '[3b');
+    Assert.AreEqual('A', Buffer.LineText(0));
+    Buffer.Reset;
+    Buffer.FeedText('A' + #27 + '[1;2b');
+    Assert.AreEqual('A', Buffer.LineText(0), 'REP accepts one parameter only');
+    Buffer.Reset;
+    Buffer.FeedText('A' + #27 + '[1:2b');
+    Assert.AreEqual('A', Buffer.LineText(0));
+    Buffer.Reset;
+    Buffer.FeedText('A');
+    Buffer.Reset;
+    Buffer.FeedText(#27 + '[b');
+    Assert.AreEqual('', Buffer.LineText(0), 'Reset clears repetition memory');
+   Finally
+    Buffer.Free;
+   End;
+  End;
 
  Procedure TTerminalTests.DCSStatusStringsRoundTripAndLimits;
   Var

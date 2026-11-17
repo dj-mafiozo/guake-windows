@@ -1,13 +1,13 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 17 listopada 2026, wersja 1.0.36.69. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 17 listopada 2026, wersja 1.0.37.70. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
 | Obszar | Zaimplementowano | Pozostało |
 | --- | --- | --- |
 | Terminal | Osobny proces ConPTY dla każdej sesji; asynchroniczne I/O, zmiana rozmiaru, zamykanie procesów, katalog i środowisko | Dalsze testy długich sesji i programów pełnoekranowych |
-| Emulator VT | Przyrostowe UTF-8/CSI/OSC, kolory ANSI/256/RGB, kursor, historia, alternatywny ekran, region przewijania, odpowiedzi urządzenia, bracketed paste, raportowanie myszy, reflow historii, klastry ICU, programowalne tabulatory, raporty kursora względem regionu, DEC Special Graphics, zapis stanu kursora, C0 w sekwencjach, podparametry kolorów SGR, faint/conceal/strike/overline i pięć stylów podkreślenia z kolorem i miganie tekstu SGR 5/6/25 | Pełne pokrycie sekwencji VTE/xterm według [macierzy VT](vt-coverage.md), dalsze testy reflow i segmentacji grafemów |
+| Emulator VT | Przyrostowe UTF-8/CSI/OSC, REP, kolory ANSI/256/RGB, kursor, historia, alternatywny ekran, region przewijania, odpowiedzi urządzenia, bracketed paste, raportowanie myszy, reflow historii, klastry ICU, programowalne tabulatory, raporty kursora względem regionu, DEC Special Graphics, zapis stanu kursora, C0 w sekwencjach, podparametry kolorów SGR, faint/conceal/strike/overline i pięć stylów podkreślenia z kolorem i miganie tekstu SGR 5/6/25 | Pełne pokrycie sekwencji VTE/xterm według [macierzy VT](vt-coverage.md), dalsze testy reflow i segmentacji grafemów |
 | Powłoki | CMD, PowerShell, Bash i Zsh z Git SDK; cztery osobne skróty/menu; Zsh przez `git-zsh.exe --nomintty` | Weryfikacja szerszego zestawu konfiguracji użytkowników i instalacji SDK |
 | Karty i podziały | Tworzenie, zamykanie, zmiana nazw, kolejność, wybór po identyfikatorze, podziały poziome/pionowe oraz fokus myszą i kierunkowo, przesuwanie granic podziałów, kolory paneli/kart i reset, przyciski zamykania, aktywność z okresami ignorowania | Dalsze testy potwierdzeń zamykania i rozpoznawania procesów potomnych |
 | Widok terminala | Palety, font, kursor sterowany preferencjami i DECSCUSR, obrazy PNG/JPEG/BMP/animowany GIF, przezroczystość samego tła, cztery układy tła, przewijanie, zaznaczenie przeciągnięciem, słowo po dwukliku zgodnie z word-chars, wklejanie zaznaczenia kółkiem, schowek i zapis tekstu | Pełna zgodność renderowania i układu grafemów z VTE oraz dalsze porównania wizualne |
@@ -311,3 +311,15 @@ Widoczny panel bez fokusu zachowuje stały kursor: obrys bloku lub wybraną kres
 Punkt odniesienia: [paint_cursor w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L8935). Port rysuje obecnie obrys wewnątrz komórki. VTE rozszerza go na zewnątrz i uwzględnia wystające glify oraz kierunek tekstu; te różnice geometrii, kształtowanie i IME pozostają do zaimplementowania. Nowy scenariusz DUnitX sprawdza przejścia fokusu, szeroki obrys, stałe fazy kursora nieaktywnego, DECTCEM i ukrycie panelu.
 
 Weryfikacja 1.0.36.69: formatter bez błędów i sprawdzony diff; 136/136 scenariuszy DUnitX bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.36.69-Win64.zip z wersją 1.0.36.69 obu EXE i pasującymi PDB. Testy pikseli nie zastępują porównań wizualnych z działającym VTE.
+
+## Powtarzanie poprzedniego znaku REP — 1.0.37.70
+
+CSI Ps b powtarza poprzedni znak drukowalny; brak parametru i zero oznaczają jedno powtórzenie. Liczba operacji jest ograniczona do pozostałych kolumn, także dla maksymalnego licznika Integer. Przy oczekującym zawinięciu na pełnym wierszu REP nic nie dopisuje i zachowuje zawinięcie dla następnego zwykłego znaku. Szeroki znak korzysta z normalnej ścieżki wstawiania i może zawinąć się w obrębie tej ograniczonej liczby operacji.
+
+Emulator pamięta kod sprzed mapowania zestawu DEC, korzysta z bieżących atrybutów i IRM. Dołączony akcent nie zastępuje zapamiętanej litery bazowej: po e + U+0301 REP dopisuje e bez akcentu. Nie jest to kopiowanie całej komórki ani całego klastra emoji. Dalsze przypadki złożonych klastrów wymagają porównań z VTE.
+
+Zakończone CSI, OSC/DCS, komendy ESC, oznaczenia zestawów i obsługiwane kontrolki C0 kasują pamięć REP. Samo REP również ją kasuje: kolejne REP bez nowego znaku nie powtarza poprzedniej operacji. NUL i DEL są ignorowane. Reset kasuje pamięć. Prywatne, pośrednie i dwukropkowe warianty REP oraz nadmiarowe parametry nie wykonują powtórzenia.
+
+Punkt odniesienia: [REP w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L6414) oraz [insert_char i zakończenie komend parsera](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L3131). Trzy scenariusze DUnitX obejmują fragmentację, wartości domyślne, limity, oczekujące zawinięcie, Unicode, akcent, DEC Special Graphics, IRM, atrybuty, granice komend i reset. To porównanie źródłowe i testy portu, bez deklaracji pełnego pokrycia VTE/xterm.
+
+Weryfikacja 1.0.37.70: formatter bez błędów, sprawdzony diff, 139/139 scenariuszy DUnitX bez błędów i wycieków; cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.37.70-Win64.zip z EXE i pasującymi PDB. Są to testy lokalne; nie oznaczają potwierdzenia działania na pulpicie użytkownika.

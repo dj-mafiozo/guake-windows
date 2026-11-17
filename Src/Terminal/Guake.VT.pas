@@ -105,6 +105,7 @@ Interface
     fSGRMouse           : Boolean;
     fUtf8Mouse          : Boolean;
     fRevision           : Int64;
+    fLastGraphic        : Cardinal;
     Function  Blank                                                   : TTerminalCell;
     Procedure ClearLine       (Var Line : TTerminalLine; First, Last : Integer);
     Procedure EraseLine       (Var Line : TTerminalLine; First, Last : Integer; Selective : Boolean);
@@ -314,6 +315,7 @@ Implementation
    i         : Integer;
    Alternate : Boolean;
   Begin
+   fLastGraphic := 0;
    fSavedModes.Clear;
    If HardReset Then
     Begin
@@ -514,7 +516,9 @@ Implementation
   Var
    w, Previous, OldWidth, NewWidth : Integer;
    Next                            : String;
+   Unmapped                        : Cardinal;
   Begin
+   Unmapped := Code;
    Code     := TranslateGraphic(Code);
    Next     := CodeText(Code);
    Previous := fX - 1;
@@ -547,7 +551,8 @@ Implementation
       End;
      Exit;
     End;
-   w := GraphemeWidth(Next);
+   fLastGraphic := Unmapped;
+   w            := GraphemeWidth(Next);
    If w > fColumns Then
     w := 1;
    If fWrapPending Or ((w = 2) And (fX = fColumns - 1)) Then
@@ -822,6 +827,7 @@ Implementation
    PrivateMode              : Boolean;
    SecondaryDA, ModeQuery   : Boolean;
    SavedValue               : Boolean;
+   LastGraphic              : Cardinal;
    Prefix                   : String;
    i, n, a, b, x, y, OldTop : Integer;
 
@@ -843,6 +849,8 @@ Implementation
     End;
 
   Begin
+   LastGraphic  := fLastGraphic;
+   fLastGraphic := 0;
    If (Final = 'p') And (fSequence = '!') Then
     Begin
      ResetTerminal(False);
@@ -942,10 +950,20 @@ Implementation
       fResponses := fResponses + #27'[>0;0;0c';
      Exit;
     End;
-   If Not CharInSet(Final, ['m', 'h', 'l', 's', 'u', 'n', 'c', 't']) Then
+   If Not CharInSet(Final, ['m', 'h', 'l', 's', 'u', 'n', 'c', 't', 'b']) Then
     fWrapPending := False;
    n             := Min(P(0, 1), Max(fColumns, fRows));
    Case Final Of
+    'b' :
+     If (LastGraphic <> 0) And (Length(Params) = 1) Then
+      Begin
+       // VTE limits repetitions to the remaining column count, not the requested integer.
+       n     := Min(P(0, 1), fColumns - fX - Ord(fWrapPending));
+       For i := 1 To n Do
+        PutCode(LastGraphic);
+       // REP is itself a command: another REP needs a new graphic character first.
+       fLastGraphic := 0;
+      End;
     'W' :
      If PrivateMode And (P(0, 0) = 5) Then
       For x         := 0 To High(fTabStops) Do
@@ -1262,6 +1280,8 @@ Implementation
 
  Procedure TTerminalBuffer.ExecuteControl(Code : Cardinal);
   Begin
+   If (Code >= 7) And (Code <= 15) Then
+    fLastGraphic := 0;
    Case Code Of
     7 :
      Inc(fBellCount);
@@ -1383,13 +1403,16 @@ Implementation
       End;
       If (Code >= $20) And (Code <= $2F) And ((Code < Ord('(')) Or (Code > Ord('+'))) Then
        fState := vsEscapeIntermediate;
+      If fState = vsGround Then
+       fLastGraphic := 0;
      End;
     vsCSI :
      If (Code >= $40) And (Code <= $7E) Then
       Begin
        If Not fSequenceInvalid Then
         ExecuteCSI(Char(Code));
-       fState := vsGround;
+       fLastGraphic := 0;
+       fState       := vsGround;
       End
      Else If (Code >= $20) And (Code <= $3F) Then
       Begin
@@ -1409,7 +1432,8 @@ Implementation
       Begin
        If Not fSequenceInvalid Then
         ExecuteOSC;
-       fState := vsGround;
+       fLastGraphic := 0;
+       fState       := vsGround;
       End
      Else If Code >= 32 Then
       Begin
@@ -1424,7 +1448,8 @@ Implementation
        Begin
         If Not fSequenceInvalid Then
          ExecuteOSC;
-        fState := vsGround;
+        fLastGraphic := 0;
+        fState       := vsGround;
        End
       Else
        Begin
@@ -1443,7 +1468,8 @@ Implementation
       Begin
        If Not fSequenceInvalid Then
         ExecuteDCS;
-       fState := vsGround;
+       fLastGraphic := 0;
+       fState       := vsGround;
       End
      Else
       Begin
@@ -1463,7 +1489,8 @@ Implementation
     vsEscapeIntermediate :
      If (Code < $20) Or (Code > $2F) Then
       Begin
-       fState := vsGround;
+       fState       := vsGround;
+       fLastGraphic := 0;
        If Code >= $A0 Then
         ProcessCode(Code);
       End;
@@ -1475,6 +1502,7 @@ Implementation
        If (fSequence = '') And ((Code = Ord('0')) Or (Code = Ord('A')) Or (Code = Ord('B'))) Then
         fCharsets[fCharsetSlot] := Char(Code);
        fState                   := vsGround;
+       fLastGraphic             := 0;
       End;
    End;
   End;
