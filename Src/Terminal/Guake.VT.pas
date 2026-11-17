@@ -846,14 +846,14 @@ Implementation
 
  Procedure TTerminalBuffer.ExecuteCSI(Final : Char);
   Var
-   Parts                    : TArray<String>;
-   Params                   : TArray<Integer>;
-   PrivateMode              : Boolean;
-   SecondaryDA, ModeQuery   : Boolean;
-   SavedValue               : Boolean;
-   LastGraphic              : Cardinal;
-   Prefix                   : String;
-   i, n, a, b, x, y, OldTop : Integer;
+   Parts                              : TArray<String>;
+   Params                             : TArray<Integer>;
+   PrivateMode                        : Boolean;
+   SecondaryDA, TertiaryDA, ModeQuery : Boolean;
+   SavedValue                         : Boolean;
+   LastGraphic                        : Cardinal;
+   Prefix                             : String;
+   i, n, a, b, x, y, OldTop           : Integer;
 
    Function P(Index, Default : Integer) : Integer;
     Begin
@@ -914,7 +914,8 @@ Implementation
    If ModeQuery Then
     Delete(fSequence, Length(fSequence), 1);
    SecondaryDA := Copy(fSequence, 1, 1) = '>';
-   If SecondaryDA Then
+   TertiaryDA  := Copy(fSequence, 1, 1) = '=';
+   If SecondaryDA Or TertiaryDA Then
     Begin
      If Final <> 'c' Then
       Exit;
@@ -968,10 +969,14 @@ Implementation
       fResponses := fResponses + Format(#27'[%s%d;%d$y', [Prefix, Params[i], ModeStatus(Params[i], PrivateMode)]);
      Exit;
     End;
-   If SecondaryDA Then
+   If SecondaryDA Or TertiaryDA Then
     Begin
      If (Length(Params) = 1) And (Params[0] = 0) Then
-      fResponses := fResponses + #27'[>0;0;0c';
+      If TertiaryDA Then
+      // DECRPTUI: stable four-byte port identifier "~GKW", encoded as eight hexadecimal digits.
+       fResponses := fResponses + #27 + 'P!|7E474B57' + #27 + Chr(92)
+      Else
+       fResponses := fResponses + #27'[>0;0;0c';
      Exit;
     End;
    If Not CharInSet(Final, ['m', 'h', 'l', 's', 'u', 'n', 'c', 't', 'b']) Then

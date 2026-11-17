@@ -16,6 +16,8 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure TertiaryDeviceAttributesFragmentsAndState;
+    [Test] Procedure TertiaryDeviceAttributesRejectsMalformedQueriesAndReplyLoops;
     [Test] Procedure AlignmentPatternFragmentsAndBasicCells;
     [Test] Procedure AlignmentPatternPreservesHistoryModesAndPrimaryScreen;
     [Test] Procedure AlignmentPatternRejectsOtherEscapeIntermediates;
@@ -149,6 +151,74 @@ Implementation
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+/// <summary>Verifies DA3 at every byte split without changing cells, rendition, cursor or pending wrap.</summary>
+
+ Procedure TTerminalTests.TertiaryDeviceAttributesFragmentsAndState;
+  Var
+   Buffer : TTerminalBuffer;
+   Bytes  : TBytes;
+   Split  : Integer;
+   Reply  : String;
+  Begin
+   Buffer := TTerminalBuffer.Create(4, 2);
+   Try
+    Reply     := #27 + 'P!|7E474B57' + #27 + Chr(92);
+    Bytes     := TEncoding.UTF8.GetBytes(#27 + '[=0c');
+    For Split := 0 To Length(Bytes) Do
+     Begin
+      Buffer.Reset;
+      Buffer.FeedText(#27 + '[31mABCD');
+      Buffer.Feed(Copy(Bytes, 0, Split));
+      Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+      Assert.AreEqual(Reply, Buffer.TakeResponses);
+      Assert.AreEqual('', Buffer.TakeResponses, 'Replies are consumed once');
+      Assert.AreEqual(3, Buffer.CursorX);
+      Assert.AreEqual(0, Buffer.CursorY);
+      Assert.AreEqual('ABCD', Buffer.LineText(0));
+      Buffer.FeedText('X');
+      Assert.AreEqual('X', Buffer.LineText(1), 'DA3 preserves pending wrap');
+      Assert.AreEqual(1, Buffer.Cell[0, 1].Foreground);
+     End;
+    Buffer.Reset;
+    Buffer.FeedText(#27 + '[=c' + #27 + '[=00c');
+    Assert.AreEqual(Reply + Reply, Buffer.TakeResponses, 'Default and explicit zero request the same identifier');
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Rejects other prefixed commands and invalid DA3 parameters, and consumes reflected DCS replies.</summary>
+
+ Procedure TTerminalTests.TertiaryDeviceAttributesRejectsMalformedQueriesAndReplyLoops;
+  Const
+   Invalid : Array[0..8] Of String = (#27'[=1c', #27'[=0;0c', #27'[=0:0c', #27'[=0 c', #27'[==0c', #27'[=2147483648c', #27'[=0m', #27'[=6n', #27'[=0$p');
+  Var
+   Buffer : TTerminalBuffer;
+   i      : Integer;
+   Reply  : String;
+  Begin
+   Buffer := TTerminalBuffer.Create(12, 3);
+   Try
+    For i := Low(Invalid) To High(Invalid) Do
+     Begin
+      Buffer.Reset;
+      Buffer.FeedText('A' + Invalid[i] + 'B');
+      Assert.AreEqual('', Buffer.TakeResponses, 'Unsupported DA3 variant: ' + IntToStr(i));
+      Assert.AreEqual('AB', Buffer.LineText(0));
+     End;
+    Buffer.Reset;
+    Buffer.FeedText(#27 + '[=c');
+    Reply := Buffer.TakeResponses;
+    Buffer.FeedText(Reply);
+    Assert.AreEqual('', Buffer.TakeResponses, 'A reflected DECRPTUI must not produce another response');
+    Assert.AreEqual('', Buffer.LineText(0), 'The DCS payload is not displayed');
+    Buffer.FeedText(#27 + '[=0c' + #27 + '[c' + #27 + '[>c');
+    Assert.AreEqual(Reply + #27 + '[?1;2c' + #27 + '[>0;0;0c', Buffer.TakeResponses, 'DA families remain independent');
+   Finally
+    Buffer.Free;
+   End;
+  End;
 
 /// <summary>Exercises exact DECALN at every byte split, with basic cells and cursor/margin reset.</summary>
 
@@ -1483,7 +1553,7 @@ Implementation
     'if(c==1){Console.Write("\u001b[?1005hUTF8_READY");continue;}'#13#10 +
     'if(c==2){Console.Write("\u001b[?1005l\u001b[?1006lASCII_READY");continue;}'#13#10 +
     'if(c==3){Console.Write("\u001b[?1005l\u001b[?1006hSGR_READY");continue;}'#13#10 +
-    'if(c==124){File.WriteAllText(path+".tmp",string.Join(",",data));File.Move(path+".tmp",path);return;}data.Add(c);}'#13#10 +
+    'if(c==4){File.WriteAllText(path+".tmp",string.Join(",",data));File.Move(path+".tmp",path);return;}data.Add(c);}'#13#10 +
     'throw new Exception("Input limit");}}'#13#10 +
     '''@'#13#10 + '[Probe]::Run($args[0])', TEncoding.UTF8);
     Profile                               := TShellProfile.Resolve(gsPowerShell);
@@ -1512,8 +1582,8 @@ Implementation
     Assert.IsTrue(Session.Buffer.ApplicationKeypad, 'Child keypad request must reach the terminal model');
     Session.Buffer.FeedText(#27'[?1004s' + #27'[?1004l' + #27'[?1003l');
     Frame.Perform(WM_SETFOCUS, 0, 0);
-    Session.Buffer.FeedText(#27'[?1004r' + #27'[18t' + #27'[?1004$p');
-    Expected := Format(#27'[8;%d;%dt', [Session.Buffer.Rows, Session.Buffer.Columns]) + #27'[?1004;1$y';
+    Session.Buffer.FeedText(#27'[?1004r' + #27'[18t' + #27'[?1004$p' + #27'[=c');
+    Expected := Format(#27'[8;%d;%dt', [Session.Buffer.Rows, Session.Buffer.Columns]) + #27'[?1004;1$y' + #27 + 'P!|7E474B57' + #27 + Chr(92);
     Session.Poll;
     Frame.Perform(WM_SETFOCUS, 0, 0);
     Frame.Perform(WM_KILLFOCUS, 0, 0);
@@ -1698,7 +1768,7 @@ Implementation
     Frame.SurfaceMouseDown(Nil, mbMiddle, [], 5, 5);
     Frame.SurfaceMouseUp(Nil, mbMiddle, [], 5, 5);
     Expected := Expected + '3' + #13 + 'PRIMARY_WORD';
-    Session.SendText('|');
+    Session.SendText(#4);
     ExpectedCodes := '';
     For i         := 1 To Length(Expected) Do
      Begin
