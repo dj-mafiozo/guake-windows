@@ -16,6 +16,8 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure MouseTrackingModesAreIndependentAndPrioritized;
+    [Test] Procedure MouseTrackingSaveRestoreFragmentsAndReset;
     [Test] Procedure DECStatusReportsFragmentsStateAndReplyLoops;
     [Test] Procedure ExtendedCursorReportIncludesPageAndPreservesWrap;
     [Test] Procedure ForwardTabsPreservePendingWrapAcrossFragments;
@@ -166,6 +168,96 @@ Implementation
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+/// <summary>Checks every combination of supported mouse modes, independent DECRQM bits and priority fallback.</summary>
+
+ Procedure TTerminalTests.MouseTrackingModesAreIndependentAndPrioritized;
+  Const
+   Modes : Array[0..2] Of Integer = (1000, 1002, 1003);
+  Var
+   Buffer     : TTerminalBuffer;
+   Mask       : Integer;
+   Index      : Integer;
+   ActiveMask : Integer;
+   Expected   : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 3);
+   Try
+    For Mask   := 0 To 7 Do
+     For Index := 0 To 2 Do
+      Begin
+       Buffer.Reset;
+       If (Mask And 4) <> 0 Then
+        Buffer.FeedText(#27 + '[?1003h');
+       If (Mask And 2) <> 0 Then
+        Buffer.FeedText(#27 + '[?1002h');
+       If (Mask And 1) <> 0 Then
+        Buffer.FeedText(#27 + '[?1000h');
+       Buffer.FeedText(#27 + '[?1000;1002;1003$p');
+       Assert.AreEqual(Format(#27 + '[?1000;%d$y' + #27 + '[?1002;%d$y' + #27 + '[?1003;%d$y',
+       [2 - Ord((Mask And 1) <> 0), 2 - Ord((Mask And 2) <> 0), 2 - Ord((Mask And 4) <> 0)]), Buffer.TakeResponses);
+       If (Mask And 4) <> 0 Then
+        Expected := 1003
+       Else If (Mask And 2) <> 0 Then
+        Expected := 1002
+       Else If (Mask And 1) <> 0 Then
+        Expected := 1000
+       Else
+        Expected := 0;
+       Assert.AreEqual(Expected, Buffer.MouseMode, 'Activation order must not replace higher-priority modes');
+       Buffer.FeedText(#27 + '[?' + IntToStr(Modes[Index]) + 'l');
+       ActiveMask := Mask And Not(1 Shl Index);
+       If (ActiveMask And 4) <> 0 Then
+        Expected := 1003
+       Else If (ActiveMask And 2) <> 0 Then
+        Expected := 1002
+       Else If (ActiveMask And 1) <> 0 Then
+        Expected := 1000
+       Else
+        Expected := 0;
+       Assert.AreEqual(Expected, Buffer.MouseMode, 'Disabling one mode preserves all other bits');
+      End;
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Exercises saved mouse mode bits across fragmented commands, priority changes and soft/hard reset.</summary>
+
+ Procedure TTerminalTests.MouseTrackingSaveRestoreFragmentsAndReset;
+  Var
+   Buffer : TTerminalBuffer;
+   Bytes  : TBytes;
+   Split  : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 3);
+   Try
+    Bytes     := TEncoding.UTF8.GetBytes(#27 + '[?1000;1002;1003h' + #27 + '[?1000;1002;1003s' + #27 + '[?1000;1002;1003l' + #27 + '[?1000;1002;1003r');
+    For Split := 0 To Length(Bytes) Do
+     Begin
+      Buffer.Reset;
+      Buffer.Feed(Copy(Bytes, 0, Split));
+      Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+      Assert.AreEqual(1003, Buffer.MouseMode);
+      Buffer.FeedText(#27 + '[?1003l');
+      Assert.AreEqual(1002, Buffer.MouseMode);
+      Buffer.FeedText(#27 + '[?1002l');
+      Assert.AreEqual(1000, Buffer.MouseMode);
+      Buffer.FeedText(#27 + '[?1000l');
+      Assert.AreEqual(0, Buffer.MouseMode);
+     End;
+    Buffer.Reset;
+    Buffer.FeedText(#27 + '[?1000;1002;1003s' + #27 + '[?1000;1002;1003h' + #27 + '[?1000;1002;1003r');
+    Assert.AreEqual(0, Buffer.MouseMode, 'Saved false values are restored independently');
+    Buffer.FeedText(#27 + '[?1000;1002;1003h' + #27 + '[?1000;1002;1003s' + #27 + '[!p' + #27 + '[?1000;1002;1003r');
+    Assert.AreEqual(0, Buffer.MouseMode, 'DECSTR clears active and saved tracking modes');
+    Buffer.FeedText(#27 + '[?1000;1002;1003h' + #27 + 'c' + #27 + '[?1000;1002;1003$p');
+    Assert.AreEqual(0, Buffer.MouseMode);
+    Assert.AreEqual(#27 + '[?1000;2$y' + #27 + '[?1002;2$y' + #27 + '[?1003;2$y', Buffer.TakeResponses);
+   Finally
+    Buffer.Free;
+   End;
+  End;
 
 /// <summary>Checks absent DEC facilities, fragmented requests, reply-loop rejection and unchanged pending wrap.</summary>
 
@@ -1541,7 +1633,7 @@ Implementation
     Buffer.FeedText(#27'[?1h' + #27'[?1s' + #27'[?1l' + #27'[?1:25s' + #27'[?999999999999s' + #27'[?1r');
     Assert.IsTrue(Buffer.ApplicationCursor, 'Invalid saves do not replace the saved mode');
     Buffer.FeedText(#27'[?1003h' + #27'[?1003s' + #27'[?1000h' + #27'[?1003r');
-    Assert.AreEqual(1000, Buffer.MouseMode, 'Tracking-mode save/restore remains unsupported');
+    Assert.AreEqual(1003, Buffer.MouseMode, 'Tracking-mode restore preserves independent lower-priority flags');
    Finally
     Buffer.Free;
    End;
@@ -2221,7 +2313,13 @@ Implementation
     Frame.refreshTimer.Enabled := False;
     Frame.SurfaceMouseMove(Nil, [], 5 + CellWidth, 5);
     Expected := Expected + #27'[<35;2;1M';
-    Session.Buffer.FeedText(#27'[?1000h');
+    Session.Buffer.FeedText(#27'[?1000h' + #27'[?1003l');
+    Assert.AreEqual(1002, Session.Buffer.MouseMode, 'Disabling any-motion falls back to the enabled button-motion mode');
+    Frame.SurfaceMouseMove(Nil, [], 5, 5);
+    Frame.SurfaceMouseMove(Nil, [ssRight], 5, 5);
+    Expected := Expected + #27'[<34;1;1M';
+    Session.Buffer.FeedText(#27'[?1002l');
+    Assert.AreEqual(1000, Session.Buffer.MouseMode);
     Frame.SurfaceMouseMove(Nil, [ssRight], 5, 5); // Mode 1000 never reports motion.
     Session.SendText('^');
     Deadline := GetTickCount64 + 5000;

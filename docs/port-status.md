@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 17 listopada 2026, wersja 1.0.45.78. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 17 listopada 2026, wersja 1.0.46.79. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -224,7 +224,7 @@ Tryb 1002 rozpoznaje teraz ruch z lewym, środkowym i prawym przyciskiem, a kod 
 
 Klasyczny raport zwolnienia zachowuje modyfikatory i zastępuje jedynie niski kod przycisku wartością 3. SGR zachowuje numer zwalnianego przycisku i kończy raport literą m. Rozszerzony test wejścia ConPTY obejmuje trzy przyciski, hover, Ctrl/Alt, pominięcie ruchu w 1000/1002, Shift oraz przełączenie formatu przez sam proces potomny na klasyczny.
 
-Wersja 1.0.28.61 dodaje filtrowanie powtórzeń w tej samej komórce. Pozostają niezależne nakładanie trybów, pozostałe protokoły myszy i pełny klasyczny zakres współrzędnych poza ASCII na ConPTY; 1.0.29.62 dodaje negocjowany format UTF-8 1005 i blokuje niejednoznaczne raporty klasyczne. Nie jest to deklaracja pełnej zgodności myszy z VTE/xterm. Szczegóły opisuje [macierz VT](vt-coverage.md).
+Wersja 1.0.28.61 dodaje filtrowanie powtórzeń w tej samej komórce. Niezależne nakładanie trybów dodano w 1.0.46.79. Pozostają pozostałe protokoły myszy i pełny klasyczny zakres współrzędnych poza ASCII na ConPTY; 1.0.29.62 dodaje negocjowany format UTF-8 1005 i blokuje niejednoznaczne raporty klasyczne. Nie jest to deklaracja pełnej zgodności myszy z VTE/xterm. Szczegóły opisuje [macierz VT](vt-coverage.md).
 
 Weryfikacja 1.0.27.60: formatter bez błędów i sprawdzony diff, 121/121 scenariuszy DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Natywny odbiorca ConPTY potwierdził dokładne kody SGR dla ruchu i przycisków oraz klasyczne zwolnienie z zachowanymi Ctrl/Alt po zmianie formatu przez proces potomny. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.27.60-Win64.zip z pasującymi EXE/PDB.
 
@@ -262,7 +262,7 @@ Weryfikacja 1.0.30.63: formatter bez błędów i sprawdzony diff, 123/123 scenar
 
 XTSAVE (CSI ? Pm s) i XTRESTORE (CSI ? Pm r) obsługują tryby 1, 6, 7, 25, 66, 1004, 1005, 1006 i 2004: klawisze kursora aplikacyjnego, origin, autowrap, widoczność kursora, klawiaturę numeryczną, fokus, formaty myszy i bracketed paste. Każdy tryb ma jeden niezależny zapis, także wartości false. Kolejne save zastępuje poprzedni zapis tego samego trybu; restore zmienia tylko wskazane tryby. Brak zapisu oznacza brak działania.
 
-Zapisy są osobne dla każdego bufora, wspólne dla jego ekranów i zachowywane po resize. RIS je usuwa. Nie stanowią zapisu procesu ani trwałej sesji na dysku. Obsługiwanych jest dziewięć kluczy, więc cache jest ograniczony. Przełączanie ekranów i zapisy pozycji kursora, tryby śledzenia myszy 1000/1002/1003 oraz pozostałe tryby prywatne nie są jeszcze objęte XTSAVE/XTRESTORE.
+Zapisy są osobne dla każdego bufora, wspólne dla jego ekranów i zachowywane po resize. RIS je usuwa. Nie stanowią zapisu procesu ani trwałej sesji na dysku. W tym etapie obsługiwano dziewięć kluczy, więc cache był ograniczony. Od 1.0.46.79 zapis obejmuje również niezależne tryby 1000/1002/1003, czyli łącznie dwanaście kluczy. Przełączanie ekranów, zapisy pozycji kursora i pozostałe tryby prywatne nadal nie są objęte XTSAVE/XTRESTORE.
 
 Zwykłe DECSET/DECRST i restore korzystają ze wspólnego stosowania skutków trybu. Przywrócenie origin ustawia kursor na początku bieżącego regionu i kasuje oczekujące zawinięcie; poprawiono ten sam przypadek przy zwykłym przełączeniu origin. Test natywny ConPTY obejmuje rzeczywiste skutki odtworzonych trybów fokusu, klawiatury numerycznej i bracketed paste. Szczegóły opisuje [macierz VT](vt-coverage.md).
 
@@ -414,3 +414,13 @@ Są to informacje o funkcjach protokołu terminala, nie o drukarkach Windows ani
 Punkt odniesienia: [DSR_DEC w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L4880). Dwa scenariusze DUnitX sprawdzają fragmentację, stronę raportu, origin, zawinięcie i odrzucanie błędnych wariantów. Rozszerzony natywny odbiornik ConPTY porównuje bajty czterech raportów statusu. Pozostałe raporty DEC i pełna zgodność emulatora wymagają dalszych prac.
 
 Weryfikacja 1.0.45.78: formatter bez błędów i sprawdzony diff; 159/159 scenariuszy DUnitX bez błędów i wycieków. Natywny odbiornik ConPTY potwierdził bajty czterech nowych raportów. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie, bez zmiany DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.45.78-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
+
+## Niezależne tryby śledzenia myszy — 1.0.46.79
+
+Tryby 1000 (przyciski), 1002 (ruch z przyciskiem) i 1003 (dowolny ruch) mają niezależne bity DECSET/DECRST. Efektywny protokół wynika z priorytetu 1003 → 1002 → 1000. Włączenie niższego trybu nie zastępuje wyższego; wyłączenie wyższego przywraca wcześniej włączony niższy. Wyłączenie nieaktywnego trybu nie wyłącza pozostałych.
+
+DECRQM raportuje każdy bit, a nie tylko aktywny protokół. XTSAVE/XTRESTORE zapisuje i przywraca te trzy bity niezależnie, także wartości false; liczba obsługiwanych zapisów wynosi teraz dwanaście. RIS i DECSTR kasują bity i ich zapis. Negocjacja nadal unieważnia filtr raportów tej samej komórki, więc pierwszy raport po zmianie protokołu nie ginie.
+
+Punkt odniesienia: [update_mouse_protocol w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L392). Dwa nowe scenariusze DUnitX sprawdzają osiem kombinacji bitów, ich raporty, wyłączanie, fragmentację save/restore i reset. Natywny odbiornik ConPTY weryfikuje powrót z 1003 do 1002 i 1000 wraz z rzeczywistym ruchem myszy. Pozostałe protokoły, takie jak X10, highlight i 1015/1016, nadal wymagają implementacji.
+
+Weryfikacja 1.0.46.79: formatter bez błędów i sprawdzony diff; 161/161 scenariuszy DUnitX bez błędów i wycieków. Natywny odbiornik ConPTY potwierdził raport ruchu po powrocie z 1003 do 1002 i jego brak po przejściu do 1000. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie, bez zmiany DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.46.79-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.

@@ -101,6 +101,9 @@ Interface
     fNewLineMode        : Boolean;
     fBracketedPaste     : Boolean;
     fMouseMode          : Integer;
+    fMouseButtons       : Boolean;
+    fMouseButtonMotion  : Boolean;
+    fMouseAnyMotion     : Boolean;
     fMouseRevision      : Int64;
     fSGRMouse           : Boolean;
     fUtf8Mouse          : Boolean;
@@ -359,6 +362,9 @@ Implementation
    fNewLineMode       := False;
    fBracketedPaste    := False;
    fMouseMode         := 0;
+   fMouseButtons      := False;
+   fMouseButtonMotion := False;
+   fMouseAnyMotion    := False;
    Inc(fMouseRevision);
    fSGRMouse        := False;
    fUtf8Mouse       := False;
@@ -813,17 +819,19 @@ Implementation
    Enabled := False;
    If PrivateMode Then
     Case Mode Of
-     1                : Enabled := fApplicationCursor;
-     6                : Enabled := fOrigin;
-     7                : Enabled := fAutoWrap;
-     25               : Enabled := fCursorVisible;
-     47, 1047, 1049   : Enabled := fAlternate;
-     1000, 1002, 1003 : Enabled := fMouseMode = Mode;
-     66               : Enabled := fApplicationKeypad;
-     1004             : Enabled := fFocusReporting;
-     1005             : Enabled := fUtf8Mouse;
-     1006             : Enabled := fSGRMouse;
-     2004             : Enabled := fBracketedPaste;
+     1              : Enabled := fApplicationCursor;
+     6              : Enabled := fOrigin;
+     7              : Enabled := fAutoWrap;
+     25             : Enabled := fCursorVisible;
+     47, 1047, 1049 : Enabled := fAlternate;
+     1000           : Enabled := fMouseButtons;
+     1002           : Enabled := fMouseButtonMotion;
+     1003           : Enabled := fMouseAnyMotion;
+     66             : Enabled := fApplicationKeypad;
+     1004           : Enabled := fFocusReporting;
+     1005           : Enabled := fUtf8Mouse;
+     1006           : Enabled := fSGRMouse;
+     2004           : Enabled := fBracketedPaste;
     Else Exit;
     End
    Else
@@ -868,8 +876,17 @@ Implementation
     1000, 1002, 1003 :
      Begin
       Inc(fMouseRevision);
-      If Enabled Then
-       fMouseMode := Mode
+      Case Mode Of
+       1000 : fMouseButtons := Enabled;
+       1002 : fMouseButtonMotion := Enabled;
+       1003 : fMouseAnyMotion := Enabled;
+      End;
+      If fMouseAnyMotion Then
+       fMouseMode := 1003
+      Else If fMouseButtonMotion Then
+       fMouseMode := 1002
+      Else If fMouseButtons Then
+       fMouseMode := 1000
       Else
        fMouseMode := 0;
      End;
@@ -1024,7 +1041,7 @@ Implementation
     Begin
      For i := 0 To High(Params) Do
       Case Params[i] Of
-       1, 6, 7, 25, 66, 1004, 1005, 1006, 2004 :
+       1, 6, 7, 25, 66, 1000, 1002, 1003, 1004, 1005, 1006, 2004 :
         If Final = 's' Then
          fSavedModes.AddOrSetValue(Params[i], ModeStatus(Params[i], True) = 1)
         Else If fSavedModes.TryGetValue(Params[i], SavedValue) Then
