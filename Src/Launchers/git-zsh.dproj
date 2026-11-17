@@ -51,10 +51,10 @@
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_MajorVer>1</VerInfo_MajorVer>
     <VerInfo_MinorVer>0</VerInfo_MinorVer>
-    <VerInfo_Release>40</VerInfo_Release>
-    <VerInfo_Build>73</VerInfo_Build>
+    <VerInfo_Release>41</VerInfo_Release>
+    <VerInfo_Build>74</VerInfo_Build>
     <VerInfo_Locale>1045</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Guake dla Windows;FileVersion=1.0.40.73;InternalName=git-zsh;OriginalFilename=git-zsh.exe;ProductName=Guake dla Windows;ProductVersion=1.0.40.73</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Guake dla Windows;FileVersion=1.0.41.74;InternalName=git-zsh;OriginalFilename=git-zsh.exe;ProductName=Guake dla Windows;ProductVersion=1.0.41.74</VerInfo_Keys>
     <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
     <DCC_MapFile>3</DCC_MapFile>
     <PostBuildEvent>powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(MSBuildProjectDirectory)\..\Tools\Complete-Build.ps1" -ProjectFile "$(MSBuildProjectDirectory)\git-zsh.dproj" -OutputDirectory "$(DCC_ExeOutput)\."</PostBuildEvent>

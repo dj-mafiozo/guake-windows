@@ -16,6 +16,9 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure InsertDeleteLinesRespectRegionAndCarriageReturn;
+    [Test] Procedure InsertDeleteLinesPreserveIgnoredWrap;
+    [Test] Procedure ReverseIndexClearsWrapAndRespectsRegion;
     [Test] Procedure RelativeVerticalMotionRespectsDirectionalMargins;
     [Test] Procedure RelativeVerticalMotionOriginFragmentsAndWrap;
     [Test] Procedure TertiaryDeviceAttributesFragmentsAndState;
@@ -153,6 +156,125 @@ Implementation
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+/// <summary>Verifies IL/DL row movement, unchanged rows outside the region and carriage return only on execution.</summary>
+
+ Procedure TTerminalTests.InsertDeleteLinesRespectRegionAndCarriageReturn;
+  Var
+   Buffer    : TTerminalBuffer;
+   Final     : Char;
+   StartRow  : Integer;
+   y         : Integer;
+   SourceRow : Integer;
+   Expected  : String;
+  Begin
+   Buffer := TTerminalBuffer.Create(6, 7);
+   Try
+    For Final In ['L', 'M'] Do
+     For StartRow := 0 To 6 Do
+      Begin
+       Buffer.Reset;
+       For y := 0 To 6 Do
+        Buffer.FeedText(#27 + '[' + IntToStr(y + 1) + ';1H' + StringOfChar(Char(Ord('A') + y), 5));
+       Buffer.FeedText(#27 + '[3;5r' + #27 + '[' + IntToStr(StartRow + 1) + ';4H' + #27 + '[' + Final);
+       Assert.AreEqual(StartRow, Buffer.CursorY);
+       If (StartRow >= 2) And (StartRow <= 4) Then
+        Assert.AreEqual(0, Buffer.CursorX, 'Executed IL/DL returns to first column')
+       Else
+        Assert.AreEqual(3, Buffer.CursorX, 'Ignored IL/DL preserves the column');
+       For y := 0 To 6 Do
+        Begin
+         SourceRow := y;
+         If (StartRow >= 2) And (StartRow <= 4) And (y >= StartRow) And (y <= 4) Then
+          If Final = 'L' Then
+           Begin
+            SourceRow := y - 1;
+            If y = StartRow Then
+             SourceRow := -1;
+           End
+          Else
+           Begin
+            SourceRow := y + 1;
+            If y = 4 Then
+             SourceRow := -1;
+           End;
+         Expected := '';
+         If SourceRow >= 0 Then
+          Expected := StringOfChar(Char(Ord('A') + SourceRow), 5);
+         Assert.AreEqual(Expected, Buffer.LineText(y), 'Edited row: ' + IntToStr(y));
+        End;
+       Assert.AreEqual(7, Buffer.TotalLines, 'Partial-region edits must not add history');
+      End;
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Checks pending wrap for ignored IL/DL and first-column output for executed edits.</summary>
+
+ Procedure TTerminalTests.InsertDeleteLinesPreserveIgnoredWrap;
+  Var
+   Buffer   : TTerminalBuffer;
+   Final    : Char;
+   StartRow : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(4, 7);
+   Try
+    For Final In ['L', 'M'] Do
+     Begin
+      For StartRow In [0, 5] Do
+       Begin
+        Buffer.Reset;
+        Buffer.FeedText(#27 + '[3;5r' + #27 + '[' + IntToStr(StartRow + 1) + ';1HABCD' + #27 + '[' + Final + 'X');
+        Assert.AreEqual(StartRow + 1, Buffer.CursorY, 'Ignored line edit must preserve pending wrap');
+        Assert.AreEqual('X', Buffer.Cell[0, StartRow + 1].Text);
+       End;
+      Buffer.Reset;
+      Buffer.FeedText(#27 + '[3;5r' + #27 + '[4;1HABCD' + #27 + '[' + Final + 'X');
+      Assert.AreEqual(3, Buffer.CursorY);
+      Assert.AreEqual('X', Buffer.Cell[0, 3].Text, 'Executed line edit clears wrap and resets column');
+     End;
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Exercises RI at all rows, fragmented escape input and pending wrap at and away from the top margin.</summary>
+
+ Procedure TTerminalTests.ReverseIndexClearsWrapAndRespectsRegion;
+  Var
+   Buffer      : TTerminalBuffer;
+   StartRow    : Integer;
+   ExpectedRow : Integer;
+   Split       : Integer;
+   Bytes       : TBytes;
+  Begin
+   Buffer := TTerminalBuffer.Create(4, 7);
+   Try
+    Bytes        := TEncoding.UTF8.GetBytes(#27 + 'M');
+    For StartRow := 0 To 6 Do
+     For Split   := 0 To Length(Bytes) Do
+      Begin
+       Buffer.Reset;
+       Buffer.FeedText(#27 + '[3;5r' + #27 + '[20h' + #27 + '[' + IntToStr(StartRow + 1) + ';1HABCD');
+       Buffer.Feed(Copy(Bytes, 0, Split));
+       Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+       ExpectedRow := Max(0, StartRow - 1);
+       If StartRow = 2 Then
+        ExpectedRow := 2;
+       Assert.AreEqual(ExpectedRow, Buffer.CursorY);
+       Assert.AreEqual(3, Buffer.CursorX, 'RI does not return the carriage, including with LNM');
+       Buffer.FeedText('X');
+       Assert.AreEqual(ExpectedRow, Buffer.CursorY, 'RI cancels pending wrap');
+       Assert.AreEqual('X', Buffer.Cell[3, ExpectedRow].Text);
+       Assert.AreEqual(7, Buffer.TotalLines);
+       If StartRow = 2 Then
+        Assert.AreEqual('ABCD', Buffer.LineText(3), 'RI at top margin shifts the region down');
+      End;
+   Finally
+    Buffer.Free;
+   End;
+  End;
 
 /// <summary>Checks relative vertical motion from inside, above and below a scrolling region without DECOM.</summary>
 

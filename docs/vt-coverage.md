@@ -1,6 +1,6 @@
 ﻿# Pokrycie emulatora VT
 
-Stan: 1.0.40.73. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.41.74. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -209,3 +209,11 @@ CUU (CSI A), CUD (CSI B), VPR (CSI e), CNL (CSI E) i CPL (CSI F) respektują mar
 CNL/CPL ustawiają dodatkowo pierwszą kolumnę; pozostałe komendy zachowują kolumnę. Ruch anuluje oczekujące zawinięcie, nie przewija ekranu i nie zmienia zawartości komórek ani historii. Domyślny i zerowy licznik oznacza jeden; duże liczniki są ograniczane geometrią ekranu. DECOM nadal ogranicza pozycję do regionu, a ruchy bezwzględne zachowują swoje odrębne reguły.
 
 Punkt odniesienia: [move_cursor_up/down w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L833). Dwa scenariusze DUnitX obejmują macierz 140 kombinacji pozycji/komend/liczników, fragmentację, DECOM, wartości domyślne, oczekujące zawinięcie i niezmienność tekstu/historii. Poziome marginesy i pozostałe różnice ruchu pozostają do wykonania.
+
+## IL/DL, Reverse Index i oczekujące zawinięcie — 1.0.41.74
+
+Wstawianie/usuwanie wierszy (CSI L/M) wewnątrz regionu DECSTBM ustawia pierwszą kolumnę i kasuje oczekujące zawinięcie. Przesuwa tylko wiersze od pozycji kursora do dolnego marginesu. Poza regionem komenda pozostaje ignorowana i zachowuje kolumnę oraz oczekujące zawinięcie dla kolejnego znaku. Wcześniej kolumna nie była zerowana podczas operacji, a zawinięcie było kasowane również poza regionem.
+
+Reverse Index (ESC M) kasuje oczekujące zawinięcie zarówno przy ruchu w górę, jak i przewijaniu w dół na górnym marginesie. Zachowuje kolumnę, również przy włączonym LNM. Wiersze poza przewijanym regionem pozostają bez zmian; RI nie dopisuje scrollbacku.
+
+Punkt odniesienia: [IL w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L5741), [DL](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L4763) i [RI](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L6436). Trzy scenariusze DUnitX sprawdzają IL/DL na siedmiu pozycjach, zawartość wszystkich wierszy, zachowanie zawinięcia poza regionem oraz RI na siedmiu pozycjach przy każdym podziale sekwencji. Dalsze przypadki przewijania, historii i poziomych marginesów pozostają do porównania z VTE.

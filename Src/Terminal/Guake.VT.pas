@@ -1005,7 +1005,7 @@ Implementation
        fResponses := fResponses + #27'[>0;0;0c';
      Exit;
     End;
-   If Not CharInSet(Final, ['m', 'h', 'l', 's', 'u', 'n', 'c', 't', 'b']) Then
+   If Not CharInSet(Final, ['m', 'h', 'l', 's', 'u', 'n', 'c', 't', 'b', 'L', 'M']) Then
     fWrapPending := False;
    n             := Min(P(0, 1), Max(fColumns, fRows));
    Case Final Of
@@ -1092,8 +1092,11 @@ Implementation
     'L', 'M' :
      If (fY >= fTop) And (fY <= fBottom) Then
       Begin
-       OldTop := fTop;
-       fTop   := fY;
+       // IL/DL return the carriage only when they operate inside the region.
+       fX           := 0;
+       fWrapPending := False;
+       OldTop       := fTop;
+       fTop         := fY;
        Scroll(Final = 'M', n);
        fTop := OldTop;
       End;
@@ -1447,10 +1450,14 @@ Implementation
          LineFeed;
         End;
        Ord('M') :
-        If fY = fTop Then
-         Scroll(False, 1)
-        Else
-         fY := Max(0, fY - 1);
+        Begin
+         // RI is explicit cursor motion, even when it scrolls at the top margin.
+         fWrapPending := False;
+         If fY = fTop Then
+          Scroll(False, 1)
+         Else
+          fY := Max(0, fY - 1);
+        End;
        Ord('c') :
         Reset;
        Ord('Z') :

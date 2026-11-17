@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 17 listopada 2026, wersja 1.0.40.73. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 17 listopada 2026, wersja 1.0.41.74. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -355,3 +355,13 @@ CNL/CPL ustawiają dodatkowo pierwszą kolumnę; pozostałe komendy zachowują k
 Punkt odniesienia: [move_cursor_up/down w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L833). Dwa scenariusze DUnitX obejmują macierz 140 kombinacji pozycji/komend/liczników, fragmentację, DECOM, wartości domyślne, oczekujące zawinięcie i niezmienność tekstu/historii. Poziome marginesy i pozostałe różnice ruchu pozostają do wykonania.
 
 Weryfikacja 1.0.40.73: formatter bez błędów i sprawdzony diff; 146/146 scenariuszy DUnitX bez błędów i wycieków, w tym macierz 140 przypadków kierunkowych marginesów. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie, bez zmiany DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.40.73-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna, bez deklaracji pełnej zgodności z VTE.
+
+## IL/DL, Reverse Index i oczekujące zawinięcie — 1.0.41.74
+
+Wstawianie/usuwanie wierszy (CSI L/M) wewnątrz regionu DECSTBM ustawia pierwszą kolumnę i kasuje oczekujące zawinięcie. Przesuwa tylko wiersze od pozycji kursora do dolnego marginesu. Poza regionem komenda pozostaje ignorowana i zachowuje kolumnę oraz oczekujące zawinięcie dla kolejnego znaku. Wcześniej kolumna nie była zerowana podczas operacji, a zawinięcie było kasowane również poza regionem.
+
+Reverse Index (ESC M) kasuje oczekujące zawinięcie zarówno przy ruchu w górę, jak i przewijaniu w dół na górnym marginesie. Zachowuje kolumnę, również przy włączonym LNM. Wiersze poza przewijanym regionem pozostają bez zmian; RI nie dopisuje scrollbacku.
+
+Punkt odniesienia: [IL w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L5741), [DL](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L4763) i [RI](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L6436). Trzy scenariusze DUnitX sprawdzają IL/DL na siedmiu pozycjach, zawartość wszystkich wierszy, zachowanie zawinięcia poza regionem oraz RI na siedmiu pozycjach przy każdym podziale sekwencji. Dalsze przypadki przewijania, historii i poziomych marginesów pozostają do porównania z VTE.
+
+Weryfikacja 1.0.41.74: formatter bez błędów i sprawdzony diff; 149/149 scenariuszy DUnitX bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.41.74-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna, bez deklaracji pełnej zgodności z VTE.
