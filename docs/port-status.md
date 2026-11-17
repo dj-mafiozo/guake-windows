@@ -1,6 +1,6 @@
 # Stan portu Guake dla Windows
 
-Stan kodu na 17 listopada 2026, wersja 1.0.31.64. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 17 listopada 2026, wersja 1.0.32.65. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -267,3 +267,13 @@ Zapisy są osobne dla każdego bufora, wspólne dla jego ekranów i zachowywane 
 Zwykłe DECSET/DECRST i restore korzystają ze wspólnego stosowania skutków trybu. Przywrócenie origin ustawia kursor na początku bieżącego regionu i kasuje oczekujące zawinięcie; poprawiono ten sam przypadek przy zwykłym przełączeniu origin. Test natywny ConPTY obejmuje rzeczywiste skutki odtworzonych trybów fokusu, klawiatury numerycznej i bracketed paste. Szczegóły opisuje [macierz VT](vt-coverage.md).
 
 Weryfikacja 1.0.31.64: formatter bez błędów i sprawdzony diff, 125/125 scenariuszy DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Odbiorca ConPTY potwierdził raporty fokusu, klawiaturę numeryczną i bracketed paste po XTRESTORE; nowe scenariusze sprawdziły cache trybów, fragmentację, origin i reset. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.31.64-Win64.zip z pasującymi EXE/PDB.
+
+## Miękki reset DECSTR — 1.0.32.65
+
+CSI ! p przywraca domyślne obsługiwane tryby, atrybuty przyszłych komórek, zestawy znaków, pełny region przewijania, widoczność i styl kursora. Wyłącza aplikacyjne klawisze kursora i numeryczne, insert/newline, raportowanie myszy/fokusu oraz bracketed paste; przywraca autowrap i wyłącza origin. Zamyka aktywne hiperłącze dla kolejnych znaków i usuwa cache XTSAVE/XTRESTORE. Oczekujące odpowiedzi modelu są czyszczone.
+
+W odróżnieniu od RIS zachowuje treść i atrybuty istniejących komórek, historię, bieżącą pozycję kursora, tabulatory, tytuł i jego stos. Pozostaje w aktywnym ekranie i nie niszczy nieaktywnego ekranu głównego. Zapisy kursora są odświeżane do bieżących pozycji z domyślnymi atrybutami. Przyjęto zachowanie VTE zachowujące oczekujące zawinięcie, również ekranu głównego po resecie w alternatywnym.
+
+Trzy nowe scenariusze obejmują tryby, historię i atrybuty, tabulatory i tytuły, cache prywatnych trybów, oba ekrany, zapis kursora, granicę wiersza, fragmentację oraz odrzucanie nieobsługiwanych wariantów resetu. Odbiorca ConPTY sprawdza skutki resetu fokusu, klawiatury numerycznej, Enter i wklejania. To zakres istniejącego emulatora; nie oznacza obsługi niezaimplementowanych trybów, palet OSC ani grafiki SIXEL. Szczegóły i źródła opisuje [macierz VT](vt-coverage.md).
+
+Weryfikacja 1.0.32.65: formatter bez błędów i sprawdzony diff, 128/128 scenariuszy DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Natywny odbiorca potwierdził reset fokusu, keypad, Enter i paste; testy modelu zachowanie historii, ekranów, tabulatorów, tytułów i oczekującego zawinięcia oraz domyślne atrybuty nowego tekstu. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.32.65-Win64.zip z pasującymi EXE/PDB.

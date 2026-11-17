@@ -53,55 +53,56 @@ Interface
 
   TTerminalBuffer = Class
    Private
-    fScreen            : TTerminalScreen;
-    fPrimary           : TTerminalScreen;
-    fHistory           : TList<TTerminalLine>;
-    fTitleStack        : TList<String>;
-    fSavedModes        : TDictionary<Integer, Boolean>;
-    fTabStops          : TArray<Boolean>;
-    fColumns           : Integer;
-    fRows              : Integer;
-    fX                 : Integer;
-    fY                 : Integer;
-    fDECSaved          : Array[Boolean] Of TTerminalSavedCursor;
-    fCharsets          : TTerminalCharsets;
-    fCharsetSlot       : Integer;
-    fGL                : Integer;
-    fSingleShift       : Integer;
-    fPrimaryX          : Integer;
-    fPrimaryY          : Integer;
-    fTop               : Integer;
-    fBottom            : Integer;
-    fHistoryLimit      : Integer;
-    fAttr              : TTerminalCell;
-    fState             : TVTState;
-    fSequence          : String;
-    fSequenceInvalid   : Boolean;
-    fBellCount         : UInt64;
-    fTitle             : String;
-    fHyperlink         : String;
-    fDirectory         : String;
-    fResponses         : String;
-    fUtf8              : Cardinal;
-    fRemaining         : Integer;
-    fMinimum           : Cardinal;
-    fWrapPending       : Boolean;
-    fAutoWrap          : Boolean;
-    fOrigin            : Boolean;
-    fInsert            : Boolean;
-    fAlternate         : Boolean;
-    fCursorVisible     : Boolean;
-    fCursorStyle       : Integer;
-    fApplicationCursor : Boolean;
-    fApplicationKeypad : Boolean;
-    fFocusReporting    : Boolean;
-    fNewLineMode       : Boolean;
-    fBracketedPaste    : Boolean;
-    fMouseMode         : Integer;
-    fMouseRevision     : Int64;
-    fSGRMouse          : Boolean;
-    fUtf8Mouse         : Boolean;
-    fRevision          : Int64;
+    fScreen             : TTerminalScreen;
+    fPrimary            : TTerminalScreen;
+    fHistory            : TList<TTerminalLine>;
+    fTitleStack         : TList<String>;
+    fSavedModes         : TDictionary<Integer, Boolean>;
+    fTabStops           : TArray<Boolean>;
+    fColumns            : Integer;
+    fRows               : Integer;
+    fX                  : Integer;
+    fY                  : Integer;
+    fDECSaved           : Array[Boolean] Of TTerminalSavedCursor;
+    fCharsets           : TTerminalCharsets;
+    fCharsetSlot        : Integer;
+    fGL                 : Integer;
+    fSingleShift        : Integer;
+    fPrimaryX           : Integer;
+    fPrimaryY           : Integer;
+    fPrimaryWrapPending : Boolean;
+    fTop                : Integer;
+    fBottom             : Integer;
+    fHistoryLimit       : Integer;
+    fAttr               : TTerminalCell;
+    fState              : TVTState;
+    fSequence           : String;
+    fSequenceInvalid    : Boolean;
+    fBellCount          : UInt64;
+    fTitle              : String;
+    fHyperlink          : String;
+    fDirectory          : String;
+    fResponses          : String;
+    fUtf8               : Cardinal;
+    fRemaining          : Integer;
+    fMinimum            : Cardinal;
+    fWrapPending        : Boolean;
+    fAutoWrap           : Boolean;
+    fOrigin             : Boolean;
+    fInsert             : Boolean;
+    fAlternate          : Boolean;
+    fCursorVisible      : Boolean;
+    fCursorStyle        : Integer;
+    fApplicationCursor  : Boolean;
+    fApplicationKeypad  : Boolean;
+    fFocusReporting     : Boolean;
+    fNewLineMode        : Boolean;
+    fBracketedPaste     : Boolean;
+    fMouseMode          : Integer;
+    fMouseRevision      : Int64;
+    fSGRMouse           : Boolean;
+    fUtf8Mouse          : Boolean;
+    fRevision           : Int64;
     Function  Blank                                                   : TTerminalCell;
     Procedure ClearLine       (Var Line : TTerminalLine; First, Last : Integer);
     Procedure AllocateScreen  (Var Screen : TTerminalScreen; Columns, Rows : Integer);
@@ -114,6 +115,7 @@ Interface
     Procedure MoveTab         (Count : Integer; ForwardTab : Boolean);
     Procedure Scroll          (Up : Boolean; Count : Integer);
     Procedure ExecuteCSI      (Final : Char);
+    Procedure ResetTerminal   (HardReset : Boolean);
     Procedure ApplyPrivateMode(Mode : Integer; Enabled : Boolean);
     Function  ModeStatus      (Mode : Integer; PrivateMode : Boolean) : Integer;
     Procedure ExecuteSGR;
@@ -231,22 +233,35 @@ Implementation
   End;
 
  Procedure TTerminalBuffer.Reset;
+  Begin
+   ResetTerminal(True);
+  End;
+
+/// <summary>Resets modes and rendition; DECSTR preserves existing screens, history, coordinates and tab stops.</summary>
+
+ Procedure TTerminalBuffer.ResetTerminal(HardReset : Boolean);
   Var
    i         : Integer;
    Alternate : Boolean;
   Begin
    fSavedModes.Clear;
-   fTitleStack.Clear;
-   SetLength(fTabStops, fColumns);
-   For i                := 0 To High(fTabStops) Do
-    fTabStops[i]        := (i > 0) And (i Mod 8 = 0);
+   If HardReset Then
+    Begin
+     fTitleStack.Clear;
+     SetLength(fTabStops, fColumns);
+     For i         := 0 To High(fTabStops) Do
+      fTabStops[i] := (i > 0) And (i Mod 8 = 0);
+     fX            := 0;
+     fY            := 0;
+     fPrimary      := Nil;
+     fAlternate    := False;
+     fWrapPending  := False;
+    End;
    fHyperlink           := '';
    fAttr                := Default(TTerminalCell);
    fAttr.Foreground     := -1;
    fAttr.Background     := -2;
    fAttr.UnderlineColor := -1;
-   fX                   := 0;
-   fY                   := 0;
    For i                := 0 To High(fCharsets) Do
     fCharsets[i]        := 'B';
    fGL                  := 0;
@@ -262,8 +277,6 @@ Implementation
     End;
    fTop               := 0;
    fBottom            := fRows - 1;
-   fPrimary           := Nil;
-   fAlternate         := False;
    fCursorVisible     := True;
    fCursorStyle       := 0;
    fApplicationCursor := False;
@@ -276,15 +289,28 @@ Implementation
    fSGRMouse        := False;
    fUtf8Mouse       := False;
    fAutoWrap        := True;
-   fWrapPending     := False;
    fOrigin          := False;
    fInsert          := False;
    fState           := vsGround;
    fSequence        := '';
    fSequenceInvalid := False;
    fRemaining       := 0;
-   fHistory.Clear;
-   AllocateScreen(fScreen, fColumns, fRows);
+   If HardReset Then
+    Begin
+     fHistory.Clear;
+     AllocateScreen(fScreen, fColumns, fRows);
+    End
+   Else
+    Begin
+     fResponses := '';
+     If fAlternate Then
+      Begin
+       fDECSaved[False].x           := fPrimaryX;
+       fDECSaved[False].y           := fPrimaryY;
+       fDECSaved[False].WrapPending := fPrimaryWrapPending;
+      End;
+     SaveCursorState;
+    End;
    Inc(fRevision);
   End;
 
@@ -496,9 +522,10 @@ Implementation
     Begin
      If SaveCursor Then
       SaveCursorState;
-     fPrimary  := fScreen;
-     fPrimaryX := fX;
-     fPrimaryY := fY;
+     fPrimary            := fScreen;
+     fPrimaryWrapPending := fWrapPending;
+     fPrimaryX           := fX;
+     fPrimaryY           := fY;
      AllocateScreen(fScreen, fColumns, fRows);
      fX := 0;
      fY := 0;
@@ -744,6 +771,11 @@ Implementation
     End;
 
   Begin
+   If (Final = 'p') And (fSequence = '!') Then
+    Begin
+     ResetTerminal(False);
+     Exit;
+    End;
    If (Final = 'q') And (Copy(fSequence, Length(fSequence), 1) = ' ') Then
     Begin
      Prefix := Copy(fSequence, 1, Length(fSequence) - 1);

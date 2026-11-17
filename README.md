@@ -85,3 +85,5 @@ Format myszy UTF-8 `1005` jest częściowo obsługiwany (do 2015, z luką C1 w t
 Programy terminalowe mogą zapisywać i przywracać tytuł okna przez `CSI 22;2 t` / `CSI 23;2 t`. Stos jest osobny dla każdej sesji, wspiera zagnieżdżenie i mieści do 64 zapisów; nie zastępuje ręcznych nazw kart.
 
 `XTSAVE` / `XTRESTORE` zapisują i przywracają wybrane tryby prywatne, m.in. klawiaturę aplikacyjną, fokus i bracketed paste. Zakres dziewięciu obsługiwanych trybów oraz pozostałe braki opisuje [macierz VT](docs/vt-coverage.md).
+
+Miękki reset `DECSTR` (`CSI ! p`) przywraca obsługiwane tryby i atrybuty bez usuwania treści ani historii terminala. Zachowuje pozycję, tabulatory i stos tytułów; `RIS` pozostaje twardym resetem.

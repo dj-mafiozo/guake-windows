@@ -16,6 +16,9 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure SoftResetPreservesContentAndResetsModes;
+    [Test] Procedure SoftResetPreservesTabsTitlesAndAlternateScreen;
+    [Test] Procedure SoftResetFragmentsSavedCursorAndPendingWrap;
     [Test] Procedure PrivateModesSaveRestoreAndFragmentation;
     [Test] Procedure PrivateModeOriginResetAndIsolation;
     [Test] Procedure TitleStackFragmentsNestingAndEmptyTitle;
@@ -270,6 +273,122 @@ Implementation
   End;
 
 /// <summary>Soft wraps preserve UTF-16 hit positions; explicit newlines remain separate.</summary>
+
+/// <summary>DECSTR preserves screen/history/coordinates but restores default modes and future-cell attributes.</summary>
+
+ Procedure TTerminalTests.SoftResetPreservesContentAndResetsModes;
+  Var
+   Buffer : TTerminalBuffer;
+   Before : String;
+   x      : Integer;
+   y      : Integer;
+   Lines  : Integer;
+   Row    : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(20, 5);
+   Try
+    Buffer.FeedText(#27'[31;1mR' + #27'[0m' + #13#10 + 'a' + #13#10 + 'b' + #13#10 + 'c' + #13#10 + 'd' + #13#10 + 'e');
+    Buffer.FeedText(#27'[2;4r' + #27'[?1;6;66;1004;1005;1006;2004h' + #27'[?7;25l' + #27'[4;20h' + #27'[6 q');
+    Buffer.FeedText(#27'[1;3;5;8;9;53;4:3;38;2;1;2;3;48;2;4;5;6m' + #27']8;;https://example.org' + #7);
+    Before := Buffer.Text;
+    x      := Buffer.CursorX;
+    y      := Buffer.CursorY;
+    Lines  := Buffer.TotalLines;
+    Buffer.FeedText(#27'[!p');
+    Assert.AreEqual(Before, Buffer.Text);
+    Assert.AreEqual(Lines, Buffer.TotalLines);
+    Assert.AreEqual(x, Buffer.CursorX);
+    Assert.AreEqual(y, Buffer.CursorY);
+    Assert.IsTrue(Buffer.CursorVisible);
+    Assert.AreEqual(0, Buffer.CursorStyle);
+    Assert.IsFalse(Buffer.ApplicationCursor Or Buffer.ApplicationKeypad Or Buffer.FocusReporting Or Buffer.NewLineMode Or Buffer.BracketedPaste Or Buffer.Utf8Mouse Or Buffer.SGRMouse);
+    Assert.AreEqual(0, Buffer.MouseMode);
+    Assert.AreEqual(1, Buffer.Cell[0, 0].Foreground);
+    Assert.IsTrue(Buffer.Cell[0, 0].Bold, 'Existing rendition must remain in history');
+    Buffer.FeedText(#27'[?6;7;25$p' + #27'[4;20$p');
+    Assert.AreEqual(#27'[?6;2$y' + #27'[?7;1$y' + #27'[?25;1$y' + #27'[4;2$y' + #27'[20;2$y', Buffer.TakeResponses);
+    Buffer.FeedText(#27'P$qm' + #27'\' + #27'P$qr' + #27'\');
+    Assert.AreEqual(#27'P1$r0m' + #27'\' + #27'P1$r1;5r' + #27'\', Buffer.TakeResponses);
+    Row := Buffer.TotalLines - Buffer.Rows + Buffer.CursorY;
+    Buffer.FeedText('Z');
+    Assert.AreEqual( -1, Buffer.Cell[x, Row].Foreground);
+    Assert.AreEqual( -2, Buffer.Cell[x, Row].Background);
+    Assert.IsFalse(Buffer.Cell[x, Row].Bold Or Buffer.Cell[x, Row].Blink Or Buffer.Cell[x, Row].Conceal);
+    Assert.AreEqual('', Buffer.Cell[x, Row].Hyperlink);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Soft reset keeps custom tabs and title history, stays in alternate screen and preserves primary contents.</summary>
+
+ Procedure TTerminalTests.SoftResetPreservesTabsTitlesAndAlternateScreen;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(16, 4);
+   Try
+    Buffer.FeedText(#27'[3g' + #27'[1;4H' + #27'H' + #27']2;base' + #7 + #27'[22;2t' + #27']2;temporary' + #7);
+    Buffer.FeedText(#27'[?1h' + #27'[?1s' + #27'[!p' + #27'[?1r' + #27'[23;2t' + #27'[H' + #9);
+    Assert.IsFalse(Buffer.ApplicationCursor, 'Soft reset clears private-mode caches');
+    Assert.AreEqual('base', Buffer.Title);
+    Assert.AreEqual(3, Buffer.CursorX, 'Custom tab stops survive DECSTR');
+    Buffer.FeedText(#27'[H' + 'PRIMARY' + #27'[2;3H' + #27'[?1049h' + 'ALT');
+    Buffer.FeedText(#27'[!p');
+    Assert.IsTrue(Buffer.AlternateScreen);
+    Assert.AreEqual('ALT', Buffer.LineText(0));
+    Assert.AreEqual(3, Buffer.CursorX);
+    Assert.AreEqual(0, Buffer.CursorY);
+    Buffer.FeedText(#27'[H' + #27'8');
+    Assert.AreEqual(3, Buffer.CursorX, 'DECSTR refreshes the active saved cursor');
+    Buffer.FeedText(#27'[?1049l');
+    Assert.IsFalse(Buffer.AlternateScreen);
+    Assert.AreEqual('PRIMARY', Buffer.LineText(0));
+    Assert.AreEqual(2, Buffer.CursorX);
+    Assert.AreEqual(1, Buffer.CursorY);
+    Buffer.Reset;
+    Buffer.FeedText('1234567890123456' + #27'[?1049h' + 'ALT' + #27'[!p' + #27'[?1049l' + 'X');
+    Assert.AreEqual('1234567890123456', Buffer.LineText(0));
+    Assert.AreEqual('X', Buffer.LineText(1), 'Soft reset in alternate screen preserves primary pending wrap');
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Recognizes fragmented DECSTR, rejects lookalikes and retains VTE-style pending wrap.</summary>
+
+ Procedure TTerminalTests.SoftResetFragmentsSavedCursorAndPendingWrap;
+  Var
+   Buffer   : TTerminalBuffer;
+   Split    : Integer;
+   Sequence : String;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 4);
+   Try
+    Sequence  := #27'[!p';
+    For Split := 0 To Length(Sequence) Do
+     Begin
+      Buffer.Reset;
+      Buffer.FeedText('12345678' + #27'[?1h' + #27'[6 q');
+      Buffer.FeedText(Copy(Sequence, 1, Split));
+      Buffer.FeedText(Copy(Sequence, Split + 1, MaxInt));
+      Assert.IsFalse(Buffer.ApplicationCursor);
+      Assert.AreEqual(0, Buffer.CursorStyle);
+      Buffer.FeedText('X');
+      Assert.AreEqual('12345678', Buffer.LineText(0));
+      Assert.AreEqual('X', Buffer.LineText(1));
+     End;
+    Buffer.Reset;
+    Buffer.FeedText(#27'[?1h' + #27'[?1!p' + #27'[0!p' + #27'[!!p');
+    Assert.IsTrue(Buffer.ApplicationCursor, 'Unsupported reset variants do not execute DECSTR');
+    Buffer.FeedText(#27'[!' + #24 + 'p');
+    Assert.IsTrue(Buffer.ApplicationCursor, 'CAN cancels an unfinished reset');
+    Buffer.FeedText(#27'[!p');
+    Assert.IsFalse(Buffer.ApplicationCursor);
+   Finally
+    Buffer.Free;
+   End;
+  End;
 
 /// <summary>Private mode caches preserve independent true/false values and work across input fragments.</summary>
 
@@ -973,6 +1092,15 @@ Implementation
     Finally
      Peer.Free;
     End;
+    Session.Buffer.FeedText(#27'[?66;1004;2004h' + #27'[20h' + #27'[!p');
+    Frame.Perform(WM_SETFOCUS, 0, 0); // Soft reset disabled focus reporting.
+    Frame.Perform(WM_KEYDOWN, VK_NUMPAD3, 0);
+    Frame.Perform(WM_CHAR, Ord('3'), 0);
+    Key := #13;
+    TTerminalFrameAccess(Frame).KeyPress(Key);
+    Frame.SurfaceMouseDown(Nil, mbMiddle, [], 5, 5);
+    Frame.SurfaceMouseUp(Nil, mbMiddle, [], 5, 5);
+    Expected := Expected + '3' + #13 + 'PRIMARY_WORD';
     Session.SendText('|');
     ExpectedCodes := '';
     For i         := 1 To Length(Expected) Do

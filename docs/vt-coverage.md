@@ -1,6 +1,6 @@
 # Pokrycie emulatora VT
 
-Stan: 1.0.31.64. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.32.65. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -9,7 +9,7 @@ Stan: 1.0.31.64. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | Tabulatory | HT, HTS (ESC H), TBC (CSI g, CSI 3 g), CHT (CSI I), CBT (CSI Z), DECST8C (CSI ? 5 W); domyślne co 8 kolumn | Testy porównawcze z VTE przy zmianach geometrii i ekranów |
 | Ruch | CUU/CUD/CUF/CUB, CNL/CPL, CHA/HPA, VPA, CUP/HVP, HPR/VPR | Pełne zachowanie marginesów, dodatkowe tryby i warianty |
 | Edycja | ED/EL, ICH/DCH/ECH, IL/DL, SU/SD, DECSTBM | Selective erase i chronione komórki; prostokąty DEC; poziome marginesy; szerokie znaki przecinające granice edycji |
-| Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS; XTSAVE/XTRESTORE dla dziewięciu wybranych trybów | Chronione komórki/selective erase, DECSTR i pozostałe tryby prywatne |
+| Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS i DECSTR; XTSAVE/XTRESTORE dla dziewięciu wybranych trybów | Chronione komórki/selective erase i pozostałe tryby prywatne |
 | Kursor | Widoczność DECTCEM, DECSCUSR 0–6: preferencje lub blok/podkreślenie/pionowa kreska, warianty migające i stałe; odczyt przez DECRQSS | Dalsza zgodność geometrii i wypełnienia bloku z VTE; wariant xterm 7 nie jest obsługiwany |
 | Ekrany | Ekran główny i alternatywny, 47/1047/1049, historia i reflow ekranu głównego | Osobna macierz wariantów przełączania i zapisów kursora, przypadki brzegowe reflow |
 | SGR | Reset, bold/faint, italic, conceal, strike, overline, inverse; pięć stylów podkreślenia i jego kolor 58/59; miganie 5/6/25; ANSI 16/256 i RGB przez średniki i dwukropki | Dalsze warianty SGR, integracja systemowych preferencji migania i porównanie geometrii dekoracji z VTE |
@@ -139,3 +139,11 @@ CSI ? Pm s zapisuje wybrane tryby prywatne, a CSI ? Pm r odtwarza wskazane warto
 Restore stosuje te same skutki co DECSET/DECRST. Origin powoduje homing w bieżących marginesach i wyłącza oczekujące zawinięcie. Przywrócenie formatu myszy unieważnia filtr raportów tak samo jak bezpośrednia negocjacja. Cache jest osobny dla każdego terminala, wspólny dla jego ekranów i zachowywany po resize; RIS go czyści. Zapisy nie trafiają do pliku sesji.
 
 Dwa nowe scenariusze DUnitX obejmują wartości true/false, nadpisywanie, wiele trybów, wszystkie miejsca podziału sekwencji, błędne parametry, brak zapisu, origin i oczekujące zawinięcie, reset, zmianę rozmiaru, ekrany i niezależność terminali. Rozszerzony natywny odbiornik ConPTY sprawdza efekty przywrócenia fokusu 1004, klawiatury numerycznej 66 i bracketed paste 2004. Poza zakresem pozostają przełączanie ekranów, zapisy kursora, śledzenie myszy 1000/1002/1003 i pozostałe identyfikatory prywatne. Samo rozpoznanie trybu przez DECRQM nie oznacza, że jest już objęty save/restore.
+
+## DECSTR — 1.0.32.65
+
+CSI ! p wykonuje miękki reset w ramach obsługiwanych trybów. Podstawą semantyki zachowania ekranów, historii, pozycji, tabulatorów i stosu tytułów jest [implementacja resetu VTE](https://github.com/GNOME/vte/blob/master/src/vte.cc) oraz [rozdzielenie pozycji i regionu przewijania](https://github.com/GNOME/vte/blob/master/src/vteinternal.hh). RIS i publiczny Reset nadal wykonują twardy reset; wspólna metoda przywraca tryby i atrybuty, rozdzielając zachowanie danych.
+
+DECSTR przywraca obsługiwane domyślne tryby, pełne marginesy, zestawy ASCII, widoczny kursor w stylu 0 i atrybuty dla przyszłych komórek. Wyłącza tryby aplikacyjnego wejścia, myszy, fokusu i bracketed paste, zamyka aktywne OSC 8 dla kolejnych znaków i czyści cache prywatnych trybów oraz oczekujące odpowiedzi. Nie zmienia istniejących komórek, historii, pozycji, tytułu, stosu tytułów ani tabulatorów. Pozostaje w ekranie alternatywnym, jeśli tam wykonano reset. Odświeża zapis kursora na obu ekranach; zachowuje oczekujące zawinięcie przy prawej krawędzi.
+
+Testy obejmują zachowanie danych i starych atrybutów, domyślne atrybuty nowego tekstu, reset obsługiwanych trybów, DECRQSS SGR i marginesów, tabulatory, tytuły, ekrany, pozycje i zapis kursora, zawinięcie, wszystkie podziały sekwencji, CAN i nieobsługiwane warianty. Native ConPTY potwierdza reset wejścia (fokus, keypad, Enter i paste). Nadal wymagane są porównania szerszej macierzy z uruchomionym VTE; tryby, OSC palety i SIXEL nieobecne w emulatorze pozostają niezaimplementowane. Parametryzowane warianty typu CSI 0 ! p są ignorowane; obsługiwane jest dokładne CSI ! p.
