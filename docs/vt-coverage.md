@@ -1,6 +1,6 @@
 # Pokrycie emulatora VT
 
-Stan: 1.0.32.65. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.33.66. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -8,14 +8,14 @@ Stan: 1.0.32.65. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | Kontrolki C0 | BEL, BS, HT, LF/VT/FF, CR, SI/SO także wewnątrz ESC/CSI/oznaczeń zestawów; CAN/SUB anuluje, NUL/DEL nie drukuje | Odpowiedź ENQ jest pusta; dalsza macierz C1 i kontrolek w ciągach sterujących |
 | Tabulatory | HT, HTS (ESC H), TBC (CSI g, CSI 3 g), CHT (CSI I), CBT (CSI Z), DECST8C (CSI ? 5 W); domyślne co 8 kolumn | Testy porównawcze z VTE przy zmianach geometrii i ekranów |
 | Ruch | CUU/CUD/CUF/CUB, CNL/CPL, CHA/HPA, VPA, CUP/HVP, HPR/VPR | Pełne zachowanie marginesów, dodatkowe tryby i warianty |
-| Edycja | ED/EL, ICH/DCH/ECH, IL/DL, SU/SD, DECSTBM | Selective erase i chronione komórki; prostokąty DEC; poziome marginesy; szerokie znaki przecinające granice edycji |
-| Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS i DECSTR; XTSAVE/XTRESTORE dla dziewięciu wybranych trybów | Chronione komórki/selective erase i pozostałe tryby prywatne |
+| Edycja | ED/EL, DECSEL/DECSED 0–2 i DECSCA, ICH/DCH/ECH, IL/DL, SU/SD, DECSTBM; ED/EL kasują całe szerokie znaki na granicy | Selektywne ?3J i prostokąty DEC; poziome marginesy; pozostała edycja szerokich znaków |
+| Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, ochrona komórek, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS i DECSTR; XTSAVE/XTRESTORE dla dziewięciu wybranych trybów | Pozostałe tryby prywatne |
 | Kursor | Widoczność DECTCEM, DECSCUSR 0–6: preferencje lub blok/podkreślenie/pionowa kreska, warianty migające i stałe; odczyt przez DECRQSS | Dalsza zgodność geometrii i wypełnienia bloku z VTE; wariant xterm 7 nie jest obsługiwany |
 | Ekrany | Ekran główny i alternatywny, 47/1047/1049, historia i reflow ekranu głównego | Osobna macierz wariantów przełączania i zapisów kursora, przypadki brzegowe reflow |
 | SGR | Reset, bold/faint, italic, conceal, strike, overline, inverse; pięć stylów podkreślenia i jego kolor 58/59; miganie 5/6/25; ANSI 16/256 i RGB przez średniki i dwukropki | Dalsze warianty SGR, integracja systemowych preferencji migania i porównanie geometrii dekoracji z VTE |
-| Odpowiedzi | DSR 5, CPR 6, DECXCPR ?6; wiersz względem regionu przy DECOM; DA/DECID i DA2, DECRQM/DECRPM dla obsługiwanych trybów, rozmiar w znakach CSI 18 t, DECRQSS SGR, marginesów i stylu kursora | Tertiary DA, pozostałe DECRQSS, raporty rozmiaru w pikselach/monitora i pozostałe zapytania |
+| Odpowiedzi | DSR 5, CPR 6, DECXCPR ?6; wiersz względem regionu przy DECOM; DA/DECID i DA2, DECRQM/DECRPM dla obsługiwanych trybów, rozmiar w znakach CSI 18 t, DECRQSS SGR, marginesów, stylu kursora i ochrony komórek | Tertiary DA, pozostałe DECRQSS, raporty rozmiaru w pikselach/monitora i pozostałe zapytania |
 | OSC i tytuł | 0/2: tytuł, 7: katalog, 8: odnośniki; CSI 22/23 t: stos tytułów okna dla 0/2 | Paleta i zapytania kolorów, osobny tytuł ikony i indeksowane sloty stosu, pozostałe OSC; polityka dostępu do schowka |
-| DCS/APC/PM | DCS DECRQSS dla SGR, marginesów i stylu kursora; pozostałe DCS/APC/PM/SOS są konsumowane | Pozostałe DCS i dalsze porównania ciągów z VTE |
+| DCS/APC/PM | DCS DECRQSS dla SGR, marginesów, stylu kursora i ochrony komórek; pozostałe DCS/APC/PM/SOS są konsumowane | Pozostałe DCS i dalsze porównania ciągów z VTE |
 | Zestawy znaków | UTF-8, ASCII B, brytyjski A, DEC Special Graphics 0 w G0–G3; SI/SO, LS2/LS3, SS2/SS3 | Pozostałe zestawy narodowe, GR i 96-znakowe zestawy, warianty ESC z bajtami pośrednimi |
 | Wejście | Application cursor, bracketed paste, tryby myszy 1000/1002/1003, częściowy format UTF-8 1005 i SGR 1006, fokus 1004, LNM 20 dla LF/Enter, aplikacyjna klawiatura numeryczna ESC = / ESC > / 66 | Pełna macierz modyfikatorów klawiatury, pozostałe protokoły klawiatury i myszy, niezależne nakładanie trybów myszy, klasyczne współrzędne poza ASCII i C1 w formacie 1005 na ConPTY |
 | Grafemy i widok | Segmentacja ICU, szerokie komórki, znaki łączące, reflow; cache wierszy renderera | Pełny shaping, bidi i zgodność wizualna z VTE; segmentacja zależy od systemowego ICU |
@@ -147,3 +147,11 @@ CSI ! p wykonuje miękki reset w ramach obsługiwanych trybów. Podstawą semant
 DECSTR przywraca obsługiwane domyślne tryby, pełne marginesy, zestawy ASCII, widoczny kursor w stylu 0 i atrybuty dla przyszłych komórek. Wyłącza tryby aplikacyjnego wejścia, myszy, fokusu i bracketed paste, zamyka aktywne OSC 8 dla kolejnych znaków i czyści cache prywatnych trybów oraz oczekujące odpowiedzi. Nie zmienia istniejących komórek, historii, pozycji, tytułu, stosu tytułów ani tabulatorów. Pozostaje w ekranie alternatywnym, jeśli tam wykonano reset. Odświeża zapis kursora na obu ekranach; zachowuje oczekujące zawinięcie przy prawej krawędzi.
 
 Testy obejmują zachowanie danych i starych atrybutów, domyślne atrybuty nowego tekstu, reset obsługiwanych trybów, DECRQSS SGR i marginesów, tabulatory, tytuły, ekrany, pozycje i zapis kursora, zawinięcie, wszystkie podziały sekwencji, CAN i nieobsługiwane warianty. Native ConPTY potwierdza reset wejścia (fokus, keypad, Enter i paste). Nadal wymagane są porównania szerszej macierzy z uruchomionym VTE; tryby, OSC palety i SIXEL nieobecne w emulatorze pozostają niezaimplementowane. Parametryzowane warianty typu CSI 0 ! p są ignorowane; obsługiwane jest dokładne CSI ! p.
+
+## DECSCA, DECSEL i DECSED — 1.0.33.66
+
+DECSCA (CSI Ps " q) przypisuje ochronę znakom drukowanym później: 1 włącza, 0/2 wyłącza. Pusta wartość oznacza 0; nieobsługiwane wartości nie zmieniają stanu. SGR 0 jej nie resetuje. Atrybut jest częścią zapisu DECSC/DECRC i komórek kopiowanych przy reflow. DCS $q "q ST odczytuje aktualny stan jako DCS 1$r 0/1 "q ST. Punkt odniesienia: [xterm, DECSCA i selektywne kasowanie](https://github.com/ThomasDickey/xterm-snapshots/blob/master/ctlseqs.ms).
+
+DECSEL/DECSED 0/1/2 oraz domyślne pomijają chronione znaki; zwykłe ED/EL nie respektują ochrony. Obie ścieżki ED/EL operują całymi znakami, jeżeli krawędź zakresu trafia w kontynuację szerokiej komórki. Ochrona dowolnej części szerokiego znaku chroni cały znak. Komórki wyczyszczone nie dziedziczą ochrony bieżącego DECSCA. Zmiana ochrony nie jest zmianą wyglądu ani blokadą kopiowania/nadpisywania.
+
+DECSTR resetuje przyszłą ochronę, zachowując stare komórki; RIS kasuje zawartość. Selektywne ED nie kasuje scrollbacku i nie jest ograniczone marginesami przewijania. Rozszerzenie ?3J i prostokąty pozostają nieobsługiwane. Testy obejmują wszystkie kierunki ED/EL, parametry i domyślny, fragmentację, odczyt, SGR i zapis kursora, historię, reflow i szerokie znaki. Natywny odbiorca ConPTY potwierdza odpowiedź ochrony. Pełne porównanie z VTE i pozostałe operacje edycji pozostają do wykonania.

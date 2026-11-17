@@ -1,6 +1,6 @@
 # Stan portu Guake dla Windows
 
-Stan kodu na 17 listopada 2026, wersja 1.0.32.65. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 17 listopada 2026, wersja 1.0.33.66. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -277,3 +277,13 @@ W odróżnieniu od RIS zachowuje treść i atrybuty istniejących komórek, hist
 Trzy nowe scenariusze obejmują tryby, historię i atrybuty, tabulatory i tytuły, cache prywatnych trybów, oba ekrany, zapis kursora, granicę wiersza, fragmentację oraz odrzucanie nieobsługiwanych wariantów resetu. Odbiorca ConPTY sprawdza skutki resetu fokusu, klawiatury numerycznej, Enter i wklejania. To zakres istniejącego emulatora; nie oznacza obsługi niezaimplementowanych trybów, palet OSC ani grafiki SIXEL. Szczegóły i źródła opisuje [macierz VT](vt-coverage.md).
 
 Weryfikacja 1.0.32.65: formatter bez błędów i sprawdzony diff, 128/128 scenariuszy DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Natywny odbiorca potwierdził reset fokusu, keypad, Enter i paste; testy modelu zachowanie historii, ekranów, tabulatorów, tytułów i oczekującego zawinięcia oraz domyślne atrybuty nowego tekstu. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.32.65-Win64.zip z pasującymi EXE/PDB.
+
+## Ochrona komórek i selektywne kasowanie — 1.0.33.66
+
+DECSCA (CSI Ps " q) ustawia ochronę przyszłych znaków: 1 chroni, 0/2 i brak parametru wyłączają ochronę. Jest niezależna od SGR 0 i zapisywana razem z kursorem. DECSTR wyłącza ochronę przyszłych znaków, zachowując ją w istniejących komórkach; RIS usuwa ekran. DECRQSS odczytuje aktualny atrybut ochrony.
+
+DECSEL (CSI ? Ps K) i DECSED (CSI ? Ps J), dla parametrów 0/1/2 i domyślnego, pomijają chronione znaki. Region przewijania ich nie ogranicza. Zwykłe ED/EL nadal kasują chronione znaki, a ochrona nie blokuje ich nadpisania. Kasowanie dotykające jednej części szerokiego znaku obejmuje cały znak; chroniony szeroki znak pozostaje w całości. Ochrona przemieszcza się z komórkami przez reflow i historię. Puste komórki tworzone przez kasowanie nie dziedziczą ochrony bieżącego trybu.
+
+Selektywne kasowanie ekranu nie usuwa historii. Rozszerzenie xterm ?3J i selektywne prostokąty nie są jeszcze obsługiwane; zwykłe 3J zachowuje dotychczasowe usuwanie historii. Trzy scenariusze DUnitX obejmują atrybut i jego odczyt, fragmentację, SGR, zapis kursora, reset, kierunki kasowania, historię i szerokie znaki po reflow. Odbiorca ConPTY sprawdza odpowiedź DECRQSS. Szczegóły i źródło semantyki xterm opisuje [macierz VT](vt-coverage.md).
+
+Weryfikacja 1.0.33.66: formatter bez błędów i sprawdzony diff, 131/131 scenariuszy DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Nowe scenariusze potwierdziły ochronę, kierunki kasowania, historię, reflow i atomowe kasowanie szerokich znaków; odbiorca ConPTY potwierdził DECRQSS. Zaktualizowano starą regresję ?2J do nieobsługiwanego ?4J i ograniczono ponawianie odczytu pliku gotowości pomocnika testu fokusu. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.33.66-Win64.zip z pasującymi EXE/PDB.

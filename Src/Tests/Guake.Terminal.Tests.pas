@@ -16,6 +16,9 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure CharacterProtectionFragmentsAndCursorSave;
+    [Test] Procedure SelectiveEraseDirectionsAndHistory;
+    [Test] Procedure SelectiveEraseWideCellsAndReflow;
     [Test] Procedure SoftResetPreservesContentAndResetsModes;
     [Test] Procedure SoftResetPreservesTabsTitlesAndAlternateScreen;
     [Test] Procedure SoftResetFragmentsSavedCursorAndPendingWrap;
@@ -273,6 +276,130 @@ Implementation
   End;
 
 /// <summary>Soft wraps preserve UTF-16 hit positions; explicit newlines remain separate.</summary>
+
+/// <summary>Protection is independent of SGR and retained by DEC cursor save.</summary>
+
+ Procedure TTerminalTests.CharacterProtectionFragmentsAndCursorSave;
+  Var
+   Buffer   : TTerminalBuffer;
+   Sequence : String;
+   Split    : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(12, 4);
+   Try
+    Sequence  := #27'[1' + #34'q' + #27'[0mA' + #27'7' + #27'[0' + #34'q' + #27'8B';
+    For Split := 0 To Length(Sequence) Do
+     Begin
+      Buffer.Reset;
+      Buffer.FeedText(Copy(Sequence, 1, Split));
+      Buffer.FeedText(Copy(Sequence, Split + 1, MaxInt));
+      Assert.IsTrue(Buffer.Cell[0, 0].EraseProtected);
+      Assert.IsTrue(Buffer.Cell[1, 0].EraseProtected);
+      Buffer.FeedText(#27'P$q' + #34'q' + #27 + Chr(92));
+      Assert.AreEqual(#27'P1$r1' + #34'q' + #27 + Chr(92), Buffer.TakeResponses);
+     End;
+    Buffer.FeedText(#27'[3' + #34'q' + 'C');
+    Assert.IsTrue(Buffer.Cell[2, 0].EraseProtected);
+    Buffer.FeedText(#27'[2' + #34'q' + 'D');
+    Assert.IsFalse(Buffer.Cell[3, 0].EraseProtected);
+    Buffer.FeedText(#27'[1' + #34'q' + #27'[!pE');
+    Assert.IsFalse(Buffer.Cell[4, 0].EraseProtected);
+    Assert.IsTrue(Buffer.Cell[0, 0].EraseProtected);
+    Buffer.FeedText(#27'cF');
+    Assert.IsFalse(Buffer.Cell[0, 0].EraseProtected);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Selective ED/EL retain protected cells in all directions and do not delete history.</summary>
+
+ Procedure TTerminalTests.SelectiveEraseDirectionsAndHistory;
+  Var
+   Buffer : TTerminalBuffer;
+   Mode   : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 3);
+   Try
+    For Mode := 0 To 2 Do
+     Begin
+      Buffer.Reset;
+      Buffer.FeedText('a' + #27'[1' + #34'qP' + #27'[0' + #34'qbc');
+      Buffer.FeedText(#27'[1;3H' + #27'[?' + IntToStr(Mode) + 'K');
+      If Mode = 0 Then
+       Assert.AreEqual('aP', Buffer.LineText(0));
+      If Mode = 1 Then
+       Assert.AreEqual(' P c', Buffer.LineText(0));
+      If Mode = 2 Then
+       Assert.AreEqual(' P', Buffer.LineText(0));
+      Buffer.FeedText(#27'[2K');
+      Assert.AreEqual('', Buffer.LineText(0), 'Normal erase ignores protection');
+     End;
+    For Mode := 0 To 2 Do
+     Begin
+      Buffer.Reset;
+      Buffer.FeedText('top' + #27'[2;1H' + #27'[1' + #34'qP' + #27'[0' + #34'qdata' + #27'[3;1Hbottom');
+      Buffer.FeedText(#27'[2;3r' + #27'[2;3H' + #27'[?' + IntToStr(Mode) + 'J');
+      Assert.AreEqual('P', Buffer.Cell[0, 1].Text);
+      If Mode = 0 Then
+       Begin
+        Assert.AreEqual('top', Buffer.LineText(0));
+        Assert.AreEqual('', Buffer.LineText(2));
+       End;
+      If Mode = 1 Then
+       Begin
+        Assert.AreEqual('', Buffer.LineText(0));
+        Assert.AreEqual('bottom', Buffer.LineText(2));
+       End;
+      If Mode = 2 Then
+       Begin
+        Assert.AreEqual('', Buffer.LineText(0));
+        Assert.AreEqual('', Buffer.LineText(2));
+       End;
+     End;
+    Buffer.Reset;
+    Buffer.FeedText('history' + #13#10'one' + #13#10'two' + #13#10'three');
+    Buffer.FeedText(#27'[?2J' + #27'[?3J');
+    Assert.AreEqual('history', Buffer.LineText(0));
+    Assert.IsTrue(Buffer.TotalLines > Buffer.Rows);
+    Buffer.FeedText(#27'[3J');
+    Assert.AreEqual(Buffer.Rows, Buffer.TotalLines);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Erasure keeps wide characters atomic, and protection survives reflow.</summary>
+
+ Procedure TTerminalTests.SelectiveEraseWideCellsAndReflow;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 4);
+   Try
+    Buffer.FeedText(#27'[1' + #34'q' + #$4E2D + #27'[0' + #34'qx');
+    Buffer.FeedText(#27'[1;2H' + #27'[?K');
+    Assert.AreEqual(#$4E2D, Buffer.Cell[0, 0].Text);
+    Assert.IsTrue(Buffer.Cell[1, 0].Continuation);
+    Assert.AreEqual('', Trim(Buffer.Cell[2, 0].Text));
+    Buffer.FeedText(#27'[K');
+    Assert.AreEqual('', Buffer.LineText(0));
+    Assert.IsFalse(Buffer.Cell[1, 0].Continuation);
+    Buffer.Reset;
+    Buffer.FeedText(#$4E2D + 'x' + #27'[1;1H' + #27'[?1K');
+    Assert.AreEqual('  x', Buffer.LineText(0));
+    Assert.IsFalse(Buffer.Cell[1, 0].Continuation);
+    Buffer.Reset;
+    Buffer.FeedText('abcd' + #27'[1' + #34'q' + #$4E2D + #27'[0' + #34'qefgh');
+    Buffer.Resize(4, 4);
+    Buffer.FeedText(#27'[?2J');
+    Assert.IsTrue(Pos(#$4E2D, Buffer.Text) > 0);
+    Assert.IsTrue(Buffer.Cell[0, 1].EraseProtected);
+    Assert.IsTrue(Buffer.Cell[1, 1].Continuation);
+   Finally
+    Buffer.Free;
+   End;
+  End;
 
 /// <summary>DECSTR preserves screen/history/coordinates but restores default modes and future-cell attributes.</summary>
 
@@ -671,6 +798,7 @@ Implementation
 
  Procedure TTerminalTests.RefocusAndLazyHideRespectForeground;
   Var
+   WindowValue    : String;
    Settings       : TGuakeSettings;
    Main           : TfrmMain;
    Dialog         : TfrmAbout;
@@ -734,7 +862,18 @@ Implementation
     While Not TFile.Exists(WindowFile) And (GetTickCount64 < Deadline) Do
      Sleep(10);
     Assert.IsTrue(TFile.Exists(WindowFile), 'Native foreground helper must start');
-    OtherWindow := HWND(StrToInt64(TFile.ReadAllText(WindowFile)));
+    WindowValue := '';
+    Deadline    := GetTickCount64 + 2000;
+    Repeat
+     Try
+      WindowValue := TFile.ReadAllText(WindowFile);
+     Except
+      On E : EFOpenError Do
+       Sleep(10);
+     End;
+    Until(WindowValue <> '') Or (GetTickCount64 >= Deadline);
+    Assert.IsTrue(WindowValue <> '', 'Published foreground window handle must be readable');
+    OtherWindow := HWND(StrToInt64(WindowValue));
     Assert.IsTrue(IsWindow(OtherWindow));
     Settings.General.DefaultShell         := 'cmd';
     Settings.General.UsePopup             := False;
@@ -940,6 +1079,10 @@ Implementation
     Session.Buffer.FeedText(#27'[6 q'#27'P$q q'#27'\');
     Session.Poll;
     Expected := Expected + #27'P1$r6 q'#27'\';
+    Session.Buffer.FeedText(#27'[1' + #34'q' + #27'P$q' + #34'q' + #27 + Chr(92));
+    Session.Poll;
+    Expected := Expected + #27'P1$r1' + #34'q' + #27 + Chr(92);
+    Session.Buffer.FeedText(#27'[0' + #34'q');
     Frame.Perform(WM_KEYDOWN, VK_NUMPAD1, 0);
     Frame.Perform(WM_CHAR, Ord('1'), 0);
     Frame.Perform(WM_KEYDOWN, VK_RETURN, $01000000);
@@ -1853,7 +1996,7 @@ Implementation
    Buffer := TTerminalBuffer.Create(20, 4);
    Try
     Buffer.FeedText('abc'#27'[3;4H');
-    Buffer.FeedText(#27'[ A'#27'[?2J'#27'[>2J'#27'[1:2H');
+    Buffer.FeedText(#27'[ A'#27'[?4J'#27'[>2J'#27'[1:2H');
     Assert.AreEqual(3, Buffer.CursorX);
     Assert.AreEqual(2, Buffer.CursorY);
     Assert.AreEqual('abc', Buffer.LineText(0));

@@ -87,3 +87,5 @@ Programy terminalowe mogą zapisywać i przywracać tytuł okna przez `CSI 22;2 
 `XTSAVE` / `XTRESTORE` zapisują i przywracają wybrane tryby prywatne, m.in. klawiaturę aplikacyjną, fokus i bracketed paste. Zakres dziewięciu obsługiwanych trybów oraz pozostałe braki opisuje [macierz VT](docs/vt-coverage.md).
 
 Miękki reset `DECSTR` (`CSI ! p`) przywraca obsługiwane tryby i atrybuty bez usuwania treści ani historii terminala. Zachowuje pozycję, tabulatory i stos tytułów; `RIS` pozostaje twardym resetem.
+
+Obsługiwane są `DECSCA` oraz selektywne kasowanie `DECSEL`/`DECSED` (0–2): chronione znaki pozostają na ekranie, również po reflow. Zwykłe kasowanie i nadpisywanie nadal działają; ochrona obejmuje cały szeroki znak.

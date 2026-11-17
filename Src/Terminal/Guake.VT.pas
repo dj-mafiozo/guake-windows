@@ -26,6 +26,8 @@ Interface
    Strike         : Boolean;
    Overline       : Boolean;
    Inverse        : Boolean;
+   /// <summary>DECSCA protects the complete character from DECSEL/DECSED, independently of SGR.</summary>
+   EraseProtected : Boolean;
    Continuation   : Boolean;
   End;
 
@@ -105,6 +107,7 @@ Interface
     fRevision           : Int64;
     Function  Blank                                                   : TTerminalCell;
     Procedure ClearLine       (Var Line : TTerminalLine; First, Last : Integer);
+    Procedure EraseLine       (Var Line : TTerminalLine; First, Last : Integer; Selective : Boolean);
     Procedure AllocateScreen  (Var Screen : TTerminalScreen; Columns, Rows : Integer);
     Procedure ProcessCode     (Code : Cardinal);
     Procedure PutCode         (Code : Cardinal);
@@ -184,9 +187,10 @@ Implementation
 
  Function TTerminalBuffer.Blank : TTerminalCell;
   Begin
-   Result              := fAttr;
-   Result.Text         := ' ';
-   Result.Continuation := False;
+   Result                := fAttr;
+   Result.Text           := ' ';
+   Result.Continuation   := False;
+   Result.EraseProtected := False;
   End;
 
  Procedure TTerminalBuffer.ClearLine(Var Line : TTerminalLine; First, Last : Integer);
@@ -195,6 +199,34 @@ Implementation
   Begin
    For i    := Max(0, First) To Min(High(Line), Last) Do
     Line[i] := Blank;
+  End;
+
+/// <summary>Erases whole character cells, including a wide character crossing the requested edge.</summary>
+
+ Procedure TTerminalBuffer.EraseLine(Var Line : TTerminalLine; First, Last : Integer; Selective : Boolean);
+  Var
+   x, Start, Finish, i : Integer;
+   KeepCharacter       : Boolean;
+  Begin
+   First := Max(0, First);
+   Last  := Min(High(Line), Last);
+   x     := First;
+   While x <= Last Do
+    Begin
+     Start := x;
+     While (Start > 0) And Line[Start].Continuation Do
+      Dec(Start);
+     Finish := Start;
+     While (Finish < High(Line)) And Line[Finish + 1].Continuation Do
+      Inc(Finish);
+     KeepCharacter  := False;
+     For i          := Start To Finish Do
+      KeepCharacter := KeepCharacter Or Line[i].EraseProtected;
+     If Not Selective Or Not KeepCharacter Then
+      For i    := Start To Finish Do
+       Line[i] := Blank;
+     x         := Finish + 1;
+    End;
   End;
 
  Procedure TTerminalBuffer.AllocateScreen(Var Screen : TTerminalScreen; Columns, Rows : Integer);
@@ -461,9 +493,10 @@ Implementation
      NewWidth                   := Min(GraphemeWidth(fScreen[fY][Previous].Text), fColumns - Previous);
      If NewWidth > OldWidth Then
       Begin
-       fScreen[fY][Previous + 1]              := Blank;
-       fScreen[fY][Previous + 1].Text         := '';
-       fScreen[fY][Previous + 1].Continuation := True;
+       fScreen[fY][Previous + 1]                := Blank;
+       fScreen[fY][Previous + 1].Text           := '';
+       fScreen[fY][Previous + 1].Continuation   := True;
+       fScreen[fY][Previous + 1].EraseProtected := fScreen[fY][Previous].EraseProtected;
        If Not fWrapPending Then
         Begin
          Inc(fX);
@@ -625,6 +658,8 @@ Implementation
    Request := Copy(fSequence, 3, MaxInt);
    If Request = 'm' Then
     Reply := SGRState + 'm'
+   Else If Request = #34'q' Then
+    Reply := IntToStr(Ord(fAttr.EraseProtected)) + #34'q'
    Else If Request = ' q' Then
     Reply := IntToStr(fCursorStyle) + ' q'
    Else If Request = 'r' Then
@@ -776,6 +811,22 @@ Implementation
      ResetTerminal(False);
      Exit;
     End;
+   If (Final = 'q') And (Copy(fSequence, Length(fSequence), 1) = #34) Then
+    Begin
+     Prefix := Copy(fSequence, 1, Length(fSequence) - 1);
+     For i  := 1 To Length(Prefix) Do
+      If Not CharInSet(Prefix[i], ['0'..'9']) Then
+       Exit;
+     If Prefix = '' Then
+      n := 0
+     Else If Not TryStrToInt(Prefix, n) Then
+      Exit;
+     Case n Of
+      0, 2 : fAttr.EraseProtected := False;
+      1    : fAttr.EraseProtected := True;
+     End;
+     Exit;
+    End;
    If (Final = 'q') And (Copy(fSequence, Length(fSequence), 1) = ' ') Then
     Begin
      Prefix := Copy(fSequence, 1, Length(fSequence) - 1);
@@ -803,7 +854,7 @@ Implementation
    PrivateMode := Copy(fSequence, 1, 1) = '?';
    If PrivateMode Then
     Begin
-     If Not ModeQuery And Not CharInSet(Final, ['h', 'l', 'n', 'W', 's', 'r']) Then
+     If Not ModeQuery And Not CharInSet(Final, ['h', 'l', 'n', 'W', 's', 'r', 'J', 'K']) Then
       Exit;
      Delete(fSequence, 1, 1);
     End;
@@ -824,6 +875,9 @@ Implementation
      Params[i] := 0
     Else If Not TryStrToInt(Parts[i], Params[i]) Then
      Exit;
+   If PrivateMode And CharInSet(Final, ['J', 'K']) And
+   ((Length(Params) <> 1) Or (Params[0] < 0) Or (Params[0] > 2)) Then
+    Exit;
    If PrivateMode And CharInSet(Final, ['s', 'r']) Then
     Begin
      For i := 0 To High(Params) Do
@@ -896,27 +950,28 @@ Implementation
      Case P(0, 0) Of
       0 :
        Begin
-        ClearLine(fScreen[fY], fX, fColumns - 1);
+        EraseLine(fScreen[fY], fX, fColumns - 1, PrivateMode);
         For y := fY + 1 To fRows - 1 Do
-         ClearLine(fScreen[y], 0, fColumns - 1);
+         EraseLine(fScreen[y], 0, fColumns - 1, PrivateMode);
        End;
       1 :
        Begin
         For y := 0 To fY - 1 Do
-         ClearLine(fScreen[y], 0, fColumns - 1);
-        ClearLine(fScreen[fY], 0, fX);
+         EraseLine(fScreen[y], 0, fColumns - 1, PrivateMode);
+        EraseLine(fScreen[fY], 0, fX, PrivateMode);
        End;
       2 :
        For y := 0 To fRows - 1 Do
-        ClearLine(fScreen[y], 0, fColumns - 1);
+        EraseLine(fScreen[y], 0, fColumns - 1, PrivateMode);
       3 :
-       fHistory.Clear;
+       If Not PrivateMode Then
+        fHistory.Clear;
      End;
     'K' :
      Case P(0, 0) Of
-      0 : ClearLine(fScreen[fY], fX, fColumns - 1);
-      1 : ClearLine(fScreen[fY], 0, fX);
-      2 : ClearLine(fScreen[fY], 0, fColumns - 1);
+      0 : EraseLine(fScreen[fY], fX, fColumns - 1, PrivateMode);
+      1 : EraseLine(fScreen[fY], 0, fX, PrivateMode);
+      2 : EraseLine(fScreen[fY], 0, fColumns - 1, PrivateMode);
      End;
     '@' :
      Begin
@@ -1009,6 +1064,7 @@ Implementation
 
  Procedure TTerminalBuffer.ExecuteSGR;
   Var
+   SavedProtection                          : Boolean;
    Parts, Sub                               : TArray<String>;
    i, a, Mode, Color, r, g, b, First, Count : Integer;
    Values                                   : TArray<String>;
@@ -1043,7 +1099,9 @@ Implementation
      Case a Of
       0 :
        Begin
+        SavedProtection      := fAttr.EraseProtected;
         fAttr                := Default(TTerminalCell);
+        fAttr.EraseProtected := SavedProtection;
         fAttr.Foreground     := -1;
         fAttr.Background     := -2;
         fAttr.UnderlineColor := -1;
