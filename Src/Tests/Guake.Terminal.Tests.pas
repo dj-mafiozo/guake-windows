@@ -16,6 +16,8 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure ForwardTabsPreservePendingWrapAcrossFragments;
+    [Test] Procedure BackwardTabsCancelWrapAndForwardTabsRespectDisabledAutowrap;
     [Test] Procedure TopPartialScrollAddsHistoryAndPreservesRows;
     [Test] Procedure ScrollBoundariesBreakOnlyDisconnectedWraps;
     [Test] Procedure ScrollHistoryLimitsAndAlternateIsolation;
@@ -162,6 +164,76 @@ Implementation
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+/// <summary>HT and CHT cannot discard pending wrap at a full row, including with a programmed final-column stop.</summary>
+
+ Procedure TTerminalTests.ForwardTabsPreservePendingWrapAcrossFragments;
+  Const
+   Commands : Array[0..3] Of String = (#9, #27'[I', #27'[0I', #27'[2147483647I');
+  Var
+   Buffer       : TTerminalBuffer;
+   Bytes        : TBytes;
+   CommandIndex : Integer;
+   Split        : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(4, 3);
+   Try
+    For CommandIndex := Low(Commands) To High(Commands) Do
+     Begin
+      Bytes     := TEncoding.UTF8.GetBytes(Commands[CommandIndex]);
+      For Split := 0 To Length(Bytes) Do
+       Begin
+        Buffer.Reset;
+        Buffer.FeedText(#27 + '[4G' + #27 + 'H' + #27 + '[HABCD');
+        Buffer.Feed(Copy(Bytes, 0, Split));
+        Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+        Assert.AreEqual(3, Buffer.CursorX);
+        Assert.AreEqual(0, Buffer.CursorY);
+        Assert.AreEqual('ABCD', Buffer.LineText(0));
+        Buffer.FeedText('X');
+        Assert.AreEqual('ABCD', Buffer.LineText(0), 'Forward tab must not make the next character overwrite the right edge');
+        Assert.AreEqual('X', Buffer.LineText(1));
+        Assert.IsTrue(Buffer.Cell[3, 0].SoftWrapped);
+       End;
+     End;
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Backward tab clears pending wrap; forward tabs do not invent wrapping when DECAWM is disabled.</summary>
+
+ Procedure TTerminalTests.BackwardTabsCancelWrapAndForwardTabsRespectDisabledAutowrap;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(16, 3);
+   Try
+    Buffer.FeedText(StringOfChar('A', 16) + #27 + '[Z');
+    Assert.AreEqual(8, Buffer.CursorX);
+    Buffer.FeedText('X');
+    Assert.AreEqual(0, Buffer.CursorY);
+    Assert.AreEqual('X', Buffer.Cell[8, 0].Text);
+    Assert.IsFalse(Buffer.Cell[15, 0].SoftWrapped);
+    Buffer.Reset;
+    Buffer.FeedText(#27 + '[3g' + #27 + '[4G' + #27 + 'H' + #27 + '[12G' + #27 + 'H' + #27 + '[H' + StringOfChar('A', 16) + #27 + '[Z');
+    Assert.AreEqual(11, Buffer.CursorX);
+    Buffer.FeedText(#27 + '[999Z');
+    Assert.AreEqual(0, Buffer.CursorX);
+    Buffer.FeedText('Y');
+    Assert.AreEqual('Y', Buffer.Cell[0, 0].Text);
+    Assert.AreEqual(0, Buffer.CursorY);
+    Buffer.Reset;
+    Buffer.FeedText(#27 + '[?7l' + StringOfChar('A', 16) + #9 + #27 + '[999IX');
+    Assert.AreEqual(0, Buffer.CursorY);
+    Assert.AreEqual(15, Buffer.CursorX);
+    Assert.AreEqual('X', Buffer.Cell[15, 0].Text);
+    Assert.AreEqual('', Buffer.LineText(1));
+    Assert.IsFalse(Buffer.Cell[15, 0].SoftWrapped);
+   Finally
+    Buffer.Free;
+   End;
+  End;
 
 /// <summary>A region starting at row zero appends scrolled-out rows to history even with a partial bottom margin.</summary>
 

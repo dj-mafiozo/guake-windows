@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 17 listopada 2026, wersja 1.0.43.76. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 17 listopada 2026, wersja 1.0.44.77. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -387,3 +387,13 @@ Przy przewijaniu częściowego regionu rozłączane są miękkie zawinięcia na 
 Punkt odniesienia: [scroll_text_up/down w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L2533). Trzy scenariusze DUnitX sprawdzają historię częściowego regionu dla SU i DL, zawartość wierszy poza regionem, granice i wnętrze zawinięć, limity historii oraz izolację alternatywnego ekranu. Poziome marginesy, dalsze przypadki reflow i długie sesje nadal wymagają pracy.
 
 Weryfikacja 1.0.43.76: formatter bez błędów i sprawdzony diff; 155/155 scenariuszy DUnitX bez błędów i wycieków. Nowe przypadki potwierdziły historię górnego częściowego regionu, limity i granice zawinięć oraz izolację ekranu alternatywnego. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.43.76-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
+
+## Tabulacja i oczekujące zawinięcie — 1.0.44.77
+
+HT (C0 TAB) i CHT (CSI I) nie kasują oczekującego zawinięcia po zapełnieniu wiersza. Nie przesuwają wtedy kursora; kolejny znak zawija się normalnie zamiast nadpisywać ostatnią kolumnę. Dotyczy również niestandardowego przystanku w ostatniej kolumnie, licznika domyślnego, zera i bardzo dużego licznika.
+
+CBT (CSI Z) nadal kasuje oczekujące zawinięcie i przechodzi do wcześniejszego przystanku. Przy wyłączonym DECAWM tabulacja w przód nie tworzy zawinięcia; druk przy prawej krawędzi zachowuje dotychczasową regułę nadpisania.
+
+Punkt odniesienia: [move_cursor_tab_forward/backward w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L934). Dwa scenariusze DUnitX obejmują wszystkie podziały sprawdzanych sekwencji CHT, HT, przystanki niestandardowe, CBT i DECAWM. Smart tabs VTE (kopiowanie tabulatora jako znaku zamiast spacji) oraz poziome marginesy pozostają niezaimplementowane.
+
+Weryfikacja 1.0.44.77: formatter bez błędów i sprawdzony diff; 157/157 scenariuszy DUnitX bez błędów i wycieków. Nowe przypadki potwierdziły zachowanie oczekującego zawinięcia przez HT/CHT, ruch CBT i brak zawinięcia przy wyłączonym DECAWM. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie, bez zmiany DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.44.77-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.

@@ -1,6 +1,6 @@
 ﻿# Pokrycie emulatora VT
 
-Stan: 1.0.43.76. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.44.77. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -235,3 +235,11 @@ Przewijanie w górę na ekranie głównym dopisuje opuszczające ekran wiersze d
 Przy przewijaniu częściowego regionu rozłączane są miękkie zawinięcia na granicach nowego układu. Ruch w górę rozłącza górną/dolną granicę przed przesunięciem; ruch w dół po przesunięciu. Nienaruszone połączenia wewnątrz przesuwanych wierszy pozostają zachowane. Pełnoekranowy ruch w górę zachowuje połączenie historii z ekranem, a ruch w dół je przerywa. Operacje ekranu alternatywnego nie zmieniają metadanych historii głównej. Techniczny padding usuniętego zawinięcia przestaje być paddingiem.
 
 Punkt odniesienia: [scroll_text_up/down w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L2533). Trzy scenariusze DUnitX sprawdzają historię częściowego regionu dla SU i DL, zawartość wierszy poza regionem, granice i wnętrze zawinięć, limity historii oraz izolację alternatywnego ekranu. Poziome marginesy, dalsze przypadki reflow i długie sesje nadal wymagają pracy.
+
+## Tabulacja i oczekujące zawinięcie — 1.0.44.77
+
+HT (C0 TAB) i CHT (CSI I) nie kasują oczekującego zawinięcia po zapełnieniu wiersza. Nie przesuwają wtedy kursora; kolejny znak zawija się normalnie zamiast nadpisywać ostatnią kolumnę. Dotyczy również niestandardowego przystanku w ostatniej kolumnie, licznika domyślnego, zera i bardzo dużego licznika.
+
+CBT (CSI Z) nadal kasuje oczekujące zawinięcie i przechodzi do wcześniejszego przystanku. Przy wyłączonym DECAWM tabulacja w przód nie tworzy zawinięcia; druk przy prawej krawędzi zachowuje dotychczasową regułę nadpisania.
+
+Punkt odniesienia: [move_cursor_tab_forward/backward w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L934). Dwa scenariusze DUnitX obejmują wszystkie podziały sprawdzanych sekwencji CHT, HT, przystanki niestandardowe, CBT i DECAWM. Smart tabs VTE (kopiowanie tabulatora jako znaku zamiast spacji) oraz poziome marginesy pozostają niezaimplementowane.

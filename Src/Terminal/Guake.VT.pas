@@ -787,6 +787,9 @@ Implementation
   Var
    Step, i : Integer;
   Begin
+   // A forward tab cannot advance a cursor already awaiting autowrap.
+   If ForwardTab And fWrapPending Then
+    Exit;
    If ForwardTab Then
     Step := 1
    Else
@@ -1048,7 +1051,7 @@ Implementation
        fResponses := fResponses + #27'[>0;0;0c';
      Exit;
     End;
-   If Not CharInSet(Final, ['m', 'h', 'l', 's', 'u', 'n', 'c', 't', 'b', 'L', 'M']) Then
+   If Not CharInSet(Final, ['m', 'h', 'l', 's', 'u', 'n', 'c', 't', 'b', 'L', 'M', 'I']) Then
     fWrapPending := False;
    n             := Min(P(0, 1), Max(fColumns, fRows));
    Case Final Of
