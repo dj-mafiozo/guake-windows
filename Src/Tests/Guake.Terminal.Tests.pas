@@ -203,7 +203,7 @@ Implementation
   Begin
    Buffer := TTerminalBuffer.Create(20, 5);
    Try
-    For Mode In TArray<Integer>.Create(1, 6, 7, 25, 1000, 1002, 1003, 1004, 1006, 2004) Do
+    For Mode In TArray<Integer>.Create(1, 6, 7, 25, 1000, 1002, 1003, 1004, 1005, 1006, 2004) Do
      Begin
       Buffer.FeedText(Format(#27'[?%dh'#27'[?%d$p', [Mode, Mode]));
       Assert.AreEqual(Format(#27'[?%d;1$y', [Mode]), Buffer.TakeResponses);
@@ -215,7 +215,7 @@ Implementation
     Buffer.FeedText(#27'[4;20l'#27'[4;20$p'#27'[9999$p');
     Assert.AreEqual(#27'[4;2$y'#27'[20;2$y'#27'[9999;0$y', Buffer.TakeResponses);
     Buffer.Reset;
-    Assert.IsFalse(Buffer.FocusReporting Or Buffer.NewLineMode);
+    Assert.IsFalse(Buffer.FocusReporting Or Buffer.NewLineMode Or Buffer.Utf8Mouse);
     Buffer.FeedText(#27'[?7;25;1004$p');
     Assert.AreEqual(#27'[?7;1$y'#27'[?25;1$y'#27'[?1004;2$y', Buffer.TakeResponses);
    Finally
@@ -608,10 +608,14 @@ Implementation
     '[DllImport("kernel32.dll")] static extern IntPtr GetStdHandle(int n);'#13#10 +
     '[DllImport("kernel32.dll")] static extern bool SetConsoleMode(IntPtr h,uint m);'#13#10 +
     'public static void Run(string path) {'#13#10 +
+    'Console.InputEncoding=new System.Text.UTF8Encoding(false);'#13#10 +
     'if(!SetConsoleMode(GetStdHandle(-10),0x200)) throw new Exception("SetConsoleMode");'#13#10 +
     'if(!SetConsoleMode(GetStdHandle(-11),7)) throw new Exception("Output mode"); Console.Write("\u001b[?1004h\u001b[?1003h\u001b[?1006h\u001b=PROBE_READY"); var data=new List<int>();'#13#10 +
     'for(int i=0;i<1024;i++){int c=Console.Read();if(c<0)throw new Exception("EOF");'#13#10 +
     'if(c==94){Console.Write("\u001b[?1006lLEGACY_READY");continue;}'#13#10 +
+    'if(c==1){Console.Write("\u001b[?1005hUTF8_READY");continue;}'#13#10 +
+    'if(c==2){Console.Write("\u001b[?1005l\u001b[?1006lASCII_READY");continue;}'#13#10 +
+    'if(c==3){Console.Write("\u001b[?1005l\u001b[?1006hSGR_READY");continue;}'#13#10 +
     'if(c==124){File.WriteAllText(path+".tmp",string.Join(",",data));File.Move(path+".tmp",path);return;}data.Add(c);}'#13#10 +
     'throw new Exception("Input limit");}}'#13#10 +
     '''@'#13#10 + '[Probe]::Run($args[0])', TEncoding.UTF8);
@@ -725,6 +729,63 @@ Implementation
     Frame.SurfaceMouseDown(Nil, mbRight, [ssAlt, ssCtrl], 5, 5);
     Frame.SurfaceMouseUp(Nil, mbRight, [ssAlt, ssCtrl], 5, 5);
     Expected := Expected + #27'[M' + Char(58) + '!!' + #27'[M' + Char(59) + '!!';
+    Frame.SetBounds(0, 0, CellWidth * 2020 + 32, 200);
+    Assert.IsTrue(Session.Buffer.Columns > 2015);
+    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 94 * CellWidth, 5);
+    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 94 * CellWidth, 5);
+    Expected := Expected + #27'[M' + Char(34) + Char(127) + '!' + #27'[M' + Char(35) + Char(127) + '!';
+    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 95 * CellWidth, 5); // Reject ambiguous non-ASCII classic coordinates.
+    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
+    Session.SendText(#1);
+    Deadline := GetTickCount64 + 5000;
+    Repeat
+     Session.Poll;
+     If Pos('UTF8_READY', Session.Buffer.Text) > 0 Then
+      Break;
+     Sleep(10);
+    Until GetTickCount64 >= Deadline;
+    Assert.IsTrue(Pos('UTF8_READY', Session.Buffer.Text) > 0);
+    Assert.IsTrue(Session.Buffer.Utf8Mouse);
+    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
+    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
+    // C1 coordinate characters are lost by ConPTY; suppress the entire report.
+    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 127 * CellWidth, 5);
+    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 127 * CellWidth, 5);
+    Expected := Expected + #27'[M' + Char(34) + Char(160) + '!' + #27'[M' + Char(35) + Char(160) + '!';
+    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 2014 * CellWidth, 5);
+    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 2014 * CellWidth, 5);
+    Expected := Expected + #27'[M' + Char(34) + Char(2047) + '!' + #27'[M' + Char(35) + Char(2047) + '!';
+    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 2015 * CellWidth, 5); // Outside the xterm 1005 range.
+    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 2015 * CellWidth, 5);
+    Session.SendText(#3);
+    Deadline := GetTickCount64 + 5000;
+    Repeat
+     Session.Poll;
+     If Pos('SGR_READY', Session.Buffer.Text) > 0 Then
+      Break;
+     Sleep(10);
+    Until GetTickCount64 >= Deadline;
+    Assert.IsTrue(Pos('SGR_READY', Session.Buffer.Text) > 0);
+    Assert.IsTrue(Session.Buffer.SGRMouse);
+    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
+    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
+    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 2015 * CellWidth, 5);
+    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 2015 * CellWidth, 5);
+    Expected := Expected + #27'[<2;96;1M'#27'[<2;96;1m'#27'[<2;2016;1M'#27'[<2;2016;1m';
+    Session.SendText(#2);
+    Deadline := GetTickCount64 + 5000;
+    Repeat
+     Session.Poll;
+     If Pos('ASCII_READY', Session.Buffer.Text) > 0 Then
+      Break;
+     Sleep(10);
+    Until GetTickCount64 >= Deadline;
+    Assert.IsTrue(Pos('ASCII_READY', Session.Buffer.Text) > 0);
+    Assert.IsFalse(Session.Buffer.Utf8Mouse);
+    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
+    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
+    Frame.SetBounds(0, 0, 720, 360);
+
     Session.Buffer.FeedText(#27'[?1000l');
     Settings.General.WordChars    := '-A-Za-z0-9_';
     Settings.General.CopyOnSelect := False;

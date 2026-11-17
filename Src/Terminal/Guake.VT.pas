@@ -98,6 +98,7 @@ Interface
     fMouseMode         : Integer;
     fMouseRevision     : Int64;
     fSGRMouse          : Boolean;
+    fUtf8Mouse         : Boolean;
     fRevision          : Int64;
     Function  Blank                                                   : TTerminalCell;
     Procedure ClearLine       (Var Line : TTerminalLine; First, Last : Integer);
@@ -162,11 +163,13 @@ Interface
     /// <summary>Invalidates view mouse-position caches after protocol negotiation and terminal reset.</summary>
     Property MouseRevision : Int64 Read fMouseRevision;
     Property MouseMode     : Integer Read fMouseMode;
-    Property SGRMouse      : Boolean Read fSGRMouse;
-    Property BellCount     : UInt64 Read fBellCount;
-    Property Title         : String Read fTitle;
-    Property DirectoryURI  : String Read fDirectory;
-    Property Revision      : Int64 Read fRevision;
+    /// <summary>DEC mode 1005 permits UTF-8 mouse coordinates; SGR 1006 takes precedence when both are set.</summary>
+    Property Utf8Mouse    : Boolean Read fUtf8Mouse;
+    Property SGRMouse     : Boolean Read fSGRMouse;
+    Property BellCount    : UInt64 Read fBellCount;
+    Property Title        : String Read fTitle;
+    Property DirectoryURI : String Read fDirectory;
+    Property Revision     : Int64 Read fRevision;
   End;
 
 Implementation
@@ -262,6 +265,7 @@ Implementation
    fMouseMode         := 0;
    Inc(fMouseRevision);
    fSGRMouse        := False;
+   fUtf8Mouse       := False;
    fAutoWrap        := True;
    fWrapPending     := False;
    fOrigin          := False;
@@ -634,6 +638,7 @@ Implementation
      1000, 1002, 1003 : Enabled := fMouseMode = Mode;
      66               : Enabled := fApplicationKeypad;
      1004             : Enabled := fFocusReporting;
+     1005             : Enabled := fUtf8Mouse;
      1006             : Enabled := fSGRMouse;
      2004             : Enabled := fBracketedPaste;
     Else Exit;
@@ -879,6 +884,11 @@ Implementation
          End;
         1004 :
          fFocusReporting := Final = 'h';
+        1005 :
+         Begin
+          Inc(fMouseRevision);
+          fUtf8Mouse := Final = 'h';
+         End;
         1006 :
          Begin
           Inc(fMouseRevision);

@@ -1,6 +1,6 @@
 # Stan portu Guake dla Windows
 
-Stan kodu na 17 listopada 2026, wersja 1.0.28.61. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 17 listopada 2026, wersja 1.0.29.62. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -224,7 +224,7 @@ Tryb 1002 rozpoznaje teraz ruch z lewym, środkowym i prawym przyciskiem, a kod 
 
 Klasyczny raport zwolnienia zachowuje modyfikatory i zastępuje jedynie niski kod przycisku wartością 3. SGR zachowuje numer zwalnianego przycisku i kończy raport literą m. Rozszerzony test wejścia ConPTY obejmuje trzy przyciski, hover, Ctrl/Alt, pominięcie ruchu w 1000/1002, Shift oraz przełączenie formatu przez sam proces potomny na klasyczny.
 
-Wersja 1.0.28.61 dodaje filtrowanie powtórzeń w tej samej komórce. Pozostają niezależne nakładanie trybów, pozostałe protokoły myszy i zgodność surowych bajtów klasycznych współrzędnych poza ASCII. Nie jest to deklaracja pełnej zgodności myszy z VTE/xterm. Szczegóły opisuje [macierz VT](vt-coverage.md).
+Wersja 1.0.28.61 dodaje filtrowanie powtórzeń w tej samej komórce. Pozostają niezależne nakładanie trybów, pozostałe protokoły myszy i pełny klasyczny zakres współrzędnych poza ASCII na ConPTY; 1.0.29.62 dodaje negocjowany format UTF-8 1005 i blokuje niejednoznaczne raporty klasyczne. Nie jest to deklaracja pełnej zgodności myszy z VTE/xterm. Szczegóły opisuje [macierz VT](vt-coverage.md).
 
 Weryfikacja 1.0.27.60: formatter bez błędów i sprawdzony diff, 121/121 scenariuszy DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Natywny odbiorca ConPTY potwierdził dokładne kody SGR dla ruchu i przycisków oraz klasyczne zwolnienie z zachowanymi Ctrl/Alt po zmianie formatu przez proces potomny. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.27.60-Win64.zip z pasującymi EXE/PDB.
 
@@ -237,3 +237,13 @@ Bufor ma osobną rewizję negocjacji myszy: zmiana 1000/1002/1003 lub 1006, tak�
 Raporty myszy trafiają bezpośrednio do wejścia sesji, bez ścieżki pisania klawiaturą. Nie kasują lokalnego zaznaczenia i nie wymuszają przewinięcia na koniec historii przy scroll-keystroke. Jest to ograniczenie zbędnych raportów i ich skutków w UI, bez deklaracji rozwiązania wszystkich przyczyn opóźnień konsoli.
 
 Weryfikacja 1.0.28.61: formatter bez błędów i sprawdzony diff, 121/121 scenariuszy DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Natywny odbiorca porównał cały strumień wejścia po 200 powtórzeniach ruchu i unieważnieniach filtra; test widoku potwierdził zachowanie zaznaczenia oraz pozycji historii mimo scroll-keystroke. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.28.61-Win64.zip z pasującymi EXE/PDB.
+
+## Negocjowane współrzędne UTF-8 myszy — 1.0.29.62
+
+DEC mode 1005 wybiera rozszerzone współrzędne UTF-8; bufor przechowuje ten stan, raportuje go przez DECRQM i resetuje przez RIS. Negocjacja unieważnia filtr ruchu. Gdy równocześnie ustawione jest 1006, port daje pierwszeństwo SGR. Wyłączenie 1005 przywraca format klasyczny, o ile 1006 nie jest aktywne.
+
+Klasyczny format nie wysyła już współrzędnych zamienianych przez ścieżkę Unicode/UTF-8 w dodatkowe bajty bez negocjacji. Jego obsługiwany zakres na ConPTY to indeksy komórek 0–94 (współrzędne protokołu 1–95, zakodowana wartość do 127). Przy aktywnym 1005 indeksy sięgają 2014 (współrzędna 2015, wartość 2047), z wyjątkiem pozycji kodowanych jako C1 (128–159): w testowanej ścieżce ConPTY są tracone, więc cały taki raport jest pomijany. Dotyczy to indeksów 95–126 w dowolnej osi. Poza tym zakresem raport jest pomijany. SGR zachowuje współrzędne dziesiętne i nie ma tych ograniczeń.
+
+To świadome ograniczenie klasycznego formatu na Windows, nie pełna emulacja jego linuksowego zakresu 223. Takie ograniczenie ASCII występuje również w [implementacji wejścia Windows Terminal](https://github.com/microsoft/terminal/blob/main/src/terminal/input/mouseInput.cpp). Pełny klasyczny zakres oraz pozostałe protokoły nadal wymagają dalszej pracy. Test natywny obejmuje poprawne wartości 127, 160 i 2047, pomijanie C1 oraz pozycji poza zakresem, negocjację włączania i wyłączania 1005 przez proces potomny i SGR dla współrzędnych 96 oraz 2016. Jest to częściowa obsługa 1005, bez pełnej zgodności tego formatu na ConPTY.
+
+Weryfikacja 1.0.29.62: formatter bez błędów i sprawdzony diff, 121/121 scenariuszy DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Odbiornik UTF-8 ConPTY potwierdził granice 127, 160 i 2047, pominięcie niejednoznacznych raportów oraz poprawne współrzędne SGR 96 i 2016. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.29.62-Win64.zip z pasującymi EXE/PDB.

@@ -1,6 +1,6 @@
 # Pokrycie emulatora VT
 
-Stan: 1.0.28.61. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.29.62. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -17,7 +17,7 @@ Stan: 1.0.28.61. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | OSC | 0/2: tytuł, 7: katalog, 8: odnośniki | Paleta i zapytania kolorów, stos tytułów, pozostałe OSC; polityka dostępu do schowka |
 | DCS/APC/PM | DCS DECRQSS dla SGR, marginesów i stylu kursora; pozostałe DCS/APC/PM/SOS są konsumowane | Pozostałe DCS i dalsze porównania ciągów z VTE |
 | Zestawy znaków | UTF-8, ASCII B, brytyjski A, DEC Special Graphics 0 w G0–G3; SI/SO, LS2/LS3, SS2/SS3 | Pozostałe zestawy narodowe, GR i 96-znakowe zestawy, warianty ESC z bajtami pośrednimi |
-| Wejście | Application cursor, bracketed paste, tryby myszy 1000/1002/1003 i 1006, fokus 1004, LNM 20 dla LF/Enter, aplikacyjna klawiatura numeryczna ESC = / ESC > / 66 | Pełna macierz modyfikatorów klawiatury, pozostałe protokoły klawiatury i myszy, niezależne nakładanie trybów myszy i klasyczne współrzędne poza ASCII |
+| Wejście | Application cursor, bracketed paste, tryby myszy 1000/1002/1003, częściowy format UTF-8 1005 i SGR 1006, fokus 1004, LNM 20 dla LF/Enter, aplikacyjna klawiatura numeryczna ESC = / ESC > / 66 | Pełna macierz modyfikatorów klawiatury, pozostałe protokoły klawiatury i myszy, niezależne nakładanie trybów myszy, klasyczne współrzędne poza ASCII i C1 w formacie 1005 na ConPTY |
 | Grafemy i widok | Segmentacja ICU, szerokie komórki, znaki łączące, reflow; cache wierszy renderera | Pełny shaping, bidi i zgodność wizualna z VTE; segmentacja zależy od systemowego ICU |
 
 ## Regresje objęte testami w tym etapie
@@ -108,10 +108,18 @@ Ruch w trybie 1002 obejmuje wszystkie trzy przyciski; 1003 dodatkowo raportuje b
 
 Shift pozostaje lokalnym obejściem raportowania. Natywny test ConPTY porównuje kody SGR dla prawego, środkowego i lewego przeciągania, hover z modyfikatorami, brak raportu ruchu w 1000 i hover w 1002 oraz klasyczne zwolnienie z Ctrl/Alt. Odbiorca sam zmienia 1006, aby testować rzeczywistą negocjację z ConPTY.
 
-Dalsze ograniczenia: tryby 1000/1002/1003 nadal reprezentuje jeden aktywny tryb; filtrowanie powtórzeń w tej samej komórce dodano w 1.0.28.61. Klasyczne współrzędne są ograniczone do 223, ale wysyłanie przez ścieżkę tekstową wymaga dalszej korekty dla wartości poza ASCII. Zalecanym obsługiwanym formatem pozostaje SGR 1006; brak jeszcze 1005/1015/1016 i pełnej macierzy protokołów.
+Dalsze ograniczenia: tryby 1000/1002/1003 nadal reprezentuje jeden aktywny tryb; filtrowanie powtórzeń w tej samej komórce dodano w 1.0.28.61. Od 1.0.29.62 klasyczne współrzędne na ConPTY są ograniczone do zakresu ASCII, a większe obsługuje negocjowany format 1005 lub SGR. Zalecanym obsługiwanym formatem pozostaje SGR 1006; brak jeszcze 1015/1016 i pełnej macierzy protokołów.
 
 ## Filtrowanie raportów i oddzielenie wejścia myszy — 1.0.28.61
 
 Zgodnie z regułą ruchu między komórkami opisaną w [dokumentacji xterm](https://github.com/ThomasDickey/xterm-snapshots/blob/master/ctlseqs.ms), 1002/1003 nie powtarzają raportu dla ruchu wewnątrz zapamiętanej komórki. Przyciski nie są filtrowane. Format i tryb raportowania mają niezależną od tekstu rewizję negocjacji; widok uwzględnia także rozmiar siatki, reset, ponowne podłączenie sesji i lokalne użycie Shift. Dzięki temu nie pomija pierwszego raportu po renegocjacji ani nie resetuje filtra przy każdym fragmencie wyjścia.
 
 Wysyłanie raportów nie usuwa zaznaczenia i nie uruchamia scroll-keystroke. Natywny test ConPTY porównuje pełny strumień wejścia po 200 powtórzeniach ruchu, przejściu do kolejnej komórki, zmianie trybu i geometrii oraz ponownym Bind. Test widoku sprawdza zachowanie zaznaczenia i przewijania. Pozostałe braki formatów i nakładania trybów opisuje tabela.
+
+## UTF-8 mouse 1005 i granice klasycznego formatu — 1.0.29.62
+
+Tryb 1005 przenosi współrzędne w UTF-8: do pozycji 1–2015 dodawane jest 32. Klasyczny format na tym porcie dopuszcza wyłącznie indeksy 0–94, aby zakodowana współrzędna nie przekraczała ASCII 127. Wymaganie UTF-8 wynika z wybranego formatu, nie jest domyślnie stosowanym rozszerzeniem klasycznego X10. Punkt odniesienia: [xterm, Extended coordinates](https://github.com/ThomasDickey/xterm-snapshots/blob/master/ctlseqs.ms) oraz [ograniczenie klasycznego wejścia Windows Terminal](https://github.com/microsoft/terminal/blob/main/src/terminal/input/mouseInput.cpp).
+
+Bufor rozpoznaje 1005 w DECSET/DECRST i DECRQM; RIS go wyłącza. Każda negocjacja odświeża rewizję formatu dla filtra myszy. Przy obu ustawionych formatach w tej implementacji pierwszeństwo ma 1006. To nie oznacza pełnego odwzorowania nakładania formatów innych terminali.
+
+Test ConPTY ustawia kodowanie wejścia odbiorcy na UTF-8 i negocjuje 1005 z procesu potomnego. W pierwszym przebiegu wartość 128 zniknęła w ścieżce wejścia, podczas gdy 2047 dotarła prawidłowo. Dlatego raporty zawierające C1 (128–159, indeksy 95–126 w dowolnej osi) są w tym porcie pomijane w całości. Jest to jawne ograniczenie częściowo obsługiwanego 1005. Końcowy test sprawdza poprawne wartości 127, 160 i 2047 oraz pominięcie 128. Weryfikuje również pominięcie pozycji poza zakresem oraz powrót do ograniczenia klasycznego po wyłączeniu 1005. SGR jest sprawdzany również dla pozycji 96 i 2016 i nie ma tych luk. Pełne bajtowe X10 do 223, zakres C1 w 1005 i formaty 1015/1016 pozostają poza zakresem tej implementacji.
