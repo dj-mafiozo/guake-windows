@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 17 listopada 2026, wersja 1.0.39.72. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 17 listopada 2026, wersja 1.0.40.73. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -345,3 +345,13 @@ Zapytanie zachowuje komórki, atrybuty, pozycję kursora i oczekujące zawinięc
 Punkt odniesienia: [DA3 w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L2192). Dwa nowe scenariusze DUnitX obejmują wszystkie podziały zapytania, domyślny/zerowy parametr, zawinięcie, stan i odrzucanie błędnych wariantów. Rozszerzony test natywnego odbiornika ConPTY sprawdza bajty DECRPTUI przesłane do procesu. Pozostałe zapytania i pełna zgodność emulatora nadal wymagają pracy.
 
 Weryfikacja 1.0.39.72: formatter bez błędów i sprawdzony diff; 144/144 scenariusze DUnitX bez błędów i wycieków. Pierwszy przebieg ujawnił kolizję separatora | odbiornika testowego z prefiksem DECRPTUI; po zmianie sygnału zakończenia na EOT pełny zestaw przeszedł, w tym porównanie bajtów odpowiedzi odebranych przez proces ConPTY. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie, bez zmiany DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.39.72-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
+
+## Względny ruch pionowy i marginesy DECSTBM — 1.0.40.73
+
+CUU (CSI A), CUD (CSI B), VPR (CSI e), CNL (CSI E) i CPL (CSI F) respektują marginesy także przy wyłączonym DECOM. Ruch w górę z pozycji na górnym marginesie lub poniżej niego zatrzymuje się na tym marginesie; z pozycji nad nim dochodzi do górnej krawędzi ekranu. Ruch w dół działa symetrycznie względem dolnego marginesu i dolnej krawędzi. Kursor rozpoczynający poza regionem może wejść do niego.
+
+CNL/CPL ustawiają dodatkowo pierwszą kolumnę; pozostałe komendy zachowują kolumnę. Ruch anuluje oczekujące zawinięcie, nie przewija ekranu i nie zmienia zawartości komórek ani historii. Domyślny i zerowy licznik oznacza jeden; duże liczniki są ograniczane geometrią ekranu. DECOM nadal ogranicza pozycję do regionu, a ruchy bezwzględne zachowują swoje odrębne reguły.
+
+Punkt odniesienia: [move_cursor_up/down w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L833). Dwa scenariusze DUnitX obejmują macierz 140 kombinacji pozycji/komend/liczników, fragmentację, DECOM, wartości domyślne, oczekujące zawinięcie i niezmienność tekstu/historii. Poziome marginesy i pozostałe różnice ruchu pozostają do wykonania.
+
+Weryfikacja 1.0.40.73: formatter bez błędów i sprawdzony diff; 146/146 scenariuszy DUnitX bez błędów i wycieków, w tym macierz 140 przypadków kierunkowych marginesów. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie, bez zmiany DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.40.73-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna, bez deklaracji pełnej zgodności z VTE.

@@ -872,6 +872,32 @@ Implementation
       fY := EnsureRange(NewY, 0, fRows - 1);
     End;
 
+  /// <summary>Relative vertical motion stops at the directional margin, or the screen edge when starting beyond it.</summary>
+
+   Procedure MoveVertical(Up, CarriageReturn : Boolean);
+    Var
+     Limit, NewY, NewX : Integer;
+    Begin
+     NewX := fX;
+     If CarriageReturn Then
+      NewX := 0;
+     If Up Then
+      Begin
+       Limit := 0;
+       If fY >= fTop Then
+        Limit := fTop;
+       NewY   := Max(Limit, fY - Min(n, fRows));
+      End
+     Else
+      Begin
+       Limit := fRows - 1;
+       If fY <= fBottom Then
+        Limit := fBottom;
+       NewY   := Min(Limit, fY + Min(n, fRows));
+      End;
+     MoveCursor(NewX, NewY);
+    End;
+
   Begin
    LastGraphic  := fLastGraphic;
    fLastGraphic := 0;
@@ -1013,17 +1039,17 @@ Implementation
          fTabStops[x] := False;
       End;
     'A' :
-     MoveCursor(fX, fY - n);
+     MoveVertical(True, False);
     'B', 'e' :
-     MoveCursor(fX, fY + n);
+     MoveVertical(False, False);
     'C', 'a' :
      MoveCursor(fX + n, fY);
     'D' :
      MoveCursor(fX - n, fY);
     'E' :
-     MoveCursor(0, fY + n);
+     MoveVertical(False, True);
     'F' :
-     MoveCursor(0, fY - n);
+     MoveVertical(True, True);
     'G', '`' :
      MoveCursor(P(0, 1) - 1, fY);
     'd' :

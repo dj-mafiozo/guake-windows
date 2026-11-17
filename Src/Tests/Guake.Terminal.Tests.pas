@@ -16,6 +16,8 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure RelativeVerticalMotionRespectsDirectionalMargins;
+    [Test] Procedure RelativeVerticalMotionOriginFragmentsAndWrap;
     [Test] Procedure TertiaryDeviceAttributesFragmentsAndState;
     [Test] Procedure TertiaryDeviceAttributesRejectsMalformedQueriesAndReplyLoops;
     [Test] Procedure AlignmentPatternFragmentsAndBasicCells;
@@ -122,7 +124,7 @@ Interface
 Implementation
 
  Uses
-  System.Diagnostics, Guake.Colors, Guake.CommandLine, Guake.QuickOpen, System.Types, Guake.Composition, Guake.AnimatedBackground, Vcl.Imaging.GIFImg, frmAboutU, Guake.WindowsIntegration, System.Win.Registry, Guake.ProjectConfig, System.JSON, System.Generics.Collections, Guake.Unicode, Guake.Links, Winapi.Windows, Winapi.Messages, System.SysUtils, System.IOUtils,
+  System.Math, System.Diagnostics, Guake.Colors, Guake.CommandLine, Guake.QuickOpen, System.Types, Guake.Composition, Guake.AnimatedBackground, Vcl.Imaging.GIFImg, frmAboutU, Guake.WindowsIntegration, System.Win.Registry, Guake.ProjectConfig, System.JSON, System.Generics.Collections, Guake.Unicode, Guake.Links, Winapi.Windows, Winapi.Messages, System.SysUtils, System.IOUtils,
   frmMainU, fraTerminalU, Vcl.Graphics, Vcl.Imaging.pngimage, Vcl.ComCtrls, Vcl.Controls, Guake.ConPTY, Guake.VT, Guake.Shells, Guake.Sessions, Guake.Settings, Guake.Keybindings, Vcl.Forms;
 
  Type
@@ -151,6 +153,112 @@ Implementation
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+/// <summary>Checks relative vertical motion from inside, above and below a scrolling region without DECOM.</summary>
+
+ Procedure TTerminalTests.RelativeVerticalMotionRespectsDirectionalMargins;
+  Const
+   Finals : Array[0..4] Of Char = ('A', 'B', 'e', 'E', 'F');
+   Counts : Array[0..3] Of Integer = (0, 1, 3, 2147483647);
+  Var
+   Buffer         : TTerminalBuffer;
+   StartRow       : Integer;
+   CommandIndex   : Integer;
+   CountIndex     : Integer;
+   ExpectedRow    : Integer;
+   ExpectedColumn : Integer;
+   Distance       : Integer;
+   Snapshot       : String;
+   Up             : Boolean;
+  Begin
+   Buffer := TTerminalBuffer.Create(9, 7);
+   Try
+    For StartRow      := 0 To 6 Do
+     For CommandIndex := Low(Finals) To High(Finals) Do
+      For CountIndex  := Low(Counts) To High(Counts) Do
+       Begin
+        Buffer.Reset;
+        Buffer.FeedText('sentinel' + #27 + '[3;5r' + #27 + '[' + IntToStr(StartRow + 1) + ';4H');
+        Snapshot := Buffer.Text;
+        Up       := CharInSet(Finals[CommandIndex], ['A', 'F']);
+        Distance := Counts[CountIndex];
+        If Distance = 0 Then
+         Distance := 1;
+        Distance  := Min(Distance, 7);
+        If Up Then
+         Begin
+          If StartRow >= 2 Then
+           ExpectedRow := Max(2, StartRow - Distance)
+          Else
+           ExpectedRow := Max(0, StartRow - Distance);
+         End
+        Else
+         Begin
+          If StartRow <= 4 Then
+           ExpectedRow := Min(4, StartRow + Distance)
+          Else
+           ExpectedRow := Min(6, StartRow + Distance);
+         End;
+        ExpectedColumn := 3;
+        If CharInSet(Finals[CommandIndex], ['E', 'F']) Then
+         ExpectedColumn := 0;
+        Buffer.FeedText(#27 + '[' + IntToStr(Counts[CountIndex]) + Finals[CommandIndex]);
+        Assert.AreEqual(ExpectedRow, Buffer.CursorY, 'Directional margin: ' + IntToStr(StartRow) + ' ' + Finals[CommandIndex] + ' ' + IntToStr(Counts[CountIndex]));
+        Assert.AreEqual(ExpectedColumn, Buffer.CursorX);
+        Assert.AreEqual(Snapshot, Buffer.Text, 'Relative movement must not scroll or erase cells');
+        Assert.AreEqual(7, Buffer.TotalLines);
+       End;
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Verifies fragmented motion, DECOM, default counts and cancellation of pending wrap.</summary>
+
+ Procedure TTerminalTests.RelativeVerticalMotionOriginFragmentsAndWrap;
+  Var
+   Buffer : TTerminalBuffer;
+   Bytes  : TBytes;
+   Split  : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(4, 7);
+   Try
+    Bytes     := TEncoding.UTF8.GetBytes(#27 + '[999B');
+    For Split := 0 To Length(Bytes) Do
+     Begin
+      Buffer.Reset;
+      Buffer.FeedText(#27 + '[3;5r' + #27 + '[4;1H' + 'ABCD');
+      Buffer.Feed(Copy(Bytes, 0, Split));
+      Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+      Assert.AreEqual(4, Buffer.CursorY);
+      Assert.AreEqual(3, Buffer.CursorX);
+      Buffer.FeedText('X');
+      Assert.AreEqual('X', Buffer.Cell[3, 4].Text, 'Movement cancels pending wrap without scrolling');
+      Assert.AreEqual(4, Buffer.CursorY);
+     End;
+    Buffer.Reset;
+    Buffer.FeedText(#27 + '[3;5r' + #27 + '[?6h' + #27 + '[2;3H' + #27 + '[2147483647A');
+    Assert.AreEqual(2, Buffer.CursorY);
+    Buffer.FeedText(#27 + '[2147483647B');
+    Assert.AreEqual(4, Buffer.CursorY);
+    Assert.AreEqual(2, Buffer.CursorX);
+    Buffer.FeedText(#27 + '[F');
+    Assert.AreEqual(3, Buffer.CursorY);
+    Assert.AreEqual(0, Buffer.CursorX);
+    Buffer.FeedText(#27 + '[E');
+    Assert.AreEqual(4, Buffer.CursorY);
+    Buffer.FeedText(#27 + '[A');
+    Assert.AreEqual(3, Buffer.CursorY);
+    Buffer.FeedText(#27 + '[e');
+    Assert.AreEqual(4, Buffer.CursorY);
+    Buffer.FeedText(#27 + '[?6l' + #27 + '[H' + #27 + '[999B');
+    Assert.AreEqual(4, Buffer.CursorY, 'Starting above the region stops at its bottom margin');
+    Buffer.FeedText(#27 + '[7;1H' + #27 + '[999A');
+    Assert.AreEqual(2, Buffer.CursorY, 'Starting below the region stops at its top margin');
+   Finally
+    Buffer.Free;
+   End;
+  End;
 
 /// <summary>Verifies DA3 at every byte split without changing cells, rendition, cursor or pending wrap.</summary>
 
