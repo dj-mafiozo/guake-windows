@@ -31,7 +31,12 @@ Interface
    Private
     Class Var fPrimarySelection : String;
    Private
-    fMouseShift : TShiftState;
+    fMouseShift            : TShiftState;
+    fMouseCellValid        : Boolean;
+    fReportedMouseCell     : TPoint;
+    fMouseProtocolRevision : Int64;
+    fMouseColumns          : Integer;
+    fMouseRows             : Integer;
     Procedure RememberSelection;
     Procedure SelectWordAt(x, y : Integer);
     Procedure PasteText   (Const Value : String);
@@ -269,6 +274,7 @@ Implementation
 
  Procedure TfraTerminal.Bind(Session : TTerminalSession; Settings : TGuakeSettings);
   Begin
+   fMouseCellValid   := False;
    fSession          := Session;
    fSettings         := Settings;
    fLastRevision     := -1;
@@ -355,6 +361,7 @@ Implementation
 
  Procedure TfraTerminal.FrameResize(Sender : TObject);
   Begin
+   fMouseCellValid := False;
    If (fSession <> Nil) And (fCellWidth > 0) And (fCellHeight > 0) Then
     fSession.Resize(Max(2, (surface.Width - 8) Div fCellWidth), Max(1, (surface.Height - 8) Div fCellHeight));
   End;
@@ -1197,13 +1204,25 @@ Implementation
    Result.y := EnsureRange(scroll.Position + (y - 4) Div Max(1, fCellHeight), 0, fSession.Buffer.TotalLines - 1);
   End;
 
+/// <summary>Sends application mouse input without keyboard selection/scroll effects; suppresses same-cell motion.</summary>
+
  Procedure TfraTerminal.SendMouse(Button : Integer; Release : Boolean; Shift : TShiftState; x, y : Integer);
   Var
-   p     : TPoint;
-   Final : String;
+   p      : TPoint;
+   Final  : String;
+   Report : String;
+   Motion : Boolean;
   Begin
+   If (fSession = Nil) Or fSession.Exited Then
+    Exit;
    p := MouseCell(x, y);
    Dec(p.y, scroll.Position);
+   Motion := (Button And 32) <> 0;
+   If Motion And fMouseCellValid And
+   (fMouseProtocolRevision = fSession.Buffer.MouseRevision) And
+   (fMouseColumns = fSession.Buffer.Columns) And (fMouseRows = fSession.Buffer.Rows) And
+   (p.x = fReportedMouseCell.x) And (p.y = fReportedMouseCell.y) Then
+    Exit;
    If ssShift In Shift Then
     Inc(Button, 4);
    If ssAlt In Shift Then
@@ -1216,14 +1235,22 @@ Implementation
       Final := 'm'
      Else
       Final := 'M';
-     Send(Format(#27'[<%d;%d;%d%s', [Button, p.x + 1, p.y + 1, Final]));
+     Report := Format(#27'[<%d;%d;%d%s', [Button, p.x + 1, p.y + 1, Final]);
     End
    Else If (p.x < 223) And (p.y < 223) Then
     Begin
      If Release Then
       Button := (Button And Not 3) Or 3;
-     Send(#27'[M' + Char(Button + 32) + Char(p.x + 33) + Char(p.y + 33));
-    End;
+     Report  := #27'[M' + Char(Button + 32) + Char(p.x + 33) + Char(p.y + 33);
+    End
+   Else
+    Exit;
+   fSession.SendText(Report);
+   fReportedMouseCell     := p;
+   fMouseCellValid        := True;
+   fMouseProtocolRevision := fSession.Buffer.MouseRevision;
+   fMouseColumns          := fSession.Buffer.Columns;
+   fMouseRows             := fSession.Buffer.Rows;
   End;
 
 /// <summary>VCL orders right before middle; VT protocols order middle before right.</summary>
@@ -1243,8 +1270,10 @@ Implementation
   Begin
    If fSession = Nil Then
     Exit;
-   fMouseShift  := Shift;
-   fMouseAnchor := Point(x, y);
+   If (ssShift In Shift) Or (fSession.Buffer.MouseMode = 0) Then
+    fMouseCellValid := False;
+   fMouseShift      := Shift;
+   fMouseAnchor     := Point(x, y);
    SetFocus;
    If Assigned(fOnActivate) Then
     fOnActivate(Self);
@@ -1292,6 +1321,8 @@ Implementation
   Begin
    If fSession = Nil Then
     Exit;
+   If ssShift In Shift Then
+    fMouseCellValid := False;
    If fSelecting Then
     Begin
      If Not fHasSelection And

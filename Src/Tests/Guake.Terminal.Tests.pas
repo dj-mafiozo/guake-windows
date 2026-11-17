@@ -592,6 +592,7 @@ Implementation
    Deadline      : UInt64;
    Key           : Char;
    i             : Integer;
+   CellWidth     : Integer;
   Begin
    Settings   := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
    ScriptName := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName + '.ps1');
@@ -674,23 +675,41 @@ Implementation
     Expected := Expected + '2';
     Main.SetBounds( -30000, 0, 700, 200);
     Main.Show;
+    CellWidth := Frame.surface.Canvas.TextWidth('M');
     Session.Buffer.FeedText(#27'[?1002h'#27'[?1006h');
     Frame.SurfaceMouseMove(Nil, [], 5, 5); // Mode 1002 must suppress hover.
     Frame.SurfaceMouseDown(Nil, mbRight, [], 5, 5);
-    Frame.SurfaceMouseMove(Nil, [ssRight], 5, 5);
-    Frame.SurfaceMouseUp(Nil, mbRight, [], 5, 5);
-    Expected := Expected + #27'[<2;1;1M'#27'[<34;1;1M'#27'[<2;1;1m';
+    Frame.SurfaceMouseMove(Nil, [ssRight], 6, 5); // Still in the clicked cell.
+    Frame.SurfaceMouseMove(Nil, [ssRight], 5 + CellWidth, 5);
+    For i := 1 To 200 Do
+     Frame.SurfaceMouseMove(Nil, [ssRight], 6 + CellWidth, 5);
+    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + CellWidth, 5);
+    Expected := Expected + #27'[<2;1;1M'#27'[<34;2;1M'#27'[<2;2;1m';
     Frame.SurfaceMouseDown(Nil, mbMiddle, [], 5, 5);
-    Frame.SurfaceMouseMove(Nil, [ssMiddle, ssAlt, ssCtrl], 5, 5);
-    Frame.SurfaceMouseUp(Nil, mbMiddle, [ssAlt, ssCtrl], 5, 5);
-    Expected := Expected + #27'[<1;1;1M'#27'[<57;1;1M'#27'[<25;1;1m';
+    Frame.SurfaceMouseMove(Nil, [ssMiddle, ssAlt, ssCtrl], 5 + CellWidth, 5);
+    Frame.SurfaceMouseUp(Nil, mbMiddle, [ssAlt, ssCtrl], 5 + CellWidth, 5);
+    Expected := Expected + #27'[<1;1;1M'#27'[<57;2;1M'#27'[<25;2;1m';
     Frame.SurfaceMouseMove(Nil, [ssLeft], 5, 5);
     Expected := Expected + #27'[<32;1;1M';
     Session.Buffer.FeedText(#27'[?1003h');
     Frame.SurfaceMouseMove(Nil, [], 5, 5);
-    Frame.SurfaceMouseMove(Nil, [ssCtrl], 5, 5);
-    Frame.SurfaceMouseMove(Nil, [ssShift, ssRight], 5, 5); // Shift remains a local selection override.
-    Expected := Expected + #27'[<35;1;1M'#27'[<51;1;1M';
+    Frame.SurfaceMouseMove(Nil, [ssCtrl], 5, 5); // Modifier-only changes are not cell motion.
+    Frame.SurfaceMouseMove(Nil, [ssCtrl], 5 + CellWidth, 5);
+    Frame.SurfaceMouseMove(Nil, [ssShift, ssRight], 5 + CellWidth, 5);
+    Frame.SurfaceMouseMove(Nil, [], 5 + CellWidth, 5); // Returning from local Shift resets the cache.
+    Expected := Expected + #27'[<35;1;1M'#27'[<51;2;1M'#27'[<35;2;1M';
+    Session.Buffer.FeedText(#27'[?1003l'#27'[?1003h');
+    Frame.SurfaceMouseMove(Nil, [], 5 + CellWidth, 5);
+    Expected := Expected + #27'[<35;2;1M';
+    Session.Buffer.FeedText('noise'#27'[6 q');
+    Frame.SurfaceMouseMove(Nil, [], 5 + CellWidth, 5); // Ordinary output does not reset protocol state.
+    Session.Buffer.Resize(Session.Buffer.Columns + 1, Session.Buffer.Rows);
+    Frame.SurfaceMouseMove(Nil, [], 5 + CellWidth, 5);
+    Expected := Expected + #27'[<35;2;1M';
+    Frame.Bind(Session, Settings);
+    Frame.refreshTimer.Enabled := False;
+    Frame.SurfaceMouseMove(Nil, [], 5 + CellWidth, 5);
+    Expected := Expected + #27'[<35;2;1M';
     Session.Buffer.FeedText(#27'[?1000h');
     Frame.SurfaceMouseMove(Nil, [ssRight], 5, 5); // Mode 1000 never reports motion.
     Session.SendText('^');
@@ -3156,6 +3175,16 @@ Implementation
      Frame.SurfaceMouseDown(Nil, mbLeft, [ssDouble], 5, 5);
      Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
      Assert.AreEqual('a+b', Frame.SelectedText);
+     Frame.Session.Buffer.FeedText(#27'[?1003h'#27'[?1006h');
+     Frame.SurfaceMouseMove(Nil, [], 5, 5);
+     Assert.AreEqual('a+b', Frame.SelectedText, 'Application mouse input must not clear local selection');
+     Settings.General.ScrollKeystroke := True;
+     For i                            := 1 To 30 Do
+      Frame.Session.Buffer.FeedText(#13#10'line');
+     Frame.RefreshTick(Nil);
+     Frame.scroll.Position := 0;
+     Frame.SurfaceMouseMove(Nil, [], 45, 5);
+     Assert.AreEqual(0, Frame.scroll.Position, 'Mouse tracking is not a keyboard scroll-to-bottom action');
 
     Finally
      Main.Free;

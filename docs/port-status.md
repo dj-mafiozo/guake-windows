@@ -1,6 +1,6 @@
 # Stan portu Guake dla Windows
 
-Stan kodu na 17 listopada 2026, wersja 1.0.27.60. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 17 listopada 2026, wersja 1.0.28.61. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -224,6 +224,16 @@ Tryb 1002 rozpoznaje teraz ruch z lewym, środkowym i prawym przyciskiem, a kod 
 
 Klasyczny raport zwolnienia zachowuje modyfikatory i zastępuje jedynie niski kod przycisku wartością 3. SGR zachowuje numer zwalnianego przycisku i kończy raport literą m. Rozszerzony test wejścia ConPTY obejmuje trzy przyciski, hover, Ctrl/Alt, pominięcie ruchu w 1000/1002, Shift oraz przełączenie formatu przez sam proces potomny na klasyczny.
 
-Pozostają niezależne nakładanie trybów, filtrowanie powtórzeń ruchu wewnątrz tej samej komórki, pozostałe protokoły myszy i zgodność surowych bajtów klasycznych współrzędnych poza ASCII. Nie jest to deklaracja pełnej zgodności myszy z VTE/xterm. Szczegóły opisuje [macierz VT](vt-coverage.md).
+Wersja 1.0.28.61 dodaje filtrowanie powtórzeń w tej samej komórce. Pozostają niezależne nakładanie trybów, pozostałe protokoły myszy i zgodność surowych bajtów klasycznych współrzędnych poza ASCII. Nie jest to deklaracja pełnej zgodności myszy z VTE/xterm. Szczegóły opisuje [macierz VT](vt-coverage.md).
 
 Weryfikacja 1.0.27.60: formatter bez błędów i sprawdzony diff, 121/121 scenariuszy DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Natywny odbiorca ConPTY potwierdził dokładne kody SGR dla ruchu i przycisków oraz klasyczne zwolnienie z zachowanymi Ctrl/Alt po zmianie formatu przez proces potomny. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.27.60-Win64.zip z pasującymi EXE/PDB.
+
+## Ograniczenie powtórzeń raportów myszy — 1.0.28.61
+
+Ruch wewnątrz tej samej komórki nie wysyła kolejnych raportów do procesu terminala. Wciśnięcie i zwolnienie przycisku nadal jest raportowane i ustala komórkę odniesienia dla ruchu. Sama zmiana modyfikatorów bez zmiany komórki nie tworzy raportu ruchu. Po lokalnym użyciu Shift pierwszy ruch aplikacyjny jest ponownie raportowany.
+
+Bufor ma osobną rewizję negocjacji myszy: zmiana 1000/1002/1003 lub 1006, także wyłączenie i ponowne włączenie pomiędzy zdarzeniami, unieważnia zapamiętaną pozycję. RIS, zmiana geometrii i ponowne podłączenie ramki także umożliwiają pierwszy nowy raport. Zwykły napływ tekstu i zmiana stylu kursora nie resetują filtra.
+
+Raporty myszy trafiają bezpośrednio do wejścia sesji, bez ścieżki pisania klawiaturą. Nie kasują lokalnego zaznaczenia i nie wymuszają przewinięcia na koniec historii przy scroll-keystroke. Jest to ograniczenie zbędnych raportów i ich skutków w UI, bez deklaracji rozwiązania wszystkich przyczyn opóźnień konsoli.
+
+Weryfikacja 1.0.28.61: formatter bez błędów i sprawdzony diff, 121/121 scenariuszy DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Natywny odbiorca porównał cały strumień wejścia po 200 powtórzeniach ruchu i unieważnieniach filtra; test widoku potwierdził zachowanie zaznaczenia oraz pozycji historii mimo scroll-keystroke. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.28.61-Win64.zip z pasującymi EXE/PDB.

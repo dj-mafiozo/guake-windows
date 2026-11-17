@@ -1,6 +1,6 @@
 # Pokrycie emulatora VT
 
-Stan: 1.0.27.60. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.28.61. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -17,7 +17,7 @@ Stan: 1.0.27.60. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | OSC | 0/2: tytuł, 7: katalog, 8: odnośniki | Paleta i zapytania kolorów, stos tytułów, pozostałe OSC; polityka dostępu do schowka |
 | DCS/APC/PM | DCS DECRQSS dla SGR, marginesów i stylu kursora; pozostałe DCS/APC/PM/SOS są konsumowane | Pozostałe DCS i dalsze porównania ciągów z VTE |
 | Zestawy znaków | UTF-8, ASCII B, brytyjski A, DEC Special Graphics 0 w G0–G3; SI/SO, LS2/LS3, SS2/SS3 | Pozostałe zestawy narodowe, GR i 96-znakowe zestawy, warianty ESC z bajtami pośrednimi |
-| Wejście | Application cursor, bracketed paste, tryby myszy 1000/1002/1003 i 1006, fokus 1004, LNM 20 dla LF/Enter, aplikacyjna klawiatura numeryczna ESC = / ESC > / 66 | Pełna macierz modyfikatorów klawiatury, pozostałe protokoły klawiatury i myszy, niezależne nakładanie trybów myszy, filtrowanie ruchu w tej samej komórce i klasyczne współrzędne poza ASCII |
+| Wejście | Application cursor, bracketed paste, tryby myszy 1000/1002/1003 i 1006, fokus 1004, LNM 20 dla LF/Enter, aplikacyjna klawiatura numeryczna ESC = / ESC > / 66 | Pełna macierz modyfikatorów klawiatury, pozostałe protokoły klawiatury i myszy, niezależne nakładanie trybów myszy i klasyczne współrzędne poza ASCII |
 | Grafemy i widok | Segmentacja ICU, szerokie komórki, znaki łączące, reflow; cache wierszy renderera | Pełny shaping, bidi i zgodność wizualna z VTE; segmentacja zależy od systemowego ICU |
 
 ## Regresje objęte testami w tym etapie
@@ -108,4 +108,10 @@ Ruch w trybie 1002 obejmuje wszystkie trzy przyciski; 1003 dodatkowo raportuje b
 
 Shift pozostaje lokalnym obejściem raportowania. Natywny test ConPTY porównuje kody SGR dla prawego, środkowego i lewego przeciągania, hover z modyfikatorami, brak raportu ruchu w 1000 i hover w 1002 oraz klasyczne zwolnienie z Ctrl/Alt. Odbiorca sam zmienia 1006, aby testować rzeczywistą negocjację z ConPTY.
 
-Dalsze ograniczenia: tryby 1000/1002/1003 nadal reprezentuje jeden aktywny tryb; raportowanie ruchu nie odfiltrowuje jeszcze powtórzeń wewnątrz tej samej komórki. Klasyczne współrzędne są ograniczone do 223, ale wysyłanie przez ścieżkę tekstową wymaga dalszej korekty dla wartości poza ASCII. Zalecanym obsługiwanym formatem pozostaje SGR 1006; brak jeszcze 1005/1015/1016 i pełnej macierzy protokołów.
+Dalsze ograniczenia: tryby 1000/1002/1003 nadal reprezentuje jeden aktywny tryb; filtrowanie powtórzeń w tej samej komórce dodano w 1.0.28.61. Klasyczne współrzędne są ograniczone do 223, ale wysyłanie przez ścieżkę tekstową wymaga dalszej korekty dla wartości poza ASCII. Zalecanym obsługiwanym formatem pozostaje SGR 1006; brak jeszcze 1005/1015/1016 i pełnej macierzy protokołów.
+
+## Filtrowanie raportów i oddzielenie wejścia myszy — 1.0.28.61
+
+Zgodnie z regułą ruchu między komórkami opisaną w [dokumentacji xterm](https://github.com/ThomasDickey/xterm-snapshots/blob/master/ctlseqs.ms), 1002/1003 nie powtarzają raportu dla ruchu wewnątrz zapamiętanej komórki. Przyciski nie są filtrowane. Format i tryb raportowania mają niezależną od tekstu rewizję negocjacji; widok uwzględnia także rozmiar siatki, reset, ponowne podłączenie sesji i lokalne użycie Shift. Dzięki temu nie pomija pierwszego raportu po renegocjacji ani nie resetuje filtra przy każdym fragmencie wyjścia.
+
+Wysyłanie raportów nie usuwa zaznaczenia i nie uruchamia scroll-keystroke. Natywny test ConPTY porównuje pełny strumień wejścia po 200 powtórzeniach ruchu, przejściu do kolejnej komórki, zmianie trybu i geometrii oraz ponownym Bind. Test widoku sprawdza zachowanie zaznaczenia i przewijania. Pozostałe braki formatów i nakładania trybów opisuje tabela.

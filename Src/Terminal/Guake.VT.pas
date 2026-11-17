@@ -96,6 +96,7 @@ Interface
     fNewLineMode       : Boolean;
     fBracketedPaste    : Boolean;
     fMouseMode         : Integer;
+    fMouseRevision     : Int64;
     fSGRMouse          : Boolean;
     fRevision          : Int64;
     Function  Blank                                                   : TTerminalCell;
@@ -158,12 +159,14 @@ Interface
     Property FocusReporting    : Boolean Read fFocusReporting;
     Property NewLineMode       : Boolean Read fNewLineMode;
     Property BracketedPaste    : Boolean Read fBracketedPaste;
-    Property MouseMode         : Integer Read fMouseMode;
-    Property SGRMouse          : Boolean Read fSGRMouse;
-    Property BellCount         : UInt64 Read fBellCount;
-    Property Title             : String Read fTitle;
-    Property DirectoryURI      : String Read fDirectory;
-    Property Revision          : Int64 Read fRevision;
+    /// <summary>Invalidates view mouse-position caches after protocol negotiation and terminal reset.</summary>
+    Property MouseRevision : Int64 Read fMouseRevision;
+    Property MouseMode     : Integer Read fMouseMode;
+    Property SGRMouse      : Boolean Read fSGRMouse;
+    Property BellCount     : UInt64 Read fBellCount;
+    Property Title         : String Read fTitle;
+    Property DirectoryURI  : String Read fDirectory;
+    Property Revision      : Int64 Read fRevision;
   End;
 
 Implementation
@@ -257,15 +260,16 @@ Implementation
    fNewLineMode       := False;
    fBracketedPaste    := False;
    fMouseMode         := 0;
-   fSGRMouse          := False;
-   fAutoWrap          := True;
-   fWrapPending       := False;
-   fOrigin            := False;
-   fInsert            := False;
-   fState             := vsGround;
-   fSequence          := '';
-   fSequenceInvalid   := False;
-   fRemaining         := 0;
+   Inc(fMouseRevision);
+   fSGRMouse        := False;
+   fAutoWrap        := True;
+   fWrapPending     := False;
+   fOrigin          := False;
+   fInsert          := False;
+   fState           := vsGround;
+   fSequence        := '';
+   fSequenceInvalid := False;
+   fRemaining       := 0;
    fHistory.Clear;
    AllocateScreen(fScreen, fColumns, fRows);
    Inc(fRevision);
@@ -866,14 +870,20 @@ Implementation
         47, 1047, 1049 :
          SwitchScreen(Final = 'h', Params[i] = 1049);
         1000, 1002, 1003 :
-         If Final = 'h' Then
-          fMouseMode := Params[i]
-         Else
-          fMouseMode := 0;
+         Begin
+          Inc(fMouseRevision);
+          If Final = 'h' Then
+           fMouseMode := Params[i]
+          Else
+           fMouseMode := 0;
+         End;
         1004 :
          fFocusReporting := Final = 'h';
         1006 :
-         fSGRMouse := Final = 'h';
+         Begin
+          Inc(fMouseRevision);
+          fSGRMouse := Final = 'h';
+         End;
         2004 :
          fBracketedPaste := Final = 'h';
        End

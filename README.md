@@ -78,4 +78,4 @@ Opcja `window-refocus` przywraca fokus widocznemu terminalowi po użyciu główn
 
 Aplikacje terminalowe mogą wybierać kształt i miganie kursora przez `DECSCUSR 0–6` oraz odczytać styl przez `DECRQSS`. Styl 0 przywraca preferencje terminala; ustawienia aplikacji nie zmieniają INI. Systemowy tryb migania używa czasu kursora Windows.
 
-Raportowanie myszy do aplikacji terminalowych rozróżnia przeciąganie lewym, środkowym i prawym przyciskiem oraz ruch bez przycisku w trybie 1003. Shift nadal pozwala korzystać z lokalnego zaznaczania zamiast raportowania do programu.
+Raportowanie myszy do aplikacji terminalowych rozróżnia przeciąganie lewym, środkowym i prawym przyciskiem oraz ruch bez przycisku w trybie 1003. Shift nadal pozwala korzystać z lokalnego zaznaczania zamiast raportowania do programu. Powtórzenia ruchu w tej samej komórce są pomijane; raporty myszy nie kasują zaznaczenia i nie wymuszają przewijania na koniec historii.
