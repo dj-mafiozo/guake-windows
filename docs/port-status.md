@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 17 listopada 2026, wersja 1.0.41.74. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 17 listopada 2026, wersja 1.0.42.75. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -365,3 +365,15 @@ Reverse Index (ESC M) kasuje oczekujące zawinięcie zarówno przy ruchu w gór�
 Punkt odniesienia: [IL w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L5741), [DL](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L4763) i [RI](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L6436). Trzy scenariusze DUnitX sprawdzają IL/DL na siedmiu pozycjach, zawartość wszystkich wierszy, zachowanie zawinięcia poza regionem oraz RI na siedmiu pozycjach przy każdym podziale sekwencji. Dalsze przypadki przewijania, historii i poziomych marginesów pozostają do porównania z VTE.
 
 Weryfikacja 1.0.41.74: formatter bez błędów i sprawdzony diff; 149/149 scenariuszy DUnitX bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.41.74-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna, bez deklaracji pełnej zgodności z VTE.
+
+## Nadpisywanie szerokich znaków i prawa krawędź — 1.0.42.75
+
+Drukowanie nowego znaku usuwa fragmenty dawnych szerokich znaków przecinające lewą lub prawą granicę nadpisywanego obszaru. Obejmuje to szeroki znak pokrywający fragmenty dwóch starych znaków. Poszerzenie grafemu z jednej do dwóch komórek, np. po selektorze prezentacji emoji, usuwa również osieroconą kontynuację sąsiada.
+
+Przy wyłączonym DECAWM szeroki znak drukowany w ostatniej kolumnie cofa się o kolumnę, aby zmieścić się w całości, także w IRM. Nie przewija ekranu ani nie tworzy paddingu zawinięcia. Jest to zachowanie VTE; xterm może taki znak pominąć. Włączony autowrap nadal przenosi cały szeroki znak do nowego wiersza.
+
+Nadpisanie końca wcześniej zawiniętego wiersza i poszerzenie grafemu zachowują znacznik SoftWrapped w ostatniej fizycznej komórce. Nadpisany techniczny padding jest usuwany. Trzy scenariusze DUnitX obejmują obie granice, sąsiednie szerokie znaki, selektor prezentacji, IRM, DECAWM i metadane wiersza.
+
+Punkt odniesienia: [insert_char w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L3024). Pełna segmentacja, kształtowanie, przypadki jednokolumnowego terminala i dalsze porównania reflow pozostają odrębnymi ograniczeniami portu.
+
+Weryfikacja 1.0.42.75: formatter bez błędów i sprawdzony diff; 152/152 scenariusze DUnitX bez błędów i wycieków. Nowe testy potwierdziły naprawę obu granic, poszerzenie grafemu, DECAWM/IRM i zachowanie SoftWrapped; istniejące scenariusze reflow oraz renderowania również przeszły. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie, bez zmiany DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.42.75-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.

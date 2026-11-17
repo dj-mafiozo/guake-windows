@@ -11,7 +11,7 @@ Główny projekt: [Src/guake.dpr](Src/guake.dpr), [Src/guake.dproj](Src/guake.dp
 - [Diagnostyka](Src/Diagnostics/Guake.Logging.pas): logowanie `Exception.StackTrace`, biblioteka `Src/Vendor/stacktrace`, MAP i PDB dla każdego EXE.
 - [Common](Src/Common/README.md): submoduł z odczytem wersji EXE przez `VersionU.pas`.
 - Widok terminala: wypełniony aktywny kursor blokowy z odwróconym glifem, obsługą szerokich znaków i nieprzezroczystą maską kursora; po utracie fokusu stały obrys bloku lub kreska/podkreślenie.
-- [Emulator VT](Src/Terminal/Guake.VT.pas): ruch pionowy respektuje marginesy przewijania, IL/DL i Reverse Index poprawnie obsługują kolumnę oraz oczekujące zawinięcie, DA3 zwraca identyfikator portu, DECALN wypełnia aktywny ekran wzorcem wyrównania, REP powtarza poprzedni znak drukowalny, ICH/DCH/ECH i IRM zachowują spójność szerokich znaków; zakres i pozostałe różnice opisuje [macierz pokrycia](docs/vt-coverage.md).
+- [Emulator VT](Src/Terminal/Guake.VT.pas): ruch pionowy respektuje marginesy przewijania, IL/DL i Reverse Index poprawnie obsługują kolumnę oraz oczekujące zawinięcie, DA3 zwraca identyfikator portu, DECALN wypełnia aktywny ekran wzorcem wyrównania, REP powtarza poprzedni znak drukowalny, ICH/DCH/ECH, IRM i nadpisywanie naprawiają przecięte szerokie znaki; zakres i pozostałe różnice opisuje [macierz pokrycia](docs/vt-coverage.md).
 
 Budowanie i testy dla Delphi 10.2 (z katalogu repozytorium):
 

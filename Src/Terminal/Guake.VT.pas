@@ -541,6 +541,7 @@ Implementation
    w, Previous, OldWidth, NewWidth : Integer;
    Next                            : String;
    Unmapped                        : Cardinal;
+   Wrapped                         : Boolean;
   Begin
    Unmapped := Code;
    Code     := TranslateGraphic(Code);
@@ -559,10 +560,14 @@ Implementation
      NewWidth                   := Min(GraphemeWidth(fScreen[fY][Previous].Text), fColumns - Previous);
      If NewWidth > OldWidth Then
       Begin
+       Wrapped := fScreen[fY][fColumns - 1].SoftWrapped;
+       If (Previous + 2 < fColumns) And fScreen[fY][Previous + 2].Continuation Then
+        fScreen[fY][Previous + 2]               := Blank;
        fScreen[fY][Previous + 1]                := Blank;
        fScreen[fY][Previous + 1].Text           := '';
        fScreen[fY][Previous + 1].Continuation   := True;
        fScreen[fY][Previous + 1].EraseProtected := fScreen[fY][Previous].EraseProtected;
+       fScreen[fY][fColumns - 1].SoftWrapped    := Wrapped;
        If Not fWrapPending Then
         Begin
          Inc(fX);
@@ -587,14 +592,17 @@ Implementation
        fScreen[fY][fColumns - 1].WrapPadding := True;
       fX                                     := 0;
       LineFeed;
-     End;
+     End
+    Else
+     fX         := fColumns - w;
    fWrapPending := False;
+   Wrapped      := fScreen[fY][fColumns - 1].SoftWrapped;
    If fInsert Then
     ShiftColumns(w, True);
    If fScreen[fY][fX].Continuation And (fX > 0) Then
     fScreen[fY][fX - 1] := Blank;
-   If (fX < fColumns - 1) And fScreen[fY][fX + 1].Continuation Then
-    fScreen[fY][fX + 1]         := Blank;
+   If (fX + w < fColumns) And fScreen[fY][fX + w].Continuation Then
+    fScreen[fY][fX + w]         := Blank;
    fScreen[fY][fX]              := fAttr;
    fScreen[fY][fX].Text         := CodeText(Code);
    fScreen[fY][fX].Hyperlink    := fHyperlink;
@@ -605,6 +613,7 @@ Implementation
      fScreen[fY][fX + 1].Text         := '';
      fScreen[fY][fX + 1].Continuation := True;
     End;
+   fScreen[fY][fColumns - 1].SoftWrapped := Wrapped;
    Inc(fX, w);
    If fX >= fColumns Then
     Begin

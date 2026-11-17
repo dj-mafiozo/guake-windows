@@ -16,6 +16,9 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure WideOverwriteRepairsBothBoundaries;
+    [Test] Procedure WidePrintWithoutAutowrapFitsAtRightEdge;
+    [Test] Procedure GraphemeGrowthRepairsNeighbourAndKeepsSoftWrap;
     [Test] Procedure InsertDeleteLinesRespectRegionAndCarriageReturn;
     [Test] Procedure InsertDeleteLinesPreserveIgnoredWrap;
     [Test] Procedure ReverseIndexClearsWrapAndRespectsRegion;
@@ -156,6 +159,93 @@ Implementation
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+/// <summary>Overwriting two columns repairs both intersected old glyphs and preserves the row wrap marker.</summary>
+
+ Procedure TTerminalTests.WideOverwriteRepairsBothBoundaries;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(6, 3);
+   Try
+    Buffer.FeedText('A' + #$4E2D + 'BCD' + #27 + '[H' + #$754C);
+    Assert.AreEqual(String(#$754C) + ' BCD', Buffer.LineText(0));
+    Assert.IsTrue(Buffer.Cell[1, 0].Continuation);
+    Assert.IsFalse(Buffer.Cell[2, 0].Continuation);
+    Buffer.Reset;
+    Buffer.FeedText(String(#$4E2D) + #$4E2D + 'XY' + #27 + '[1;2H' + #$754C);
+    Assert.AreEqual(' ' + #$754C + ' XY', Buffer.LineText(0));
+    Assert.IsFalse(Buffer.Cell[0, 0].Continuation Or Buffer.Cell[3, 0].Continuation);
+    Assert.IsTrue(Buffer.Cell[2, 0].Continuation);
+    Buffer.Reset;
+    Buffer.FeedText('abcd' + #$4E2D + 'Z' + #27 + '[1;5HX');
+    Assert.AreEqual('abcdX', Buffer.LineText(0));
+    Assert.IsFalse(Buffer.Cell[5, 0].Continuation);
+    Assert.IsTrue(Buffer.Cell[5, 0].SoftWrapped, 'Cleanup at the right edge retains the logical wrap marker');
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>With DECAWM disabled, a wide glyph retreats to fit instead of leaving a truncated lead cell.</summary>
+
+ Procedure TTerminalTests.WidePrintWithoutAutowrapFitsAtRightEdge;
+  Var
+   Buffer     : TTerminalBuffer;
+   InsertMode : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(4, 3);
+   Try
+    For InsertMode := 0 To 1 Do
+     Begin
+      Buffer.Reset;
+      Buffer.FeedText('ABCD' + #27 + '[?7l');
+      If InsertMode = 1 Then
+       Buffer.FeedText(#27 + '[4h');
+      Buffer.FeedText(#$4E2D);
+      Assert.AreEqual('AB' + #$4E2D, Buffer.LineText(0));
+      Assert.IsTrue(Buffer.Cell[3, 0].Continuation);
+      Assert.AreEqual(3, Buffer.CursorX);
+      Assert.AreEqual(0, Buffer.CursorY);
+      Assert.IsFalse(Buffer.Cell[3, 0].SoftWrapped Or Buffer.Cell[3, 0].WrapPadding);
+      Buffer.FeedText('X');
+      Assert.AreEqual('AB X', Buffer.LineText(0), 'A narrow overwrite repairs the preceding wide glyph');
+      Assert.IsFalse(Buffer.Cell[3, 0].Continuation);
+     End;
+    Buffer.Reset;
+    Buffer.FeedText('ABC' + #$4E2D);
+    Assert.AreEqual(String(#$4E2D), Buffer.LineText(1), 'Enabled autowrap still moves the whole glyph');
+    Assert.IsTrue(Buffer.Cell[3, 0].SoftWrapped And Buffer.Cell[3, 0].WrapPadding);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Emoji presentation growth removes a displaced wide neighbour and ordinary overwrite retains soft wrap.</summary>
+
+ Procedure TTerminalTests.GraphemeGrowthRepairsNeighbourAndKeepsSoftWrap;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(6, 3);
+   Try
+    Buffer.FeedText('A' + #$4E2D + 'BCD' + #27 + '[H' + #$2764 + #$FE0F);
+    Assert.AreEqual(String(#$2764) + #$FE0F + ' BCD', Buffer.LineText(0));
+    Assert.IsTrue(Buffer.Cell[1, 0].Continuation);
+    Assert.IsFalse(Buffer.Cell[2, 0].Continuation, 'Growing a glyph clears the old neighbour fragment');
+    Buffer.Reset;
+    Buffer.FeedText('abcdefZ' + #27 + '[1;6HX');
+    Assert.AreEqual('abcdeX', Buffer.LineText(0));
+    Assert.IsTrue(Buffer.Cell[5, 0].SoftWrapped);
+    Assert.IsFalse(Buffer.Cell[5, 0].WrapPadding);
+    Buffer.Reset;
+    Buffer.FeedText('abcd' + #$2764 + 'XZ' + #27 + '[1;5H' + #$2764 + #$FE0F);
+    Assert.IsTrue(Buffer.Cell[5, 0].Continuation);
+    Assert.IsTrue(Buffer.Cell[5, 0].SoftWrapped, 'Growth ending in the last cell preserves the logical wrap marker');
+   Finally
+    Buffer.Free;
+   End;
+  End;
 
 /// <summary>Verifies IL/DL row movement, unchanged rows outside the region and carriage return only on execution.</summary>
 
