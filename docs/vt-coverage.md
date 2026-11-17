@@ -1,6 +1,6 @@
 # Pokrycie emulatora VT
 
-Stan: 1.0.29.62. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.30.63. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -14,7 +14,7 @@ Stan: 1.0.29.62. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | Ekrany | Ekran główny i alternatywny, 47/1047/1049, historia i reflow ekranu głównego | Osobna macierz wariantów przełączania i zapisów kursora, przypadki brzegowe reflow |
 | SGR | Reset, bold/faint, italic, conceal, strike, overline, inverse; pięć stylów podkreślenia i jego kolor 58/59; miganie 5/6/25; ANSI 16/256 i RGB przez średniki i dwukropki | Dalsze warianty SGR, integracja systemowych preferencji migania i porównanie geometrii dekoracji z VTE |
 | Odpowiedzi | DSR 5, CPR 6, DECXCPR ?6; wiersz względem regionu przy DECOM; DA/DECID i DA2, DECRQM/DECRPM dla obsługiwanych trybów, rozmiar w znakach CSI 18 t, DECRQSS SGR, marginesów i stylu kursora | Tertiary DA, pozostałe DECRQSS, raporty rozmiaru w pikselach/monitora i pozostałe zapytania |
-| OSC | 0/2: tytuł, 7: katalog, 8: odnośniki | Paleta i zapytania kolorów, stos tytułów, pozostałe OSC; polityka dostępu do schowka |
+| OSC i tytuł | 0/2: tytuł, 7: katalog, 8: odnośniki; CSI 22/23 t: stos tytułów okna dla 0/2 | Paleta i zapytania kolorów, osobny tytuł ikony i indeksowane sloty stosu, pozostałe OSC; polityka dostępu do schowka |
 | DCS/APC/PM | DCS DECRQSS dla SGR, marginesów i stylu kursora; pozostałe DCS/APC/PM/SOS są konsumowane | Pozostałe DCS i dalsze porównania ciągów z VTE |
 | Zestawy znaków | UTF-8, ASCII B, brytyjski A, DEC Special Graphics 0 w G0–G3; SI/SO, LS2/LS3, SS2/SS3 | Pozostałe zestawy narodowe, GR i 96-znakowe zestawy, warianty ESC z bajtami pośrednimi |
 | Wejście | Application cursor, bracketed paste, tryby myszy 1000/1002/1003, częściowy format UTF-8 1005 i SGR 1006, fokus 1004, LNM 20 dla LF/Enter, aplikacyjna klawiatura numeryczna ESC = / ESC > / 66 | Pełna macierz modyfikatorów klawiatury, pozostałe protokoły klawiatury i myszy, niezależne nakładanie trybów myszy, klasyczne współrzędne poza ASCII i C1 w formacie 1005 na ConPTY |
@@ -123,3 +123,11 @@ Tryb 1005 przenosi współrzędne w UTF-8: do pozycji 1–2015 dodawane jest 32.
 Bufor rozpoznaje 1005 w DECSET/DECRST i DECRQM; RIS go wyłącza. Każda negocjacja odświeża rewizję formatu dla filtra myszy. Przy obu ustawionych formatach w tej implementacji pierwszeństwo ma 1006. To nie oznacza pełnego odwzorowania nakładania formatów innych terminali.
 
 Test ConPTY ustawia kodowanie wejścia odbiorcy na UTF-8 i negocjuje 1005 z procesu potomnego. W pierwszym przebiegu wartość 128 zniknęła w ścieżce wejścia, podczas gdy 2047 dotarła prawidłowo. Dlatego raporty zawierające C1 (128–159, indeksy 95–126 w dowolnej osi) są w tym porcie pomijane w całości. Jest to jawne ograniczenie częściowo obsługiwanego 1005. Końcowy test sprawdza poprawne wartości 127, 160 i 2047 oraz pominięcie 128. Weryfikuje również pominięcie pozycji poza zakresem oraz powrót do ograniczenia klasycznego po wyłączeniu 1005. SGR jest sprawdzany również dla pozycji 96 i 2016 i nie ma tych luk. Pełne bajtowe X10 do 223, zakres C1 w 1005 i formaty 1015/1016 pozostają poza zakresem tej implementacji.
+
+## Stos tytułów okna — 1.0.30.63
+
+XTWINOPS CSI 22;2 t zapisuje tytuł okna z OSC 0/2, a CSI 23;2 t go przywraca. Pominięty drugi parametr i wartość 0 obsługują ten sam tytuł okna. Parametr 1 (osobna etykieta ikony), trzeci parametr (indeksowany dostęp do slotów) i błędne warianty są ignorowane. Punkt odniesienia: [xterm, XTWINOPS 22/23](https://github.com/ThomasDickey/xterm-snapshots/blob/master/ctlseqs.ms).
+
+Stos LIFO jest ograniczony do 64 wpisów z usuwaniem najstarszego przy przepełnieniu. Pusty wpis jest przywracany, pusty stos nie zmienia tytułu. Stos należy do sesji terminala, jest wspólny dla jej ekranów i przeżywa resize; RIS go czyści. Nie jest częścią trwałego zapisu sesji ani pamięci wznawianego procesu.
+
+Dwa scenariusze DUnitX obejmują każde miejsce podziału sekwencji OSC/CSI, zagnieżdżenie, parametry 0/2 i domyślny, pusty tytuł, podpełnienie i przepełnienie, ignorowane operacje ikon/slotów, niezależność terminali, ekran alternatywny, resize i reset. Sprawdzają także zachowanie oczekującego zawinięcia oraz brak dodatkowych odpowiedzi. Nie zastępuje to pełnego porównania wszystkich operacji tytułów i okna z uruchomionym VTE.

@@ -56,6 +56,7 @@ Interface
     fScreen            : TTerminalScreen;
     fPrimary           : TTerminalScreen;
     fHistory           : TList<TTerminalLine>;
+    fTitleStack        : TList<String>;
     fTabStops          : TArray<Boolean>;
     fColumns           : Integer;
     fRows              : Integer;
@@ -209,6 +210,7 @@ Implementation
   Begin
    Inherited Create;
    fHistory      := TList<TTerminalLine>.Create;
+   fTitleStack   := TList<String>.Create;
    fHistoryLimit := HistoryLimit;
    fColumns      := Columns;
    fRows         := Rows;
@@ -219,6 +221,7 @@ Implementation
 
  Destructor TTerminalBuffer.Destroy;
   Begin
+   fTitleStack.Free;
    fHistory.Free;
    Inherited;
   End;
@@ -228,6 +231,7 @@ Implementation
    i         : Integer;
    Alternate : Boolean;
   Begin
+   fTitleStack.Clear;
    SetLength(fTabStops, fColumns);
    For i                := 0 To High(fTabStops) Do
     fTabStops[i]        := (i > 0) And (i Mod 8 = 0);
@@ -919,7 +923,23 @@ Implementation
       fResponses := fResponses + #27'[?1;2c';
     't' :
      If (Length(Params) = 1) And (Params[0] = 18) Then
-      fResponses := fResponses + Format(#27'[8;%d;%dt', [fRows, fColumns]);
+      fResponses := fResponses + Format(#27'[8;%d;%dt', [fRows, fColumns])
+     Else If (Length(Params) <= 2) And ((P(1, 0) = 0) Or (P(1, 0) = 2)) Then
+      Case P(0, 0) Of
+       22 :
+        Begin
+         // A bounded per-terminal LIFO; icon labels and indexed slots are not implemented.
+         If fTitleStack.Count = 64 Then
+          fTitleStack.Delete(0);
+         fTitleStack.Add(fTitle);
+        End;
+       23 :
+        If fTitleStack.Count > 0 Then
+         Begin
+          fTitle := fTitleStack.Last;
+          fTitleStack.Delete(fTitleStack.Count - 1);
+         End;
+      End;
    End;
   End;
 

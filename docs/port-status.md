@@ -1,6 +1,6 @@
 # Stan portu Guake dla Windows
 
-Stan kodu na 17 listopada 2026, wersja 1.0.29.62. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 17 listopada 2026, wersja 1.0.30.63. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -247,3 +247,13 @@ Klasyczny format nie wysyła już współrzędnych zamienianych przez ścieżkę
 To świadome ograniczenie klasycznego formatu na Windows, nie pełna emulacja jego linuksowego zakresu 223. Takie ograniczenie ASCII występuje również w [implementacji wejścia Windows Terminal](https://github.com/microsoft/terminal/blob/main/src/terminal/input/mouseInput.cpp). Pełny klasyczny zakres oraz pozostałe protokoły nadal wymagają dalszej pracy. Test natywny obejmuje poprawne wartości 127, 160 i 2047, pomijanie C1 oraz pozycji poza zakresem, negocjację włączania i wyłączania 1005 przez proces potomny i SGR dla współrzędnych 96 oraz 2016. Jest to częściowa obsługa 1005, bez pełnej zgodności tego formatu na ConPTY.
 
 Weryfikacja 1.0.29.62: formatter bez błędów i sprawdzony diff, 121/121 scenariuszy DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Odbiornik UTF-8 ConPTY potwierdził granice 127, 160 i 2047, pominięcie niejednoznacznych raportów oraz poprawne współrzędne SGR 96 i 2016. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.29.62-Win64.zip z pasującymi EXE/PDB.
+
+## Stos tytułów terminala — 1.0.30.63
+
+CSI 22;2 t zapisuje tytuł okna, a CSI 23;2 t go przywraca. Warianty bez drugiego parametru oraz z parametrem 0 obsługują część dotyczącą tytułu okna. Zagnieżdżone programy mogą więc kolejno odkładać i odzyskiwać tytuły. Pusty tytuł jest prawidłowym wpisem; odczyt pustego stosu niczego nie zmienia.
+
+Każdy bufor terminala ma własny stos do 64 wpisów. Po przekroczeniu limitu usuwany jest najstarszy wpis, pozostawiając najnowsze. Stos jest wspólny dla ekranu głównego i alternatywnego danej sesji; zmiana rozmiaru go zachowuje, RIS czyści. Operacje nie zmieniają treści, pozycji kursora ani oczekującego zawinięcia i nie wysyłają odpowiedzi do procesu.
+
+Przywrócony tytuł jest dostępny w istniejącej ścieżce nazw sesji/kart. Ręczne nazwy i tytuły z konfiguracji projektu nadal mają pierwszeństwo. Osobne etykiety ikon (parametr 1), indeksowane sloty stosu i pozostałe operacje okna nadal nie są obsługiwane. Szczegóły i punkt odniesienia: [macierz VT](vt-coverage.md).
+
+Weryfikacja 1.0.30.63: formatter bez błędów i sprawdzony diff, 123/123 scenariusze DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Nowe scenariusze potwierdziły zagnieżdżenie, fragmentację, puste tytuły, limit 64 wpisów, reset, ekran alternatywny i niezależność terminali oraz zachowanie ekranu i oczekującego zawinięcia. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.30.63-Win64.zip z pasującymi EXE/PDB.

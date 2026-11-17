@@ -16,6 +16,8 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure TitleStackFragmentsNestingAndEmptyTitle;
+    [Test] Procedure TitleStackLimitsResetAndScreenIsolation;
     [Test] Procedure CursorStyleParsingQueriesAndReset;
     [Test] Procedure CursorStyleRendersAndOverridesPreferences;
     [Test] Procedure RefocusAndLazyHideRespectForeground;
@@ -266,6 +268,85 @@ Implementation
   End;
 
 /// <summary>Soft wraps preserve UTF-16 hit positions; explicit newlines remain separate.</summary>
+
+/// <summary>Exercises title stack fragmentation, nesting and empty values without changing screen state.</summary>
+
+ Procedure TTerminalTests.TitleStackFragmentsNestingAndEmptyTitle;
+  Var
+   Buffer   : TTerminalBuffer;
+   Sequence : String;
+   Split    : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 4);
+   Try
+    Sequence  := #27'[22;2t' + #27']2;editor' + #27'\' + #27'[23;2t';
+    For Split := 0 To Length(Sequence) Do
+     Begin
+      Buffer.Reset;
+      Buffer.FeedText(#27']2;original' + #7);
+      Buffer.FeedText(Copy(Sequence, 1, Split));
+      Buffer.FeedText(Copy(Sequence, Split + 1, MaxInt));
+      Assert.AreEqual('original', Buffer.Title);
+     End;
+    Buffer.FeedText(#27'[22t' + #27']0;outer' + #7 + #27'[22;0t' + #27']2;inner' + #7);
+    Buffer.FeedText(#27'[23t');
+    Assert.AreEqual('outer', Buffer.Title);
+    Buffer.FeedText(#27'[23;0t');
+    Assert.AreEqual('original', Buffer.Title);
+    Buffer.FeedText(#27'[23;2t');
+    Assert.AreEqual('original', Buffer.Title, 'Empty stack is a no-op');
+    Buffer.FeedText(#27']2;' + #7 + #27'[22;2t' + #27']2;temporary' + #7 + #27'[23;2t');
+    Assert.AreEqual('', Buffer.Title, 'An empty saved title is a valid entry');
+    Buffer.Reset;
+    Buffer.FeedText('12345678' + #27'[22;2t' + #27']2;new' + #7 + #27'[23;2t' + 'X');
+    Assert.AreEqual('12345678', Buffer.LineText(0));
+    Assert.AreEqual('X', Buffer.LineText(1), 'Title operations preserve pending wrap');
+    Assert.AreEqual('', Buffer.TakeResponses);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Bounds retained titles and verifies reset, screen sharing and ignored icon/indexed operations.</summary>
+
+ Procedure TTerminalTests.TitleStackLimitsResetAndScreenIsolation;
+  Var
+   Buffer : TTerminalBuffer;
+   Other  : TTerminalBuffer;
+   i      : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(20, 4);
+   Other  := TTerminalBuffer.Create(20, 4);
+   Try
+    For i := 1 To 70 Do
+     Buffer.FeedText(#27']2;' + IntToStr(i) + #7 + #27'[22;2t');
+    Buffer.FeedText(#27']2;current' + #7);
+    For i := 70 Downto 7 Do
+     Begin
+      Buffer.FeedText(#27'[23;2t');
+      Assert.AreEqual(IntToStr(i), Buffer.Title);
+     End;
+    Buffer.FeedText(#27'[23;2t');
+    Assert.AreEqual('7', Buffer.Title, 'Oldest entries are discarded beyond the 64-entry bound');
+    Buffer.FeedText(#27'[22;2t' + #27']2;keep' + #7 + #27'[22;1t' + #27'[23;1t' + #27'[22;2;1t' + #27'[23;2;1t');
+    Assert.AreEqual('keep', Buffer.Title);
+    Buffer.FeedText(#27'[23;2t');
+    Assert.AreEqual('7', Buffer.Title, 'Unsupported operations do not consume the window stack');
+    Buffer.FeedText(#27'[22;2t' + #27'[?1049h' + #27']2;alternate' + #7 + #27'[23;2t' + #27'[?1049l');
+    Assert.AreEqual('7', Buffer.Title, 'The window title stack is shared across screens');
+    Other.FeedText(#27'[23;2t');
+    Assert.AreEqual('', Other.Title, 'Terminals own independent stacks');
+    Buffer.FeedText(#27'[22;2t' + #27'c' + #27']2;after-reset' + #7 + #27'[23;2t');
+    Assert.AreEqual('after-reset', Buffer.Title, 'RIS discards saved titles');
+    Buffer.FeedText(#27'[22;2t' + #27']2;resized' + #7);
+    Buffer.Resize(10, 5);
+    Buffer.FeedText(#27'[23;2t');
+    Assert.AreEqual('after-reset', Buffer.Title, 'Resize preserves the title stack');
+   Finally
+    Other.Free;
+    Buffer.Free;
+   End;
+  End;
 
 /// <summary>DECSCUSR preserves content and pending wrap, accepts fragments and reports the stored VTE style.</summary>
 
