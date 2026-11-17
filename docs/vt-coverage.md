@@ -1,6 +1,6 @@
 ﻿# Pokrycie emulatora VT
 
-Stan: 1.0.37.70. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.38.71. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -11,7 +11,7 @@ Stan: 1.0.37.70. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | Edycja | REP (CSI Ps b), ED/EL, DECSEL/DECSED 0–2 i DECSCA, ICH/DCH/ECH, IL/DL, SU/SD, DECSTBM; ED/EL/ECH i ICH/DCH/IRM naprawiają przecięte szerokie znaki | Selektywne ?3J i prostokąty DEC; poziome marginesy; dalsze przypadki szerokich znaków i reflow |
 | Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, ochrona komórek, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS i DECSTR; XTSAVE/XTRESTORE dla dziewięciu wybranych trybów | Pozostałe tryby prywatne |
 | Kursor | Widoczność DECTCEM, DECSCUSR 0–6: preferencje lub blok/podkreślenie/pionowa kreska, warianty migające i stałe; odczyt przez DECRQSS | Dalsza zgodność geometrii z VTE, w tym zewnętrzny obrys i szerokość wystających glifów; wariant xterm 7 nie jest obsługiwany |
-| Ekrany | Ekran główny i alternatywny, 47/1047/1049, historia i reflow ekranu głównego | Osobna macierz wariantów przełączania i zapisów kursora, przypadki brzegowe reflow |
+| Ekrany | DECALN (ESC # 8), ekran główny i alternatywny, 47/1047/1049, historia i reflow ekranu głównego | Osobna macierz wariantów przełączania i zapisów kursora, przypadki brzegowe reflow |
 | SGR | Reset, bold/faint, italic, conceal, strike, overline, inverse; pięć stylów podkreślenia i jego kolor 58/59; miganie 5/6/25; ANSI 16/256 i RGB przez średniki i dwukropki | Dalsze warianty SGR, integracja systemowych preferencji migania i porównanie geometrii dekoracji z VTE |
 | Odpowiedzi | DSR 5, CPR 6, DECXCPR ?6; wiersz względem regionu przy DECOM; DA/DECID i DA2, DECRQM/DECRPM dla obsługiwanych trybów, rozmiar w znakach CSI 18 t, DECRQSS SGR, marginesów, stylu kursora i ochrony komórek | Tertiary DA, pozostałe DECRQSS, raporty rozmiaru w pikselach/monitora i pozostałe zapytania |
 | OSC i tytuł | 0/2: tytuł, 7: katalog, 8: odnośniki; CSI 22/23 t: stos tytułów okna dla 0/2 | Paleta i zapytania kolorów, osobny tytuł ikony i indeksowane sloty stosu, pozostałe OSC; polityka dostępu do schowka |
@@ -183,3 +183,13 @@ Emulator pamięta kod sprzed mapowania zestawu DEC, korzysta z bieżących atryb
 Zakończone CSI, OSC/DCS, komendy ESC, oznaczenia zestawów i obsługiwane kontrolki C0 kasują pamięć REP. Samo REP również ją kasuje: kolejne REP bez nowego znaku nie powtarza poprzedniej operacji. NUL i DEL są ignorowane. Reset kasuje pamięć. Prywatne, pośrednie i dwukropkowe warianty REP oraz nadmiarowe parametry nie wykonują powtórzenia.
 
 Punkt odniesienia: [REP w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L6414) oraz [insert_char i zakończenie komend parsera](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L3131). Trzy scenariusze DUnitX obejmują fragmentację, wartości domyślne, limity, oczekujące zawinięcie, Unicode, akcent, DEC Special Graphics, IRM, atrybuty, granice komend i reset. To porównanie źródłowe i testy portu, bez deklaracji pełnego pokrycia VTE/xterm.
+
+## Wzorzec wyrównania ekranu DECALN — 1.0.38.71
+
+Dokładne ESC # 8 wypełnia aktywny ekran literami E w podstawowych atrybutach, bez hiperlinków, ochrony komórek, kontynuacji szerokich znaków i metadanych miękkiego zawinięcia. Przywraca pełne marginesy, wyłącza DECOM, ustawia kursor w lewym górnym rogu i kasuje oczekujące zawinięcie. Pamięć REP nie traktuje liter wzorca jako ostatniego drukowanego znaku.
+
+DECALN zachowuje historię i nieaktywny ekran. Nie resetuje bieżących atrybutów przyszłego tekstu, ochrony DECSCA, trybów wejścia, IRM, tabulatorów ani zapisanego kursora. Punkt odniesienia: [DECALN w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L2335).
+
+Parser rozróżnia teraz dokładny ciąg bajtów pośrednich ESC. Przechowuje najwyżej 256 bajtów; nadmiar konsumuje bez wykonania komendy. ESC # 7, ESC ! 8 i ESC ## 8 nie uruchamiają wzorca. CAN/SUB anuluje sekwencję, a BEL może wykonać się wewnątrz niej bez jej zakończenia. Pozostałe komendy ESC z bajtami pośrednimi nadal wymagają implementacji.
+
+Trzy scenariusze DUnitX sprawdzają wszystkie miejsca podziału sekwencji, podstawowe komórki, marginesy, origin, kursor, zachowanie trybów i historii, ekran alternatywny, anulowanie i odrzucanie innych/za długich sekwencji. Dawny test ignorowanego ESC # 8 używa teraz nieobsługiwanego ESC # 7. Testy portu i przegląd źródeł nie oznaczają pełnej zgodności z działającym VTE.

@@ -16,6 +16,9 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure AlignmentPatternFragmentsAndBasicCells;
+    [Test] Procedure AlignmentPatternPreservesHistoryModesAndPrimaryScreen;
+    [Test] Procedure AlignmentPatternRejectsOtherEscapeIntermediates;
     [Test] Procedure RepeatGraphicDefaultsFragmentsAndBoundaries;
     [Test] Procedure RepeatGraphicUnicodeCharsetsAndInsertMode;
     [Test] Procedure RepeatGraphicCommandBoundariesAndReset;
@@ -146,6 +149,114 @@ Implementation
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+/// <summary>Exercises exact DECALN at every byte split, with basic cells and cursor/margin reset.</summary>
+
+ Procedure TTerminalTests.AlignmentPatternFragmentsAndBasicCells;
+  Var
+   Buffer : TTerminalBuffer;
+   Bytes  : TBytes;
+   Split  : Integer;
+   x      : Integer;
+   y      : Integer;
+   Cell   : TTerminalCell;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 4);
+   Try
+    Bytes     := TEncoding.UTF8.GetBytes(#27 + '#8');
+    For Split := 0 To Length(Bytes) Do
+     Begin
+      Buffer.Reset;
+      Buffer.FeedText(#27 + '[31;44;1;4m' + #27 + '[1"q' + #$4E2D + 'abcdef' + #27 + '[2;3r' + #27 + '[?6h');
+      Buffer.Feed(Copy(Bytes, 0, Split));
+      Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+      Assert.AreEqual(0, Buffer.CursorX);
+      Assert.AreEqual(0, Buffer.CursorY);
+      For y  := 0 To 3 Do
+       For x := 0 To 7 Do
+        Begin
+         Cell := Buffer.Cell[x, y];
+         Assert.AreEqual('E', Cell.Text);
+         Assert.AreEqual( -1, Cell.Foreground);
+         Assert.AreEqual( -2, Cell.Background);
+         Assert.IsFalse(Cell.Bold Or Cell.Underline Or Cell.Continuation Or Cell.EraseProtected Or Cell.SoftWrapped Or Cell.WrapPadding);
+         Assert.AreEqual('', Cell.Hyperlink);
+        End;
+      Buffer.FeedText('X');
+      Assert.AreEqual('XEEEEEEE', Buffer.LineText(0), 'Pattern cancels pending wrap and DECOM');
+      Cell := Buffer.Cell[0, 0];
+      Assert.AreEqual(1, Cell.Foreground, 'Current rendition survives DECALN');
+      Assert.IsTrue(Cell.Bold And Cell.EraseProtected);
+      Buffer.FeedText(#27 + 'P$qr' + #27 + Chr(92));
+      Assert.AreEqual(#27 + 'P1$r1;4r' + #27 + Chr(92), Buffer.TakeResponses, 'Margins reset to the full screen');
+     End;
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Checks that DECALN does not reset input modes, history, tab stops, saved cursor or the inactive screen.</summary>
+
+ Procedure TTerminalTests.AlignmentPatternPreservesHistoryModesAndPrimaryScreen;
+  Var
+   Buffer  : TTerminalBuffer;
+   Count   : Integer;
+   History : String;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 3);
+   Try
+    Buffer.FeedText('history' + #13#10 + 'primary' + #13#10 + 'third' + #13#10 + 'fourth');
+    Count   := Buffer.TotalLines - Buffer.Rows;
+    History := Buffer.LineText(0);
+    Buffer.FeedText(#27 + '[?1h' + #27 + '[4h' + #27 + '[3g' + #27 + '[1;4H' + #27 + 'H' + #27 + '7' + #27 + '#8');
+    Assert.AreEqual(Count, Buffer.TotalLines - Buffer.Rows);
+    Assert.AreEqual(History, Buffer.LineText(0));
+    Assert.IsTrue(Buffer.ApplicationCursor);
+    Buffer.FeedText(#27 + '8');
+    Assert.AreEqual(3, Buffer.CursorX, 'Saved cursor survives');
+    Buffer.FeedText(#27 + '[H' + #9);
+    Assert.AreEqual(3, Buffer.CursorX, 'Custom tab stop survives');
+    Buffer.FeedText('X');
+    Assert.AreEqual('EEEXEEEE', Buffer.LineText(Count), 'IRM remains enabled');
+    Buffer.Reset;
+    Buffer.FeedText('primary' + #27 + '[?1049h' + 'alternate' + #27 + '#8');
+    Assert.AreEqual('EEEEEEEE', Buffer.LineText(0));
+    Buffer.FeedText(#27 + '[?1049l');
+    Assert.AreEqual('primary', Buffer.LineText(0), 'Inactive primary screen is not filled');
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Rejects other ESC intermediates, excessive intermediate data and cancelled patterns without aliased effects.</summary>
+
+ Procedure TTerminalTests.AlignmentPatternRejectsOtherEscapeIntermediates;
+  Const
+   Other : Array[0..5] Of String = (#27'8', #27'#7', #27'!8', #27'##8', #27'#'#24'8', #27'#'#26'8');
+  Var
+   Buffer : TTerminalBuffer;
+   i      : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 3);
+   Try
+    For i := Low(Other) To High(Other) Do
+     Begin
+      Buffer.Reset;
+      Buffer.FeedText('A' + Other[i]);
+      Assert.IsTrue(Pos('EEEE', Buffer.Text) = 0, 'Only exact ESC # 8 triggers the pattern');
+     End;
+    Buffer.Reset;
+    Buffer.FeedText('A' + #27 + '#' + StringOfChar('#', 300) + '8Z');
+    Assert.AreEqual('AZ', Buffer.LineText(0), 'Overlong intermediates are consumed without dispatch');
+    Buffer.Reset;
+    Buffer.FeedText('A' + #27 + '#' + #7 + '8');
+    Assert.AreEqual('EEEEEEEE', Buffer.LineText(0), 'BEL executes without consuming the pending intermediate');
+    Buffer.FeedText(#27 + '[2b');
+    Assert.AreEqual('EEEEEEEE', Buffer.LineText(0), 'Alignment cells are not the preceding graphic for REP');
+   Finally
+    Buffer.Free;
+   End;
+  End;
 
 /// <summary>Exercises REP defaults, fragmented input, column limits and pending autowrap.</summary>
 
@@ -2070,7 +2181,7 @@ Implementation
   Begin
    Buffer := TTerminalBuffer.Create(40, 4);
    Try
-    Buffer.FeedText(#27'%GA'#27'#8B');
+    Buffer.FeedText(#27'%GA'#27'#7B');
     Assert.AreEqual('AB', Buffer.LineText(0));
     Buffer.FeedText(#27']2;unfinished'#27'[31mC');
     Assert.AreEqual('', Buffer.Title);

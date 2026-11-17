@@ -1,13 +1,13 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 17 listopada 2026, wersja 1.0.37.70. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 17 listopada 2026, wersja 1.0.38.71. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
 | Obszar | Zaimplementowano | Pozostało |
 | --- | --- | --- |
 | Terminal | Osobny proces ConPTY dla każdej sesji; asynchroniczne I/O, zmiana rozmiaru, zamykanie procesów, katalog i środowisko | Dalsze testy długich sesji i programów pełnoekranowych |
-| Emulator VT | Przyrostowe UTF-8/CSI/OSC, REP, kolory ANSI/256/RGB, kursor, historia, alternatywny ekran, region przewijania, odpowiedzi urządzenia, bracketed paste, raportowanie myszy, reflow historii, klastry ICU, programowalne tabulatory, raporty kursora względem regionu, DEC Special Graphics, zapis stanu kursora, C0 w sekwencjach, podparametry kolorów SGR, faint/conceal/strike/overline i pięć stylów podkreślenia z kolorem i miganie tekstu SGR 5/6/25 | Pełne pokrycie sekwencji VTE/xterm według [macierzy VT](vt-coverage.md), dalsze testy reflow i segmentacji grafemów |
+| Emulator VT | Przyrostowe UTF-8/CSI/OSC, REP i DECALN, kolory ANSI/256/RGB, kursor, historia, alternatywny ekran, region przewijania, odpowiedzi urządzenia, bracketed paste, raportowanie myszy, reflow historii, klastry ICU, programowalne tabulatory, raporty kursora względem regionu, DEC Special Graphics, zapis stanu kursora, C0 w sekwencjach, podparametry kolorów SGR, faint/conceal/strike/overline i pięć stylów podkreślenia z kolorem i miganie tekstu SGR 5/6/25 | Pełne pokrycie sekwencji VTE/xterm według [macierzy VT](vt-coverage.md), dalsze testy reflow i segmentacji grafemów |
 | Powłoki | CMD, PowerShell, Bash i Zsh z Git SDK; cztery osobne skróty/menu; Zsh przez `git-zsh.exe --nomintty` | Weryfikacja szerszego zestawu konfiguracji użytkowników i instalacji SDK |
 | Karty i podziały | Tworzenie, zamykanie, zmiana nazw, kolejność, wybór po identyfikatorze, podziały poziome/pionowe oraz fokus myszą i kierunkowo, przesuwanie granic podziałów, kolory paneli/kart i reset, przyciski zamykania, aktywność z okresami ignorowania | Dalsze testy potwierdzeń zamykania i rozpoznawania procesów potomnych |
 | Widok terminala | Palety, font, kursor sterowany preferencjami i DECSCUSR, obrazy PNG/JPEG/BMP/animowany GIF, przezroczystość samego tła, cztery układy tła, przewijanie, zaznaczenie przeciągnięciem, słowo po dwukliku zgodnie z word-chars, wklejanie zaznaczenia kółkiem, schowek i zapis tekstu | Pełna zgodność renderowania i układu grafemów z VTE oraz dalsze porównania wizualne |
@@ -323,3 +323,15 @@ Zakończone CSI, OSC/DCS, komendy ESC, oznaczenia zestawów i obsługiwane kontr
 Punkt odniesienia: [REP w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L6414) oraz [insert_char i zakończenie komend parsera](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L3131). Trzy scenariusze DUnitX obejmują fragmentację, wartości domyślne, limity, oczekujące zawinięcie, Unicode, akcent, DEC Special Graphics, IRM, atrybuty, granice komend i reset. To porównanie źródłowe i testy portu, bez deklaracji pełnego pokrycia VTE/xterm.
 
 Weryfikacja 1.0.37.70: formatter bez błędów, sprawdzony diff, 139/139 scenariuszy DUnitX bez błędów i wycieków; cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.37.70-Win64.zip z EXE i pasującymi PDB. Są to testy lokalne; nie oznaczają potwierdzenia działania na pulpicie użytkownika.
+
+## Wzorzec wyrównania ekranu DECALN — 1.0.38.71
+
+Dokładne ESC # 8 wypełnia aktywny ekran literami E w podstawowych atrybutach, bez hiperlinków, ochrony komórek, kontynuacji szerokich znaków i metadanych miękkiego zawinięcia. Przywraca pełne marginesy, wyłącza DECOM, ustawia kursor w lewym górnym rogu i kasuje oczekujące zawinięcie. Pamięć REP nie traktuje liter wzorca jako ostatniego drukowanego znaku.
+
+DECALN zachowuje historię i nieaktywny ekran. Nie resetuje bieżących atrybutów przyszłego tekstu, ochrony DECSCA, trybów wejścia, IRM, tabulatorów ani zapisanego kursora. Punkt odniesienia: [DECALN w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L2335).
+
+Parser rozróżnia teraz dokładny ciąg bajtów pośrednich ESC. Przechowuje najwyżej 256 bajtów; nadmiar konsumuje bez wykonania komendy. ESC # 7, ESC ! 8 i ESC ## 8 nie uruchamiają wzorca. CAN/SUB anuluje sekwencję, a BEL może wykonać się wewnątrz niej bez jej zakończenia. Pozostałe komendy ESC z bajtami pośrednimi nadal wymagają implementacji.
+
+Trzy scenariusze DUnitX sprawdzają wszystkie miejsca podziału sekwencji, podstawowe komórki, marginesy, origin, kursor, zachowanie trybów i historii, ekran alternatywny, anulowanie i odrzucanie innych/za długich sekwencji. Dawny test ignorowanego ESC # 8 używa teraz nieobsługiwanego ESC # 7. Testy portu i przegląd źródeł nie oznaczają pełnej zgodności z działającym VTE.
+
+Weryfikacja 1.0.38.71: formatter bez błędów i sprawdzony diff; 142/142 scenariusze DUnitX bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.38.71-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna nie zastępuje porównań na pulpicie użytkownika.

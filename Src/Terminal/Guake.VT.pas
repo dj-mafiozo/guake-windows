@@ -121,6 +121,7 @@ Interface
     Procedure Scroll          (Up : Boolean; Count : Integer);
     Procedure ExecuteCSI      (Final : Char);
     Procedure ResetTerminal   (HardReset : Boolean);
+    Procedure ScreenAlignmentPattern;
     Procedure ApplyPrivateMode(Mode : Integer; Enabled : Boolean);
     Function  ModeStatus      (Mode : Integer; PrivateMode : Boolean) : Integer;
     Procedure ExecuteSGR;
@@ -384,6 +385,29 @@ Implementation
      SaveCursorState;
     End;
    Inc(fRevision);
+  End;
+
+/// <summary>DECALN fills only the active screen with basic E cells, resets margins and origin, and homes the cursor.</summary>
+
+ Procedure TTerminalBuffer.ScreenAlignmentPattern;
+  Var
+   Cell : TTerminalCell;
+   x, y : Integer;
+  Begin
+   fTop                := 0;
+   fBottom             := fRows - 1;
+   fOrigin             := False;
+   fX                  := 0;
+   fY                  := 0;
+   fWrapPending        := False;
+   Cell                := Default(TTerminalCell);
+   Cell.Text           := 'E';
+   Cell.Foreground     := -1;
+   Cell.Background     := -2;
+   Cell.UnderlineColor := -1;
+   For y               := 0 To fRows - 1 Do
+    For x              := 0 To fColumns - 1 Do
+     fScreen[y][x]     := Cell;
   End;
 
  Procedure TTerminalBuffer.SetHistoryLimit(Value : Integer);
@@ -1402,7 +1426,11 @@ Implementation
         fResponses := fResponses + #27'[?1;2c';
       End;
       If (Code >= $20) And (Code <= $2F) And ((Code < Ord('(')) Or (Code > Ord('+'))) Then
-       fState := vsEscapeIntermediate;
+       Begin
+        fSequence        := Char(Code);
+        fSequenceInvalid := False;
+        fState           := vsEscapeIntermediate;
+       End;
       If fState = vsGround Then
        fLastGraphic := 0;
      End;
@@ -1487,8 +1515,17 @@ Implementation
        ProcessCode(Code);
       End;
     vsEscapeIntermediate :
-     If (Code < $20) Or (Code > $2F) Then
+     If (Code >= $20) And (Code <= $2F) Then
       Begin
+       If Length(fSequence) < 256 Then
+        fSequence := fSequence + Char(Code)
+       Else
+        fSequenceInvalid := True;
+      End
+     Else
+      Begin
+       If Not fSequenceInvalid And (fSequence = '#') And (Code = Ord('8')) Then
+        ScreenAlignmentPattern;
        fState       := vsGround;
        fLastGraphic := 0;
        If Code >= $A0 Then
