@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 17 listopada 2026, wersja 1.0.42.75. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 17 listopada 2026, wersja 1.0.43.76. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -377,3 +377,13 @@ Nadpisanie końca wcześniej zawiniętego wiersza i poszerzenie grafemu zachowuj
 Punkt odniesienia: [insert_char w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L3024). Pełna segmentacja, kształtowanie, przypadki jednokolumnowego terminala i dalsze porównania reflow pozostają odrębnymi ograniczeniami portu.
 
 Weryfikacja 1.0.42.75: formatter bez błędów i sprawdzony diff; 152/152 scenariusze DUnitX bez błędów i wycieków. Nowe testy potwierdziły naprawę obu granic, poszerzenie grafemu, DECAWM/IRM i zachowanie SoftWrapped; istniejące scenariusze reflow oraz renderowania również przeszły. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie, bez zmiany DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.42.75-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
+
+## Historia i granice przewijania — 1.0.43.76
+
+Przewijanie w górę na ekranie głównym dopisuje opuszczające ekran wiersze do historii zawsze, gdy region zaczyna się na górnej krawędzi, również przy dolnym marginesie przed końcem ekranu. Dotyczy wspólnej ścieżki SU, DL i przewijania po LF/IND. Limit historii i jej wyłączenie nadal obowiązują; ekran alternatywny nie dopisuje historii.
+
+Przy przewijaniu częściowego regionu rozłączane są miękkie zawinięcia na granicach nowego układu. Ruch w górę rozłącza górną/dolną granicę przed przesunięciem; ruch w dół po przesunięciu. Nienaruszone połączenia wewnątrz przesuwanych wierszy pozostają zachowane. Pełnoekranowy ruch w górę zachowuje połączenie historii z ekranem, a ruch w dół je przerywa. Operacje ekranu alternatywnego nie zmieniają metadanych historii głównej. Techniczny padding usuniętego zawinięcia przestaje być paddingiem.
+
+Punkt odniesienia: [scroll_text_up/down w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L2533). Trzy scenariusze DUnitX sprawdzają historię częściowego regionu dla SU i DL, zawartość wierszy poza regionem, granice i wnętrze zawinięć, limity historii oraz izolację alternatywnego ekranu. Poziome marginesy, dalsze przypadki reflow i długie sesje nadal wymagają pracy.
+
+Weryfikacja 1.0.43.76: formatter bez błędów i sprawdzony diff; 155/155 scenariuszy DUnitX bez błędów i wycieków. Nowe przypadki potwierdziły historię górnego częściowego regionu, limity i granice zawinięć oraz izolację ekranu alternatywnego. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.43.76-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.

@@ -1,6 +1,6 @@
 ﻿# Pokrycie emulatora VT
 
-Stan: 1.0.42.75. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.43.76. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -227,3 +227,11 @@ Przy wyłączonym DECAWM szeroki znak drukowany w ostatniej kolumnie cofa się o
 Nadpisanie końca wcześniej zawiniętego wiersza i poszerzenie grafemu zachowują znacznik SoftWrapped w ostatniej fizycznej komórce. Nadpisany techniczny padding jest usuwany. Trzy scenariusze DUnitX obejmują obie granice, sąsiednie szerokie znaki, selektor prezentacji, IRM, DECAWM i metadane wiersza.
 
 Punkt odniesienia: [insert_char w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L3024). Pełna segmentacja, kształtowanie, przypadki jednokolumnowego terminala i dalsze porównania reflow pozostają odrębnymi ograniczeniami portu.
+
+## Historia i granice przewijania — 1.0.43.76
+
+Przewijanie w górę na ekranie głównym dopisuje opuszczające ekran wiersze do historii zawsze, gdy region zaczyna się na górnej krawędzi, również przy dolnym marginesie przed końcem ekranu. Dotyczy wspólnej ścieżki SU, DL i przewijania po LF/IND. Limit historii i jej wyłączenie nadal obowiązują; ekran alternatywny nie dopisuje historii.
+
+Przy przewijaniu częściowego regionu rozłączane są miękkie zawinięcia na granicach nowego układu. Ruch w górę rozłącza górną/dolną granicę przed przesunięciem; ruch w dół po przesunięciu. Nienaruszone połączenia wewnątrz przesuwanych wierszy pozostają zachowane. Pełnoekranowy ruch w górę zachowuje połączenie historii z ekranem, a ruch w dół je przerywa. Operacje ekranu alternatywnego nie zmieniają metadanych historii głównej. Techniczny padding usuniętego zawinięcia przestaje być paddingiem.
+
+Punkt odniesienia: [scroll_text_up/down w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L2533). Trzy scenariusze DUnitX sprawdzają historię częściowego regionu dla SU i DL, zawartość wierszy poza regionem, granice i wnętrze zawinięć, limity historii oraz izolację alternatywnego ekranu. Poziome marginesy, dalsze przypadki reflow i długie sesje nadal wymagają pracy.

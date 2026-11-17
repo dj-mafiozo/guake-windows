@@ -16,6 +16,9 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure TopPartialScrollAddsHistoryAndPreservesRows;
+    [Test] Procedure ScrollBoundariesBreakOnlyDisconnectedWraps;
+    [Test] Procedure ScrollHistoryLimitsAndAlternateIsolation;
     [Test] Procedure WideOverwriteRepairsBothBoundaries;
     [Test] Procedure WidePrintWithoutAutowrapFitsAtRightEdge;
     [Test] Procedure GraphemeGrowthRepairsNeighbourAndKeepsSoftWrap;
@@ -159,6 +162,102 @@ Implementation
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+/// <summary>A region starting at row zero appends scrolled-out rows to history even with a partial bottom margin.</summary>
+
+ Procedure TTerminalTests.TopPartialScrollAddsHistoryAndPreservesRows;
+  Var
+   Buffer : TTerminalBuffer;
+   Final  : Char;
+   y      : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(4, 5);
+   Try
+    For Final In ['S', 'M'] Do
+     Begin
+      Buffer.Reset;
+      For y := 0 To 4 Do
+       Buffer.FeedText(#27 + '[' + IntToStr(y + 1) + ';1H' + StringOfChar(Char(Ord('A') + y), 3));
+      Buffer.FeedText(#27 + '[1;3r' + #27 + '[2' + Final);
+      Assert.AreEqual(7, Buffer.TotalLines);
+      Assert.AreEqual('AAA', Buffer.LineText(0));
+      Assert.AreEqual('BBB', Buffer.LineText(1));
+      Assert.AreEqual('CCC', Buffer.LineText(2));
+      Assert.AreEqual('', Buffer.LineText(3));
+      Assert.AreEqual('', Buffer.LineText(4));
+      Assert.AreEqual('DDD', Buffer.LineText(5));
+      Assert.AreEqual('EEE', Buffer.LineText(6));
+      Assert.AreEqual(0, Buffer.CursorY, 'Scrollback insertion does not move the viewport-relative cursor');
+     End;
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Partial-region scrolling breaks new boundaries while full-screen upward scrolling retains logical lines.</summary>
+
+ Procedure TTerminalTests.ScrollBoundariesBreakOnlyDisconnectedWraps;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(4, 5);
+   Try
+    Buffer.FeedText('abcdefghijklmnopq' + #27 + '[2;4r' + #27 + '[S');
+    Assert.IsFalse(Buffer.Cell[3, 0].SoftWrapped);
+    Assert.IsTrue(Buffer.Cell[3, 1].SoftWrapped, 'An intact interior paragraph remains joined');
+    Assert.IsFalse(Buffer.Cell[3, 2].SoftWrapped Or Buffer.Cell[3, 3].SoftWrapped);
+    Assert.AreEqual('abcd', Buffer.LineText(0));
+    Assert.AreEqual('ijkl', Buffer.LineText(1));
+    Assert.AreEqual('mnop', Buffer.LineText(2));
+    Assert.AreEqual('q', Buffer.LineText(4));
+    Buffer.Reset;
+    Buffer.FeedText('abcdefghijklmnopq' + #27 + '[2;4r' + #27 + '[T');
+    Assert.IsFalse(Buffer.Cell[3, 0].SoftWrapped Or Buffer.Cell[3, 3].SoftWrapped);
+    Assert.IsTrue(Buffer.Cell[3, 2].SoftWrapped);
+    Buffer.Reset;
+    Buffer.FeedText('abcdefghijklmnopq' + #27 + '[S');
+    Assert.AreEqual(6, Buffer.TotalLines);
+    Assert.IsTrue(Buffer.Cell[3, 0].SoftWrapped, 'Full-screen upward scrolling retains the history-to-screen join');
+    Buffer.FeedText(#27 + '[T');
+    Assert.IsFalse(Buffer.Cell[3, 0].SoftWrapped, 'Scrolling down breaks the history-to-screen join');
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Checks bounded/disabled history and absence of alternate-screen history for a top partial region.</summary>
+
+ Procedure TTerminalTests.ScrollHistoryLimitsAndAlternateIsolation;
+  Var
+   Buffer : TTerminalBuffer;
+   y      : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(4, 5, 1);
+   Try
+    For y := 0 To 4 Do
+     Buffer.FeedText(#27 + '[' + IntToStr(y + 1) + ';1H' + Char(Ord('A') + y));
+    Buffer.FeedText(#27 + '[1;3r' + #27 + '[2S');
+    Assert.AreEqual(6, Buffer.TotalLines);
+    Assert.AreEqual('B', Buffer.LineText(0), 'The history limit drops the oldest row');
+    Buffer.SetHistoryLimit(0);
+    Assert.AreEqual(5, Buffer.TotalLines);
+    Buffer.FeedText(#27 + '[S');
+    Assert.AreEqual(5, Buffer.TotalLines);
+    Buffer.SetHistoryLimit(10);
+    Buffer.FeedText(#27 + '[?1049h' + #27 + '[1;3r' + #27 + '[2S');
+    Assert.AreEqual(5, Buffer.TotalLines, 'Alternate scrolling never appends primary history');
+    Buffer.FeedText(#27 + '[?1049l');
+    Assert.AreEqual('D', Buffer.LineText(3));
+    Assert.AreEqual('E', Buffer.LineText(4));
+    Buffer.Reset;
+    Buffer.FeedText('abcdefghijklmnopqrstu');
+    Assert.IsTrue(Buffer.Cell[3, 0].SoftWrapped);
+    Buffer.FeedText(#27 + '[?1049h' + #27 + '[T' + #27 + '[?1049l');
+    Assert.IsTrue(Buffer.Cell[3, 0].SoftWrapped, 'Alternate scrolling must not break primary history metadata');
+   Finally
+    Buffer.Free;
+   End;
+  End;
 
 /// <summary>Overwriting two columns repairs both intersected old glyphs and preserves the row wrap marker.</summary>
 

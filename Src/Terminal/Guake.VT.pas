@@ -119,6 +119,7 @@ Interface
     Procedure LineFeed;
     Procedure MoveTab         (Count : Integer; ForwardTab : Boolean);
     Procedure Scroll          (Up : Boolean; Count : Integer);
+    Procedure BreakLineAfter  (Row : Integer);
     Procedure ExecuteCSI      (Final : Char);
     Procedure ResetTerminal   (HardReset : Boolean);
     Procedure ScreenAlignmentPattern;
@@ -418,16 +419,44 @@ Implementation
      fHistory.Delete(0);
   End;
 
+/// <summary>Breaks a logical paragraph at a scrolling boundary, including the last history row above the screen.</summary>
+
+ Procedure TTerminalBuffer.BreakLineAfter(Row : Integer);
+  Var
+   Line : TTerminalLine;
+  Begin
+   If (Row >= 0) And (Row < fRows) Then
+    Line := fScreen[Row]
+   Else If (Row = -1) And Not fAlternate And (fHistory.Count > 0) Then
+    Line := fHistory.Last
+   Else
+    Exit;
+   If Length(Line) > 0 Then
+    Begin
+     Line[High(Line)].SoftWrapped := False;
+     Line[High(Line)].WrapPadding := False;
+    End;
+  End;
+
  Procedure TTerminalBuffer.Scroll(Up : Boolean; Count : Integer);
   Var
-   i, n, h : Integer;
-   Line    : TTerminalLine;
+   i, n, h, Amount : Integer;
+   Line            : TTerminalLine;
   Begin
-   h     := fBottom - fTop + 1;
-   For n := 1 To Min(Max(Count, 0), h) Do
+   h      := fBottom - fTop + 1;
+   Amount := Min(Max(Count, 0), h);
+   If Amount = 0 Then
+    Exit;
+   If Up And ((fTop > 0) Or (fBottom < fRows - 1)) Then
+    Begin
+     If fTop > 0 Then
+      BreakLineAfter(fTop - 1);
+     BreakLineAfter(fBottom);
+    End;
+   For n := 1 To Amount Do
     If Up Then
      Begin
-      If Not fAlternate And (fTop = 0) And (fBottom = fRows - 1) And (fHistoryLimit <> 0) Then
+      If Not fAlternate And (fTop = 0) And (fHistoryLimit <> 0) Then
        Begin
         fHistory.Add(Copy(fScreen[fTop]));
         If fHistoryLimit >= 0 Then
@@ -448,6 +477,11 @@ Implementation
       fScreen[fTop] := Line;
       ClearLine(fScreen[fTop], 0, fColumns - 1);
      End;
+   If Not Up Then
+    Begin
+     BreakLineAfter(fTop - 1);
+     BreakLineAfter(fBottom);
+    End;
   End;
 
  Procedure TTerminalBuffer.LineFeed;
