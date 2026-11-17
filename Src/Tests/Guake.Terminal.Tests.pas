@@ -32,6 +32,7 @@ Interface
     [Test] Procedure TitleStackLimitsResetAndScreenIsolation;
     [Test] Procedure CursorStyleParsingQueriesAndReset;
     [Test] Procedure CursorStyleRendersAndOverridesPreferences;
+    [Test] Procedure UnfocusedCursorKeepsOutlineAndRefreshesCache;
     [Test] Procedure RefocusAndLazyHideRespectForeground;
     [Test] Procedure LogicalLinesJoinSoftWrapsAndMapCells;
     [Test] Procedure UnchangedSplitPanesReuseComposition;
@@ -925,6 +926,89 @@ Implementation
     Frame.Session.Buffer.FeedText(#27'[?25h');
     Main.Hide;
     Assert.IsFalse(Frame.CursorVisibleAt(0), 'An unfocused Terminal does Not paint the active Cursor');
+   Finally
+    Output.Free;
+    Main.Free;
+    Settings.Free;
+   End;
+  End;
+
+/// <summary>Verifies steady inactive cursors, wide block outlines, focus cache transitions and DECTCEM.</summary>
+
+ Procedure TTerminalTests.UnfocusedCursorKeepsOutlineAndRefreshesCache;
+  Var
+   Settings : TGuakeSettings;
+   Main     : TfrmMain;
+   Frame    : TfraTerminal;
+   Output   : TBitmap;
+   Width    : Integer;
+   Height   : Integer;
+   Style    : Integer;
+  Begin
+   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Main     := Nil;
+   Output   := TBitmap.Create;
+   Try
+    Settings.General.DefaultShell         := 'cmd';
+    Settings.General.UseTrayicon          := False;
+    Settings.General.UsePopup             := False;
+    Settings.General.SaveTabsWhenChanged  := False;
+    Settings.Keybindings.Global.ShowHide  := 'disabled';
+    Settings.Keybindings.Global.ShowFocus := 'disabled';
+    Settings.Style.CursorShape            := 1;
+    Settings.Style.CursorBlinkMode        := 2;
+    Main                                  := TfrmMain.Create(Nil);
+    Main.Bind(Settings);
+    Main.StartTerminal;
+    Main.SetTerminalVisible(True);
+    Main.SetBounds( -30000, 0, 500, 200);
+    Main.pollTimer.Enabled     := False;
+    Frame                      := Main.ActiveTerminalFrame;
+    Frame.refreshTimer.Enabled := False;
+    Frame.Session.Buffer.Reset;
+    Frame.SetFocus;
+    Assert.IsTrue(Frame.Focused);
+    Output.Canvas.Font.Assign(Frame.Font);
+    Width  := Output.Canvas.TextWidth('M');
+    Height := Output.Canvas.TextHeight('Mg');
+    Assert.IsTrue((Width > 4) And (Height > 4));
+    Frame.Session.Buffer.FeedText(#$4E2D + #27'[1;2H' + #27'[2 q');
+    Frame.RenderAlpha(Output, 96);
+    Assert.AreEqual(255, Integer(PixelAt(Output, 4 + Width, 4 + Height Div 2).rgbReserved));
+    For Style := 1 To 3 Do
+     Begin
+      Frame.scroll.SetFocus;
+      Assert.IsFalse(Frame.Focused);
+      Assert.IsTrue(Frame.CursorVisibleAt(0));
+      Assert.IsTrue(Frame.CursorVisibleAt(500), 'Inactive cursor does not blink');
+      Frame.RenderAlpha(Output, 96);
+      Assert.AreEqual(255, Integer(PixelAt(Output, 4 + 2 * Width - 1, 4).rgbReserved), 'Outline covers both cells');
+      // Inspect the empty right-hand spacing, outside the CJK glyph.
+      Assert.AreEqual(96, Integer(PixelAt(Output, 4 + 2 * Width - 2, 5).rgbReserved), 'Inactive block is hollow');
+      Frame.SetFocus;
+      Assert.IsTrue(Frame.Focused);
+      Frame.RenderAlpha(Output, 96);
+      Assert.AreEqual(255, Integer(PixelAt(Output, 4 + 2 * Width - 2, 5).rgbReserved), 'Restoring focus replaces the outline with a filled block');
+     End;
+    Frame.Session.Buffer.Reset;
+    Frame.scroll.SetFocus;
+    For Style := 3 To 6 Do
+     Begin
+      Frame.Session.Buffer.FeedText(#27'[' + IntToStr(Style) + ' q');
+      Assert.IsTrue(Frame.CursorVisibleAt(500), 'Inactive bar and underline remain steady');
+      Frame.RenderAlpha(Output, 96);
+      If Style <= 4 Then
+       Assert.AreEqual(255, Integer(PixelAt(Output, 4 + Width - 1, 4 + Height - 1).rgbReserved))
+      Else
+       Assert.AreEqual(255, Integer(PixelAt(Output, 4, 4).rgbReserved));
+     End;
+    Frame.Session.Buffer.FeedText(#27'[?25l');
+    Assert.IsFalse(Frame.CursorVisibleAt(0));
+    Frame.RenderAlpha(Output, 96);
+    Assert.AreEqual(96, Integer(PixelAt(Output, 4, 4).rgbReserved), 'DECTCEM also hides the inactive cursor');
+    Frame.Session.Buffer.FeedText(#27'[?25h');
+    Main.Hide;
+    Assert.IsFalse(Frame.CursorVisibleAt(0), 'Hidden panes do not render a cursor');
    Finally
     Output.Free;
     Main.Free;

@@ -1,4 +1,4 @@
-# Wzorzec interfejsu Guake
+﻿# Wzorzec interfejsu Guake
 
 Wzorzec: oryginalny Guake 3.9.1.dev0 uruchomiony na Manjaro w VirtualBox. Zrzuty przekazane przez użytkownika 14 listopada 2026 uzupełniają lokalne źródła `../guake/guake/data/prefs.glade`, `prefs.py`, `menus.py` i `dialogs.py`.
 
@@ -53,3 +53,7 @@ Pojedynczy klik ustawia fokus bez zaznaczania znaku. Dwuklik zaznacza słowo, pr
 ### Fokus i chowanie
 
 Przy aktywnym refocus główny skrót aktywuje widoczne, nieaktywne okno; kolejne użycie w aktywnym terminalu chowa okno. Lazy hide daje 300 ms na powrót fokusu. Otwarcie własnego dialogu lub menu nie powinno powodować schowania terminala. Test osobnego procesu potwierdza podstawowe przejścia Windows; zachowanie podczas IME i zmiany pulpitów wymaga dalszych obserwacji.
+
+## Kursor bez fokusu — 1.0.36.69
+
+Panel bez fokusu pozostawia stały obrys kursora blokowego; kreska i podkreślenie także nie migają. Powrót fokusu przywraca wypełnienie i wybrany tryb migania. Aktualny obrys GDI mieści się wewnątrz komórki; zewnętrzny obrys, wystające glify i kierunkowość jak w VTE wymagają dalszych porównań.

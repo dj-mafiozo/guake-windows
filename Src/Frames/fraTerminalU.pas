@@ -68,6 +68,7 @@ Interface
     fAlphaOpacity          : Byte;
     fAlphaScroll           : Integer;
     fAlphaCursor           : Boolean;
+    fAlphaFocused          : Boolean;
     fAlphaRenderCount      : UInt64;
     fBackgroundDirty       : Boolean;
     fAnimation             : TAnimatedBackground;
@@ -265,11 +266,16 @@ Implementation
     End
    Else
     Inherited;
-   If Not(csDestroying In ComponentState) And (fSession <> Nil) And Not fSession.Exited And fSession.Buffer.FocusReporting Then
-    Case Message.Msg Of
-     WM_SETFOCUS  : fSession.SendText(#27'[I');
-     WM_KILLFOCUS : fSession.SendText(#27'[O');
-    End;
+   If Not(csDestroying In ComponentState) And (fSession <> Nil) Then
+    If (Message.Msg = WM_SETFOCUS) Or (Message.Msg = WM_KILLFOCUS) Then
+     Begin
+      InvalidateSurface(False);
+      If Not fSession.Exited And fSession.Buffer.FocusReporting Then
+       If Message.Msg = WM_SETFOCUS Then
+        fSession.SendText(#27'[I')
+       Else
+        fSession.SendText(#27'[O');
+     End;
   End;
 
  Procedure TfraTerminal.Bind(Session : TTerminalSession; Settings : TGuakeSettings);
@@ -745,8 +751,11 @@ Implementation
          1 : r.Right := r.Left + 2;
          2 : r.Top := r.Bottom - 2;
         End;
-        Canvas.FillRect(r);
-        If (CursorShape = 0) And Not Mask Then
+        If (CursorShape = 0) And Not Focused Then
+         Canvas.FrameRect(r)
+        Else
+         Canvas.FillRect(r);
+        If (CursorShape = 0) And Focused And Not Mask Then
          Begin
           // The coverage mask stays opaque for the whole block, including inverted glyph pixels.
           Canvas.Font.Assign(Font);
@@ -804,8 +813,11 @@ Implementation
    Interval : Cardinal;
   Begin
    Result := False;
-   If Not Focused Or (fSession = Nil) Or Not fSession.Buffer.CursorVisible Or fSession.Exited Then
+   If (fSession = Nil) Or Not IsWindowVisible(Handle) Or Not fSession.Buffer.CursorVisible Or fSession.Exited Then
     Exit;
+   // Unfocused cursors remain visible and steady; only the active cursor blinks.
+   If Not Focused Then
+    Exit(True);
    Style    := fSession.Buffer.CursorStyle;
    Interval := 500;
    If Style = 0 Then
@@ -901,7 +913,7 @@ Implementation
    Cursor    := CursorVisibleAt(GetTickCount64);
    If (fAlphaSurface = Nil) Or (fAlphaSurface.Width <> surface.Width) Or (fAlphaSurface.Height <> surface.Height) Or
    (fAlphaVisualRevision <> fVisualRevision) Or (fAlphaBufferRevision <> Revision) Or
-   (fAlphaOpacity <> Opacity) Or (fAlphaScroll <> scroll.Position) Or (fAlphaCursor <> Cursor) Or
+   (fAlphaOpacity <> Opacity) Or (fAlphaScroll <> scroll.Position) Or (fAlphaCursor <> Cursor) Or (fAlphaFocused <> Focused) Or
    (fHasBlinkRows And (fAlphaTextBlinkOff <> fTextBlinkOff)) Then
     Begin
      Full := fFullRasterDirty Or fBackgroundDirty Or (fBackSurface = Nil) Or
@@ -982,6 +994,7 @@ Implementation
      fAlphaOpacity        := Opacity;
      fAlphaScroll         := scroll.Position;
      fAlphaCursor         := Cursor;
+     fAlphaFocused        := Focused;
      fAlphaTextBlinkOff   := fTextBlinkOff;
      Inc(fAlphaRenderCount);
     End;
