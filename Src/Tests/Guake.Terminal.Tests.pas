@@ -16,6 +16,8 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure PrivateModesSaveRestoreAndFragmentation;
+    [Test] Procedure PrivateModeOriginResetAndIsolation;
     [Test] Procedure TitleStackFragmentsNestingAndEmptyTitle;
     [Test] Procedure TitleStackLimitsResetAndScreenIsolation;
     [Test] Procedure CursorStyleParsingQueriesAndReset;
@@ -268,6 +270,78 @@ Implementation
   End;
 
 /// <summary>Soft wraps preserve UTF-16 hit positions; explicit newlines remain separate.</summary>
+
+/// <summary>Private mode caches preserve independent true/false values and work across input fragments.</summary>
+
+ Procedure TTerminalTests.PrivateModesSaveRestoreAndFragmentation;
+  Var
+   Buffer   : TTerminalBuffer;
+   Mode     : Integer;
+   Split    : Integer;
+   Sequence : String;
+  Begin
+   Buffer := TTerminalBuffer.Create(20, 5);
+   Try
+    For Mode In TArray<Integer>.Create(1, 6, 7, 25, 66, 1004, 1005, 1006, 2004) Do
+     Begin
+      Buffer.Reset;
+      Buffer.FeedText(Format(#27'[?%dh' + #27'[?%ds' + #27'[?%dl' + #27'[?%dr' + #27'[?%d$p', [Mode, Mode, Mode, Mode, Mode]));
+      Assert.AreEqual(Format(#27'[?%d;1$y', [Mode]), Buffer.TakeResponses);
+      Buffer.FeedText(Format(#27'[?%dl' + #27'[?%ds' + #27'[?%dh' + #27'[?%dr' + #27'[?%d$p', [Mode, Mode, Mode, Mode, Mode]));
+      Assert.AreEqual(Format(#27'[?%d;2$y', [Mode]), Buffer.TakeResponses, 'False overwrites the previous saved true value');
+     End;
+    Sequence  := #27'[?1;25;2004h' + #27'[?1;25;2004s' + #27'[?1;25;2004l' + #27'[?1;2004r' + #27'[?1;25;2004$p';
+    For Split := 0 To Length(Sequence) Do
+     Begin
+      Buffer.Reset;
+      Buffer.FeedText(Copy(Sequence, 1, Split));
+      Buffer.FeedText(Copy(Sequence, Split + 1, MaxInt));
+      Assert.AreEqual(#27'[?1;1$y' + #27'[?25;2$y' + #27'[?2004;1$y', Buffer.TakeResponses);
+     End;
+    Buffer.Reset;
+    Buffer.FeedText(#27'[?1h' + #27'[?1s' + #27'[?1l' + #27'[?1:25s' + #27'[?999999999999s' + #27'[?1r');
+    Assert.IsTrue(Buffer.ApplicationCursor, 'Invalid saves do not replace the saved mode');
+    Buffer.FeedText(#27'[?1003h' + #27'[?1003s' + #27'[?1000h' + #27'[?1003r');
+    Assert.AreEqual(1000, Buffer.MouseMode, 'Tracking-mode save/restore remains unsupported');
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Restored origin mode homes within current margins; RIS clears caches and buffers remain independent.</summary>
+
+ Procedure TTerminalTests.PrivateModeOriginResetAndIsolation;
+  Var
+   Buffer : TTerminalBuffer;
+   Other  : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 5);
+   Other  := TTerminalBuffer.Create(8, 5);
+   Try
+    Buffer.FeedText(#27'[2;4r' + #27'[H' + 'ABCDEFGH' + #27'[?6h' + 'X');
+    Assert.AreEqual('X', Buffer.Cell[0, 1].Text, 'Origin homing cancels pending wrap');
+    Assert.AreEqual(1, Buffer.CursorY);
+    Buffer.FeedText(#27'[?6s' + #27'[?6l' + #27'[3;4H' + #27'[?6r');
+    Assert.AreEqual(0, Buffer.CursorX);
+    Assert.AreEqual(1, Buffer.CursorY);
+    Buffer.FeedText(#27'[6n');
+    Assert.AreEqual(#27'[1;1R', Buffer.TakeResponses);
+    Buffer.FeedText(#27'[?1h' + #27'[?1s' + #27'[?1049h' + #27'[?1l' + #27'[?1r');
+    Assert.IsTrue(Buffer.ApplicationCursor, 'Saved modes are shared across screens');
+    Buffer.FeedText(#27'[?1049l');
+    Other.FeedText(#27'[?1r');
+    Assert.IsFalse(Other.ApplicationCursor, 'Restore without a saved value is a no-op');
+    Buffer.FeedText(#27'c' + #27'[?1r');
+    Assert.IsFalse(Buffer.ApplicationCursor, 'RIS discards saved private modes');
+    Buffer.FeedText(#27'[?2004h' + #27'[?2004s' + #27'[?2004l');
+    Buffer.Resize(10, 6);
+    Buffer.FeedText(#27'[?2004r');
+    Assert.IsTrue(Buffer.BracketedPaste, 'Resize preserves saved modes');
+   Finally
+    Other.Free;
+    Buffer.Free;
+   End;
+  End;
 
 /// <summary>Exercises title stack fragmentation, nesting and empty values without changing screen state.</summary>
 
@@ -724,9 +798,9 @@ Implementation
     Assert.IsTrue(Pos('PROBE_READY', Session.Buffer.Text) > 0, 'Native input probe must be ready: ' + Session.Buffer.Text);
     Assert.IsTrue(Session.Buffer.FocusReporting, 'Child focus request must reach the terminal model');
     Assert.IsTrue(Session.Buffer.ApplicationKeypad, 'Child keypad request must reach the terminal model');
-    Session.Buffer.FeedText(#27'[?1004l'#27'[?1003l');
+    Session.Buffer.FeedText(#27'[?1004s' + #27'[?1004l' + #27'[?1003l');
     Frame.Perform(WM_SETFOCUS, 0, 0);
-    Session.Buffer.FeedText(#27'[?1004h'#27'[18t'#27'[?1004$p');
+    Session.Buffer.FeedText(#27'[?1004r' + #27'[18t' + #27'[?1004$p');
     Expected := Format(#27'[8;%d;%dt', [Session.Buffer.Rows, Session.Buffer.Columns]) + #27'[?1004;1$y';
     Session.Poll;
     Frame.Perform(WM_SETFOCUS, 0, 0);
@@ -754,7 +828,7 @@ Implementation
     Frame.Perform(WM_KEYDOWN, VK_LEFT, $01000000);
     Frame.Perform(WM_KEYDOWN, VK_LEFT, 0);
     Expected := Expected + #27'Oq'#27'OM'#27'[D'#27'Ot';
-    Session.Buffer.FeedText(#27'>');
+    Session.Buffer.FeedText(#27'>' + #27'[?66s' + #27'[?66h' + #27'[?66r');
     Frame.Perform(WM_KEYDOWN, VK_NUMPAD2, 0);
     Frame.Perform(WM_CHAR, Ord('2'), 0);
     Expected := Expected + '2';
@@ -883,7 +957,7 @@ Implementation
     Frame.SurfaceMouseUp(Nil, mbMiddle, [], 5, 5);
     Expected := Expected + 'PRIMARY_WORD';
     Assert.AreEqual('', Frame.SelectedText);
-    Session.Buffer.FeedText(#27'[?2004h');
+    Session.Buffer.FeedText(#27'[?2004h' + #27'[?2004s' + #27'[?2004l' + #27'[?2004r');
     Frame.SurfaceMouseDown(Nil, mbMiddle, [], 5, 5);
     Frame.SurfaceMouseUp(Nil, mbMiddle, [], 5, 5);
     Expected := Expected + #27'[200~PRIMARY_WORD'#27'[201~';

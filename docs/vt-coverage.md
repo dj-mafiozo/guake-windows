@@ -1,6 +1,6 @@
 # Pokrycie emulatora VT
 
-Stan: 1.0.30.63. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.31.64. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -9,7 +9,7 @@ Stan: 1.0.30.63. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | Tabulatory | HT, HTS (ESC H), TBC (CSI g, CSI 3 g), CHT (CSI I), CBT (CSI Z), DECST8C (CSI ? 5 W); domyślne co 8 kolumn | Testy porównawcze z VTE przy zmianach geometrii i ekranów |
 | Ruch | CUU/CUD/CUF/CUB, CNL/CPL, CHA/HPA, VPA, CUP/HVP, HPR/VPR | Pełne zachowanie marginesów, dodatkowe tryby i warianty |
 | Edycja | ED/EL, ICH/DCH/ECH, IL/DL, SU/SD, DECSTBM | Selective erase i chronione komórki; prostokąty DEC; poziome marginesy; szerokie znaki przecinające granice edycji |
-| Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS | Chronione komórki/selective erase, DECSTR i zapisywanie trybów prywatnych |
+| Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS; XTSAVE/XTRESTORE dla dziewięciu wybranych trybów | Chronione komórki/selective erase, DECSTR i pozostałe tryby prywatne |
 | Kursor | Widoczność DECTCEM, DECSCUSR 0–6: preferencje lub blok/podkreślenie/pionowa kreska, warianty migające i stałe; odczyt przez DECRQSS | Dalsza zgodność geometrii i wypełnienia bloku z VTE; wariant xterm 7 nie jest obsługiwany |
 | Ekrany | Ekran główny i alternatywny, 47/1047/1049, historia i reflow ekranu głównego | Osobna macierz wariantów przełączania i zapisów kursora, przypadki brzegowe reflow |
 | SGR | Reset, bold/faint, italic, conceal, strike, overline, inverse; pięć stylów podkreślenia i jego kolor 58/59; miganie 5/6/25; ANSI 16/256 i RGB przez średniki i dwukropki | Dalsze warianty SGR, integracja systemowych preferencji migania i porównanie geometrii dekoracji z VTE |
@@ -131,3 +131,11 @@ XTWINOPS CSI 22;2 t zapisuje tytuł okna z OSC 0/2, a CSI 23;2 t go przywraca. P
 Stos LIFO jest ograniczony do 64 wpisów z usuwaniem najstarszego przy przepełnieniu. Pusty wpis jest przywracany, pusty stos nie zmienia tytułu. Stos należy do sesji terminala, jest wspólny dla jej ekranów i przeżywa resize; RIS go czyści. Nie jest częścią trwałego zapisu sesji ani pamięci wznawianego procesu.
 
 Dwa scenariusze DUnitX obejmują każde miejsce podziału sekwencji OSC/CSI, zagnieżdżenie, parametry 0/2 i domyślny, pusty tytuł, podpełnienie i przepełnienie, ignorowane operacje ikon/slotów, niezależność terminali, ekran alternatywny, resize i reset. Sprawdzają także zachowanie oczekującego zawinięcia oraz brak dodatkowych odpowiedzi. Nie zastępuje to pełnego porównania wszystkich operacji tytułów i okna z uruchomionym VTE.
+
+## XTSAVE i XTRESTORE — 1.0.31.64
+
+CSI ? Pm s zapisuje wybrane tryby prywatne, a CSI ? Pm r odtwarza wskazane wartości, zgodnie z jednopoziomowym cache opisanym w [dokumentacji xterm](https://github.com/ThomasDickey/xterm-snapshots/blob/master/ctlseqs.ms). Obsługiwane identyfikatory: 1, 6, 7, 25, 66, 1004, 1005, 1006, 2004. Zapisy true i false są niezależne dla każdego trybu. Powtórny save nadpisuje zapis, a restore bez save niczego nie zmienia. CSI s/u bez prefiksu pozostaje zapisem kursora.
+
+Restore stosuje te same skutki co DECSET/DECRST. Origin powoduje homing w bieżących marginesach i wyłącza oczekujące zawinięcie. Przywrócenie formatu myszy unieważnia filtr raportów tak samo jak bezpośrednia negocjacja. Cache jest osobny dla każdego terminala, wspólny dla jego ekranów i zachowywany po resize; RIS go czyści. Zapisy nie trafiają do pliku sesji.
+
+Dwa nowe scenariusze DUnitX obejmują wartości true/false, nadpisywanie, wiele trybów, wszystkie miejsca podziału sekwencji, błędne parametry, brak zapisu, origin i oczekujące zawinięcie, reset, zmianę rozmiaru, ekrany i niezależność terminali. Rozszerzony natywny odbiornik ConPTY sprawdza efekty przywrócenia fokusu 1004, klawiatury numerycznej 66 i bracketed paste 2004. Poza zakresem pozostają przełączanie ekranów, zapisy kursora, śledzenie myszy 1000/1002/1003 i pozostałe identyfikatory prywatne. Samo rozpoznanie trybu przez DECRQM nie oznacza, że jest już objęty save/restore.

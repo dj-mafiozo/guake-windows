@@ -1,6 +1,6 @@
 # Stan portu Guake dla Windows
 
-Stan kodu na 17 listopada 2026, wersja 1.0.30.63. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 17 listopada 2026, wersja 1.0.31.64. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -257,3 +257,13 @@ Każdy bufor terminala ma własny stos do 64 wpisów. Po przekroczeniu limitu us
 Przywrócony tytuł jest dostępny w istniejącej ścieżce nazw sesji/kart. Ręczne nazwy i tytuły z konfiguracji projektu nadal mają pierwszeństwo. Osobne etykiety ikon (parametr 1), indeksowane sloty stosu i pozostałe operacje okna nadal nie są obsługiwane. Szczegóły i punkt odniesienia: [macierz VT](vt-coverage.md).
 
 Weryfikacja 1.0.30.63: formatter bez błędów i sprawdzony diff, 123/123 scenariusze DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Nowe scenariusze potwierdziły zagnieżdżenie, fragmentację, puste tytuły, limit 64 wpisów, reset, ekran alternatywny i niezależność terminali oraz zachowanie ekranu i oczekującego zawinięcia. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.30.63-Win64.zip z pasującymi EXE/PDB.
+
+## Zapis wybranych trybów prywatnych — 1.0.31.64
+
+XTSAVE (CSI ? Pm s) i XTRESTORE (CSI ? Pm r) obsługują tryby 1, 6, 7, 25, 66, 1004, 1005, 1006 i 2004: klawisze kursora aplikacyjnego, origin, autowrap, widoczność kursora, klawiaturę numeryczną, fokus, formaty myszy i bracketed paste. Każdy tryb ma jeden niezależny zapis, także wartości false. Kolejne save zastępuje poprzedni zapis tego samego trybu; restore zmienia tylko wskazane tryby. Brak zapisu oznacza brak działania.
+
+Zapisy są osobne dla każdego bufora, wspólne dla jego ekranów i zachowywane po resize. RIS je usuwa. Nie stanowią zapisu procesu ani trwałej sesji na dysku. Obsługiwanych jest dziewięć kluczy, więc cache jest ograniczony. Przełączanie ekranów i zapisy pozycji kursora, tryby śledzenia myszy 1000/1002/1003 oraz pozostałe tryby prywatne nie są jeszcze objęte XTSAVE/XTRESTORE.
+
+Zwykłe DECSET/DECRST i restore korzystają ze wspólnego stosowania skutków trybu. Przywrócenie origin ustawia kursor na początku bieżącego regionu i kasuje oczekujące zawinięcie; poprawiono ten sam przypadek przy zwykłym przełączeniu origin. Test natywny ConPTY obejmuje rzeczywiste skutki odtworzonych trybów fokusu, klawiatury numerycznej i bracketed paste. Szczegóły opisuje [macierz VT](vt-coverage.md).
+
+Weryfikacja 1.0.31.64: formatter bez błędów i sprawdzony diff, 125/125 scenariuszy DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Odbiorca ConPTY potwierdził raporty fokusu, klawiaturę numeryczną i bracketed paste po XTRESTORE; nowe scenariusze sprawdziły cache trybów, fragmentację, origin i reset. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.31.64-Win64.zip z pasującymi EXE/PDB.

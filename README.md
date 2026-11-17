@@ -83,3 +83,5 @@ Raportowanie myszy do aplikacji terminalowych rozróżnia przeciąganie lewym, �
 Format myszy UTF-8 `1005` jest częściowo obsługiwany (do 2015, z luką C1 w testowanej ścieżce ConPTY). Klasyczny format na ConPTY ogranicza się do współrzędnych 1–95, aby nie wysyłać niejednoznacznych danych poza ASCII. SGR `1006` zachowuje większy zakres i ma pierwszeństwo, gdy oba formaty są włączone.
 
 Programy terminalowe mogą zapisywać i przywracać tytuł okna przez `CSI 22;2 t` / `CSI 23;2 t`. Stos jest osobny dla każdej sesji, wspiera zagnieżdżenie i mieści do 64 zapisów; nie zastępuje ręcznych nazw kart.
+
+`XTSAVE` / `XTRESTORE` zapisują i przywracają wybrane tryby prywatne, m.in. klawiaturę aplikacyjną, fokus i bracketed paste. Zakres dziewięciu obsługiwanych trybów oraz pozostałe braki opisuje [macierz VT](docs/vt-coverage.md).

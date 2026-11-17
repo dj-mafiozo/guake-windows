@@ -57,6 +57,7 @@ Interface
     fPrimary           : TTerminalScreen;
     fHistory           : TList<TTerminalLine>;
     fTitleStack        : TList<String>;
+    fSavedModes        : TDictionary<Integer, Boolean>;
     fTabStops          : TArray<Boolean>;
     fColumns           : Integer;
     fRows              : Integer;
@@ -113,6 +114,7 @@ Interface
     Procedure MoveTab         (Count : Integer; ForwardTab : Boolean);
     Procedure Scroll          (Up : Boolean; Count : Integer);
     Procedure ExecuteCSI      (Final : Char);
+    Procedure ApplyPrivateMode(Mode : Integer; Enabled : Boolean);
     Function  ModeStatus      (Mode : Integer; PrivateMode : Boolean) : Integer;
     Procedure ExecuteSGR;
     Procedure ExecuteControl  (Code : Cardinal);
@@ -211,6 +213,7 @@ Implementation
    Inherited Create;
    fHistory      := TList<TTerminalLine>.Create;
    fTitleStack   := TList<String>.Create;
+   fSavedModes   := TDictionary<Integer, Boolean>.Create;
    fHistoryLimit := HistoryLimit;
    fColumns      := Columns;
    fRows         := Rows;
@@ -221,6 +224,7 @@ Implementation
 
  Destructor TTerminalBuffer.Destroy;
   Begin
+   fSavedModes.Free;
    fTitleStack.Free;
    fHistory.Free;
    Inherited;
@@ -231,6 +235,7 @@ Implementation
    i         : Integer;
    Alternate : Boolean;
   Begin
+   fSavedModes.Clear;
    fTitleStack.Clear;
    SetLength(fTabStops, fColumns);
    For i                := 0 To High(fTabStops) Do
@@ -656,12 +661,68 @@ Implementation
    Result := 2 - Ord(Enabled);
   End;
 
+/// <summary>Applies DECSET/DECRST and restored values through the same side effects.</summary>
+
+ Procedure TTerminalBuffer.ApplyPrivateMode(Mode : Integer; Enabled : Boolean);
+  Begin
+   Case Mode Of
+    1 :
+     fApplicationCursor := Enabled;
+    6 :
+     Begin
+      fOrigin := Enabled;
+      fX      := 0;
+      If fOrigin Then
+       fY := fTop
+      Else
+       fY          := 0;
+      fWrapPending := False;
+     End;
+    7 :
+     fAutoWrap := Enabled;
+    25 :
+     fCursorVisible := Enabled;
+    66 :
+     fApplicationKeypad := Enabled;
+    1048 :
+     If Enabled Then
+      SaveCursorState
+     Else
+      RestoreCursorState;
+    47, 1047, 1049 :
+     SwitchScreen(Enabled, Mode = 1049);
+    1000, 1002, 1003 :
+     Begin
+      Inc(fMouseRevision);
+      If Enabled Then
+       fMouseMode := Mode
+      Else
+       fMouseMode := 0;
+     End;
+    1004 :
+     fFocusReporting := Enabled;
+    1005 :
+     Begin
+      Inc(fMouseRevision);
+      fUtf8Mouse := Enabled;
+     End;
+    1006 :
+     Begin
+      Inc(fMouseRevision);
+      fSGRMouse := Enabled;
+     End;
+    2004 :
+     fBracketedPaste := Enabled;
+   End;
+  End;
+
  Procedure TTerminalBuffer.ExecuteCSI(Final : Char);
   Var
    Parts                    : TArray<String>;
    Params                   : TArray<Integer>;
    PrivateMode              : Boolean;
    SecondaryDA, ModeQuery   : Boolean;
+   SavedValue               : Boolean;
    Prefix                   : String;
    i, n, a, b, x, y, OldTop : Integer;
 
@@ -710,7 +771,7 @@ Implementation
    PrivateMode := Copy(fSequence, 1, 1) = '?';
    If PrivateMode Then
     Begin
-     If Not ModeQuery And Not CharInSet(Final, ['h', 'l', 'n', 'W']) Then
+     If Not ModeQuery And Not CharInSet(Final, ['h', 'l', 'n', 'W', 's', 'r']) Then
       Exit;
      Delete(fSequence, 1, 1);
     End;
@@ -731,6 +792,18 @@ Implementation
      Params[i] := 0
     Else If Not TryStrToInt(Parts[i], Params[i]) Then
      Exit;
+   If PrivateMode And CharInSet(Final, ['s', 'r']) Then
+    Begin
+     For i := 0 To High(Params) Do
+      Case Params[i] Of
+       1, 6, 7, 25, 66, 1004, 1005, 1006, 2004 :
+        If Final = 's' Then
+         fSavedModes.AddOrSetValue(Params[i], ModeStatus(Params[i], True) = 1)
+        Else If fSavedModes.TryGetValue(Params[i], SavedValue) Then
+         ApplyPrivateMode(Params[i], SavedValue);
+      End;
+     Exit;
+    End;
    If ModeQuery Then
     Begin
      Prefix := '';
@@ -857,50 +930,7 @@ Implementation
     'h', 'l' :
      For i := 0 To High(Params) Do
       If PrivateMode Then
-       Case Params[i] Of
-        1 :
-         fApplicationCursor := Final = 'h';
-        6 :
-         Begin
-          fOrigin := Final = 'h';
-          MoveCursor(0, IfThen(fOrigin, fTop, 0));
-         End;
-        7 :
-         fAutoWrap := Final = 'h';
-        25 :
-         fCursorVisible := Final = 'h';
-        66 :
-         fApplicationKeypad := Final = 'h';
-        1048 :
-         If Final = 'h' Then
-          SaveCursorState
-         Else
-          RestoreCursorState;
-        47, 1047, 1049 :
-         SwitchScreen(Final = 'h', Params[i] = 1049);
-        1000, 1002, 1003 :
-         Begin
-          Inc(fMouseRevision);
-          If Final = 'h' Then
-           fMouseMode := Params[i]
-          Else
-           fMouseMode := 0;
-         End;
-        1004 :
-         fFocusReporting := Final = 'h';
-        1005 :
-         Begin
-          Inc(fMouseRevision);
-          fUtf8Mouse := Final = 'h';
-         End;
-        1006 :
-         Begin
-          Inc(fMouseRevision);
-          fSGRMouse := Final = 'h';
-         End;
-        2004 :
-         fBracketedPaste := Final = 'h';
-       End
+       ApplyPrivateMode(Params[i], Final = 'h')
       Else If Params[i] = 4 Then
        fInsert := Final = 'h'
       Else If Params[i] = 20 Then
