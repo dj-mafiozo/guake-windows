@@ -1221,7 +1221,7 @@ Implementation
    Else If (p.x < 223) And (p.y < 223) Then
     Begin
      If Release Then
-      Button := 3;
+      Button := (Button And Not 3) Or 3;
      Send(#27'[M' + Char(Button + 32) + Char(p.x + 33) + Char(p.y + 33));
     End;
   End;
@@ -1287,6 +1287,8 @@ Implementation
   End;
 
  Procedure TfraTerminal.SurfaceMouseMove(Sender : TObject; Shift : TShiftState; x, y : Integer);
+  Var
+   Button : Integer;
   Begin
    If fSession = Nil Then
     Exit;
@@ -1300,8 +1302,20 @@ Implementation
      fSelectionEnd := MouseCell(x, y);
      InvalidateSurface;
     End
-   Else If Not(ssShift In Shift) And ((fSession.Buffer.MouseMode = 1003) Or ((fSession.Buffer.MouseMode = 1002) And (ssLeft In Shift))) Then
-    SendMouse(32, False, Shift, x, y);
+   Else If Not(ssShift In Shift) And
+   ((fSession.Buffer.MouseMode = 1003) Or
+   ((fSession.Buffer.MouseMode = 1002) And ((Shift * [ssLeft, ssMiddle, ssRight]) <> []))) Then
+    Begin
+     // VT motion adds 32 to the actual button; 3 means no button is pressed.
+     Button := 3;
+     If ssLeft In Shift Then
+      Button := 0
+     Else If ssMiddle In Shift Then
+      Button := 1
+     Else If ssRight In Shift Then
+      Button := 2;
+     SendMouse(32 + Button, False, Shift, x, y);
+    End;
   End;
 
  Procedure TfraTerminal.SurfaceMouseUp(Sender : TObject; Button : TMouseButton; Shift : TShiftState; x, y : Integer);

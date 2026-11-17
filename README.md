@@ -77,3 +77,5 @@ Dwuklik w terminalu zaznacza słowo według `word-chars`. Środkowy przycisk wkl
 Opcja `window-refocus` przywraca fokus widocznemu terminalowi po użyciu głównego skrótu zamiast go chować. `lazy-losefocus` opóźnia chowanie po utracie fokusu o 300 ms; powrót fokusu anuluje chowanie. Dialogi aplikacji pozostają chronione przed automatycznym ukryciem terminala.
 
 Aplikacje terminalowe mogą wybierać kształt i miganie kursora przez `DECSCUSR 0–6` oraz odczytać styl przez `DECRQSS`. Styl 0 przywraca preferencje terminala; ustawienia aplikacji nie zmieniają INI. Systemowy tryb migania używa czasu kursora Windows.
+
+Raportowanie myszy do aplikacji terminalowych rozróżnia przeciąganie lewym, środkowym i prawym przyciskiem oraz ruch bez przycisku w trybie 1003. Shift nadal pozwala korzystać z lokalnego zaznaczania zamiast raportowania do programu.

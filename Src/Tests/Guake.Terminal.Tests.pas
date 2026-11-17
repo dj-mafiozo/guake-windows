@@ -608,8 +608,10 @@ Implementation
     '[DllImport("kernel32.dll")] static extern bool SetConsoleMode(IntPtr h,uint m);'#13#10 +
     'public static void Run(string path) {'#13#10 +
     'if(!SetConsoleMode(GetStdHandle(-10),0x200)) throw new Exception("SetConsoleMode");'#13#10 +
-    'if(!SetConsoleMode(GetStdHandle(-11),7)) throw new Exception("Output mode"); Console.Write("\u001b[?1004h\u001b=PROBE_READY"); var data=new List<int>();'#13#10 +
-    'for(int i=0;i<256;i++){int c=Console.Read();if(c<0)throw new Exception("EOF");if(c==124){File.WriteAllText(path+".tmp",string.Join(",",data));File.Move(path+".tmp",path);return;}data.Add(c);}'#13#10 +
+    'if(!SetConsoleMode(GetStdHandle(-11),7)) throw new Exception("Output mode"); Console.Write("\u001b[?1004h\u001b[?1003h\u001b[?1006h\u001b=PROBE_READY"); var data=new List<int>();'#13#10 +
+    'for(int i=0;i<1024;i++){int c=Console.Read();if(c<0)throw new Exception("EOF");'#13#10 +
+    'if(c==94){Console.Write("\u001b[?1006lLEGACY_READY");continue;}'#13#10 +
+    'if(c==124){File.WriteAllText(path+".tmp",string.Join(",",data));File.Move(path+".tmp",path);return;}data.Add(c);}'#13#10 +
     'throw new Exception("Input limit");}}'#13#10 +
     '''@'#13#10 + '[Probe]::Run($args[0])', TEncoding.UTF8);
     Profile                               := TShellProfile.Resolve(gsPowerShell);
@@ -636,7 +638,7 @@ Implementation
     Assert.IsTrue(Pos('PROBE_READY', Session.Buffer.Text) > 0, 'Native input probe must be ready: ' + Session.Buffer.Text);
     Assert.IsTrue(Session.Buffer.FocusReporting, 'Child focus request must reach the terminal model');
     Assert.IsTrue(Session.Buffer.ApplicationKeypad, 'Child keypad request must reach the terminal model');
-    Session.Buffer.FeedText(#27'[?1004l');
+    Session.Buffer.FeedText(#27'[?1004l'#27'[?1003l');
     Frame.Perform(WM_SETFOCUS, 0, 0);
     Session.Buffer.FeedText(#27'[?1004h'#27'[18t'#27'[?1004$p');
     Expected := Format(#27'[8;%d;%dt', [Session.Buffer.Rows, Session.Buffer.Columns]) + #27'[?1004;1$y';
@@ -672,6 +674,39 @@ Implementation
     Expected := Expected + '2';
     Main.SetBounds( -30000, 0, 700, 200);
     Main.Show;
+    Session.Buffer.FeedText(#27'[?1002h'#27'[?1006h');
+    Frame.SurfaceMouseMove(Nil, [], 5, 5); // Mode 1002 must suppress hover.
+    Frame.SurfaceMouseDown(Nil, mbRight, [], 5, 5);
+    Frame.SurfaceMouseMove(Nil, [ssRight], 5, 5);
+    Frame.SurfaceMouseUp(Nil, mbRight, [], 5, 5);
+    Expected := Expected + #27'[<2;1;1M'#27'[<34;1;1M'#27'[<2;1;1m';
+    Frame.SurfaceMouseDown(Nil, mbMiddle, [], 5, 5);
+    Frame.SurfaceMouseMove(Nil, [ssMiddle, ssAlt, ssCtrl], 5, 5);
+    Frame.SurfaceMouseUp(Nil, mbMiddle, [ssAlt, ssCtrl], 5, 5);
+    Expected := Expected + #27'[<1;1;1M'#27'[<57;1;1M'#27'[<25;1;1m';
+    Frame.SurfaceMouseMove(Nil, [ssLeft], 5, 5);
+    Expected := Expected + #27'[<32;1;1M';
+    Session.Buffer.FeedText(#27'[?1003h');
+    Frame.SurfaceMouseMove(Nil, [], 5, 5);
+    Frame.SurfaceMouseMove(Nil, [ssCtrl], 5, 5);
+    Frame.SurfaceMouseMove(Nil, [ssShift, ssRight], 5, 5); // Shift remains a local selection override.
+    Expected := Expected + #27'[<35;1;1M'#27'[<51;1;1M';
+    Session.Buffer.FeedText(#27'[?1000h');
+    Frame.SurfaceMouseMove(Nil, [ssRight], 5, 5); // Mode 1000 never reports motion.
+    Session.SendText('^');
+    Deadline := GetTickCount64 + 5000;
+    Repeat
+     Session.Poll;
+     If Pos('LEGACY_READY', Session.Buffer.Text) > 0 Then
+      Break;
+     Sleep(10);
+    Until GetTickCount64 >= Deadline;
+    Assert.IsTrue(Pos('LEGACY_READY', Session.Buffer.Text) > 0, 'Child must select legacy mouse encoding');
+    Assert.IsFalse(Session.Buffer.SGRMouse);
+    Frame.SurfaceMouseDown(Nil, mbRight, [ssAlt, ssCtrl], 5, 5);
+    Frame.SurfaceMouseUp(Nil, mbRight, [ssAlt, ssCtrl], 5, 5);
+    Expected := Expected + #27'[M' + Char(58) + '!!' + #27'[M' + Char(59) + '!!';
+    Session.Buffer.FeedText(#27'[?1000l');
     Settings.General.WordChars    := '-A-Za-z0-9_';
     Settings.General.CopyOnSelect := False;
     Session.Buffer.FeedText(#27'[2J'#27'[HPRIMARY_WORD rest');

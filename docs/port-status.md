@@ -1,6 +1,6 @@
 # Stan portu Guake dla Windows
 
-Stan kodu na 16 listopada 2026, wersja 1.0.26.59. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 17 listopada 2026, wersja 1.0.27.60. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -217,3 +217,13 @@ Parser obsługuje DECSCUSR 0–6, a widok rzeczywiście stosuje kształt i migan
 Testy obejmują wszystkie wartości i podziały sekwencji, błędne parametry i CAN, oczekujące zawinięcie, widoczność, ekran alternatywny, DECSC, deterministyczne fazy migania, piksele kształtów, usuwanie poprzedniego kształtu z cache i powrót do preferencji. Pozostają różnice geometrii kursora z VTE, w tym obecny obrys bloku GDI. Szczegóły i źródła opisuje [macierz VT](vt-coverage.md).
 
 Weryfikacja 1.0.26.59: formatter bez błędów i sprawdzony diff, 121/121 scenariuszy DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Natywny odbiorca ConPTY potwierdził odpowiedź DCS ze stylem kursora; test pikseli potwierdził zmianę kształtu i usunięcie poprzedniego z cache alfy. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.26.59-Win64.zip z pasującymi EXE/PDB.
+
+## Raportowanie ruchu myszy — 1.0.27.60
+
+Tryb 1002 rozpoznaje teraz ruch z lewym, środkowym i prawym przyciskiem, a kod raportu odpowiada rzeczywistemu przyciskowi. Tryb 1003 wysyła ruch bez przycisku z kodem 35 (3 + flaga ruchu 32), zamiast udawać przeciąganie lewym. Ctrl i Alt są dodawane do kodu zdarzenia; Shift nadal omija raportowanie na rzecz lokalnego zaznaczania. Tryb 1000 nie wysyła ruchu. Przy kilku wciśniętych przyciskach priorytet mają lewy, środkowy, a następnie prawy.
+
+Klasyczny raport zwolnienia zachowuje modyfikatory i zastępuje jedynie niski kod przycisku wartością 3. SGR zachowuje numer zwalnianego przycisku i kończy raport literą m. Rozszerzony test wejścia ConPTY obejmuje trzy przyciski, hover, Ctrl/Alt, pominięcie ruchu w 1000/1002, Shift oraz przełączenie formatu przez sam proces potomny na klasyczny.
+
+Pozostają niezależne nakładanie trybów, filtrowanie powtórzeń ruchu wewnątrz tej samej komórki, pozostałe protokoły myszy i zgodność surowych bajtów klasycznych współrzędnych poza ASCII. Nie jest to deklaracja pełnej zgodności myszy z VTE/xterm. Szczegóły opisuje [macierz VT](vt-coverage.md).
+
+Weryfikacja 1.0.27.60: formatter bez błędów i sprawdzony diff, 121/121 scenariuszy DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Natywny odbiorca ConPTY potwierdził dokładne kody SGR dla ruchu i przycisków oraz klasyczne zwolnienie z zachowanymi Ctrl/Alt po zmianie formatu przez proces potomny. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.27.60-Win64.zip z pasującymi EXE/PDB.

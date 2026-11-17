@@ -1,6 +1,6 @@
 # Pokrycie emulatora VT
 
-Stan: 1.0.26.59. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.27.60. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -17,7 +17,7 @@ Stan: 1.0.26.59. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | OSC | 0/2: tytuł, 7: katalog, 8: odnośniki | Paleta i zapytania kolorów, stos tytułów, pozostałe OSC; polityka dostępu do schowka |
 | DCS/APC/PM | DCS DECRQSS dla SGR, marginesów i stylu kursora; pozostałe DCS/APC/PM/SOS są konsumowane | Pozostałe DCS i dalsze porównania ciągów z VTE |
 | Zestawy znaków | UTF-8, ASCII B, brytyjski A, DEC Special Graphics 0 w G0–G3; SI/SO, LS2/LS3, SS2/SS3 | Pozostałe zestawy narodowe, GR i 96-znakowe zestawy, warianty ESC z bajtami pośrednimi |
-| Wejście | Application cursor, bracketed paste, tryby myszy 1000/1002/1003 i 1006, fokus 1004, LNM 20 dla LF/Enter, aplikacyjna klawiatura numeryczna ESC = / ESC > / 66 | Pełna macierz modyfikatorów klawiatury, pozostałe protokoły klawiatury i myszy, niezależne nakładanie trybów myszy |
+| Wejście | Application cursor, bracketed paste, tryby myszy 1000/1002/1003 i 1006, fokus 1004, LNM 20 dla LF/Enter, aplikacyjna klawiatura numeryczna ESC = / ESC > / 66 | Pełna macierz modyfikatorów klawiatury, pozostałe protokoły klawiatury i myszy, niezależne nakładanie trybów myszy, filtrowanie ruchu w tej samej komórce i klasyczne współrzędne poza ASCII |
 | Grafemy i widok | Segmentacja ICU, szerokie komórki, znaki łączące, reflow; cache wierszy renderera | Pełny shaping, bidi i zgodność wizualna z VTE; segmentacja zależy od systemowego ICU |
 
 ## Regresje objęte testami w tym etapie
@@ -101,3 +101,11 @@ CSI Ps SP q (DECSCUSR) przyjmuje wartości 0–6. Wartość 0 lub brak parametru
 DCS $q SP q ST odpowiada DCS 1$r Ps SP q ST z bieżącą wartością stylu. Zapytanie i ustawienie nie zmieniają pozycji ani oczekującego zawinięcia. Styl należy do terminala: jest wspólny dla ekranów i nie wchodzi do zapisu DECSC/DECRC; RIS przywraca 0. Odpowiedź przechodzi zwykłą drogą do wejścia ConPTY.
 
 Widok stosuje tę samą funkcję fazy w rysowaniu, cache alfy i odświeżaniu. Jawne miganie ma okres półfazy 500 ms; ustawienie systemowe przy stylu 0 odczytuje GetCaretBlinkTime, również wyłączenie migania. Reset do 0 ponownie udostępnia preferencje. Zmiana stylu odświeża wiersz kursora i usuwa piksele poprzedniego kształtu. Testy porównują alfę kształtów oraz deterministyczne fazy migania, a natywny odbiorca ConPTY sprawdza bajty odpowiedzi. Obecny blok pozostaje obrysem GDI; pełne wypełnienie i geometria kursora zgodne z VTE wymagają dalszych prac i porównań.
+
+## Przyciski i ruch myszy — 1.0.27.60
+
+Ruch w trybie 1002 obejmuje wszystkie trzy przyciski; 1003 dodatkowo raportuje brak przycisku. Kod ruchu to numer przycisku 0/1/2 albo 3 przy hover, powiększony o 32 i bity modyfikatorów. Klasyczne zwolnienie zachowuje modyfikatory przy zastąpieniu numeru przycisku przez 3; SGR używa numeru przycisku i końcowego m. Punkt odniesienia: [źródło dokumentacji xterm, Mouse Tracking](https://github.com/ThomasDickey/xterm-snapshots/blob/master/ctlseqs.ms).
+
+Shift pozostaje lokalnym obejściem raportowania. Natywny test ConPTY porównuje kody SGR dla prawego, środkowego i lewego przeciągania, hover z modyfikatorami, brak raportu ruchu w 1000 i hover w 1002 oraz klasyczne zwolnienie z Ctrl/Alt. Odbiorca sam zmienia 1006, aby testować rzeczywistą negocjację z ConPTY.
+
+Dalsze ograniczenia: tryby 1000/1002/1003 nadal reprezentuje jeden aktywny tryb; raportowanie ruchu nie odfiltrowuje jeszcze powtórzeń wewnątrz tej samej komórki. Klasyczne współrzędne są ograniczone do 223, ale wysyłanie przez ścieżkę tekstową wymaga dalszej korekty dla wartości poza ASCII. Zalecanym obsługiwanym formatem pozostaje SGR 1006; brak jeszcze 1005/1015/1016 i pełnej macierzy protokołów.
