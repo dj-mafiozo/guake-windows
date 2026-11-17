@@ -1275,6 +1275,8 @@ Implementation
   Begin
    If (fSession = Nil) Or fSession.Exited Then
     Exit;
+   If (fSession.Buffer.MouseMode = 9) And (Release Or ((Button And 32) <> 0)) Then
+    Exit;
    p := MouseCell(x, y);
    Dec(p.y, scroll.Position);
    Motion := (Button And 32) <> 0;
@@ -1283,12 +1285,15 @@ Implementation
    (fMouseColumns = fSession.Buffer.Columns) And (fMouseRows = fSession.Buffer.Rows) And
    (p.x = fReportedMouseCell.x) And (p.y = fReportedMouseCell.y) Then
     Exit;
-   If ssShift In Shift Then
-    Inc(Button, 4);
-   If ssAlt In Shift Then
-    Inc(Button, 8);
-   If ssCtrl In Shift Then
-    Inc(Button, 16);
+   If fSession.Buffer.MouseMode <> 9 Then
+    Begin
+     If ssShift In Shift Then
+      Inc(Button, 4);
+     If ssAlt In Shift Then
+      Inc(Button, 8);
+     If ssCtrl In Shift Then
+      Inc(Button, 16);
+    End;
    If fSession.Buffer.SGRMouse Then
     Begin
      If Release Then

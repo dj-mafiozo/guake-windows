@@ -1,6 +1,6 @@
 ﻿# Pokrycie emulatora VT
 
-Stan: 1.0.46.79. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.47.80. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -9,7 +9,7 @@ Stan: 1.0.46.79. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | Tabulatory | HT, HTS (ESC H), TBC (CSI g, CSI 3 g), CHT (CSI I), CBT (CSI Z), DECST8C (CSI ? 5 W); domyślne co 8 kolumn | Testy porównawcze z VTE przy zmianach geometrii i ekranów |
 | Ruch | CUU/CUD/CUF/CUB, CNL/CPL, CHA/HPA, VPA, CUP/HVP, HPR/VPR; pionowy ruch względny respektuje kierunkowe marginesy DECSTBM | Poziome marginesy, dalsze tryby i warianty ruchu |
 | Edycja | REP (CSI Ps b), ED/EL, DECSEL/DECSED 0–2 i DECSCA, ICH/DCH/ECH, IL/DL, SU/SD, DECSTBM; ED/EL/ECH i ICH/DCH/IRM oraz zwykłe nadpisywanie naprawiają przecięte szerokie znaki | Selektywne ?3J i prostokąty DEC; poziome marginesy; dalsze przypadki szerokich znaków i reflow |
-| Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, ochrona komórek, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS i DECSTR; XTSAVE/XTRESTORE dla dwunastu wybranych trybów | Pozostałe tryby prywatne |
+| Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, ochrona komórek, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS i DECSTR; XTSAVE/XTRESTORE dla trzynastu wybranych trybów | Pozostałe tryby prywatne |
 | Kursor | Widoczność DECTCEM, DECSCUSR 0–6: preferencje lub blok/podkreślenie/pionowa kreska, warianty migające i stałe; odczyt przez DECRQSS | Dalsza zgodność geometrii z VTE, w tym zewnętrzny obrys i szerokość wystających glifów; wariant xterm 7 nie jest obsługiwany |
 | Ekrany | DECALN (ESC # 8), ekran główny i alternatywny, 47/1047/1049, historia i reflow ekranu głównego | Osobna macierz wariantów przełączania i zapisów kursora, przypadki brzegowe reflow |
 | SGR | Reset, bold/faint, italic, conceal, strike, overline, inverse; pięć stylów podkreślenia i jego kolor 58/59; miganie 5/6/25; ANSI 16/256 i RGB przez średniki i dwukropki | Dalsze warianty SGR, integracja systemowych preferencji migania i porównanie geometrii dekoracji z VTE |
@@ -17,7 +17,7 @@ Stan: 1.0.46.79. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | OSC i tytuł | 0/2: tytuł, 7: katalog, 8: odnośniki; CSI 22/23 t: stos tytułów okna dla 0/2 | Paleta i zapytania kolorów, osobny tytuł ikony i indeksowane sloty stosu, pozostałe OSC; polityka dostępu do schowka |
 | DCS/APC/PM | DCS DECRQSS dla SGR, marginesów, stylu kursora i ochrony komórek; pozostałe DCS/APC/PM/SOS są konsumowane | Pozostałe DCS i dalsze porównania ciągów z VTE |
 | Zestawy znaków | UTF-8, ASCII B, brytyjski A, DEC Special Graphics 0 w G0–G3; SI/SO, LS2/LS3, SS2/SS3 | Pozostałe zestawy narodowe, GR i 96-znakowe zestawy, warianty ESC z bajtami pośrednimi |
-| Wejście | Application cursor, bracketed paste, niezależne tryby myszy 1000/1002/1003 z priorytetem, częściowy format UTF-8 1005 i SGR 1006, fokus 1004, LNM 20 dla LF/Enter, aplikacyjna klawiatura numeryczna ESC = / ESC > / 66 | Pełna macierz modyfikatorów klawiatury, pozostałe protokoły klawiatury i myszy, klasyczne współrzędne poza ASCII i C1 w formacie 1005 na ConPTY |
+| Wejście | Application cursor, bracketed paste, niezależne tryby myszy X10 (9) i 1000/1002/1003 z priorytetem, częściowy format UTF-8 1005 i SGR 1006, fokus 1004, LNM 20 dla LF/Enter, aplikacyjna klawiatura numeryczna ESC = / ESC > / 66 | Pełna macierz modyfikatorów klawiatury, pozostałe protokoły klawiatury i myszy, klasyczne współrzędne poza ASCII i C1 w formacie 1005 na ConPTY |
 | Grafemy i widok | Segmentacja ICU, szerokie komórki, znaki łączące, reflow; cache wierszy renderera | Pełny shaping, bidi i zgodność wizualna z VTE; segmentacja zależy od systemowego ICU |
 
 ## Regresje objęte testami w tym etapie
@@ -80,7 +80,7 @@ Scenariusze sprawdzają SGR 5/6/25, reset, zapis/odtworzenie kursora i reflow, g
 
 DA1 (CSI c / CSI 0 c) zachowuje odpowiedź VT100 `CSI ? 1 ; 2 c`. DA2 (CSI > c / CSI > 0 c) odpowiada `CSI > 0 ; 0 ; 0 c`: typ VT100 i neutralne identyfikatory firmware/ROM, bez podszywania się pod numer wydania xterm lub VTE. Niezerowe żądania i odebrane odpowiedzi DA nie wywołują kolejnych odpowiedzi. CSI 18 t zwraca `CSI 8 ; rows ; columns t` dla aktualnego bufora, również po zmianie rozmiaru. Nie zgłasza rozmiaru monitora ani pikseli.
 
-DECRQM (`CSI mode $ p` / `CSI ? mode $ p`) zwraca DECRPM ze statusem 1 dla włączonego, 2 dla wyłączonego oraz 0 dla nieznanego trybu. Standardowe tryby: 4 i 20. Prywatne: 1, 6, 7, 25, 47/1047/1049, 1000/1002/1003, 1004, 1006 i 2004. Raporty odzwierciedlają aktualny stan implementacji, nie gwarantują pełnego pokrycia każdego wariantu tych trybów w VTE. Zapytania nie zmieniają oczekującego zawinięcia na prawej krawędzi.
+DECRQM (`CSI mode $ p` / `CSI ? mode $ p`) zwraca DECRPM ze statusem 1 dla włączonego, 2 dla wyłączonego oraz 0 dla nieznanego trybu. Standardowe tryby: 4 i 20. Prywatne: 1, 6, 7, 9, 25, 47/1047/1049, 66, 1000/1002/1003, 1004, 1005, 1006 i 2004. Raporty odzwierciedlają aktualny stan implementacji, nie gwarantują pełnego pokrycia każdego wariantu tych trybów w VTE. Zapytania nie zmieniają oczekującego zawinięcia na prawej krawędzi.
 
 Prywatny tryb 1004 włącza wysyłanie CSI I / CSI O przy WM_SETFOCUS / WM_KILLFOCUS ramki terminala. Raporty trafiają bezpośrednio do wejścia sesji, bez działań właściwych dla pisania, np. usuwania zaznaczenia. Wyłączenie trybu i reset blokują dalsze raporty. LNM (standardowy tryb 20) zmienia LF na początek następnego wiersza oraz Enter z CR na CR LF. Domyślnie jest wyłączony. Klawiaturę numeryczną aplikacyjną i część DECRQSS dodano w etapie 1.0.23.56.
 
@@ -263,6 +263,14 @@ Punkt odniesienia: [DSR_DEC w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76
 
 Tryby 1000 (przyciski), 1002 (ruch z przyciskiem) i 1003 (dowolny ruch) mają niezależne bity DECSET/DECRST. Efektywny protokół wynika z priorytetu 1003 → 1002 → 1000. Włączenie niższego trybu nie zastępuje wyższego; wyłączenie wyższego przywraca wcześniej włączony niższy. Wyłączenie nieaktywnego trybu nie wyłącza pozostałych.
 
-DECRQM raportuje każdy bit, a nie tylko aktywny protokół. XTSAVE/XTRESTORE zapisuje i przywraca te trzy bity niezależnie, także wartości false; liczba obsługiwanych zapisów wynosi teraz dwanaście. RIS i DECSTR kasują bity i ich zapis. Negocjacja nadal unieważnia filtr raportów tej samej komórki, więc pierwszy raport po zmianie protokołu nie ginie.
+DECRQM raportuje każdy bit, a nie tylko aktywny protokół. XTSAVE/XTRESTORE zapisuje i przywraca te trzy bity niezależnie, także wartości false; liczba obsługiwanych zapisów wynosiła w tej wersji dwanaście; od 1.0.47.80 z X10 wynosi trzynaście. RIS i DECSTR kasują bity i ich zapis. Negocjacja nadal unieważnia filtr raportów tej samej komórki, więc pierwszy raport po zmianie protokołu nie ginie.
 
-Punkt odniesienia: [update_mouse_protocol w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L392). Dwa nowe scenariusze DUnitX sprawdzają osiem kombinacji bitów, ich raporty, wyłączanie, fragmentację save/restore i reset. Natywny odbiornik ConPTY weryfikuje powrót z 1003 do 1002 i 1000 wraz z rzeczywistym ruchem myszy. Pozostałe protokoły, takie jak X10, highlight i 1015/1016, nadal wymagają implementacji.
+Punkt odniesienia: [update_mouse_protocol w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L392). Dwa nowe scenariusze DUnitX sprawdzają osiem kombinacji bitów, ich raporty, wyłączanie, fragmentację save/restore i reset. Natywny odbiornik ConPTY weryfikuje powrót z 1003 do 1002 i 1000 wraz z rzeczywistym ruchem myszy. X10 dodano w 1.0.47.80. Highlight i 1015/1016 nadal wymagają implementacji.
+
+## Tryb myszy X10 — 1.0.47.80
+
+DECSET/DECRST 9 steruje niezależnym bitem X10. Jest to najniższy priorytet śledzenia: 1003 → 1002 → 1000 → 9. Po wyłączeniu wyższych trybów aktywny X10 zostaje przywrócony. DECRQM raportuje jego własny bit, a XTSAVE/XTRESTORE zapisuje true i false; zakres zapisu obejmuje obecnie trzynaście identyfikatorów. RIS i DECSTR kasują stan oraz zapis X10.
+
+Widok wysyła naciśnięcia bez bitów modyfikatorów, a pomija ruch i zwolnienie przycisku. Shift nadal umożliwia lokalną obsługę terminala. Format współrzędnych pozostaje negocjowany osobno: klasyczny, częściowy UTF-8 1005 lub SGR 1006. Ograniczenia zakresu klasycznego formatu na ConPTY pozostają bez zmian.
+
+Punkt odniesienia: [priorytet protokołów w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L392), [zdarzenia i modyfikatory](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L5575). Dwa scenariusze DUnitX sprawdzają stan, priorytet, save/restore, fragmentację i reset. Natywny odbiornik ConPTY porównuje naciśnięcia w klasycznym i SGR oraz brak ruchu/zwolnienia i modyfikatorów. Highlight, 1015/1016 i dalsze porównania protokołów nadal wymagają pracy.

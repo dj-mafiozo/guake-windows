@@ -16,6 +16,8 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure X10MouseModePrioritySaveRestoreAndReset;
+    [Test] Procedure X10MouseModeFragmentsAndReports;
     [Test] Procedure MouseTrackingModesAreIndependentAndPrioritized;
     [Test] Procedure MouseTrackingSaveRestoreFragmentsAndReset;
     [Test] Procedure DECStatusReportsFragmentsStateAndReplyLoops;
@@ -168,6 +170,63 @@ Implementation
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+/// <summary>Checks X10 as the lowest independent tracking bit, with saved values and reset.</summary>
+
+ Procedure TTerminalTests.X10MouseModePrioritySaveRestoreAndReset;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 3);
+   Try
+    Buffer.FeedText(#27 + '[?9h' + #27 + '[?9s');
+    Assert.AreEqual(9, Buffer.MouseMode);
+    Buffer.FeedText(#27 + '[?1000h' + #27 + '[?9h');
+    Assert.AreEqual(1000, Buffer.MouseMode);
+    Buffer.FeedText(#27 + '[?1002;1003h' + #27 + '[?1003l');
+    Assert.AreEqual(1002, Buffer.MouseMode);
+    Buffer.FeedText(#27 + '[?1002;1000l');
+    Assert.AreEqual(9, Buffer.MouseMode, 'Disabling higher modes falls back to X10');
+    Buffer.FeedText(#27 + '[?9l');
+    Assert.AreEqual(0, Buffer.MouseMode);
+    Buffer.FeedText(#27 + '[?9r');
+    Assert.AreEqual(9, Buffer.MouseMode);
+    Buffer.FeedText(#27 + '[!p' + #27 + '[?9r' + #27 + '[?9$p');
+    Assert.AreEqual(0, Buffer.MouseMode);
+    Assert.AreEqual(#27 + '[?9;2$y', Buffer.TakeResponses);
+    Buffer.FeedText(#27 + '[?9h' + #27 + 'c' + #27 + '[?9$p');
+    Assert.AreEqual(0, Buffer.MouseMode);
+    Assert.AreEqual(#27 + '[?9;2$y', Buffer.TakeResponses);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Verifies fragmented X10 negotiation and independent mode queries.</summary>
+
+ Procedure TTerminalTests.X10MouseModeFragmentsAndReports;
+  Var
+   Buffer : TTerminalBuffer;
+   Bytes  : TBytes;
+   Split  : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 3);
+   Try
+    Bytes     := TEncoding.UTF8.GetBytes(#27 + '[?9h' + #27 + '[?9;1000;1002;1003$p');
+    For Split := 0 To Length(Bytes) Do
+     Begin
+      Buffer.Reset;
+      Buffer.Feed(Copy(Bytes, 0, Split));
+      Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+      Assert.AreEqual(9, Buffer.MouseMode);
+      Assert.AreEqual(#27 + '[?9;1$y' + #27 + '[?1000;2$y' + #27 + '[?1002;2$y' + #27 + '[?1003;2$y', Buffer.TakeResponses);
+     End;
+    Buffer.FeedText(#27 + '[?9l' + #27 + '[?9s' + #27 + '[?9h' + #27 + '[?9r');
+    Assert.AreEqual(0, Buffer.MouseMode, 'Saved false X10 state must be restored');
+   Finally
+    Buffer.Free;
+   End;
+  End;
 
 /// <summary>Checks every combination of supported mouse modes, independent DECRQM bits and priority fallback.</summary>
 
@@ -2391,7 +2450,17 @@ Implementation
     Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
     Frame.SetBounds(0, 0, 720, 360);
 
-    Session.Buffer.FeedText(#27'[?1000l');
+    Session.Buffer.FeedText(#27'[?9h' + #27'[?1000l');
+    Assert.AreEqual(9, Session.Buffer.MouseMode);
+    Frame.SurfaceMouseDown(Nil, mbRight, [ssAlt, ssCtrl], 5, 5);
+    Frame.SurfaceMouseMove(Nil, [ssRight], 5 + CellWidth, 5);
+    Frame.SurfaceMouseUp(Nil, mbRight, [ssAlt, ssCtrl], 5 + CellWidth, 5);
+    Expected := Expected + #27 + '[M' + Char(34) + '!!';
+    Session.Buffer.FeedText(#27 + '[?1006h');
+    Frame.SurfaceMouseDown(Nil, mbLeft, [ssAlt, ssCtrl], 5, 5);
+    Frame.SurfaceMouseUp(Nil, mbLeft, [ssAlt, ssCtrl], 5, 5);
+    Expected := Expected + #27 + '[<0;1;1M';
+    Session.Buffer.FeedText(#27 + '[?9;1006l');
     Settings.General.WordChars    := '-A-Za-z0-9_';
     Settings.General.CopyOnSelect := False;
     Session.Buffer.FeedText(#27'[2J'#27'[HPRIMARY_WORD rest');
