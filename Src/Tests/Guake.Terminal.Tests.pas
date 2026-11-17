@@ -902,7 +902,16 @@ Implementation
     Frame.Session.Buffer.FeedText(#27'[2 q');
     Frame.RenderAlpha(Output, 96);
     Assert.AreEqual(255, Integer(PixelAt(Output, 4 + Width - 1, 4).rgbReserved));
-    Assert.AreEqual(96, Integer(PixelAt(Output, 4 + Width Div 2, 4 + Height Div 2).rgbReserved));
+    Assert.AreEqual(255, Integer(PixelAt(Output, 4 + Width Div 2, 4 + Height Div 2).rgbReserved));
+    Frame.Session.Buffer.FeedText(#27'[8mM' + #27'[H');
+    Frame.RenderAlpha(Output, 96);
+    Assert.AreEqual(255, Integer(PixelAt(Output, 4 + Width Div 2, 4 + Height Div 2).rgbReserved), 'Concealed glyph must not punch a hole in the cursor mask');
+    Frame.Session.Buffer.Reset;
+    Frame.Session.Buffer.FeedText(#$4E2D + #27'[1;2H' + #27'[2 q');
+    Frame.RenderAlpha(Output, 96);
+    Assert.AreEqual(255, Integer(PixelAt(Output, 4 + 2 * Width - 1, 4).rgbReserved), 'Block spans the complete wide glyph');
+    Assert.AreEqual(96, Integer(PixelAt(Output, 4 + 2 * Width, 4).rgbReserved), 'Cursor must not cover the next cell');
+    Frame.Session.Buffer.Reset;
     Frame.Session.Buffer.FeedText(#27'[0 q');
     Frame.RenderAlpha(Output, 96);
     Assert.AreEqual(255, Integer(PixelAt(Output, 4, 4).rgbReserved));
@@ -998,6 +1007,8 @@ Implementation
       WindowValue := TFile.ReadAllText(WindowFile);
      Except
       On E : EFOpenError Do
+       Sleep(10);
+      On E : EInOutError Do
        Sleep(10);
      End;
     Until(WindowValue <> '') Or (GetTickCount64 >= Deadline);

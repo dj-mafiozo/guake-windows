@@ -1,6 +1,6 @@
-# Stan portu Guake dla Windows
+﻿# Stan portu Guake dla Windows
 
-Stan kodu na 17 listopada 2026, wersja 1.0.34.67. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 17 listopada 2026, wersja 1.0.35.68. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -214,7 +214,7 @@ Weryfikacja 1.0.25.58: formatter bez błędów, 119/119 scenariuszy DUnitX bez b
 
 Parser obsługuje DECSCUSR 0–6, a widok rzeczywiście stosuje kształt i miganie kursora z tych sekwencji. Zero przywraca preferencje; sekwencje nie zapisują INI. Systemowy tryb migania kursora uwzględnia teraz GetCaretBlinkTime zamiast stałych 500 ms. DECRQSS odczytuje bieżący styl; test natywnego wejścia ConPTY obejmuje tę odpowiedź. Styl jest globalny dla terminala, nie należy do zapisu kursora ani konkretnego ekranu. RIS go resetuje.
 
-Testy obejmują wszystkie wartości i podziały sekwencji, błędne parametry i CAN, oczekujące zawinięcie, widoczność, ekran alternatywny, DECSC, deterministyczne fazy migania, piksele kształtów, usuwanie poprzedniego kształtu z cache i powrót do preferencji. Pozostają różnice geometrii kursora z VTE, w tym obecny obrys bloku GDI. Szczegóły i źródła opisuje [macierz VT](vt-coverage.md).
+Testy obejmują wszystkie wartości i podziały sekwencji, błędne parametry i CAN, oczekujące zawinięcie, widoczność, ekran alternatywny, DECSC, deterministyczne fazy migania, piksele kształtów, usuwanie poprzedniego kształtu z cache i powrót do preferencji. Pozostają różnice geometrii kursora z VTE; dawny obrys aktywnego bloku zastąpiono wypełnieniem w 1.0.35.68. Szczegóły i źródła opisuje [macierz VT](vt-coverage.md).
 
 Weryfikacja 1.0.26.59: formatter bez błędów i sprawdzony diff, 121/121 scenariuszy DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Natywny odbiorca ConPTY potwierdził odpowiedź DCS ze stylem kursora; test pikseli potwierdził zmianę kształtu i usunięcie poprzedniego z cache alfy. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.26.59-Win64.zip z pasującymi EXE/PDB.
 
@@ -297,3 +297,9 @@ ECH kasuje całe znaki przecięte zakresem, podobnie jak ED/EL. Operacje te nie 
 Cztery scenariusze DUnitX obejmują granice ICH/DCH/ECH, IRM dla wąskiego i szerokiego wstawienia, zachowanie atrybutów, parametry domyślne oraz macierz 768 układów pozycji/liczby kolumn i mieszanego tekstu. Pozostają poziome marginesy, pozostałe przypadki druku przy wyłączonym autowrap oraz szersze porównania edycji i reflow z VTE. Szczegóły opisuje [macierz VT](vt-coverage.md).
 
 Weryfikacja 1.0.34.67: formatter bez błędów i sprawdzony diff, 135/135 scenariuszy DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Macierz 768 układów nie wykazała osieroconych części szerokich znaków; pozostałe nowe przypadki potwierdziły IRM, atrybuty, ochronę i położenie metadanych zawinięcia. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.34.67-Win64.zip z pasującymi EXE/PDB.
+
+## Wypełnienie aktywnego kursora — 1.0.35.68
+
+Aktywny blok otrzymał pełne wypełnienie kolorem tekstu i glif w kolorze tła komórki, z uwzględnieniem inverse i stylów. Kursor na drugiej części szerokiego znaku obejmuje cały znak. Maska alfy pozostaje nieprzezroczysta na całym bloku; conceal nie odsłania ukrytego tekstu. Test renderowania sprawdza wypełnienie, szeroki znak, granicę następnej komórki i usuwanie poprzedniego kształtu. Nieaktywny kursor, pełne kształtowanie tekstu i dalsze porównania geometrii z VTE pozostają do wykonania.
+
+Weryfikacja 1.0.35.68: formatter bez błędów, sprawdzony diff, 135/135 testów DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Pierwszy przebieg wykrył blokadę pliku w teście refocus; po dodaniu obsługi EInOutError do ograniczonego ponawiania odczytu pełny zestaw przeszedł. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.35.68-Win64.zip z EXE i PDB.

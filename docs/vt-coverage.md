@@ -1,6 +1,6 @@
-# Pokrycie emulatora VT
+﻿# Pokrycie emulatora VT
 
-Stan: 1.0.34.67. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.35.68. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -10,7 +10,7 @@ Stan: 1.0.34.67. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | Ruch | CUU/CUD/CUF/CUB, CNL/CPL, CHA/HPA, VPA, CUP/HVP, HPR/VPR | Pełne zachowanie marginesów, dodatkowe tryby i warianty |
 | Edycja | ED/EL, DECSEL/DECSED 0–2 i DECSCA, ICH/DCH/ECH, IL/DL, SU/SD, DECSTBM; ED/EL/ECH i ICH/DCH/IRM naprawiają przecięte szerokie znaki | Selektywne ?3J i prostokąty DEC; poziome marginesy; dalsze przypadki szerokich znaków i reflow |
 | Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, ochrona komórek, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS i DECSTR; XTSAVE/XTRESTORE dla dziewięciu wybranych trybów | Pozostałe tryby prywatne |
-| Kursor | Widoczność DECTCEM, DECSCUSR 0–6: preferencje lub blok/podkreślenie/pionowa kreska, warianty migające i stałe; odczyt przez DECRQSS | Dalsza zgodność geometrii i wypełnienia bloku z VTE; wariant xterm 7 nie jest obsługiwany |
+| Kursor | Widoczność DECTCEM, DECSCUSR 0–6: preferencje lub blok/podkreślenie/pionowa kreska, warianty migające i stałe; odczyt przez DECRQSS | Dalsza zgodność geometrii i nieaktywnego kursora z VTE; wariant xterm 7 nie jest obsługiwany |
 | Ekrany | Ekran główny i alternatywny, 47/1047/1049, historia i reflow ekranu głównego | Osobna macierz wariantów przełączania i zapisów kursora, przypadki brzegowe reflow |
 | SGR | Reset, bold/faint, italic, conceal, strike, overline, inverse; pięć stylów podkreślenia i jego kolor 58/59; miganie 5/6/25; ANSI 16/256 i RGB przez średniki i dwukropki | Dalsze warianty SGR, integracja systemowych preferencji migania i porównanie geometrii dekoracji z VTE |
 | Odpowiedzi | DSR 5, CPR 6, DECXCPR ?6; wiersz względem regionu przy DECOM; DA/DECID i DA2, DECRQM/DECRPM dla obsługiwanych trybów, rozmiar w znakach CSI 18 t, DECRQSS SGR, marginesów, stylu kursora i ochrony komórek | Tertiary DA, pozostałe DECRQSS, raporty rozmiaru w pikselach/monitora i pozostałe zapytania |
@@ -100,7 +100,7 @@ CSI Ps SP q (DECSCUSR) przyjmuje wartości 0–6. Wartość 0 lub brak parametru
 
 DCS $q SP q ST odpowiada DCS 1$r Ps SP q ST z bieżącą wartością stylu. Zapytanie i ustawienie nie zmieniają pozycji ani oczekującego zawinięcia. Styl należy do terminala: jest wspólny dla ekranów i nie wchodzi do zapisu DECSC/DECRC; RIS przywraca 0. Odpowiedź przechodzi zwykłą drogą do wejścia ConPTY.
 
-Widok stosuje tę samą funkcję fazy w rysowaniu, cache alfy i odświeżaniu. Jawne miganie ma okres półfazy 500 ms; ustawienie systemowe przy stylu 0 odczytuje GetCaretBlinkTime, również wyłączenie migania. Reset do 0 ponownie udostępnia preferencje. Zmiana stylu odświeża wiersz kursora i usuwa piksele poprzedniego kształtu. Testy porównują alfę kształtów oraz deterministyczne fazy migania, a natywny odbiorca ConPTY sprawdza bajty odpowiedzi. Obecny blok pozostaje obrysem GDI; pełne wypełnienie i geometria kursora zgodne z VTE wymagają dalszych prac i porównań.
+Widok stosuje tę samą funkcję fazy w rysowaniu, cache alfy i odświeżaniu. Jawne miganie ma okres półfazy 500 ms; ustawienie systemowe przy stylu 0 odczytuje GetCaretBlinkTime, również wyłączenie migania. Reset do 0 ponownie udostępnia preferencje. Zmiana stylu odświeża wiersz kursora i usuwa piksele poprzedniego kształtu. Testy porównują alfę kształtów oraz deterministyczne fazy migania, a natywny odbiorca ConPTY sprawdza bajty odpowiedzi. W tej wersji blok pozostawał obrysem GDI; wypełnienie aktywnego bloku dodano w 1.0.35.68. Dalsza geometria wymaga porównań z VTE.
 
 ## Przyciski i ruch myszy — 1.0.27.60
 
@@ -163,3 +163,7 @@ ICH i DCH przesuwają określoną liczbę kolumn, ograniczoną do końca wiersza
 Ruch komórek zachowuje ich atrybuty i ochronę, ale sama edycja ignoruje ochronę (nie jest DECSEL/DECSED). Nowe spacje powstają z bieżącymi atrybutami i bez ochrony. Flaga miękkiego zawinięcia jest utrzymywana na ostatniej komórce fizycznego wiersza; stare znaczniki paddingu nie są przesuwane jako tekst.
 
 Testy obejmują cięcie początku i końca szerokiego znaku, odrzucenie znaku przecinającego prawą granicę, oba warianty IRM, kolory i ochronę oraz 768 kombinacji czterech wzorców tekstu, trzech operacji, ośmiu pozycji i ośmiu liczników. Każdy wynik jest sprawdzany pod kątem par prowadząca/kontynuacja; wzorce zawierają też znak łączący. Dalsze porównania z uruchomionym VTE, poziome marginesy i skrajny druk szerokich znaków bez autowrap pozostają do wykonania.
+
+## Wypełnienie aktywnego kursora — 1.0.35.68
+
+Aktywny blok otrzymał pełne wypełnienie kolorem tekstu i glif w kolorze tła komórki, z uwzględnieniem inverse i stylów. Kursor na drugiej części szerokiego znaku obejmuje cały znak. Maska alfy pozostaje nieprzezroczysta na całym bloku; conceal nie odsłania ukrytego tekstu. Test renderowania sprawdza wypełnienie, szeroki znak, granicę następnej komórki i usuwanie poprzedniego kształtu. Nieaktywny kursor, pełne kształtowanie tekstu i dalsze porównania geometrii z VTE pozostają do wykonania.

@@ -485,6 +485,9 @@ Implementation
    y               : Integer;
    WorldY          : Integer;
    CursorRow       : Integer;
+   CursorColumn    : Integer;
+   CursorWidth     : Integer;
+   CursorShape     : Integer;
    Temp            : Integer;
    c               : TTerminalCell;
    Fore            : TColor;
@@ -715,20 +718,64 @@ Implementation
       CursorRow := fSession.Buffer.TotalLines - fSession.Buffer.Rows + fSession.Buffer.CursorY - scroll.Position;
       If (CursorRow >= 0) And (CursorRow < fSession.Buffer.Rows) Then
        Begin
-        r := Rect(4 + fSession.Buffer.CursorX * fCellWidth, 4 + CursorRow * fCellHeight,
-        4 + (fSession.Buffer.CursorX + 1) * fCellWidth, 4 + (CursorRow + 1) * fCellHeight);
+        CursorColumn := fSession.Buffer.CursorX;
+        WorldY       := fSession.Buffer.TotalLines - fSession.Buffer.Rows + fSession.Buffer.CursorY;
+        While (CursorColumn > 0) And fSession.Buffer.Cell[CursorColumn, WorldY].Continuation Do
+         Dec(CursorColumn);
+        c           := fSession.Buffer.Cell[CursorColumn, WorldY];
+        CursorWidth := 1;
+        If (CursorColumn + 1 < fSession.Buffer.Columns) And fSession.Buffer.Cell[CursorColumn + 1, WorldY].Continuation Then
+         CursorWidth := 2;
+        r            := Rect(4 + CursorColumn * fCellWidth, 4 + CursorRow * fCellHeight,
+        4 + (CursorColumn + CursorWidth) * fCellWidth, 4 + (CursorRow + 1) * fCellHeight);
+        Fore := ResolveColor(c.Foreground, True, c.Bold);
+        Back := ResolveColor(c.Background, False, False);
+        If c.Inverse Then
+         Begin
+          Temp := Fore;
+          Fore := Back;
+          Back := Temp;
+         End;
         If Mask Then
          Canvas.Brush.Color := clWhite
         Else
-         Canvas.Brush.Color := ResolveColor( -1, True, False);
-        Case EffectiveCursorShape Of
+         Canvas.Brush.Color := Fore;
+        CursorShape         := EffectiveCursorShape;
+        Case CursorShape Of
          1 : r.Right := r.Left + 2;
          2 : r.Top := r.Bottom - 2;
         End;
-        If EffectiveCursorShape = 0 Then
-         Canvas.FrameRect(r)
-        Else
-         Canvas.FillRect(r);
+        Canvas.FillRect(r);
+        If (CursorShape = 0) And Not Mask Then
+         Begin
+          // The coverage mask stays opaque for the whole block, including inverted glyph pixels.
+          Canvas.Font.Assign(Font);
+          Style := [];
+          If c.Bold And fSettings.Style.Font.AllowBold Then
+           Include(Style, fsBold);
+          If c.Italic Then
+           Include(Style, fsItalic);
+          UnderlineKind := Max(1, c.UnderlineStyle);
+          GlyphHidden   := c.Conceal Or (c.Blink And fTextBlinkOff);
+          If Not GlyphHidden Then
+           Begin
+            If c.Underline And (UnderlineKind = 1) And (c.UnderlineColor = -1) Then
+             Include(Style, fsUnderline);
+            If c.Strike Then
+             Include(Style, fsStrikeOut);
+           End;
+          Canvas.Font.Style := Style;
+          Canvas.Font.Color := Back;
+          SetBkMode(Canvas.Handle, TRANSPARENT);
+          If Not GlyphHidden Then
+           ExtTextOut(Canvas.Handle, r.Left, r.Top, ETO_CLIPPED, @r, PChar(c.Text), Length(c.Text), Nil);
+          Fore := Back;
+          If c.UnderlineColor = -1 Then
+           Decoration := Fore
+          Else
+           Decoration := ResolveColor(c.UnderlineColor, True, False);
+          DrawDecorations;
+         End;
        End;
      End;
    Finally

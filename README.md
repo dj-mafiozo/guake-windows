@@ -1,4 +1,4 @@
-# Guake dla Windows
+﻿# Guake dla Windows
 
 Port Guake na Windows 64-bit w Delphi/VCL z natywnym WinAPI. Celem jest zgodność funkcji i wyglądu z Guake. Dostępne są ustawienia, formularze, backend ConPTY, emulator VT oraz kontroler kart i podziałów. Działają też pojedyncza instancja i CLI przez prywatne Named Pipes; pozostałe różnice opisuje stan portu.
 
@@ -10,6 +10,7 @@ Główny projekt: [Src/guake.dpr](Src/guake.dpr), [Src/guake.dproj](Src/guake.dp
 - [Lokalizacja](Src/Localization/README.md): 26 oryginalnych PO Guake i osobne uzupełnienia portu Windows, import przez GNU msgfmt, biblioteka `Src/Vendor/i18n`.
 - [Diagnostyka](Src/Diagnostics/Guake.Logging.pas): logowanie `Exception.StackTrace`, biblioteka `Src/Vendor/stacktrace`, MAP i PDB dla każdego EXE.
 - [Common](Src/Common/README.md): submoduł z odczytem wersji EXE przez `VersionU.pas`.
+- Widok terminala: wypełniony aktywny kursor blokowy z odwróconym glifem, obsługą szerokich znaków i nieprzezroczystą maską kursora.
 - [Emulator VT](Src/Terminal/Guake.VT.pas): ICH/DCH/ECH i IRM zachowują spójność szerokich znaków; zakres i pozostałe różnice opisuje [macierz pokrycia](docs/vt-coverage.md).
 
 Budowanie i testy dla Delphi 10.2 (z katalogu repozytorium):
