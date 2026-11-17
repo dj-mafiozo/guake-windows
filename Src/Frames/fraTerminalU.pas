@@ -102,14 +102,15 @@ Interface
     fSurrogate         : Char;
     fOnActivate        : TNotifyEvent;
     fOnShortcut        : TTerminalKeyEvent;
-    Function  MouseCell   (x, y : Integer)                              : TPoint;
-    Function  IsSelected  (x, y : Integer)                              : Boolean;
-    Function  ResolveColor(Value : Integer; Foreground, Bold : Boolean) : TColor;
-    Procedure SendMouse   (Button : Integer; Release : Boolean; Shift : TShiftState; x, y : Integer);
-    Procedure Send        (Const Value : String);
-    Function  EffectiveCursorShape                                      : Integer;
+    Function  MouseCell         (x, y : Integer)                              : TPoint;
+    Function  IsSelected        (x, y : Integer)                              : Boolean;
+    Function  ResolveColor      (Value : Integer; Foreground, Bold : Boolean) : TColor;
+    Procedure SendMouse         (Button : Integer; Release : Boolean; Shift : TShiftState; x, y : Integer);
+    Function  ApplicationMouseAt(x, y : Integer)                              : Boolean;
+    Procedure Send              (Const Value : String);
+    Function  EffectiveCursorShape                                            : Integer;
     Procedure FollowOutput;
-    Procedure WMDropFiles (Var Message : TMessage); Message WM_DROPFILES;
+    Procedure WMDropFiles       (Var Message : TMessage); Message WM_DROPFILES;
    Protected
     Procedure CreateWnd; Override;
     Procedure WndProc     (Var Message : TMessage); Override;
@@ -1264,6 +1265,15 @@ Implementation
    Result.y := EnsureRange(scroll.Position + (y - 4) Div Max(1, fCellHeight), 0, fSession.Buffer.TotalLines - 1);
   End;
 
+/// <summary>Application mouse protocols address only active-screen rows, never scrollback contents.</summary>
+
+ Function TfraTerminal.ApplicationMouseAt(x, y : Integer) : Boolean;
+  Begin
+   Result := (fSession <> Nil) And (fSession.Buffer.MouseMode > 0);
+   If Result Then
+    Result := MouseCell(x, y).y >= fSession.Buffer.TotalLines - fSession.Buffer.Rows;
+  End;
+
 /// <summary>Sends application mouse input without keyboard selection/scroll effects; suppresses same-cell motion.</summary>
 
  Procedure TfraTerminal.SendMouse(Button : Integer; Release : Boolean; Shift : TShiftState; x, y : Integer);
@@ -1278,7 +1288,12 @@ Implementation
    If (fSession.Buffer.MouseMode = 9) And (Release Or ((Button And 32) <> 0)) Then
     Exit;
    p := MouseCell(x, y);
-   Dec(p.y, scroll.Position);
+   Dec(p.y, fSession.Buffer.TotalLines - fSession.Buffer.Rows);
+   If p.y < 0 Then
+    Begin
+     fMouseCellValid := False;
+     Exit;
+    End;
    Motion := (Button And 32) <> 0;
    If Motion And fMouseCellValid And
    (fMouseProtocolRevision = fSession.Buffer.MouseRevision) And
@@ -1337,7 +1352,7 @@ Implementation
   Begin
    If fSession = Nil Then
     Exit;
-   If (ssShift In Shift) Or (fSession.Buffer.MouseMode = 0) Then
+   If (ssShift In Shift) Or Not ApplicationMouseAt(x, y) Then
     fMouseCellValid := False;
    fMouseShift      := Shift;
    fMouseAnchor     := Point(x, y);
@@ -1355,7 +1370,7 @@ Implementation
        Exit;
       End;
     End;
-   If (fSession.Buffer.MouseMode > 0) And Not(ssShift In Shift) Then
+   If ApplicationMouseAt(x, y) And Not(ssShift In Shift) Then
     Begin
      SendMouse(MouseButtonCode(Button), False, Shift, x, y);
      Exit;
@@ -1425,7 +1440,7 @@ Implementation
     End;
    If fSession = Nil Then
     Exit;
-   If (fSession.Buffer.MouseMode > 0) And Not(ssShift In Shift) Then
+   If Not fSelecting And ApplicationMouseAt(x, y) And Not(ssShift In Shift) Then
     Begin
      SendMouse(MouseButtonCode(Button), True, Shift, x, y);
      Exit;
@@ -1553,7 +1568,7 @@ Implementation
   Begin
    If fSession = Nil Then
     Exit;
-   If (fSession.Buffer.MouseMode > 0) And Not(ssShift In fMouseShift) Then
+   If ApplicationMouseAt(fMouseAnchor.x, fMouseAnchor.y) And Not(ssShift In fMouseShift) Then
     Exit;
    If (ssCtrl In fMouseShift) And Assigned(fOnCtrlClick) Then
     Exit;
@@ -1568,9 +1583,9 @@ Implementation
    Result := fSession <> Nil;
    If Not Result Then
     Exit;
-   If (fSession.Buffer.MouseMode > 0) And Not(ssShift In Shift) Then
+   p := surface.ScreenToClient(MousePos);
+   If ApplicationMouseAt(p.x, p.y) And Not(ssShift In Shift) Then
     Begin
-     p := surface.ScreenToClient(MousePos);
      If WheelDelta > 0 Then
       SendMouse(64, False, Shift, p.x, p.y)
      Else

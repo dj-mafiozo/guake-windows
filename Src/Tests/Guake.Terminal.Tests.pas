@@ -16,6 +16,7 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure ScrollbackSelectionWorksWithMouseTracking;
     [Test] Procedure X10MouseModePrioritySaveRestoreAndReset;
     [Test] Procedure X10MouseModeFragmentsAndReports;
     [Test] Procedure MouseTrackingModesAreIndependentAndPrioritized;
@@ -170,6 +171,64 @@ Implementation
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+/// <summary>History clicks and double-clicks stay local even with application tracking, including a drag crossing into the screen.</summary>
+
+ Procedure TTerminalTests.ScrollbackSelectionWorksWithMouseTracking;
+  Var
+   Settings : TGuakeSettings;
+   Main     : TfrmMain;
+   Frame    : TfraTerminal;
+   i        : Integer;
+   Height   : Integer;
+   History  : Integer;
+  Begin
+   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+   Main     := Nil;
+   Try
+    Settings.General.DefaultShell         := 'cmd';
+    Settings.General.UseTrayicon          := False;
+    Settings.General.UsePopup             := False;
+    Settings.General.SaveTabsWhenChanged  := False;
+    Settings.General.CopyOnSelect         := False;
+    Settings.General.WordChars            := '-A-Za-z0-9_';
+    Settings.Keybindings.Global.ShowHide  := 'disabled';
+    Settings.Keybindings.Global.ShowFocus := 'disabled';
+    Main                                  := TfrmMain.Create(Nil);
+    Main.Bind(Settings);
+    Main.StartTerminal;
+    Main.SetTerminalVisible(True);
+    Main.SetBounds( -30000, 0, 500, 240);
+    Main.pollTimer.Enabled     := False;
+    Frame                      := Main.ActiveTerminalFrame;
+    Frame.refreshTimer.Enabled := False;
+    Frame.Session.Buffer.Reset;
+    Frame.Session.Buffer.FeedText('HISTORY_WORD' + #13#10);
+    For i := 1 To Frame.Session.Buffer.Rows Do
+     Frame.Session.Buffer.FeedText('line' + #13#10);
+    Frame.Session.Buffer.FeedText(#27 + '[?1003;1006h');
+    Frame.RefreshTick(Nil);
+    Frame.scroll.Position := 0;
+    Height                := Frame.surface.Canvas.TextHeight('Mg');
+    History               := Frame.Session.Buffer.TotalLines - Frame.Session.Buffer.Rows;
+    Assert.IsTrue(History > 0);
+    Assert.IsTrue(TTerminalFrameAccess(Frame).DoMouseWheel([], -120, Frame.surface.ClientToScreen(Point(5, 5))));
+    Assert.IsTrue(Frame.scroll.Position > 0, 'Wheel over history scrolls locally instead of reporting application input');
+    Frame.scroll.Position := 0;
+    Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
+    Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
+    Assert.AreEqual('', Frame.SelectedText, 'A history click only starts a local selection');
+    Frame.SurfaceDblClick(Nil);
+    Assert.AreEqual('HISTORY_WORD', Frame.SelectedText);
+    Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
+    Frame.SurfaceMouseMove(Nil, [ssLeft], 30, 5 + History * Height);
+    Frame.SurfaceMouseUp(Nil, mbLeft, [], 30, 5 + History * Height);
+    Assert.IsTrue(Pos('HISTORY_WORD', Frame.SelectedText) > 0, 'Local selection can finish over active-screen rows');
+   Finally
+    Main.Free;
+    Settings.Free;
+   End;
+  End;
 
 /// <summary>Checks X10 as the lowest independent tracking bit, with saved values and reset.</summary>
 
@@ -2244,6 +2303,8 @@ Implementation
    Key           : Char;
    i             : Integer;
    CellWidth     : Integer;
+   CellHeight    : Integer;
+   HistoryBase   : Integer;
   Begin
    Settings   := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
    ScriptName := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName + '.ps1');
@@ -2461,6 +2522,27 @@ Implementation
     Frame.SurfaceMouseUp(Nil, mbLeft, [ssAlt, ssCtrl], 5, 5);
     Expected := Expected + #27 + '[<0;1;1M';
     Session.Buffer.FeedText(#27 + '[?9;1006l');
+    Session.Buffer.Reset;
+    Session.Buffer.FeedText('history' + #13#10);
+    For i := 1 To Session.Buffer.Rows Do
+     Session.Buffer.FeedText('line' + #13#10);
+    Session.Buffer.FeedText(#27 + '[?1003;1006h');
+    Frame.RefreshTick(Nil);
+    HistoryBase := Session.Buffer.TotalLines - Session.Buffer.Rows;
+    Assert.IsTrue(HistoryBase > 0);
+    Frame.scroll.Position := HistoryBase - 1;
+    CellHeight            := Frame.surface.Canvas.TextHeight('Mg');
+    Frame.SurfaceMouseDown(Nil, mbRight, [], 5, 5);
+    Frame.SurfaceMouseUp(Nil, mbRight, [], 5, 5);
+    Frame.SurfaceMouseMove(Nil, [], 5, 5);
+    Frame.SurfaceMouseDown(Nil, mbRight, [], 5, 5 + CellHeight);
+    Frame.SurfaceMouseUp(Nil, mbRight, [], 5, 5 + CellHeight);
+    Expected := Expected + #27 + '[<2;1;1M' + #27 + '[<2;1;1m';
+    Frame.SurfaceMouseMove(Nil, [], 5, 5);
+    Frame.SurfaceMouseMove(Nil, [], 5, 5 + CellHeight);
+    Expected := Expected + #27 + '[<35;1;1M';
+    Session.Buffer.FeedText(#27 + '[?1003;1006l');
+    Frame.scroll.Position         := HistoryBase;
     Settings.General.WordChars    := '-A-Za-z0-9_';
     Settings.General.CopyOnSelect := False;
     Session.Buffer.FeedText(#27'[2J'#27'[HPRIMARY_WORD rest');

@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 17 listopada 2026, wersja 1.0.47.80. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 17 listopada 2026, wersja 1.0.48.81. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -434,3 +434,13 @@ Widok wysyła naciśnięcia bez bitów modyfikatorów, a pomija ruch i zwolnieni
 Punkt odniesienia: [priorytet protokołów w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L392), [zdarzenia i modyfikatory](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L5575). Dwa scenariusze DUnitX sprawdzają stan, priorytet, save/restore, fragmentację i reset. Natywny odbiornik ConPTY porównuje naciśnięcia w klasycznym i SGR oraz brak ruchu/zwolnienia i modyfikatorów. Highlight, 1015/1016 i dalsze porównania protokołów nadal wymagają pracy.
 
 Weryfikacja 1.0.47.80: formatter bez błędów i sprawdzony diff; 163/163 scenariusze DUnitX bez błędów i wycieków. Natywny odbiornik ConPTY potwierdził naciśnięcia X10 w klasycznym i SGR oraz brak raportów ruchu, zwolnienia i modyfikatorów. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie, bez zmiany DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.47.80-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
+
+## Mysz na przewiniętej historii — 1.0.48.81
+
+Zdarzenia myszy nad scrollbackiem nie są wysyłane do procesu terminala. Raporty dotyczą wyłącznie aktywnego ekranu, a numer wiersza jest liczony względem jego początku, nie początku przewiniętego widoku. Jeśli u góry widoku jest jeden wiersz historii, pierwszy widoczny wiersz aktywnego ekranu raportuje wiersz 1, a nie 2. Powrót wskaźnika z historii unieważnia filtr poprzedniej komórki.
+
+Przy włączonym śledzeniu myszy historia nadal pozwala lokalnie kliknąć, zaznaczyć słowo dwuklikiem, przeciągnąć zaznaczenie i przewijać kółkiem. Zaznaczenie rozpoczęte w historii może zakończyć się nad aktywnym ekranem bez wysłania zwolnienia do procesu. Shift nadal wymusza lokalną obsługę także nad aktywnym ekranem.
+
+Punkt odniesienia: [feed_mouse_event w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L5575). Nowy scenariusz DUnitX sprawdza lokalne zaznaczenie i kółko. Rozszerzony natywny odbiornik ConPTY potwierdza brak raportów dla historii, współrzędne pierwszego aktywnego wiersza po przewinięciu i pierwszy raport po powrocie z historii. Dalsze porównania menu i zachowania przy zmianie zawartości podczas przeciągania pozostają do wykonania.
+
+Weryfikacja 1.0.48.81: formatter bez błędów i sprawdzony diff; 164/164 scenariusze DUnitX bez błędów i wycieków. Test widoku potwierdził zaznaczanie i kółko w historii, a natywny odbiornik ConPTY brak raportów scrollbacku i prawidłowe współrzędne aktywnego ekranu. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie, bez zmiany DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.48.81-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.

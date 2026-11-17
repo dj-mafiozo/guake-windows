@@ -1,6 +1,6 @@
 ﻿# Pokrycie emulatora VT
 
-Stan: 1.0.47.80. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.48.81. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -274,3 +274,11 @@ DECSET/DECRST 9 steruje niezależnym bitem X10. Jest to najniższy priorytet śl
 Widok wysyła naciśnięcia bez bitów modyfikatorów, a pomija ruch i zwolnienie przycisku. Shift nadal umożliwia lokalną obsługę terminala. Format współrzędnych pozostaje negocjowany osobno: klasyczny, częściowy UTF-8 1005 lub SGR 1006. Ograniczenia zakresu klasycznego formatu na ConPTY pozostają bez zmian.
 
 Punkt odniesienia: [priorytet protokołów w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L392), [zdarzenia i modyfikatory](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L5575). Dwa scenariusze DUnitX sprawdzają stan, priorytet, save/restore, fragmentację i reset. Natywny odbiornik ConPTY porównuje naciśnięcia w klasycznym i SGR oraz brak ruchu/zwolnienia i modyfikatorów. Highlight, 1015/1016 i dalsze porównania protokołów nadal wymagają pracy.
+
+## Mysz na przewiniętej historii — 1.0.48.81
+
+Zdarzenia myszy nad scrollbackiem nie są wysyłane do procesu terminala. Raporty dotyczą wyłącznie aktywnego ekranu, a numer wiersza jest liczony względem jego początku, nie początku przewiniętego widoku. Jeśli u góry widoku jest jeden wiersz historii, pierwszy widoczny wiersz aktywnego ekranu raportuje wiersz 1, a nie 2. Powrót wskaźnika z historii unieważnia filtr poprzedniej komórki.
+
+Przy włączonym śledzeniu myszy historia nadal pozwala lokalnie kliknąć, zaznaczyć słowo dwuklikiem, przeciągnąć zaznaczenie i przewijać kółkiem. Zaznaczenie rozpoczęte w historii może zakończyć się nad aktywnym ekranem bez wysłania zwolnienia do procesu. Shift nadal wymusza lokalną obsługę także nad aktywnym ekranem.
+
+Punkt odniesienia: [feed_mouse_event w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L5575). Nowy scenariusz DUnitX sprawdza lokalne zaznaczenie i kółko. Rozszerzony natywny odbiornik ConPTY potwierdza brak raportów dla historii, współrzędne pierwszego aktywnego wiersza po przewinięciu i pierwszy raport po powrocie z historii. Dalsze porównania menu i zachowania przy zmianie zawartości podczas przeciągania pozostają do wykonania.
