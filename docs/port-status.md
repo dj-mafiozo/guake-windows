@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 17 listopada 2026, wersja 1.0.44.77. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 17 listopada 2026, wersja 1.0.45.78. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -397,3 +397,20 @@ CBT (CSI Z) nadal kasuje oczekujące zawinięcie i przechodzi do wcześniejszego
 Punkt odniesienia: [move_cursor_tab_forward/backward w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L934). Dwa scenariusze DUnitX obejmują wszystkie podziały sprawdzanych sekwencji CHT, HT, przystanki niestandardowe, CBT i DECAWM. Smart tabs VTE (kopiowanie tabulatora jako znaku zamiast spacji) oraz poziome marginesy pozostają niezaimplementowane.
 
 Weryfikacja 1.0.44.77: formatter bez błędów i sprawdzony diff; 157/157 scenariuszy DUnitX bez błędów i wycieków. Nowe przypadki potwierdziły zachowanie oczekującego zawinięcia przez HT/CHT, ruch CBT i brak zawinięcia przy wyłączonym DECAWM. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie, bez zmiany DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.44.77-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
+
+## Prywatne raporty DEC i strona kursora — 1.0.45.78
+
+DECXCPR odpowiada teraz na CSI ? 6 n pełnym raportem CSI ? wiersz ; kolumna ; 1 R (bez spacji w strumieniu). Ostatnie pole oznacza jedyną stronę terminala. Wiersz nadal uwzględnia DECOM, a standardowe CPR (CSI 6 n) pozostaje raportem dwóch współrzędnych. Zapytania nie zmieniają pozycji ani oczekującego zawinięcia.
+
+Dodane prywatne raporty DSR:
+
+- CSI ? 15 n → CSI ? 13 n: terminal nie ma interfejsu drukarki.
+- CSI ? 25 n → CSI ? 21 n: klawisze UDK są zablokowane; port nie obsługuje ich programowania.
+- CSI ? 55 n → CSI ? 53 n: brak lokalizatora DEC.
+- CSI ? 56 n → CSI ? 57 ; 0 n: typ lokalizatora DEC nieznany.
+
+Są to informacje o funkcjach protokołu terminala, nie o drukarkach Windows ani dostępności myszy. Raportowanie myszy xterm/SGR pozostaje niezależne. Nowe zapytania przyjmują jeden parametr; inne warianty są ignorowane. Odbicie odpowiedzi nie uruchamia kolejnego raportu.
+
+Punkt odniesienia: [DSR_DEC w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L4880). Dwa scenariusze DUnitX sprawdzają fragmentację, stronę raportu, origin, zawinięcie i odrzucanie błędnych wariantów. Rozszerzony natywny odbiornik ConPTY porównuje bajty czterech raportów statusu. Pozostałe raporty DEC i pełna zgodność emulatora wymagają dalszych prac.
+
+Weryfikacja 1.0.45.78: formatter bez błędów i sprawdzony diff; 159/159 scenariuszy DUnitX bez błędów i wycieków. Natywny odbiornik ConPTY potwierdził bajty czterech nowych raportów. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie, bez zmiany DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.45.78-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.

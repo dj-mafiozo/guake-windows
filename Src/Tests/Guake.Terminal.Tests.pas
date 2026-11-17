@@ -16,6 +16,8 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure DECStatusReportsFragmentsStateAndReplyLoops;
+    [Test] Procedure ExtendedCursorReportIncludesPageAndPreservesWrap;
     [Test] Procedure ForwardTabsPreservePendingWrapAcrossFragments;
     [Test] Procedure BackwardTabsCancelWrapAndForwardTabsRespectDisabledAutowrap;
     [Test] Procedure TopPartialScrollAddsHistoryAndPreservesRows;
@@ -164,6 +166,76 @@ Implementation
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+/// <summary>Checks absent DEC facilities, fragmented requests, reply-loop rejection and unchanged pending wrap.</summary>
+
+ Procedure TTerminalTests.DECStatusReportsFragmentsStateAndReplyLoops;
+  Const
+   Requests : Array[0..3] Of String = (#27'[?15n', #27'[?25n', #27'[?55n', #27'[?56n');
+   Replies : Array[0..3] Of String = (#27'[?13n', #27'[?21n', #27'[?53n', #27'[?57;0n');
+  Var
+   Buffer : TTerminalBuffer;
+   Bytes  : TBytes;
+   i      : Integer;
+   Split  : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(4, 3);
+   Try
+    For i := Low(Requests) To High(Requests) Do
+     Begin
+      Bytes     := TEncoding.UTF8.GetBytes(Requests[i]);
+      For Split := 0 To Length(Bytes) Do
+       Begin
+        Buffer.Reset;
+        Buffer.FeedText(#27 + '[31mABCD');
+        Buffer.Feed(Copy(Bytes, 0, Split));
+        Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+        Assert.AreEqual(Replies[i], Buffer.TakeResponses);
+        Assert.AreEqual(3, Buffer.CursorX);
+        Assert.AreEqual(0, Buffer.CursorY);
+        Buffer.FeedText('X');
+        Assert.AreEqual('X', Buffer.LineText(1), 'Reports preserve pending wrap');
+        Assert.AreEqual(1, Buffer.Cell[0, 1].Foreground);
+        Buffer.FeedText(Replies[i]);
+        Assert.AreEqual('', Buffer.TakeResponses, 'Reflected status replies must not cause a response loop');
+       End;
+     End;
+    Buffer.Reset;
+    Buffer.FeedText(#27 + '[15n' + #27 + '[25n' + #27 + '[55n' + #27 + '[56n' + #27 + '[?15;0n' + #27 + '[?25:0n' + #27 + '[?55 n');
+    Assert.AreEqual('', Buffer.TakeResponses, 'Unsupported public and malformed DEC queries are ignored');
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Verifies the page-one field in DECXCPR, including DECOM and pending wrap, without changing standard CPR.</summary>
+
+ Procedure TTerminalTests.ExtendedCursorReportIncludesPageAndPreservesWrap;
+  Var
+   Buffer : TTerminalBuffer;
+   Bytes  : TBytes;
+   Split  : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(4, 6);
+   Try
+    Bytes     := TEncoding.UTF8.GetBytes(#27 + '[?6n');
+    For Split := 0 To Length(Bytes) Do
+     Begin
+      Buffer.Reset;
+      Buffer.FeedText(#27 + '[2;5r' + #27 + '[?6h' + #27 + '[2;1HABCD');
+      Buffer.Feed(Copy(Bytes, 0, Split));
+      Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+      Assert.AreEqual(#27 + '[?2;4;1R', Buffer.TakeResponses);
+      Buffer.FeedText(#27 + '[6n');
+      Assert.AreEqual(#27 + '[2;4R', Buffer.TakeResponses);
+      Buffer.FeedText('X');
+      Assert.AreEqual(3, Buffer.CursorY);
+      Assert.AreEqual('X', Buffer.Cell[0, 3].Text);
+     End;
+   Finally
+    Buffer.Free;
+   End;
+  End;
 
 /// <summary>HT and CHT cannot discard pending wrap at a full row, including with a programmed final-column stop.</summary>
 
@@ -2079,6 +2151,9 @@ Implementation
     Frame.Perform(WM_SETFOCUS, 0, 0);
     Frame.Perform(WM_KILLFOCUS, 0, 0);
     Expected := Expected + #27'[I'#27'[O';
+    Session.Buffer.FeedText(#27 + '[?15n' + #27 + '[?25n' + #27 + '[?55n' + #27 + '[?56n');
+    Session.Poll;
+    Expected := Expected + #27 + '[?13n' + #27 + '[?21n' + #27 + '[?53n' + #27 + '[?57;0n';
     Session.Buffer.FeedText(#27'[?1004l'#27'[20h');
     Frame.Perform(WM_SETFOCUS, 0, 0);
     Key := #13;
@@ -3031,7 +3106,7 @@ Implementation
    Buffer := TTerminalBuffer.Create(20, 8);
    Try
     Buffer.FeedText(#27'[3;7r'#27'[?6h'#27'[2;4H'#27'[6n'#27'[?6n');
-    Assert.AreEqual(#27'[2;4R'#27'[?2;4R', Buffer.TakeResponses);
+    Assert.AreEqual(#27'[2;4R'#27'[?2;4;1R', Buffer.TakeResponses);
     Buffer.FeedText(#27'[?5n');
     Assert.AreEqual('', Buffer.TakeResponses);
     Buffer.FeedText(#27'[?6l'#27'[6n');

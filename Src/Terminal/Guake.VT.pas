@@ -1180,12 +1180,24 @@ Implementation
        If fOrigin Then
         Dec(a, fTop);
        If PrivateMode Then
-        fResponses := fResponses + Format(#27'[?%d;%dR', [a, fX + 1])
+        fResponses := fResponses + Format(#27'[?%d;%d;1R', [a, fX + 1])
        Else
         fResponses := fResponses + Format(#27'[%d;%dR', [a, fX + 1]);
       End
      Else If (P(0, 0) = 5) And Not PrivateMode Then
-      fResponses := fResponses + #27'[0n';
+      fResponses := fResponses + #27'[0n'
+     Else If PrivateMode And (Length(Params) = 1) Then
+      Case Params[0] Of
+       // Report absent or unsupported DEC facilities without advertising them as available.
+       15 :
+        fResponses := fResponses + #27 + '[?13n';
+       25 :
+        fResponses := fResponses + #27 + '[?21n';
+       55 :
+        fResponses := fResponses + #27 + '[?53n';
+       56 :
+        fResponses := fResponses + #27 + '[?57;0n';
+      End;
     'c' :
      If (Length(Params) = 1) And (Params[0] = 0) Then
       fResponses := fResponses + #27'[?1;2c';
