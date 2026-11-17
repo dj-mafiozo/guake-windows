@@ -1,6 +1,6 @@
 # Stan portu Guake dla Windows
 
-Stan kodu na 17 listopada 2026, wersja 1.0.33.66. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 17 listopada 2026, wersja 1.0.34.67. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -287,3 +287,13 @@ DECSEL (CSI ? Ps K) i DECSED (CSI ? Ps J), dla parametrów 0/1/2 i domyślnego, 
 Selektywne kasowanie ekranu nie usuwa historii. Rozszerzenie xterm ?3J i selektywne prostokąty nie są jeszcze obsługiwane; zwykłe 3J zachowuje dotychczasowe usuwanie historii. Trzy scenariusze DUnitX obejmują atrybut i jego odczyt, fragmentację, SGR, zapis kursora, reset, kierunki kasowania, historię i szerokie znaki po reflow. Odbiorca ConPTY sprawdza odpowiedź DECRQSS. Szczegóły i źródło semantyki xterm opisuje [macierz VT](vt-coverage.md).
 
 Weryfikacja 1.0.33.66: formatter bez błędów i sprawdzony diff, 131/131 scenariuszy DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Nowe scenariusze potwierdziły ochronę, kierunki kasowania, historię, reflow i atomowe kasowanie szerokich znaków; odbiorca ConPTY potwierdził DECRQSS. Zaktualizowano starą regresję ?2J do nieobsługiwanego ?4J i ograniczono ponawianie odczytu pliku gotowości pomocnika testu fokusu. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.33.66-Win64.zip z pasującymi EXE/PDB.
+
+## Edycja kolumn przy szerokich znakach — 1.0.34.67
+
+ICH i DCH korzystają ze wspólnej operacji przesuwania kolumn, używanej też przy drukowaniu w trybie insert (IRM). Przecięty na początku lub końcu przesuwanego obszaru szeroki znak jest zastępowany spacjami w całości. Nie zostaje samotna komórka kontynuacji ani prowadząca część znaku uciętego na prawej krawędzi. Liczba przesuwanych kolumn jest ograniczona do pozostałej szerokości, a kursor nie zmienia pozycji po ICH/DCH.
+
+ECH kasuje całe znaki przecięte zakresem, podobnie jak ED/EL. Operacje te nie są selektywne: ochrona DECSCA nie blokuje zwykłej edycji. Przenoszone komórki zachowują tekst, atrybuty i ochronę, a nowe puste miejsca pozostają niechronione. Metadane miękkiego zawinięcia należą do końca fizycznego wiersza i nie wędrują do środka razem z komórkami.
+
+Cztery scenariusze DUnitX obejmują granice ICH/DCH/ECH, IRM dla wąskiego i szerokiego wstawienia, zachowanie atrybutów, parametry domyślne oraz macierz 768 układów pozycji/liczby kolumn i mieszanego tekstu. Pozostają poziome marginesy, pozostałe przypadki druku przy wyłączonym autowrap oraz szersze porównania edycji i reflow z VTE. Szczegóły opisuje [macierz VT](vt-coverage.md).
+
+Weryfikacja 1.0.34.67: formatter bez błędów i sprawdzony diff, 135/135 scenariuszy DUnitX bez błędów i wycieków, cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release. Macierz 768 układów nie wykazała osieroconych części szerokich znaków; pozostałe nowe przypadki potwierdziły IRM, atrybuty, ochronę i położenie metadanych zawinięcia. Test.ps1 potwierdził niezmienność DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.34.67-Win64.zip z pasującymi EXE/PDB.

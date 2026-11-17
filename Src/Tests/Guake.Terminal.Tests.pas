@@ -16,6 +16,10 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure WideInsertColumnBoundaries;
+    [Test] Procedure WideDeleteAndEraseColumnBoundaries;
+    [Test] Procedure InsertModeUsesAtomicColumnShift;
+    [Test] Procedure ColumnEditingGridInvariantsAndSoftWrap;
     [Test] Procedure CharacterProtectionFragmentsAndCursorSave;
     [Test] Procedure SelectiveEraseDirectionsAndHistory;
     [Test] Procedure SelectiveEraseWideCellsAndReflow;
@@ -276,6 +280,131 @@ Implementation
   End;
 
 /// <summary>Soft wraps preserve UTF-16 hit positions; explicit newlines remain separate.</summary>
+
+/// <summary>Insertion repairs an intersected wide glyph and preserves moved cell attributes.</summary>
+
+ Procedure TTerminalTests.WideInsertColumnBoundaries;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(6, 3);
+   Try
+    Buffer.FeedText('A' + #$4E2D + 'BC' + #27'[1;3H' + #27'[@');
+    Assert.AreEqual('A   BC', Buffer.LineText(0));
+    Assert.AreEqual(2, Buffer.CursorX);
+    Buffer.Reset;
+    Buffer.FeedText('abcd' + #$4E2D + #27'[H' + #27'[@');
+    Assert.AreEqual(' abcd', Buffer.LineText(0));
+    Assert.IsFalse(Buffer.Cell[5, 0].Continuation);
+    Buffer.Reset;
+    Buffer.FeedText('A' + #27'[31m' + #27'[1' + #34'q' + #$4E2D + #27'[0' + #34'q' + 'BC' + #27'[1;2H' + #27'[@');
+    Assert.AreEqual('A ' + #$4E2D + 'BC', Buffer.LineText(0));
+    Assert.AreEqual(#$4E2D, Buffer.Cell[2, 0].Text);
+    Assert.IsTrue(Buffer.Cell[3, 0].Continuation);
+    Assert.IsTrue(Buffer.Cell[2, 0].EraseProtected And Buffer.Cell[3, 0].EraseProtected);
+    Assert.AreEqual(1, Buffer.Cell[2, 0].Foreground);
+    Assert.IsFalse(Buffer.Cell[1, 0].EraseProtected);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Deletion and ECH remove split wide characters while retaining their column-count semantics.</summary>
+
+ Procedure TTerminalTests.WideDeleteAndEraseColumnBoundaries;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(6, 3);
+   Try
+    Buffer.FeedText('A' + #$4E2D + 'BC' + #27'[1;2H' + #27'[P');
+    Assert.AreEqual('A BC', Buffer.LineText(0));
+    Buffer.Reset;
+    Buffer.FeedText('A' + #$4E2D + 'BC' + #27'[1;3H' + #27'[P');
+    Assert.AreEqual('A BC', Buffer.LineText(0));
+    Assert.AreEqual(2, Buffer.CursorX);
+    Buffer.Reset;
+    Buffer.FeedText('A' + #$4E2D + 'BC' + #27'[H' + #27'[2P');
+    Assert.AreEqual(' BC', Buffer.LineText(0));
+    Buffer.Reset;
+    Buffer.FeedText('A' + #$4E2D + 'BC' + #27'[1;3H' + #27'[X');
+    Assert.AreEqual('A  BC', Buffer.LineText(0));
+    Assert.IsFalse(Buffer.Cell[1, 0].Continuation Or Buffer.Cell[2, 0].Continuation);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>IRM uses the same boundary repair for narrow and wide inserted graphemes.</summary>
+
+ Procedure TTerminalTests.InsertModeUsesAtomicColumnShift;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(6, 3);
+   Try
+    Buffer.FeedText('abcd' + #$4E2D + #27'[H' + #27'[4hX');
+    Assert.AreEqual('Xabcd', Buffer.LineText(0));
+    Buffer.Reset;
+    Buffer.FeedText('A' + #$4E2D + 'BC' + #27'[1;3H' + #27'[4hZ');
+    Assert.AreEqual('A Z BC', Buffer.LineText(0));
+    Assert.AreEqual(3, Buffer.CursorX);
+    Buffer.Reset;
+    Buffer.FeedText('abcdXY' + #27'[H' + #27'[4h' + #$4E2D);
+    Assert.AreEqual(#$4E2D + 'abcd', Buffer.LineText(0));
+    Assert.IsTrue(Buffer.Cell[1, 0].Continuation);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Exercises every edit position/count in mixed-width rows and keeps wrap metadata on the row edge.</summary>
+
+ Procedure TTerminalTests.ColumnEditingGridInvariantsAndSoftWrap;
+  Var
+   Buffer    : TTerminalBuffer;
+   Pattern   : String;
+   Operation : Char;
+   Column    : Integer;
+   Count     : Integer;
+   x         : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 3);
+   Try
+    For Pattern In TArray<String>.Create('ab' + #$4E2D + 'cd', 'abcdef' + #$4E2D,
+    #$4E2D + #$4E2D + #$4E2D + #$4E2D, 'a' + #$0301 + #$4E2D + 'Z') Do
+     For Operation In '@PX' Do
+      For Column := 0 To 7 Do
+       For Count := 1 To 8 Do
+        Begin
+         Buffer.Reset;
+         Buffer.FeedText(Pattern + Format(#27'[1;%dH' + #27'[%d%s', [Column + 1, Count, String(Operation)]));
+         Assert.AreEqual(Column, Buffer.CursorX);
+         For x := 0 To 7 Do
+          If Buffer.Cell[x, 0].Continuation Then
+           Begin
+            Assert.IsTrue(x > 0);
+            Assert.IsFalse(Buffer.Cell[x - 1, 0].Continuation);
+            Assert.AreEqual(2, GraphemeWidth(Buffer.Cell[x - 1, 0].Text));
+           End
+          Else If GraphemeWidth(Buffer.Cell[x, 0].Text) = 2 Then
+           Begin
+            Assert.IsTrue(x < 7);
+            Assert.IsTrue(Buffer.Cell[x + 1, 0].Continuation);
+           End;
+        End;
+    Buffer.Reset;
+    Buffer.FeedText('abcdefghi' + #27'[1;2H' + #27'[@' + #27'[P');
+    Assert.IsTrue(Buffer.Cell[7, 0].SoftWrapped);
+    For x := 0 To 6 Do
+     Assert.IsFalse(Buffer.Cell[x, 0].SoftWrapped);
+    Buffer.Reset;
+    Buffer.FeedText('ABC' + #27'[1;2H' + #27'[0@');
+    Assert.AreEqual('A BC', Buffer.LineText(0), 'Zero means one inserted column');
+   Finally
+    Buffer.Free;
+   End;
+  End;
 
 /// <summary>Protection is independent of SGR and retained by DEC cursor save.</summary>
 

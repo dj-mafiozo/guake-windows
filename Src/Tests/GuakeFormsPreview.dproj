@@ -51,10 +51,10 @@
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_MajorVer>1</VerInfo_MajorVer>
     <VerInfo_MinorVer>0</VerInfo_MinorVer>
-    <VerInfo_Release>33</VerInfo_Release>
-    <VerInfo_Build>66</VerInfo_Build>
+    <VerInfo_Release>34</VerInfo_Release>
+    <VerInfo_Build>67</VerInfo_Build>
     <VerInfo_Locale>1045</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Formularze Guake dla Windows;FileVersion=1.0.33.66;InternalName=GuakeFormsPreview;OriginalFilename=GuakeFormsPreview.exe;ProductName=Guake dla Windows;ProductVersion=1.0.33.66</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Formularze Guake dla Windows;FileVersion=1.0.34.67;InternalName=GuakeFormsPreview;OriginalFilename=GuakeFormsPreview.exe;ProductName=Guake dla Windows;ProductVersion=1.0.34.67</VerInfo_Keys>
     <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
     <DCC_MapFile>3</DCC_MapFile>
     <PostBuildEvent>powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(MSBuildProjectDirectory)\..\Tools\Complete-Build.ps1" -ProjectFile "$(MSBuildProjectDirectory)\GuakeFormsPreview.dproj" -OutputDirectory "$(DCC_ExeOutput)\."</PostBuildEvent>

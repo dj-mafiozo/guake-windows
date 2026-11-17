@@ -108,6 +108,7 @@ Interface
     Function  Blank                                                   : TTerminalCell;
     Procedure ClearLine       (Var Line : TTerminalLine; First, Last : Integer);
     Procedure EraseLine       (Var Line : TTerminalLine; First, Last : Integer; Selective : Boolean);
+    Procedure ShiftColumns    (Count : Integer; Insert : Boolean);
     Procedure AllocateScreen  (Var Screen : TTerminalScreen; Columns, Rows : Integer);
     Procedure ProcessCode     (Code : Cardinal);
     Procedure PutCode         (Code : Cardinal);
@@ -227,6 +228,43 @@ Implementation
        Line[i] := Blank;
      x         := Finish + 1;
     End;
+  End;
+
+/// <summary>Shifts columns while replacing wide characters intersected by edit boundaries with blanks.</summary>
+
+ Procedure TTerminalBuffer.ShiftColumns(Count : Integer; Insert : Boolean);
+  Var
+   x       : Integer;
+   Wrapped : Boolean;
+  Begin
+   Count := EnsureRange(Count, 0, fColumns - fX);
+   If Count = 0 Then
+    Exit;
+   Wrapped := fScreen[fY][fColumns - 1].SoftWrapped;
+   If Insert Then
+    Begin
+     If fScreen[fY][fX].Continuation Then
+      EraseLine(fScreen[fY], fX, fX, False);
+     If fScreen[fY][fColumns - Count].Continuation Then
+      EraseLine(fScreen[fY], fColumns - Count, fColumns - Count, False);
+     For x           := fColumns - 1 Downto fX + Count Do
+      fScreen[fY][x] := fScreen[fY][x - Count];
+     ClearLine(fScreen[fY], fX, fX + Count - 1);
+    End
+   Else
+    Begin
+     EraseLine(fScreen[fY], fX, fX + Count - 1, False);
+     For x           := fX To fColumns - Count - 1 Do
+      fScreen[fY][x] := fScreen[fY][x + Count];
+     ClearLine(fScreen[fY], fColumns - Count, fColumns - 1);
+    End;
+   // Wrapping belongs to the physical row, not to the cell being shifted.
+   For x := 0 To fColumns - 1 Do
+    Begin
+     fScreen[fY][x].SoftWrapped := False;
+     fScreen[fY][x].WrapPadding := False;
+    End;
+   fScreen[fY][fColumns - 1].SoftWrapped := Wrapped;
   End;
 
  Procedure TTerminalBuffer.AllocateScreen(Var Screen : TTerminalScreen; Columns, Rows : Integer);
@@ -474,8 +512,8 @@ Implementation
 
  Procedure TTerminalBuffer.PutCode(Code : Cardinal);
   Var
-   w, i, Previous, OldWidth, NewWidth : Integer;
-   Next                               : String;
+   w, Previous, OldWidth, NewWidth : Integer;
+   Next                            : String;
   Begin
    Code     := TranslateGraphic(Code);
    Next     := CodeText(Code);
@@ -523,8 +561,7 @@ Implementation
      End;
    fWrapPending := False;
    If fInsert Then
-    For i           := fColumns - 1 Downto fX + w Do
-     fScreen[fY][i] := fScreen[fY][i - w];
+    ShiftColumns(w, True);
    If fScreen[fY][fX].Continuation And (fX > 0) Then
     fScreen[fY][fX - 1] := Blank;
    If (fX < fColumns - 1) And fScreen[fY][fX + 1].Continuation Then
@@ -974,19 +1011,11 @@ Implementation
       2 : EraseLine(fScreen[fY], 0, fColumns - 1, PrivateMode);
      End;
     '@' :
-     Begin
-      For x           := fColumns - 1 Downto fX + n Do
-       fScreen[fY][x] := fScreen[fY][x - n];
-      ClearLine(fScreen[fY], fX, fX + n - 1);
-     End;
+     ShiftColumns(n, True);
     'P' :
-     Begin
-      For x           := fX To fColumns - n - 1 Do
-       fScreen[fY][x] := fScreen[fY][x + n];
-      ClearLine(fScreen[fY], Max(fX, fColumns - n), fColumns - 1);
-     End;
+     ShiftColumns(n, False);
     'X' :
-     ClearLine(fScreen[fY], fX, fX + n - 1);
+     EraseLine(fScreen[fY], fX, fX + n - 1, False);
     'L', 'M' :
      If (fY >= fTop) And (fY <= fBottom) Then
       Begin

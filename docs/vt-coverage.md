@@ -1,6 +1,6 @@
 # Pokrycie emulatora VT
 
-Stan: 1.0.33.66. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.34.67. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -8,7 +8,7 @@ Stan: 1.0.33.66. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | Kontrolki C0 | BEL, BS, HT, LF/VT/FF, CR, SI/SO także wewnątrz ESC/CSI/oznaczeń zestawów; CAN/SUB anuluje, NUL/DEL nie drukuje | Odpowiedź ENQ jest pusta; dalsza macierz C1 i kontrolek w ciągach sterujących |
 | Tabulatory | HT, HTS (ESC H), TBC (CSI g, CSI 3 g), CHT (CSI I), CBT (CSI Z), DECST8C (CSI ? 5 W); domyślne co 8 kolumn | Testy porównawcze z VTE przy zmianach geometrii i ekranów |
 | Ruch | CUU/CUD/CUF/CUB, CNL/CPL, CHA/HPA, VPA, CUP/HVP, HPR/VPR | Pełne zachowanie marginesów, dodatkowe tryby i warianty |
-| Edycja | ED/EL, DECSEL/DECSED 0–2 i DECSCA, ICH/DCH/ECH, IL/DL, SU/SD, DECSTBM; ED/EL kasują całe szerokie znaki na granicy | Selektywne ?3J i prostokąty DEC; poziome marginesy; pozostała edycja szerokich znaków |
+| Edycja | ED/EL, DECSEL/DECSED 0–2 i DECSCA, ICH/DCH/ECH, IL/DL, SU/SD, DECSTBM; ED/EL/ECH i ICH/DCH/IRM naprawiają przecięte szerokie znaki | Selektywne ?3J i prostokąty DEC; poziome marginesy; dalsze przypadki szerokich znaków i reflow |
 | Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, ochrona komórek, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS i DECSTR; XTSAVE/XTRESTORE dla dziewięciu wybranych trybów | Pozostałe tryby prywatne |
 | Kursor | Widoczność DECTCEM, DECSCUSR 0–6: preferencje lub blok/podkreślenie/pionowa kreska, warianty migające i stałe; odczyt przez DECRQSS | Dalsza zgodność geometrii i wypełnienia bloku z VTE; wariant xterm 7 nie jest obsługiwany |
 | Ekrany | Ekran główny i alternatywny, 47/1047/1049, historia i reflow ekranu głównego | Osobna macierz wariantów przełączania i zapisów kursora, przypadki brzegowe reflow |
@@ -155,3 +155,11 @@ DECSCA (CSI Ps " q) przypisuje ochronę znakom drukowanym później: 1 włącza,
 DECSEL/DECSED 0/1/2 oraz domyślne pomijają chronione znaki; zwykłe ED/EL nie respektują ochrony. Obie ścieżki ED/EL operują całymi znakami, jeżeli krawędź zakresu trafia w kontynuację szerokiej komórki. Ochrona dowolnej części szerokiego znaku chroni cały znak. Komórki wyczyszczone nie dziedziczą ochrony bieżącego DECSCA. Zmiana ochrony nie jest zmianą wyglądu ani blokadą kopiowania/nadpisywania.
 
 DECSTR resetuje przyszłą ochronę, zachowując stare komórki; RIS kasuje zawartość. Selektywne ED nie kasuje scrollbacku i nie jest ograniczone marginesami przewijania. Rozszerzenie ?3J i prostokąty pozostają nieobsługiwane. Testy obejmują wszystkie kierunki ED/EL, parametry i domyślny, fragmentację, odczyt, SGR i zapis kursora, historię, reflow i szerokie znaki. Natywny odbiorca ConPTY potwierdza odpowiedź ochrony. Pełne porównanie z VTE i pozostałe operacje edycji pozostają do wykonania.
+
+## ICH, DCH, ECH i IRM na granicach grafemów — 1.0.34.67
+
+ICH i DCH przesuwają określoną liczbę kolumn, ograniczoną do końca wiersza. Jeżeli granica przecina szeroki znak, cały znak jest zastępowany spacjami przed przesunięciem. Nie zwiększa to liczby przesuwanych kolumn. Na przykład DCH 1 na prowadzącej części `A中BC` pozostawia `A BC`, a nie osieroconą kontynuację. ECH kasuje całe przecięte znaki bez przesuwania. IRM korzysta z tej samej operacji wstawiania kolumn. Punkt odniesienia dla semantyki przesunięć: [ICH/DCH w VTE](https://github.com/GNOME/vte/blob/master/src/vteseq.cc).
+
+Ruch komórek zachowuje ich atrybuty i ochronę, ale sama edycja ignoruje ochronę (nie jest DECSEL/DECSED). Nowe spacje powstają z bieżącymi atrybutami i bez ochrony. Flaga miękkiego zawinięcia jest utrzymywana na ostatniej komórce fizycznego wiersza; stare znaczniki paddingu nie są przesuwane jako tekst.
+
+Testy obejmują cięcie początku i końca szerokiego znaku, odrzucenie znaku przecinającego prawą granicę, oba warianty IRM, kolory i ochronę oraz 768 kombinacji czterech wzorców tekstu, trzech operacji, ośmiu pozycji i ośmiu liczników. Każdy wynik jest sprawdzany pod kątem par prowadząca/kontynuacja; wzorce zawierają też znak łączący. Dalsze porównania z uruchomionym VTE, poziome marginesy i skrajny druk szerokich znaków bez autowrap pozostają do wykonania.
