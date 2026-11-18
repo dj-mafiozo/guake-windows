@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 18 listopada 2026, wersja 1.0.57.90. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 18 listopada 2026, wersja 1.0.58.91. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -534,3 +534,13 @@ Testy obejmują ASCII, zawinięcie przed CJK, podawanie sekwencji znak po znaku,
 Punkt odniesienia: [clear_above_current w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L287), gdzie kasowanie powyżej kursora zamyka miękkie zawinięcie wiersza nad obszarem zapisu. Pełne zachowanie ED 2 i pozostałych wariantów kasowania nadal wymaga dalszych porównań.
 
 Weryfikacja 1.0.57.90: formatter bez błędów, sprawdzony diff i integralność źródeł; 180/180 scenariuszy DUnitX, bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.57.90-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
+
+## EL 0 na pełnym wierszu — 1.0.58.91
+
+Zwykłe `CSI K` i `CSI 0 K` zachowują oczekujące zawinięcie po zapełnieniu wiersza. Kursor logicznie znajduje się wtedy za prawą krawędzią: kasowanie nie usuwa ostatniego znaku ani jego komórki kontynuacji i nie zmienia tła tej komórki. Kolejny znak przechodzi do następnego wiersza. Zwykłe EL 0 zamyka też istniejące miękkie połączenie kasowanego wiersza z następnym, zgodnie z VTE.
+
+To świadome zachowanie VTE, różniące się w tym przypadku od ścisłej emulacji xterm. Punkt odniesienia: [clear_to_eol w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L670). EL 1, EL 2 i selektywne DECSEL nadal anulują oczekujące zawinięcie; jawne przesunięcie kursora na ostatnią kolumnę pozwala zwykłemu EL 0 wymazać znak w tej kolumnie.
+
+Dwa scenariusze DUnitX obejmują ASCII i CJK, sekwencje podawane znak po znaku, oba zapisy EL 0, zachowanie tła i następnego drukowanego znaku, tekst logicznego akapitu oraz pozostałe warianty kasowania. Pełne porównanie kasowania, ochrony komórek i granic akapitów pozostaje do dalszych prac.
+
+Weryfikacja 1.0.58.91: formatter bez błędów, sprawdzony diff i integralność źródeł; 182/182 scenariusze DUnitX, bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.58.91-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.

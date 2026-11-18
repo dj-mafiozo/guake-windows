@@ -11,7 +11,7 @@ Główny projekt: [Src/guake.dpr](Src/guake.dpr), [Src/guake.dproj](Src/guake.dp
 - [Diagnostyka](Src/Diagnostics/Guake.Logging.pas): logowanie `Exception.StackTrace`, biblioteka `Src/Vendor/stacktrace`, MAP i PDB dla każdego EXE.
 - [Common](Src/Common/README.md): submoduł z odczytem wersji EXE przez `VersionU.pas`.
 - Widok terminala: wypełniony aktywny kursor blokowy z odwróconym glifem, obsługą szerokich znaków i nieprzezroczystą maską kursora; po utracie fokusu stały obrys bloku lub kreska/podkreślenie.
-- [Emulator VT](Src/Terminal/Guake.VT.pas): przyrostowy parser, raporty stanu i tryby wejścia, szerokie znaki, atrybuty, marginesy, historia i reflow z mapowaniem kursora oraz granicami akapitów. Zakres sekwencji, regresje i ograniczenia opisuje [macierz pokrycia](docs/vt-coverage.md).
+- [Emulator VT](Src/Terminal/Guake.VT.pas): przyrostowy parser, raporty stanu i tryby wejścia, szerokie znaki, atrybuty, marginesy, historia i reflow z mapowaniem kursora oraz granicami akapitów; EL 0 zachowuje zawinięcie pełnego wiersza jak w VTE. Zakres sekwencji, regresje i ograniczenia opisuje [macierz pokrycia](docs/vt-coverage.md).
 
 Budowanie i testy dla Delphi 10.2 (z katalogu repozytorium):
 

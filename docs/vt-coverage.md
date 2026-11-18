@@ -1,6 +1,6 @@
 ﻿# Pokrycie emulatora VT
 
-Stan: 1.0.57.90. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.58.91. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -354,3 +354,11 @@ Zwykłe `CSI 1 J` (kasowanie od początku ekranu do kursora) przerywa logiczne p
 Testy obejmują ASCII, zawinięcie przed CJK, podawanie sekwencji znak po znaku, odczyt logicznego wiersza i zmianę szerokości po kasowaniu. Kasowanie na ekranie alternatywnym pozostawia połączenia ukrytej historii głównej bez zmian. Selektywne DECSED `CSI ? 1 J` nie otrzymuje tej zmiany; jego dalsza macierz ochrony i granic akapitów pozostaje osobnym zadaniem.
 
 Punkt odniesienia: [clear_above_current w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L287), gdzie kasowanie powyżej kursora zamyka miękkie zawinięcie wiersza nad obszarem zapisu. Pełne zachowanie ED 2 i pozostałych wariantów kasowania nadal wymaga dalszych porównań.
+
+## EL 0 na pełnym wierszu — 1.0.58.91
+
+Zwykłe `CSI K` i `CSI 0 K` zachowują oczekujące zawinięcie po zapełnieniu wiersza. Kursor logicznie znajduje się wtedy za prawą krawędzią: kasowanie nie usuwa ostatniego znaku ani jego komórki kontynuacji i nie zmienia tła tej komórki. Kolejny znak przechodzi do następnego wiersza. Zwykłe EL 0 zamyka też istniejące miękkie połączenie kasowanego wiersza z następnym, zgodnie z VTE.
+
+To świadome zachowanie VTE, różniące się w tym przypadku od ścisłej emulacji xterm. Punkt odniesienia: [clear_to_eol w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L670). EL 1, EL 2 i selektywne DECSEL nadal anulują oczekujące zawinięcie; jawne przesunięcie kursora na ostatnią kolumnę pozwala zwykłemu EL 0 wymazać znak w tej kolumnie.
+
+Dwa scenariusze DUnitX obejmują ASCII i CJK, sekwencje podawane znak po znaku, oba zapisy EL 0, zachowanie tła i następnego drukowanego znaku, tekst logicznego akapitu oraz pozostałe warianty kasowania. Pełne porównanie kasowania, ochrony komórek i granic akapitów pozostaje do dalszych prac.

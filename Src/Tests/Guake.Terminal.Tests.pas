@@ -122,6 +122,8 @@ Interface
     [Test] Procedure SessionTreeRoundTripAndFailedRestore;
     [Test] Procedure AlternateScreenRestoresPrimary;
     [Test] Procedure EraseAboveBreaksHistoryParagraph;
+    [Test] Procedure EraseToEndPreservesPendingWrap;
+    [Test] Procedure OtherLineErasesCancelPendingWrap;
     [Test] Procedure EraseAboveAlternateKeepsPrimaryHistory;
     [Test] Procedure AlternateResizeClearsCutWideCharacters;
     [Test] Procedure AlternateResizePreservesCompleteWideCharacters;
@@ -4848,6 +4850,60 @@ Implementation
    Finally
     Buffer.Free;
    End;
+  End;
+
+/// <summary>VTE EL 0 preserves full ASCII and wide rows and their deferred wrap.</summary>
+
+ Procedure TTerminalTests.EraseToEndPreservesPendingWrap;
+  Var
+   Buffer   : TTerminalBuffer;
+   Content  : String;
+   Sequence : String;
+   Ch       : Char;
+  Begin
+   For Content In TArray<String>.Create('ABCD', 'AB' + WideChar($754C)) Do
+    For Sequence In TArray<String>.Create(#27 + '[K', #27 + '[0K') Do
+     Begin
+      Buffer := TTerminalBuffer.Create(4, 3);
+      Try
+       Buffer.FeedText(Content + #27 + '[31;44m');
+       For Ch In Sequence Do
+        Buffer.FeedText(Ch);
+       Assert.AreEqual(Content, Buffer.LineText(0));
+       Assert.AreEqual( -2, Buffer.Cell[3, 0].Background);
+       Assert.AreEqual(3, Buffer.CursorX);
+       Assert.AreEqual(0, Buffer.CursorY);
+       Buffer.FeedText('X');
+       Assert.AreEqual(Content, Buffer.LineText(0));
+       Assert.AreEqual('X', Buffer.LineText(1));
+       Assert.AreEqual(1, Buffer.Cell[0, 1].Foreground);
+       Assert.AreEqual(4, Buffer.Cell[0, 1].Background);
+       Assert.AreEqual(Content + 'X', Buffer.Text);
+      Finally
+       Buffer.Free;
+      End;
+     End;
+  End;
+
+/// <summary>Other EL variants and explicit cursor movement retain ordinary edge erasure.</summary>
+
+ Procedure TTerminalTests.OtherLineErasesCancelPendingWrap;
+  Var
+   Buffer   : TTerminalBuffer;
+   Sequence : String;
+  Begin
+   For Sequence In TArray<String>.Create(#27 + '[1K', #27 + '[2K', #27 + '[?0K', #27 + '[4G' + #27 + '[K') Do
+    Begin
+     Buffer := TTerminalBuffer.Create(4, 3);
+     Try
+      Buffer.FeedText('ABCD' + Sequence + 'X');
+      Assert.AreEqual('X', Buffer.Cell[3, 0].Text);
+      Assert.AreEqual(0, Buffer.CursorY);
+      Assert.AreEqual('', Buffer.LineText(1));
+     Finally
+      Buffer.Free;
+     End;
+    End;
   End;
 
  Procedure TTerminalTests.AlternateScreenRestoresPrimary;

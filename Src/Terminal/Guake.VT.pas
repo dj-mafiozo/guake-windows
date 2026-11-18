@@ -1100,7 +1100,8 @@ Implementation
        fResponses := fResponses + #27'[>0;0;0c';
      Exit;
     End;
-   If Not CharInSet(Final, ['m', 'h', 'l', 's', 'u', 'n', 'c', 't', 'b', 'L', 'M', 'I']) Then
+   If Not CharInSet(Final, ['m', 'h', 'l', 's', 'u', 'n', 'c', 't', 'b', 'L', 'M', 'I']) And
+   Not((Final = 'K') And Not PrivateMode And (P(0, 0) = 0)) Then
     fWrapPending := False;
    n             := Min(P(0, 1), Max(fColumns, fRows));
    Case Final Of
@@ -1177,9 +1178,17 @@ Implementation
      End;
     'K' :
      Case P(0, 0) Of
-      0 : EraseLine(fScreen[fY], fX, fColumns - 1, PrivateMode);
-      1 : EraseLine(fScreen[fY], 0, fX, PrivateMode);
-      2 : EraseLine(fScreen[fY], 0, fColumns - 1, PrivateMode);
+      0 :
+       Begin
+        // VTE keeps the logical cursor beyond a full row for ordinary EL 0.
+        EraseLine(fScreen[fY], fX + Ord(fWrapPending), fColumns - 1, PrivateMode);
+        If Not PrivateMode Then
+         BreakLineAfter(fY);
+       End;
+      1 :
+       EraseLine(fScreen[fY], 0, fX, PrivateMode);
+      2 :
+       EraseLine(fScreen[fY], 0, fColumns - 1, PrivateMode);
      End;
     '@' :
      ShiftColumns(n, True);
