@@ -121,6 +121,8 @@ Interface
     [Test] Procedure HyperlinksSearchAndDirectionalPanes;
     [Test] Procedure SessionTreeRoundTripAndFailedRestore;
     [Test] Procedure AlternateScreenRestoresPrimary;
+    [Test] Procedure AlternateResizeClearsCutWideCharacters;
+    [Test] Procedure AlternateResizePreservesCompleteWideCharacters;
     [Test] Procedure PrimaryPendingWrapSurvivesAlternateScreen;
     [Test] Procedure PrimaryPendingWrapReflowsWhileAlternate;
     [Test] Procedure SavedPrimaryCursorReflowsAcrossScreens;
@@ -4686,6 +4688,54 @@ Implementation
     Assert.AreEqual(WideChar($2500), Buffer.Cell[1, 1].Text[1]);
     Assert.AreEqual(2, Buffer.CursorX);
     Assert.AreEqual(1, Buffer.CursorY);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Clipping CJK or emoji removes the partial cell, including one-column grids.</summary>
+
+ Procedure TTerminalTests.AlternateResizeClearsCutWideCharacters;
+  Var
+   Buffer : TTerminalBuffer;
+   Width  : Integer;
+   Glyph  : String;
+  Begin
+   For Glyph In TArray<String>.Create(WideChar($754C), #$D83D#$DC4D) Do
+    For Width := 1 To 4 Do
+     Begin
+      Buffer := TTerminalBuffer.Create(8, 4);
+      Try
+       Buffer.FeedText('PRIMARY' + #27 + '[?1049h' + StringOfChar('a', Width - 1) + Glyph + 'Z');
+       Buffer.Resize(Width, 4);
+       Assert.AreEqual(StringOfChar('a', Width - 1), Buffer.LineText(0));
+       Assert.IsFalse(Buffer.Cell[Width - 1, 0].Continuation);
+       Buffer.Resize(8, 4);
+       Assert.AreEqual(StringOfChar('a', Width - 1), Buffer.LineText(0));
+       Buffer.FeedText(#27 + '[?1049l');
+       Assert.AreEqual('PRIMARY', Buffer.Text);
+      Finally
+       Buffer.Free;
+      End;
+     End;
+  End;
+
+/// <summary>A glyph fully inside the edge keeps both cells and its attributes.</summary>
+
+ Procedure TTerminalTests.AlternateResizePreservesCompleteWideCharacters;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 4);
+   Try
+    Buffer.FeedText(#27 + '[?1049h' + 'A' + #27 + '[31m' + WideChar($754C) + 'Z');
+    Buffer.Resize(3, 4);
+    Assert.AreEqual('A' + WideChar($754C), Buffer.LineText(0));
+    Assert.IsTrue(Buffer.Cell[2, 0].Continuation);
+    Assert.AreEqual(1, Buffer.Cell[1, 0].Foreground);
+    Buffer.Resize(8, 4);
+    Assert.AreEqual('A' + WideChar($754C), Buffer.LineText(0));
+    Assert.IsTrue(Buffer.Cell[2, 0].Continuation);
    Finally
     Buffer.Free;
    End;

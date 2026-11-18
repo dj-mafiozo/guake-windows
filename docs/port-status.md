@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 18 listopada 2026, wersja 1.0.54.87. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 18 listopada 2026, wersja 1.0.55.88. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -506,3 +506,11 @@ Zapisany kolor, atrybuty, zestawy znaków i tryby nie są zastępowane stanem bi
 Pozostają dalsze przypadki mapowania przy obcinaniu historii, szerokich grafemach i marginesach oraz pełna macierz ekranów alternatywnych. Ta zmiana nie dodaje reflow ekranu alternatywnego; jest on nadal przycinany lub rozszerzany jako siatka.
 
 Weryfikacja 1.0.54.87: formatter bez błędów, sprawdzony diff i integralność źródeł; 174/174 scenariusze DUnitX, bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.54.87-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
+
+## Szerokie znaki przy przycinaniu ekranu alternatywnego — 1.0.55.88
+
+Zwężenie siatki ekranu alternatywnego usuwa widoczną część szerokiego znaku, jeśli jego komórka kontynuacji wypada poza nową prawą krawędzią. Wcześniej pozostawał samotny początek znaku bez drugiej komórki. Ponowne poszerzenie nie odtwarza przyciętej zawartości. Znaki mieszczące się w całości zachowują tekst, kontynuację i atrybuty.
+
+Dwa scenariusze DUnitX obejmują CJK i emoji przy szerokościach 1–4 kolumn, poszerzenie po przycięciu, zachowanie całego znaku na krawędzi i jego koloru oraz niezależność zawartości ekranu głównego. To naprawa integralności siatki; ekran alternatywny nadal nie ma reflow. Pozostają pełna macierz 47/1047/1049, zachowanie zapisów kursora ekranu alternatywnego przy zmianie geometrii i porównania renderowania z VTE.
+
+Weryfikacja 1.0.55.88: formatter bez błędów, sprawdzony diff i integralność źródeł; 176/176 scenariuszy DUnitX, bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.55.88-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.

@@ -1,6 +1,6 @@
 ﻿# Pokrycie emulatora VT
 
-Stan: 1.0.54.87. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.55.88. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -332,3 +332,9 @@ Reflow przelicza teraz dwie pozycje: bieżący kursor oraz zapis DECSC ekranu g�
 Zapisany kolor, atrybuty, zestawy znaków i tryby nie są zastępowane stanem bieżącego kursora. Zapis w pustej części wiersza lub poniżej ostatniego tekstu uczestniczy w ustalaniu zakresu reflow. Testy sprawdzają zwężenie pełnego wiersza z 6 do 3 kolumn po DECSC i przy aktywnym 1049, a także niezależność bieżącego kursora i zachowanie koloru oraz DEC Special Graphics po DECRC.
 
 Pozostają dalsze przypadki mapowania przy obcinaniu historii, szerokich grafemach i marginesach oraz pełna macierz ekranów alternatywnych. Ta zmiana nie dodaje reflow ekranu alternatywnego; jest on nadal przycinany lub rozszerzany jako siatka.
+
+## Szerokie znaki przy przycinaniu ekranu alternatywnego — 1.0.55.88
+
+Zwężenie siatki ekranu alternatywnego usuwa widoczną część szerokiego znaku, jeśli jego komórka kontynuacji wypada poza nową prawą krawędzią. Wcześniej pozostawał samotny początek znaku bez drugiej komórki. Ponowne poszerzenie nie odtwarza przyciętej zawartości. Znaki mieszczące się w całości zachowują tekst, kontynuację i atrybuty.
+
+Dwa scenariusze DUnitX obejmują CJK i emoji przy szerokościach 1–4 kolumn, poszerzenie po przycięciu, zachowanie całego znaku na krawędzi i jego koloru oraz niezależność zawartości ekranu głównego. To naprawa integralności siatki; ekran alternatywny nadal nie ma reflow. Pozostają pełna macierz 47/1047/1049, zachowanie zapisów kursora ekranu alternatywnego przy zmianie geometrii i porównania renderowania z VTE.

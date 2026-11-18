@@ -1755,16 +1755,22 @@ Implementation
    NewPending : Boolean;
    TabIndex   : Integer;
 
+   /// <summary>Clip the alternate grid without retaining half of a cut wide glyph.</summary>
+
    Procedure ResizeGrid(Var Screen : TTerminalScreen);
     Var
      x, y : Integer;
     Begin
      AllocateScreen(NewScreen, Columns, Rows);
-     For y             := 0 To Min(High(Screen), Rows - 1) Do
-      For x            := 0 To Min(High(Screen[y]), Columns - 1) Do
-       NewScreen[y][x] := Screen[y][x];
-     Screen            := NewScreen;
-     NewScreen         := Nil;
+     For y := 0 To Min(High(Screen), Rows - 1) Do
+      Begin
+       For x            := 0 To Min(High(Screen[y]), Columns - 1) Do
+        NewScreen[y][x] := Screen[y][x];
+       If (Columns < Length(Screen[y])) And Screen[y][Columns].Continuation Then
+        EraseLine(NewScreen[y], Columns - 1, Columns - 1, False);
+      End;
+     Screen    := NewScreen;
+     NewScreen := Nil;
     End;
 
   /// <summary>Rewrap primary text and map both live and DEC-saved cursor positions.</summary>
