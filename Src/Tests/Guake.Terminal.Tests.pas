@@ -123,6 +123,8 @@ Interface
     [Test] Procedure AlternateScreenRestoresPrimary;
     [Test] Procedure PrimaryPendingWrapSurvivesAlternateScreen;
     [Test] Procedure PrimaryPendingWrapReflowsWhileAlternate;
+    [Test] Procedure SavedPrimaryCursorReflowsAcrossScreens;
+    [Test] Procedure SavedPrimaryCursorKeepsAttributesAfterReflow;
     [Test] Procedure ColorsCursorAndDeviceResponses;
     [Test] Procedure ScrollbackAndMargins;
     [Test] Procedure WideAndCombiningCells;
@@ -4632,6 +4634,61 @@ Implementation
       Buffer.Free;
      End;
     End;
+  End;
+
+/// <summary>Both DECRC and 1049 return to the mapped saved position, including deferred wrap.</summary>
+
+ Procedure TTerminalTests.SavedPrimaryCursorReflowsAcrossScreens;
+  Var
+   Buffer    : TTerminalBuffer;
+   Alternate : Boolean;
+  Begin
+   For Alternate := False To True Do
+    Begin
+     Buffer := TTerminalBuffer.Create(6, 5);
+     Try
+      Buffer.FeedText('ABCDEF');
+      If Alternate Then
+       Buffer.FeedText(#27 + '[?1049h')
+      Else
+       Buffer.FeedText(#27 + '7' + #27 + '[1;1H');
+      Buffer.Resize(3, 5);
+      If Alternate Then
+       Buffer.FeedText(#27 + '[?1049l')
+      Else
+       Buffer.FeedText(#27 + '8');
+      Buffer.FeedText('G');
+      Assert.AreEqual('ABC', Buffer.LineText(0));
+      Assert.AreEqual('DEF', Buffer.LineText(1));
+      Assert.AreEqual('G', Buffer.LineText(2));
+      Assert.AreEqual(1, Buffer.CursorX);
+      Assert.AreEqual(2, Buffer.CursorY);
+     Finally
+      Buffer.Free;
+     End;
+    End;
+  End;
+
+/// <summary>Reflow maps only coordinates and preserves saved rendition and character sets.</summary>
+
+ Procedure TTerminalTests.SavedPrimaryCursorKeepsAttributesAfterReflow;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(6, 5);
+   Try
+    Buffer.FeedText('ABCD' + #27 + '[31m' + #27 + '(0' + #27 + '7');
+    Buffer.FeedText(#27 + '[0m' + #27 + '(B' + #27 + '[1;1H');
+    Buffer.Resize(3, 5);
+    Buffer.FeedText(#27 + '8' + 'q');
+    Assert.AreEqual('ABC', Buffer.LineText(0));
+    Assert.AreEqual(1, Buffer.Cell[1, 1].Foreground);
+    Assert.AreEqual(WideChar($2500), Buffer.Cell[1, 1].Text[1]);
+    Assert.AreEqual(2, Buffer.CursorX);
+    Assert.AreEqual(1, Buffer.CursorY);
+   Finally
+    Buffer.Free;
+   End;
   End;
 
  Procedure TTerminalTests.AlternateScreenRestoresPrimary;

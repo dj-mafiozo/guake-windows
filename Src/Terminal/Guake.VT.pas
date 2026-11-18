@@ -1767,8 +1767,12 @@ Implementation
      NewScreen         := Nil;
     End;
 
+  /// <summary>Rewrap primary text and map both live and DEC-saved cursor positions.</summary>
+
    Procedure Reflow(Var Screen : TTerminalScreen; Var CursorX, CursorY : Integer; Pending : Boolean);
     Var
+     SavedRow, SavedCol, SavedX, SavedY                                                : Integer;
+     SavedPending, FoundSaved                                                          : Boolean;
      Input, Output                                                                     : TList<TTerminalLine>;
      Current, Source                                                                   : TTerminalLine;
      Cell                                                                              : TTerminalCell;
@@ -1818,16 +1822,22 @@ Implementation
      Input  := TList<TTerminalLine>.Create;
      Output := TList<TTerminalLine>.Create;
      Try
-      Bottom := CursorY;
+      Bottom := Max(CursorY, fDECSaved[False].y);
       For y  := 0 To High(Screen) Do
        For x := 0 To High(Screen[y]) Do
         If (Screen[y][x].Text <> '') And (Screen[y][x].Text <> ' ') Then
          Bottom := Max(Bottom, y);
       For Source In fHistory Do
        Input.Add(Source);
-      CursorRow := fHistory.Count + CursorY;
-      CursorCol := CursorX + Ord(Pending);
-      For y     := 0 To Min(Bottom, High(Screen)) Do
+      CursorRow    := fHistory.Count + CursorY;
+      CursorCol    := CursorX + Ord(Pending);
+      SavedRow     := fHistory.Count + fDECSaved[False].y;
+      SavedCol     := fDECSaved[False].x + Ord(fDECSaved[False].WrapPending);
+      SavedX       := 0;
+      SavedY       := 0;
+      SavedPending := False;
+      FoundSaved   := False;
+      For y        := 0 To Min(Bottom, High(Screen)) Do
        Input.Add(Screen[y]);
       HaveLine      := False;
       FoundCursor   := False;
@@ -1846,6 +1856,8 @@ Implementation
          End;
         If y = CursorRow Then
          Count := Max(Count, CursorCol);
+        If y = SavedRow Then
+         Count := Max(Count, SavedCol);
         i      := 0;
         While i <= Count Do
          Begin
@@ -1859,6 +1871,13 @@ Implementation
             MappedX       := Min(Columns - 1, Col);
             MappedPending := Col >= Columns;
             FoundCursor   := True;
+           End;
+          If (y = SavedRow) And (i = SavedCol) Then
+           Begin
+            SavedY       := Output.Count;
+            SavedX       := Min(Columns - 1, Col);
+            SavedPending := Col >= Columns;
+            FoundSaved   := True;
            End;
           If i = Count Then
            Break;
@@ -1906,6 +1925,12 @@ Implementation
       CursorX       := EnsureRange(MappedX, 0, Columns - 1);
       CursorY       := EnsureRange(MappedY - Start, 0, Rows - 1);
       NewPending    := MappedPending;
+      If FoundSaved Then
+       Begin
+        fDECSaved[False].x           := SavedX;
+        fDECSaved[False].y           := EnsureRange(SavedY - Start, 0, Rows - 1);
+        fDECSaved[False].WrapPending := SavedPending;
+       End;
      Finally
       Input.Free;
       Output.Free;

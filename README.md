@@ -11,7 +11,7 @@ Główny projekt: [Src/guake.dpr](Src/guake.dpr), [Src/guake.dproj](Src/guake.dp
 - [Diagnostyka](Src/Diagnostics/Guake.Logging.pas): logowanie `Exception.StackTrace`, biblioteka `Src/Vendor/stacktrace`, MAP i PDB dla każdego EXE.
 - [Common](Src/Common/README.md): submoduł z odczytem wersji EXE przez `VersionU.pas`.
 - Widok terminala: wypełniony aktywny kursor blokowy z odwróconym glifem, obsługą szerokich znaków i nieprzezroczystą maską kursora; po utracie fokusu stały obrys bloku lub kreska/podkreślenie.
-- [Emulator VT](Src/Terminal/Guake.VT.pas): przyrostowy parser, raporty stanu terminala, niezależne tryby myszy, w tym X10 oraz formaty URXVT i SGR-Pixels, edycja szerokich znaków, tabulatory, marginesy, Alternate Scroll 1007, akumulacja precyzyjnego kółka i wielu skoków, historia i reflow (także zawinięcie ukrytego ekranu głównego) oraz lokalna obsługa myszy nad historią; przewijanie od górnej krawędzi zachowuje historię także dla częściowego regionu. Zakres sekwencji i ograniczenia opisuje [macierz pokrycia](docs/vt-coverage.md).
+- [Emulator VT](Src/Terminal/Guake.VT.pas): przyrostowy parser, raporty stanu terminala, niezależne tryby myszy, w tym X10 oraz formaty URXVT i SGR-Pixels, edycja szerokich znaków, tabulatory, marginesy, Alternate Scroll 1007, akumulacja precyzyjnego kółka i wielu skoków, historia i reflow (także zapisany kursor i zawinięcie ukrytego ekranu głównego) oraz lokalna obsługa myszy nad historią; przewijanie od górnej krawędzi zachowuje historię także dla częściowego regionu. Zakres sekwencji i ograniczenia opisuje [macierz pokrycia](docs/vt-coverage.md).
 
 Budowanie i testy dla Delphi 10.2 (z katalogu repozytorium):
 

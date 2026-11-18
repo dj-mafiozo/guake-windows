@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 18 listopada 2026, wersja 1.0.53.86. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 18 listopada 2026, wersja 1.0.54.87. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -493,6 +493,16 @@ Weryfikacja 1.0.52.85: formatter bez błędów, sprawdzony diff i integralność
 
 Powrót z ekranu alternatywnego przywraca zapamiętany stan oczekującego zawinięcia ekranu głównego. Dla 47/1047 pełny ostatni wiersz nie traci tego stanu: następny znak przechodzi do nowego wiersza zamiast nadpisywać prawą komórkę. Tryb 1049 nadal przywraca pełny stan zapisany przez DECSC.
 
-Zmiana szerokości podczas wyświetlania ekranu alternatywnego przekazuje oczekujące zawinięcie ukrytego ekranu głównego do reflow i zachowuje wynik mapowania. Testy obejmują powrót po 47/1047/1049 bez zmiany rozmiaru oraz zwężenie z 6 do 3 kolumn w 47/1047. Nie oznacza to ukończenia całej macierzy ekranów: zachowanie zawartości i czyszczenia w poszczególnych wariantach oraz reflow zapisu DECSC przy 1049 nadal wymagają osobnych prac.
+Zmiana szerokości podczas wyświetlania ekranu alternatywnego przekazuje oczekujące zawinięcie ukrytego ekranu głównego do reflow i zachowuje wynik mapowania. Testy obejmują powrót po 47/1047/1049 bez zmiany rozmiaru oraz zwężenie z 6 do 3 kolumn w 47/1047. Nie oznacza to ukończenia całej macierzy ekranów: zachowanie zawartości i czyszczenia w poszczególnych wariantach nadal wymaga osobnych prac. Mapowanie zapisu DECSC ekranu głównego, w tym powrotu z 1049, dodano w 1.0.54.87 (opis poniżej).
 
 Weryfikacja 1.0.53.86: formatter bez błędów, sprawdzony diff i integralność źródeł; 172/172 scenariusze DUnitX, bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.53.86-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
+
+## Reflow zapisanego kursora ekranu głównego — 1.0.54.87
+
+Reflow przelicza teraz dwie pozycje: bieżący kursor oraz zapis DECSC ekranu głównego (współdzielony z CSI s/u i 1048). Mapowanie obejmuje kolumnę, wiersz i oczekujące zawinięcie. Działa też przy ukrytym ekranie głównym, dlatego powrót przez 1049 korzysta z pozycji przeliczonej do nowej szerokości. Pozycja poza nowym widocznym ekranem jest ograniczana do jego granic.
+
+Zapisany kolor, atrybuty, zestawy znaków i tryby nie są zastępowane stanem bieżącego kursora. Zapis w pustej części wiersza lub poniżej ostatniego tekstu uczestniczy w ustalaniu zakresu reflow. Testy sprawdzają zwężenie pełnego wiersza z 6 do 3 kolumn po DECSC i przy aktywnym 1049, a także niezależność bieżącego kursora i zachowanie koloru oraz DEC Special Graphics po DECRC.
+
+Pozostają dalsze przypadki mapowania przy obcinaniu historii, szerokich grafemach i marginesach oraz pełna macierz ekranów alternatywnych. Ta zmiana nie dodaje reflow ekranu alternatywnego; jest on nadal przycinany lub rozszerzany jako siatka.
+
+Weryfikacja 1.0.54.87: formatter bez błędów, sprawdzony diff i integralność źródeł; 174/174 scenariusze DUnitX, bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.54.87-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.

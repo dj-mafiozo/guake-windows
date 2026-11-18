@@ -1,6 +1,6 @@
 ﻿# Pokrycie emulatora VT
 
-Stan: 1.0.53.86. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.54.87. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -323,4 +323,12 @@ Test odbiornika ConPTY porównuje dokładne sekwencje dla delt częściowych, pr
 
 Powrót z ekranu alternatywnego przywraca zapamiętany stan oczekującego zawinięcia ekranu głównego. Dla 47/1047 pełny ostatni wiersz nie traci tego stanu: następny znak przechodzi do nowego wiersza zamiast nadpisywać prawą komórkę. Tryb 1049 nadal przywraca pełny stan zapisany przez DECSC.
 
-Zmiana szerokości podczas wyświetlania ekranu alternatywnego przekazuje oczekujące zawinięcie ukrytego ekranu głównego do reflow i zachowuje wynik mapowania. Testy obejmują powrót po 47/1047/1049 bez zmiany rozmiaru oraz zwężenie z 6 do 3 kolumn w 47/1047. Nie oznacza to ukończenia całej macierzy ekranów: zachowanie zawartości i czyszczenia w poszczególnych wariantach oraz reflow zapisu DECSC przy 1049 nadal wymagają osobnych prac.
+Zmiana szerokości podczas wyświetlania ekranu alternatywnego przekazuje oczekujące zawinięcie ukrytego ekranu głównego do reflow i zachowuje wynik mapowania. Testy obejmują powrót po 47/1047/1049 bez zmiany rozmiaru oraz zwężenie z 6 do 3 kolumn w 47/1047. Nie oznacza to ukończenia całej macierzy ekranów: zachowanie zawartości i czyszczenia w poszczególnych wariantach nadal wymaga osobnych prac. Mapowanie zapisu DECSC ekranu głównego, w tym powrotu z 1049, dodano w 1.0.54.87 (opis poniżej).
+
+## Reflow zapisanego kursora ekranu głównego — 1.0.54.87
+
+Reflow przelicza teraz dwie pozycje: bieżący kursor oraz zapis DECSC ekranu głównego (współdzielony z CSI s/u i 1048). Mapowanie obejmuje kolumnę, wiersz i oczekujące zawinięcie. Działa też przy ukrytym ekranie głównym, dlatego powrót przez 1049 korzysta z pozycji przeliczonej do nowej szerokości. Pozycja poza nowym widocznym ekranem jest ograniczana do jego granic.
+
+Zapisany kolor, atrybuty, zestawy znaków i tryby nie są zastępowane stanem bieżącego kursora. Zapis w pustej części wiersza lub poniżej ostatniego tekstu uczestniczy w ustalaniu zakresu reflow. Testy sprawdzają zwężenie pełnego wiersza z 6 do 3 kolumn po DECSC i przy aktywnym 1049, a także niezależność bieżącego kursora i zachowanie koloru oraz DEC Special Graphics po DECRC.
+
+Pozostają dalsze przypadki mapowania przy obcinaniu historii, szerokich grafemach i marginesach oraz pełna macierz ekranów alternatywnych. Ta zmiana nie dodaje reflow ekranu alternatywnego; jest on nadal przycinany lub rozszerzany jako siatka.
