@@ -374,7 +374,10 @@ Implementation
     Height                := Frame.surface.Canvas.TextHeight('Mg');
     History               := Frame.Session.Buffer.TotalLines - Frame.Session.Buffer.Rows;
     Assert.IsTrue(History > 0);
-    Assert.IsTrue(TTerminalFrameAccess(Frame).DoMouseWheel([], -120, Frame.surface.ClientToScreen(Point(5, 5))));
+    Assert.IsTrue(TTerminalFrameAccess(Frame).DoMouseWheel([], -30, Frame.surface.ClientToScreen(Point(5, 5))));
+    Assert.IsTrue(TTerminalFrameAccess(Frame).DoMouseWheel([], -30, Frame.surface.ClientToScreen(Point(5, 5))));
+    Assert.AreEqual(0, Frame.scroll.Position, 'Partial wheel movement must not scroll a full notch');
+    Assert.IsTrue(TTerminalFrameAccess(Frame).DoMouseWheel([], -60, Frame.surface.ClientToScreen(Point(5, 5))));
     Assert.IsTrue(Frame.scroll.Position > 0, 'Wheel over history scrolls locally instead of reporting application input');
     Frame.scroll.Position := 0;
     Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
@@ -2694,6 +2697,17 @@ Implementation
     For i     := 1 To Max(1, (Session.Buffer.Rows + 9) Div 10) Do
      Expected := Expected + #27 + '[A';
     TTerminalFrameAccess(Frame).DoMouseWheel([], 120, Frame.surface.ClientToScreen(Point(5, 5)));
+    // Three partial messages form one notch; opposite partial deltas cancel.
+    TTerminalFrameAccess(Frame).DoMouseWheel([], 30, Frame.surface.ClientToScreen(Point(5, 5)));
+    TTerminalFrameAccess(Frame).DoMouseWheel([], -30, Frame.surface.ClientToScreen(Point(5, 5)));
+    TTerminalFrameAccess(Frame).DoMouseWheel([], 30, Frame.surface.ClientToScreen(Point(5, 5)));
+    TTerminalFrameAccess(Frame).DoMouseWheel([], 30, Frame.surface.ClientToScreen(Point(5, 5)));
+    TTerminalFrameAccess(Frame).DoMouseWheel([], 60, Frame.surface.ClientToScreen(Point(5, 5)));
+    TTerminalFrameAccess(Frame).DoMouseWheel([], 240, Frame.surface.ClientToScreen(Point(5, 5)));
+    For i     := 1 To 3 * Max(1, (Session.Buffer.Rows + 9) Div 10) Do
+     Expected := Expected + #27 + '[A';
+    // An unfinished normal-cursor notch must not leak into application mode.
+    TTerminalFrameAccess(Frame).DoMouseWheel([], 60, Frame.surface.ClientToScreen(Point(5, 5)));
     Session.SendText(#5);
     Deadline := GetTickCount64 + 5000;
     Repeat
@@ -2715,6 +2729,11 @@ Implementation
     Session.Buffer.FeedText(#27 + '[?1007;1000;1006h');
     TTerminalFrameAccess(Frame).DoMouseWheel([], 120, Frame.surface.ClientToScreen(Point(5, 5)));
     Expected := Expected + #27 + '[<64;1;1M';
+    TTerminalFrameAccess(Frame).DoMouseWheel([], -30, Frame.surface.ClientToScreen(Point(5, 5)));
+    TTerminalFrameAccess(Frame).DoMouseWheel([], -90, Frame.surface.ClientToScreen(Point(5, 5)));
+    TTerminalFrameAccess(Frame).DoMouseWheel([], -240, Frame.surface.ClientToScreen(Point(5, 5)));
+    Expected := Expected + #27 + '[<65;1;1M' + #27 + '[<65;1;1M' + #27 + '[<65;1;1M';
+    TTerminalFrameAccess(Frame).DoMouseWheel([], 60, Frame.surface.ClientToScreen(Point(5, 5)));
     Session.Buffer.FeedText(#27 + '[?1000;1006l');
     TTerminalFrameAccess(Frame).DoMouseWheel([ssShift], 120, Frame.surface.ClientToScreen(Point(5, 5)));
     TTerminalFrameAccess(Frame).DoMouseWheel([], 0, Frame.surface.ClientToScreen(Point(5, 5)));

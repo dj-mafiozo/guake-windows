@@ -31,6 +31,9 @@ Interface
    Private
     Class Var fPrimarySelection : String;
    Private
+    /// <summary>Fractional wheel movement belongs to one input route and modifier state.</summary>
+    fWheelRemainder        : Int64;
+    fWheelContext          : String;
     fMouseShift            : TShiftState;
     fMouseCellValid        : Boolean;
     fReportedMousePosition : TPoint;
@@ -282,6 +285,8 @@ Implementation
 
  Procedure TfraTerminal.Bind(Session : TTerminalSession; Settings : TGuakeSettings);
   Begin
+   fWheelRemainder   := 0;
+   fWheelContext     := '';
    fMouseCellValid   := False;
    fSession          := Session;
    fSettings         := Settings;
@@ -369,6 +374,7 @@ Implementation
 
  Procedure TfraTerminal.FrameResize(Sender : TObject);
   Begin
+   fWheelRemainder := 0;
    fMouseCellValid := False;
    If (fSession <> Nil) And (fCellWidth > 0) And (fCellHeight > 0) Then
     fSession.Resize(Max(2, (surface.Width - 8) Div fCellWidth), Max(1, (surface.Height - 8) Div fCellHeight));
@@ -1599,35 +1605,59 @@ Implementation
    SelectWordAt(fMouseAnchor.x, fMouseAnchor.y);
   End;
 
+/// <summary>Accumulate partial Windows wheel deltas and dispatch every completed notch.</summary>
+
  Function TfraTerminal.DoMouseWheel(Shift : TShiftState; WheelDelta : Integer; MousePos : TPoint) : Boolean;
   Var
    Step     : Integer;
    i        : Integer;
+   Notches  : Integer;
+   Route    : Integer;
    p        : TPoint;
    Sequence : String;
    Payload  : String;
+   Context  : String;
   Begin
    Result := fSession <> Nil;
    If Not Result Or (WheelDelta = 0) Then
     Exit;
-   p := surface.ScreenToClient(MousePos);
+   p     := surface.ScreenToClient(MousePos);
+   Route := 0;
    If ApplicationMouseAt(p.x, p.y) And Not(ssShift In Shift) Then
-    Begin
-     If WheelDelta > 0 Then
-      SendMouse(64, False, Shift, p.x, p.y)
-     Else
-      SendMouse(65, False, Shift, p.x, p.y);
-    End
+    Route := 1
    Else If fSession.Buffer.AlternateScreen And fSession.Buffer.AlternateScroll And
    Not fSession.Exited And Not(ssShift In Shift) Then
+    Route  := 2;
+   Context := Format('%d:%d:%d:%d:%d:%d:%d', [Route, Ord(ssShift In Shift),
+   Ord(ssCtrl In Shift), Ord(ssAlt In Shift), Ord(fSession.Buffer.AlternateScreen),
+   Ord(fSession.Buffer.ApplicationCursor), fSession.Buffer.MouseRevision]);
+   If Context <> fWheelContext Then
+    Begin
+     fWheelRemainder := 0;
+     fWheelContext   := Context;
+    End;
+   Inc(fWheelRemainder, WheelDelta);
+   Notches         := fWheelRemainder Div WHEEL_DELTA;
+   fWheelRemainder := fWheelRemainder Mod WHEEL_DELTA;
+   If Notches = 0 Then
+    Exit;
+   If Route = 1 Then
+    Begin
+     For i := 1 To Abs(Notches) Do
+      If Notches > 0 Then
+       SendMouse(64, False, Shift, p.x, p.y)
+      Else
+       SendMouse(65, False, Shift, p.x, p.y);
+    End
+   Else If Route = 2 Then
     Begin
      Step := Max(1, (fSession.Buffer.Rows + 9) Div 10);
-     If WheelDelta > 0 Then
+     If Notches > 0 Then
       Sequence := CursorSequence('A', Shift)
      Else
       Sequence := CursorSequence('B', Shift);
      Payload   := '';
-     For i     := 1 To Step Do
+     For i     := 1 To Step * Abs(Notches) Do
       Payload  := Payload + Sequence;
      fSession.SendText(Payload);
     End
@@ -1637,11 +1667,9 @@ Implementation
      If ssShift In Shift Then
       Step := fSession.Buffer.Rows;
      If (ssShift In Shift) And (ssCtrl In Shift) Then
-      Step := Step * 4;
-     If WheelDelta > 0 Then
-      scroll.Position := scroll.Position - Step
-     Else
-      scroll.Position := scroll.Position + Step;
+      Step           := Step * 4;
+     scroll.Position := EnsureRange(Int64(scroll.Position) - Int64(Step) * Notches,
+     Int64(scroll.Min), Int64(scroll.Max));
     End;
   End;
 

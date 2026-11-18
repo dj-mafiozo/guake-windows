@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 18 listopada 2026, wersja 1.0.51.84. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 18 listopada 2026, wersja 1.0.52.85. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -475,6 +475,16 @@ Na ekranie alternatywnym włączony tryb 1007 zamienia kółko na sekwencje strz
 
 Sekwencje korzystają z tego samego kodowania co klawiatura: zwykłe CSI A/B, aplikacyjne SS3 A/B przy DECCKM oraz parametry Alt/Ctrl. Jeden odebrany impuls kółka wysyła ceil(liczba_wierszy/10) strzałek, co najmniej jedną. Raportowanie myszy ma pierwszeństwo. Shift zachowuje lokalne przewijanie, a zerowy WheelDelta nie powoduje wejścia. Ekran główny nadal przewija historię lokalnie.
 
-Punkt odniesienia: [kółko na ekranie alternatywnym w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L9373), [domyślny tryb 1007](https://github.com/GNOME/vte/blob/0.76.0/src/modes.py#L1106) i [Alternate Scroll w xterm](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Wheel-mice). Dwa scenariusze DUnitX sprawdzają fragmentację, domyślny stan, zapis i reset. Natywny odbiornik ConPTY negocjuje DECCKM z procesu potomnego i porównuje strzałki normalne/aplikacyjne, modyfikatory, pierwszeństwo myszy i brak wejścia po wyłączeniu 1007 lub przy Shift/zerowej delcie. Akumulacja płynnego kółka i pełne odwzorowanie kilku skoków kółka w jednym zdarzeniu pozostają do wykonania.
+Punkt odniesienia: [kółko na ekranie alternatywnym w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L9373), [domyślny tryb 1007](https://github.com/GNOME/vte/blob/0.76.0/src/modes.py#L1106) i [Alternate Scroll w xterm](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Wheel-mice). Dwa scenariusze DUnitX sprawdzają fragmentację, domyślny stan, zapis i reset. Natywny odbiornik ConPTY negocjuje DECCKM z procesu potomnego i porównuje strzałki normalne/aplikacyjne, modyfikatory, pierwszeństwo myszy i brak wejścia po wyłączeniu 1007 lub przy Shift/zerowej delcie. Akumulację częściowych delt i kilku skoków w jednym zdarzeniu dodano w 1.0.52.85 (opis poniżej).
 
 Weryfikacja 1.0.51.84: formatter bez błędów i sprawdzony diff; 170/170 scenariuszy DUnitX bez błędów i wycieków. Natywny odbiornik ConPTY potwierdził strzałki normalne i aplikacyjne, modyfikatory, pierwszeństwo raportów myszy oraz brak wejścia po wyłączeniu 1007 i przy Shift/zerowej delcie. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie, bez zmiany DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.51.84-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
+
+## Częściowe ruchy kółka — 1.0.52.85
+
+Widok sumuje dodatnie i ujemne delty zgodnie z progiem Windows `WHEEL_DELTA = 120`. Niepełny ruch pozostaje w akumulatorze; zmiana kierunku odejmuje go, a delta ±240 wykonuje dwa skoki. Dotyczy to historii, raportów myszy oraz strzałek Alternate Scroll. Każdy skok zachowuje dotychczasową liczbę przewijanych wierszy lub strzałek. Zerowa delta nie wysyła wejścia.
+
+Akumulator jest zerowany po przypięciu sesji i zmianie rozmiaru. Zmiana odbiorcy (historia, aplikacja, Alternate Scroll), modyfikatorów, ekranu, DECCKM lub rewizji protokołu myszy odrzuca resztę przy kolejnym ruchu. Zapobiega to dokończeniu ruchu rozpoczętego w innym kontekście. To przewijanie skokowe z akumulacją precyzyjnego kółka, bez animacji przewijania pikselowego.
+
+Test odbiornika ConPTY porównuje dokładne sekwencje dla delt częściowych, przeciwnych i wielokrotnych, a scenariusz historii sprawdza brak przewijania przed osiągnięciem progu. Punkt odniesienia: [obsługa kółka w Windows](https://learn.microsoft.com/en-us/windows/win32/learnwin32/other-mouse-operations).
+
+Weryfikacja 1.0.52.85: formatter bez błędów, sprawdzony diff i integralność źródeł; 170/170 scenariuszy DUnitX, bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.52.85-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.

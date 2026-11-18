@@ -1,6 +1,6 @@
 ﻿# Pokrycie emulatora VT
 
-Stan: 1.0.51.84. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.52.85. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -309,4 +309,12 @@ Na ekranie alternatywnym włączony tryb 1007 zamienia kółko na sekwencje strz
 
 Sekwencje korzystają z tego samego kodowania co klawiatura: zwykłe CSI A/B, aplikacyjne SS3 A/B przy DECCKM oraz parametry Alt/Ctrl. Jeden odebrany impuls kółka wysyła ceil(liczba_wierszy/10) strzałek, co najmniej jedną. Raportowanie myszy ma pierwszeństwo. Shift zachowuje lokalne przewijanie, a zerowy WheelDelta nie powoduje wejścia. Ekran główny nadal przewija historię lokalnie.
 
-Punkt odniesienia: [kółko na ekranie alternatywnym w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L9373), [domyślny tryb 1007](https://github.com/GNOME/vte/blob/0.76.0/src/modes.py#L1106) i [Alternate Scroll w xterm](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Wheel-mice). Dwa scenariusze DUnitX sprawdzają fragmentację, domyślny stan, zapis i reset. Natywny odbiornik ConPTY negocjuje DECCKM z procesu potomnego i porównuje strzałki normalne/aplikacyjne, modyfikatory, pierwszeństwo myszy i brak wejścia po wyłączeniu 1007 lub przy Shift/zerowej delcie. Akumulacja płynnego kółka i pełne odwzorowanie kilku skoków kółka w jednym zdarzeniu pozostają do wykonania.
+Punkt odniesienia: [kółko na ekranie alternatywnym w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L9373), [domyślny tryb 1007](https://github.com/GNOME/vte/blob/0.76.0/src/modes.py#L1106) i [Alternate Scroll w xterm](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Wheel-mice). Dwa scenariusze DUnitX sprawdzają fragmentację, domyślny stan, zapis i reset. Natywny odbiornik ConPTY negocjuje DECCKM z procesu potomnego i porównuje strzałki normalne/aplikacyjne, modyfikatory, pierwszeństwo myszy i brak wejścia po wyłączeniu 1007 lub przy Shift/zerowej delcie. Akumulację częściowych delt i kilku skoków w jednym zdarzeniu dodano w 1.0.52.85 (opis poniżej).
+
+## Częściowe ruchy kółka — 1.0.52.85
+
+Widok sumuje dodatnie i ujemne delty zgodnie z progiem Windows `WHEEL_DELTA = 120`. Niepełny ruch pozostaje w akumulatorze; zmiana kierunku odejmuje go, a delta ±240 wykonuje dwa skoki. Dotyczy to historii, raportów myszy oraz strzałek Alternate Scroll. Każdy skok zachowuje dotychczasową liczbę przewijanych wierszy lub strzałek. Zerowa delta nie wysyła wejścia.
+
+Akumulator jest zerowany po przypięciu sesji i zmianie rozmiaru. Zmiana odbiorcy (historia, aplikacja, Alternate Scroll), modyfikatorów, ekranu, DECCKM lub rewizji protokołu myszy odrzuca resztę przy kolejnym ruchu. Zapobiega to dokończeniu ruchu rozpoczętego w innym kontekście. To przewijanie skokowe z akumulacją precyzyjnego kółka, bez animacji przewijania pikselowego.
+
+Test odbiornika ConPTY porównuje dokładne sekwencje dla delt częściowych, przeciwnych i wielokrotnych, a scenariusz historii sprawdza brak przewijania przed osiągnięciem progu. Punkt odniesienia: [obsługa kółka w Windows](https://learn.microsoft.com/en-us/windows/win32/learnwin32/other-mouse-operations).

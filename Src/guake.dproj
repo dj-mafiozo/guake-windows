@@ -51,10 +51,10 @@
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_MajorVer>1</VerInfo_MajorVer>
     <VerInfo_MinorVer>0</VerInfo_MinorVer>
-    <VerInfo_Release>51</VerInfo_Release>
-    <VerInfo_Build>84</VerInfo_Build>
+    <VerInfo_Release>52</VerInfo_Release>
+    <VerInfo_Build>85</VerInfo_Build>
     <VerInfo_Locale>1045</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Guake dla Windows;FileVersion=1.0.51.84;InternalName=guake;OriginalFilename=guake.exe;ProductName=Guake dla Windows;ProductVersion=1.0.51.84</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Guake dla Windows;FileVersion=1.0.52.85;InternalName=guake;OriginalFilename=guake.exe;ProductName=Guake dla Windows;ProductVersion=1.0.52.85</VerInfo_Keys>
     <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
     <DCC_MapFile>3</DCC_MapFile>
     <PostBuildEvent>powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(MSBuildProjectDirectory)\Tools\Complete-Build.ps1" -ProjectFile "$(MSBuildProjectDirectory)\guake.dproj" -OutputDirectory "$(DCC_ExeOutput)\."</PostBuildEvent>
