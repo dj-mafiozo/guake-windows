@@ -1,6 +1,6 @@
 ﻿# Pokrycie emulatora VT
 
-Stan: 1.0.52.85. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.53.86. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -318,3 +318,9 @@ Widok sumuje dodatnie i ujemne delty zgodnie z progiem Windows `WHEEL_DELTA = 12
 Akumulator jest zerowany po przypięciu sesji i zmianie rozmiaru. Zmiana odbiorcy (historia, aplikacja, Alternate Scroll), modyfikatorów, ekranu, DECCKM lub rewizji protokołu myszy odrzuca resztę przy kolejnym ruchu. Zapobiega to dokończeniu ruchu rozpoczętego w innym kontekście. To przewijanie skokowe z akumulacją precyzyjnego kółka, bez animacji przewijania pikselowego.
 
 Test odbiornika ConPTY porównuje dokładne sekwencje dla delt częściowych, przeciwnych i wielokrotnych, a scenariusz historii sprawdza brak przewijania przed osiągnięciem progu. Punkt odniesienia: [obsługa kółka w Windows](https://learn.microsoft.com/en-us/windows/win32/learnwin32/other-mouse-operations).
+
+## Oczekujące zawinięcie ukrytego ekranu głównego — 1.0.53.86
+
+Powrót z ekranu alternatywnego przywraca zapamiętany stan oczekującego zawinięcia ekranu głównego. Dla 47/1047 pełny ostatni wiersz nie traci tego stanu: następny znak przechodzi do nowego wiersza zamiast nadpisywać prawą komórkę. Tryb 1049 nadal przywraca pełny stan zapisany przez DECSC.
+
+Zmiana szerokości podczas wyświetlania ekranu alternatywnego przekazuje oczekujące zawinięcie ukrytego ekranu głównego do reflow i zachowuje wynik mapowania. Testy obejmują powrót po 47/1047/1049 bez zmiany rozmiaru oraz zwężenie z 6 do 3 kolumn w 47/1047. Nie oznacza to ukończenia całej macierzy ekranów: zachowanie zawartości i czyszczenia w poszczególnych wariantach oraz reflow zapisu DECSC przy 1049 nadal wymagają osobnych prac.

@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 18 listopada 2026, wersja 1.0.52.85. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 18 listopada 2026, wersja 1.0.53.86. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -488,3 +488,11 @@ Akumulator jest zerowany po przypięciu sesji i zmianie rozmiaru. Zmiana odbiorc
 Test odbiornika ConPTY porównuje dokładne sekwencje dla delt częściowych, przeciwnych i wielokrotnych, a scenariusz historii sprawdza brak przewijania przed osiągnięciem progu. Punkt odniesienia: [obsługa kółka w Windows](https://learn.microsoft.com/en-us/windows/win32/learnwin32/other-mouse-operations).
 
 Weryfikacja 1.0.52.85: formatter bez błędów, sprawdzony diff i integralność źródeł; 170/170 scenariuszy DUnitX, bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.52.85-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
+
+## Oczekujące zawinięcie ukrytego ekranu głównego — 1.0.53.86
+
+Powrót z ekranu alternatywnego przywraca zapamiętany stan oczekującego zawinięcia ekranu głównego. Dla 47/1047 pełny ostatni wiersz nie traci tego stanu: następny znak przechodzi do nowego wiersza zamiast nadpisywać prawą komórkę. Tryb 1049 nadal przywraca pełny stan zapisany przez DECSC.
+
+Zmiana szerokości podczas wyświetlania ekranu alternatywnego przekazuje oczekujące zawinięcie ukrytego ekranu głównego do reflow i zachowuje wynik mapowania. Testy obejmują powrót po 47/1047/1049 bez zmiany rozmiaru oraz zwężenie z 6 do 3 kolumn w 47/1047. Nie oznacza to ukończenia całej macierzy ekranów: zachowanie zawartości i czyszczenia w poszczególnych wariantach oraz reflow zapisu DECSC przy 1049 nadal wymagają osobnych prac.
+
+Weryfikacja 1.0.53.86: formatter bez błędów, sprawdzony diff i integralność źródeł; 172/172 scenariusze DUnitX, bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.53.86-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.

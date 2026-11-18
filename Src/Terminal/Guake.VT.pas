@@ -673,6 +673,8 @@ Implementation
     End;
   End;
 
+/// <summary>Switch buffers while retaining the primary cursor and its deferred wrap.</summary>
+
  Procedure TTerminalBuffer.SwitchScreen(Alternate, SaveCursor : Boolean);
   Begin
    If Alternate = fAlternate Then
@@ -699,7 +701,7 @@ Implementation
    fAlternate   := Alternate;
    fTop         := 0;
    fBottom      := fRows - 1;
-   fWrapPending := False;
+   fWrapPending := Not Alternate And fPrimaryWrapPending;
    If Not Alternate And SaveCursor Then
     RestoreCursorState;
   End;
@@ -1928,7 +1930,8 @@ Implementation
    NewPending := False;
    If fAlternate Then
     Begin
-     Reflow(fPrimary, fPrimaryX, fPrimaryY, False);
+     Reflow(fPrimary, fPrimaryX, fPrimaryY, fPrimaryWrapPending);
+     fPrimaryWrapPending := NewPending;
      ResizeGrid(fScreen);
      NewPending := False;
     End

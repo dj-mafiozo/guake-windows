@@ -121,6 +121,8 @@ Interface
     [Test] Procedure HyperlinksSearchAndDirectionalPanes;
     [Test] Procedure SessionTreeRoundTripAndFailedRestore;
     [Test] Procedure AlternateScreenRestoresPrimary;
+    [Test] Procedure PrimaryPendingWrapSurvivesAlternateScreen;
+    [Test] Procedure PrimaryPendingWrapReflowsWhileAlternate;
     [Test] Procedure ColorsCursorAndDeviceResponses;
     [Test] Procedure ScrollbackAndMargins;
     [Test] Procedure WideAndCombiningCells;
@@ -4582,6 +4584,54 @@ Implementation
    Finally
     Buffer.Free;
    End;
+  End;
+
+/// <summary>Returning from either legacy alternate mode preserves a full primary row.</summary>
+
+ Procedure TTerminalTests.PrimaryPendingWrapSurvivesAlternateScreen;
+  Var
+   Buffer : TTerminalBuffer;
+   Mode   : Integer;
+  Begin
+   For Mode In TArray<Integer>.Create(47, 1047, 1049) Do
+    Begin
+     Buffer := TTerminalBuffer.Create(5, 3);
+     Try
+      Buffer.FeedText('ABCDE' + #27 + '[?' + IntToStr(Mode) + 'h');
+      Buffer.FeedText('ALT' + #27 + '[?' + IntToStr(Mode) + 'l' + 'F');
+      Assert.AreEqual('ABCDE', Buffer.LineText(0));
+      Assert.AreEqual('F', Buffer.LineText(1));
+      Assert.AreEqual(1, Buffer.CursorX);
+      Assert.AreEqual(1, Buffer.CursorY);
+     Finally
+      Buffer.Free;
+     End;
+    End;
+  End;
+
+/// <summary>Reflow of the hidden primary screen maps a pending cursor to the new width.</summary>
+
+ Procedure TTerminalTests.PrimaryPendingWrapReflowsWhileAlternate;
+  Var
+   Buffer : TTerminalBuffer;
+   Mode   : Integer;
+  Begin
+   For Mode In TArray<Integer>.Create(47, 1047) Do
+    Begin
+     Buffer := TTerminalBuffer.Create(6, 4);
+     Try
+      Buffer.FeedText('ABCDEF' + #27 + '[?' + IntToStr(Mode) + 'h');
+      Buffer.Resize(3, 4);
+      Buffer.FeedText(#27 + '[?' + IntToStr(Mode) + 'l' + 'G');
+      Assert.AreEqual('ABC', Buffer.LineText(0));
+      Assert.AreEqual('DEF', Buffer.LineText(1));
+      Assert.AreEqual('G', Buffer.LineText(2));
+      Assert.AreEqual(1, Buffer.CursorX);
+      Assert.AreEqual(2, Buffer.CursorY);
+     Finally
+      Buffer.Free;
+     End;
+    End;
   End;
 
  Procedure TTerminalTests.AlternateScreenRestoresPrimary;
