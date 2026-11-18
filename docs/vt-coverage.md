@@ -1,6 +1,6 @@
 ﻿# Pokrycie emulatora VT
 
-Stan: 1.0.58.91. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.59.92. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -362,3 +362,11 @@ Zwykłe `CSI K` i `CSI 0 K` zachowują oczekujące zawinięcie po zapełnieniu w
 To świadome zachowanie VTE, różniące się w tym przypadku od ścisłej emulacji xterm. Punkt odniesienia: [clear_to_eol w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L670). EL 1, EL 2 i selektywne DECSEL nadal anulują oczekujące zawinięcie; jawne przesunięcie kursora na ostatnią kolumnę pozwala zwykłemu EL 0 wymazać znak w tej kolumnie.
 
 Dwa scenariusze DUnitX obejmują ASCII i CJK, sekwencje podawane znak po znaku, oba zapisy EL 0, zachowanie tła i następnego drukowanego znaku, tekst logicznego akapitu oraz pozostałe warianty kasowania. Pełne porównanie kasowania, ochrony komórek i granic akapitów pozostaje do dalszych prac.
+
+## ECH zachowuje granicę zawiniętego akapitu — 1.0.59.92
+
+`CSI Ps X` zastępuje komórki spacjami, zachowując miękkie połączenie bieżącego wiersza z następnym. Wcześniej wymazanie ostatniej komórki usuwało także znacznik akapitu i wprowadzało dodatkowy podział podczas kopiowania oraz reflow. Ochrona integralności szerokiego znaku pozostaje aktywna: kasowanie jego kontynuacji usuwa cały znak.
+
+Wymazanie wypełnienia przed zawiniętym CJK zamienia je w zwykłą spację, zachowując połączenie wierszy. ECH nadal nie przesuwa kursora i anuluje oczekujące zawinięcie pełnego wiersza. Testy sprawdzają ASCII, CJK, domyślny parametr, zero, duży zakres, fragmentację sekwencji, tło wymazanych komórek, kopiowany tekst i reflow.
+
+Punkt odniesienia: [erase_characters w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L794), które wymienia komórki bez zamykania miękkiego połączenia wiersza. Dalsza macierz kasowania i selektywnej ochrony oraz pełna zgodność renderowania pozostają do wykonania.

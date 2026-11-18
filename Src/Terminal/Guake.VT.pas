@@ -946,6 +946,7 @@ Implementation
    PrivateMode                        : Boolean;
    SecondaryDA, TertiaryDA, ModeQuery : Boolean;
    SavedValue                         : Boolean;
+   Wrapped                            : Boolean;
    LastGraphic                        : Cardinal;
    Prefix                             : String;
    i, n, a, b, x, y, OldTop           : Integer;
@@ -1195,7 +1196,12 @@ Implementation
     'P' :
      ShiftColumns(n, False);
     'X' :
-     EraseLine(fScreen[fY], fX, fX + n - 1, False);
+     Begin
+      // ECH replaces characters, not the logical paragraph boundary of the row.
+      Wrapped := fScreen[fY][fColumns - 1].SoftWrapped;
+      EraseLine(fScreen[fY], fX, fX + n - 1, False);
+      fScreen[fY][fColumns - 1].SoftWrapped := Wrapped;
+     End;
     'L', 'M' :
      If (fY >= fTop) And (fY <= fBottom) Then
       Begin

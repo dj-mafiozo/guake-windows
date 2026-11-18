@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 18 listopada 2026, wersja 1.0.58.91. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 18 listopada 2026, wersja 1.0.59.92. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -544,3 +544,13 @@ To świadome zachowanie VTE, różniące się w tym przypadku od ścisłej emula
 Dwa scenariusze DUnitX obejmują ASCII i CJK, sekwencje podawane znak po znaku, oba zapisy EL 0, zachowanie tła i następnego drukowanego znaku, tekst logicznego akapitu oraz pozostałe warianty kasowania. Pełne porównanie kasowania, ochrony komórek i granic akapitów pozostaje do dalszych prac.
 
 Weryfikacja 1.0.58.91: formatter bez błędów, sprawdzony diff i integralność źródeł; 182/182 scenariusze DUnitX, bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.58.91-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
+
+## ECH zachowuje granicę zawiniętego akapitu — 1.0.59.92
+
+`CSI Ps X` zastępuje komórki spacjami, zachowując miękkie połączenie bieżącego wiersza z następnym. Wcześniej wymazanie ostatniej komórki usuwało także znacznik akapitu i wprowadzało dodatkowy podział podczas kopiowania oraz reflow. Ochrona integralności szerokiego znaku pozostaje aktywna: kasowanie jego kontynuacji usuwa cały znak.
+
+Wymazanie wypełnienia przed zawiniętym CJK zamienia je w zwykłą spację, zachowując połączenie wierszy. ECH nadal nie przesuwa kursora i anuluje oczekujące zawinięcie pełnego wiersza. Testy sprawdzają ASCII, CJK, domyślny parametr, zero, duży zakres, fragmentację sekwencji, tło wymazanych komórek, kopiowany tekst i reflow.
+
+Punkt odniesienia: [erase_characters w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L794), które wymienia komórki bez zamykania miękkiego połączenia wiersza. Dalsza macierz kasowania i selektywnej ochrony oraz pełna zgodność renderowania pozostają do wykonania.
+
+Weryfikacja 1.0.59.92: formatter bez błędów, sprawdzony diff i integralność źródeł; 184/184 scenariusze DUnitX, bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.59.92-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.

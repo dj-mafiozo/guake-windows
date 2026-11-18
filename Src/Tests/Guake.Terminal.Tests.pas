@@ -122,6 +122,8 @@ Interface
     [Test] Procedure SessionTreeRoundTripAndFailedRestore;
     [Test] Procedure AlternateScreenRestoresPrimary;
     [Test] Procedure EraseAboveBreaksHistoryParagraph;
+    [Test] Procedure EraseCharactersPreservesLogicalWrap;
+    [Test] Procedure EraseCharactersReplacesWideWrapPadding;
     [Test] Procedure EraseToEndPreservesPendingWrap;
     [Test] Procedure OtherLineErasesCancelPendingWrap;
     [Test] Procedure EraseAboveAlternateKeepsPrimaryHistory;
@@ -4904,6 +4906,68 @@ Implementation
       Buffer.Free;
      End;
     End;
+  End;
+
+/// <summary>ECH at the right edge leaves the paragraph joined for copying and reflow.</summary>
+
+ Procedure TTerminalTests.EraseCharactersPreservesLogicalWrap;
+  Var
+   Buffer   : TTerminalBuffer;
+   Content  : String;
+   Expected : String;
+   Sequence : String;
+   Ch       : Char;
+  Begin
+   For Content In TArray<String>.Create('ABCD', 'AB' + WideChar($754C)) Do
+    For Sequence In TArray<String>.Create(#27 + '[X', #27 + '[0X', #27 + '[999X') Do
+     Begin
+      Buffer := TTerminalBuffer.Create(4, 3);
+      Try
+       Buffer.FeedText(Content + 'EFGH' + #27 + '[1;4H' + #27 + '[44m');
+       For Ch In Sequence Do
+        Buffer.FeedText(Ch);
+       If Content = 'ABCD' Then
+        Expected := 'ABC EFGH'
+       Else
+        Expected := 'AB  EFGH';
+       Assert.IsTrue(Buffer.Cell[3, 0].SoftWrapped);
+       Assert.IsFalse(Buffer.Cell[3, 0].Continuation);
+       Assert.AreEqual(4, Buffer.Cell[3, 0].Background);
+       Assert.AreEqual(3, Buffer.CursorX);
+       Assert.AreEqual(0, Buffer.CursorY);
+       Assert.AreEqual(Expected, Buffer.Text);
+       Buffer.Resize(8, 3);
+       Assert.AreEqual(Expected, Buffer.Text);
+      Finally
+       Buffer.Free;
+      End;
+     End;
+  End;
+
+/// <summary>Erasing padding creates a real blank without splitting the logical line.</summary>
+
+ Procedure TTerminalTests.EraseCharactersReplacesWideWrapPadding;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(3, 3);
+   Try
+    Buffer.FeedText('AB' + WideChar($754C) + 'CD');
+    Assert.IsTrue(Buffer.Cell[2, 0].WrapPadding);
+    Buffer.FeedText(#27 + '[1;3H' + #27 + '[X');
+    Assert.IsTrue(Buffer.Cell[2, 0].SoftWrapped);
+    Assert.IsFalse(Buffer.Cell[2, 0].WrapPadding);
+    Assert.AreEqual('AB ' + WideChar($754C) + 'CD', Buffer.Text);
+    Buffer.Resize(10, 3);
+    Assert.AreEqual('AB ' + WideChar($754C) + 'CD', Buffer.Text);
+    Buffer.Reset;
+    Buffer.Resize(3, 3);
+    Buffer.FeedText('ABC' + #27 + '[X' + 'Z');
+    Assert.AreEqual('ABZ', Buffer.LineText(0));
+    Assert.AreEqual(0, Buffer.CursorY);
+   Finally
+    Buffer.Free;
+   End;
   End;
 
  Procedure TTerminalTests.AlternateScreenRestoresPrimary;
