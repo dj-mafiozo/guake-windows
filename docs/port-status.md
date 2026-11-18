@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 18 listopada 2026, wersja 1.0.60.93. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 18 listopada 2026, wersja 1.0.61.94. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -564,3 +564,13 @@ Zgodnie z VTE opcje przystanków wierszowych 1/3/6 są ignorowane. Używany jest
 Punkt odniesienia: [CTC w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L1831). Smart tabs zachowujące znak tabulacji podczas kopiowania i pełna macierz tabulatorów przy zmianach geometrii pozostają do wykonania.
 
 Weryfikacja 1.0.60.93: formatter bez błędów, sprawdzony diff i integralność źródeł; 186/186 scenariuszy DUnitX, bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.60.93-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
+
+## DECRQSS — odczyt poziomego zakresu — 1.0.61.94
+
+Żądanie `DCS $q s ST` otrzymuje odpowiedź `DCS 1$r 1;Ns ST`, gdzie N jest aktualną liczbą kolumn. Terminal nie obsługuje jeszcze ustawiania poziomych marginesów, więc raportuje pełną szerokość. Raport aktualizuje się po zmianie rozmiaru i działa na obu ekranach bez zmiany pozycji kursora, tekstu ani oczekującego zawinięcia.
+
+Identyfikator musi być dokładnie `s`; parametry, prefiksy i dodatkowe bajty pośrednie otrzymują negatywną odpowiedź DECRQSS. Testy sprawdzają fragmentację, zmianę szerokości, ekran alternatywny, zachowanie zawinięcia i odrzucanie niepoprawnych żądań. Natywny odbiornik ConPTY porównuje dokładną odpowiedź dostarczoną procesowi potomnemu.
+
+Punkt odniesienia: [DECRQSS DECSLRM w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L3531). Sam raport nie oznacza implementacji DECLRMM/DECSLRM ani przesuwania i edycji w poziomych marginesach; te funkcje pozostają do wykonania.
+
+Weryfikacja 1.0.61.94: formatter bez błędów, sprawdzony diff i integralność źródeł; 188/188 scenariuszy DUnitX, bez błędów i wycieków. Natywny odbiornik ConPTY potwierdził dokładną odpowiedź DECRQSS dla poziomego zakresu. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.61.94-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.

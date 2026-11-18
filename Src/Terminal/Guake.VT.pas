@@ -790,6 +790,8 @@ Implementation
     Reply := IntToStr(Ord(fAttr.EraseProtected)) + #34'q'
    Else If Request = ' q' Then
     Reply := IntToStr(fCursorStyle) + ' q'
+   Else If Request = 's' Then
+    Reply := Format('1;%ds', [fColumns])
    Else If Request = 'r' Then
     Reply := Format('%d;%dr', [fTop + 1, fBottom + 1])
    Else

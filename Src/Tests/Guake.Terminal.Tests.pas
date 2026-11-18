@@ -17,6 +17,8 @@ Interface
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
     [Test] Procedure AlternateScrollModeFragmentsAndDefault;
+    [Test] Procedure HorizontalMarginStatusTracksWidth;
+    [Test] Procedure HorizontalMarginStatusRejectsParameters;
     [Test] Procedure CursorTabulationControlSetsAndClearsStops;
     [Test] Procedure CursorTabulationControlPreservesPendingWrap;
     [Test] Procedure AlternateScrollModeSaveRestoreAndReset;
@@ -250,6 +252,55 @@ Implementation
       Buffer.Free;
      End;
     End;
+  End;
+
+/// <summary>DECRQSS s reports the full width while preserving deferred wrap.</summary>
+
+ Procedure TTerminalTests.HorizontalMarginStatusTracksWidth;
+  Var
+   Buffer  : TTerminalBuffer;
+   Ch      : Char;
+   Request : String;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 4);
+   Try
+    Buffer.FeedText('ABCDEFGH');
+    Request := #27 + 'P$qs' + #27 + Chr(92);
+    For Ch In Request Do
+     Buffer.FeedText(Ch);
+    Assert.AreEqual(#27 + 'P1$r1;8s' + #27 + Chr(92), Buffer.TakeResponses);
+    Buffer.FeedText('X');
+    Assert.AreEqual('X', Buffer.LineText(1));
+    Buffer.Resize(12, 4);
+    Buffer.FeedText(Request);
+    Assert.AreEqual(#27 + 'P1$r1;12s' + #27 + Chr(92), Buffer.TakeResponses);
+    Buffer.FeedText(#27 + '[?1049h' + Request);
+    Assert.AreEqual(#27 + 'P1$r1;12s' + #27 + Chr(92), Buffer.TakeResponses);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Reject parameterized or unsupported horizontal-margin status identifiers.</summary>
+
+ Procedure TTerminalTests.HorizontalMarginStatusRejectsParameters;
+  Var
+   Buffer  : TTerminalBuffer;
+   Request : String;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 4);
+   Try
+    For Request In TArray<String>.Create('0s', '1;8s', '?s', ' s') Do
+     Begin
+      Buffer.FeedText(#27 + 'P$q' + Request + #27 + Chr(92));
+      Assert.AreEqual(#27 + 'P0$r' + #27 + Chr(92), Buffer.TakeResponses);
+     End;
+    Assert.AreEqual('', Buffer.Text);
+    Assert.AreEqual(0, Buffer.CursorX);
+    Assert.AreEqual(0, Buffer.CursorY);
+   Finally
+    Buffer.Free;
+   End;
   End;
 
  Procedure TTerminalTests.AlternateScrollModeFragmentsAndDefault;
@@ -2617,6 +2668,9 @@ Implementation
     Session.Buffer.FeedText(#27'[0m'#27'P$qm'#27'\');
     Session.Poll;
     Expected := Expected + #27'P1$r0m'#27'\';
+    Session.Buffer.FeedText(#27 + 'P$qs' + #27 + Chr(92));
+    Session.Poll;
+    Expected := Expected + Format(#27 + 'P1$r1;%ds' + #27 + Chr(92), [Session.Buffer.Columns]);
     Session.Buffer.FeedText(#27'[6 q'#27'P$q q'#27'\');
     Session.Poll;
     Expected := Expected + #27'P1$r6 q'#27'\';
