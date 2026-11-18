@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 18 listopada 2026, wersja 1.0.55.88. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 18 listopada 2026, wersja 1.0.56.89. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -511,6 +511,16 @@ Weryfikacja 1.0.54.87: formatter bez błędów, sprawdzony diff i integralność
 
 Zwężenie siatki ekranu alternatywnego usuwa widoczną część szerokiego znaku, jeśli jego komórka kontynuacji wypada poza nową prawą krawędzią. Wcześniej pozostawał samotny początek znaku bez drugiej komórki. Ponowne poszerzenie nie odtwarza przyciętej zawartości. Znaki mieszczące się w całości zachowują tekst, kontynuację i atrybuty.
 
-Dwa scenariusze DUnitX obejmują CJK i emoji przy szerokościach 1–4 kolumn, poszerzenie po przycięciu, zachowanie całego znaku na krawędzi i jego koloru oraz niezależność zawartości ekranu głównego. To naprawa integralności siatki; ekran alternatywny nadal nie ma reflow. Pozostają pełna macierz 47/1047/1049, zachowanie zapisów kursora ekranu alternatywnego przy zmianie geometrii i porównania renderowania z VTE.
+Dwa scenariusze DUnitX obejmują CJK i emoji przy szerokościach 1–4 kolumn, poszerzenie po przycięciu, zachowanie całego znaku na krawędzi i jego koloru oraz niezależność zawartości ekranu głównego. To naprawa integralności siatki; ekran alternatywny nadal nie ma reflow. Pozostają pełna macierz 47/1047/1049 i porównania renderowania z VTE. Ograniczanie zapisu kursora alternatywnego do zmienionej siatki dodano w 1.0.56.89 (opis poniżej).
 
 Weryfikacja 1.0.55.88: formatter bez błędów, sprawdzony diff i integralność źródeł; 176/176 scenariuszy DUnitX, bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.55.88-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
+
+## Zapis kursora ekranu alternatywnego po zmianie rozmiaru — 1.0.56.89
+
+Zmiana rozmiaru ogranicza zapisane współrzędne DECSC ekranu alternatywnego do nowej siatki. Po zwężeniu i ponownym poszerzeniu DECRC nie przywraca już pozycji z obszaru, który został przycięty. Dotyczy to również wspólnego zapisu używanego przez CSI s/u i 1048. Kolory, atrybuty i tryby zapisu pozostają zachowane.
+
+Zapisane oczekujące zawinięcie pozostaje aktywne tylko wtedy, gdy zapisana kolumna nadal odpowiada prawej krawędzi. Zwężenie usuwa nieaktualne zawinięcie, a zmiana samej wysokości je zachowuje. Dwa scenariusze DUnitX sprawdzają zwężenie i poszerzenie obu wymiarów, pozycję odtworzenia, kolor oraz drukowanie po odtworzeniu z zawinięciem i bez niego.
+
+Ekran alternatywny nadal jest przycinany jako siatka, bez reflow. Pełna macierz mieszanych przełączeń 47/1047/1049, czyszczenia i wielokrotnych zapisów oraz porównania z uruchomionym VTE pozostają do wykonania.
+
+Weryfikacja 1.0.56.89: formatter bez błędów, sprawdzony diff i integralność źródeł; 178/178 scenariuszy DUnitX, bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.56.89-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.

@@ -123,6 +123,8 @@ Interface
     [Test] Procedure AlternateScreenRestoresPrimary;
     [Test] Procedure AlternateResizeClearsCutWideCharacters;
     [Test] Procedure AlternateResizePreservesCompleteWideCharacters;
+    [Test] Procedure AlternateSavedCursorStaysInsideResizedGrid;
+    [Test] Procedure AlternateSavedWrapTracksTheGridEdge;
     [Test] Procedure PrimaryPendingWrapSurvivesAlternateScreen;
     [Test] Procedure PrimaryPendingWrapReflowsWhileAlternate;
     [Test] Procedure SavedPrimaryCursorReflowsAcrossScreens;
@@ -4736,6 +4738,53 @@ Implementation
     Buffer.Resize(8, 4);
     Assert.AreEqual('A' + WideChar($754C), Buffer.LineText(0));
     Assert.IsTrue(Buffer.Cell[2, 0].Continuation);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>A clipped saved position cannot resurrect after a later expansion.</summary>
+
+ Procedure TTerminalTests.AlternateSavedCursorStaysInsideResizedGrid;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 5);
+   Try
+    Buffer.FeedText(#27 + '[?1049h' + #27 + '[4;7H' + #27 + '[31m' + #27 + '7');
+    Buffer.FeedText(#27 + '[0m' + #27 + '[1;1H');
+    Buffer.Resize(3, 2);
+    Buffer.Resize(8, 5);
+    Buffer.FeedText(#27 + '8');
+    Assert.AreEqual(2, Buffer.CursorX);
+    Assert.AreEqual(1, Buffer.CursorY);
+    Buffer.FeedText('X');
+    Assert.AreEqual('X', Buffer.Cell[2, 1].Text);
+    Assert.AreEqual(1, Buffer.Cell[2, 1].Foreground);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Clipping cancels obsolete deferred wrap; a height-only resize retains it.</summary>
+
+ Procedure TTerminalTests.AlternateSavedWrapTracksTheGridEdge;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(6, 4);
+   Try
+    Buffer.FeedText(#27 + '[?1049h' + 'ABCDEF' + #27 + '7');
+    Buffer.Resize(3, 4);
+    Buffer.FeedText(#27 + '8' + 'X');
+    Assert.AreEqual('ABX', Buffer.LineText(0));
+    Assert.AreEqual(0, Buffer.CursorY);
+    Buffer.Reset;
+    Buffer.FeedText(#27 + '[?1049h' + 'ABC' + #27 + '7');
+    Buffer.Resize(3, 5);
+    Buffer.FeedText(#27 + '8' + 'Y');
+    Assert.AreEqual('ABC', Buffer.LineText(0));
+    Assert.AreEqual('Y', Buffer.LineText(1));
    Finally
     Buffer.Free;
    End;

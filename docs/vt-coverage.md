@@ -1,6 +1,6 @@
 ﻿# Pokrycie emulatora VT
 
-Stan: 1.0.55.88. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.56.89. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -337,4 +337,12 @@ Pozostają dalsze przypadki mapowania przy obcinaniu historii, szerokich grafema
 
 Zwężenie siatki ekranu alternatywnego usuwa widoczną część szerokiego znaku, jeśli jego komórka kontynuacji wypada poza nową prawą krawędzią. Wcześniej pozostawał samotny początek znaku bez drugiej komórki. Ponowne poszerzenie nie odtwarza przyciętej zawartości. Znaki mieszczące się w całości zachowują tekst, kontynuację i atrybuty.
 
-Dwa scenariusze DUnitX obejmują CJK i emoji przy szerokościach 1–4 kolumn, poszerzenie po przycięciu, zachowanie całego znaku na krawędzi i jego koloru oraz niezależność zawartości ekranu głównego. To naprawa integralności siatki; ekran alternatywny nadal nie ma reflow. Pozostają pełna macierz 47/1047/1049, zachowanie zapisów kursora ekranu alternatywnego przy zmianie geometrii i porównania renderowania z VTE.
+Dwa scenariusze DUnitX obejmują CJK i emoji przy szerokościach 1–4 kolumn, poszerzenie po przycięciu, zachowanie całego znaku na krawędzi i jego koloru oraz niezależność zawartości ekranu głównego. To naprawa integralności siatki; ekran alternatywny nadal nie ma reflow. Pozostają pełna macierz 47/1047/1049 i porównania renderowania z VTE. Ograniczanie zapisu kursora alternatywnego do zmienionej siatki dodano w 1.0.56.89 (opis poniżej).
+
+## Zapis kursora ekranu alternatywnego po zmianie rozmiaru — 1.0.56.89
+
+Zmiana rozmiaru ogranicza zapisane współrzędne DECSC ekranu alternatywnego do nowej siatki. Po zwężeniu i ponownym poszerzeniu DECRC nie przywraca już pozycji z obszaru, który został przycięty. Dotyczy to również wspólnego zapisu używanego przez CSI s/u i 1048. Kolory, atrybuty i tryby zapisu pozostają zachowane.
+
+Zapisane oczekujące zawinięcie pozostaje aktywne tylko wtedy, gdy zapisana kolumna nadal odpowiada prawej krawędzi. Zwężenie usuwa nieaktualne zawinięcie, a zmiana samej wysokości je zachowuje. Dwa scenariusze DUnitX sprawdzają zwężenie i poszerzenie obu wymiarów, pozycję odtworzenia, kolor oraz drukowanie po odtworzeniu z zawinięciem i bez niego.
+
+Ekran alternatywny nadal jest przycinany jako siatka, bez reflow. Pełna macierz mieszanych przełączeń 47/1047/1049, czyszczenia i wielokrotnych zapisów oraz porównania z uruchomionym VTE pozostają do wykonania.

@@ -1968,6 +1968,13 @@ Implementation
     End
    Else
     Reflow(fScreen, fX, fY, fWrapPending);
+   // Alternate content is clipped as a grid; its saved cursor must not reappear outside that grid later.
+   With fDECSaved[True] Do
+    Begin
+     WrapPending := WrapPending And (x = Columns - 1);
+     x           := EnsureRange(x, 0, Columns - 1);
+     y           := EnsureRange(y, 0, Rows - 1);
+    End;
    fColumns     := Columns;
    fRows        := Rows;
    fX           := Min(fX, Columns - 1);
