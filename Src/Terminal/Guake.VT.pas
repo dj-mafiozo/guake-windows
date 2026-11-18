@@ -109,6 +109,7 @@ Interface
     fSGRMouse           : Boolean;
     fUtf8Mouse          : Boolean;
     fUrxvtMouse         : Boolean;
+    fPixelMouse         : Boolean;
     fRevision           : Int64;
     fLastGraphic        : Cardinal;
     Function  Blank                                                   : TTerminalCell;
@@ -183,6 +184,7 @@ Interface
     /// <summary>DEC mode 1005 permits UTF-8 mouse coordinates; SGR 1006 takes precedence when both are set.</summary>
     Property Utf8Mouse    : Boolean Read fUtf8Mouse;
     Property UrxvtMouse   : Boolean Read fUrxvtMouse;
+    Property PixelMouse   : Boolean Read fPixelMouse;
     Property SGRMouse     : Boolean Read fSGRMouse;
     Property BellCount    : UInt64 Read fBellCount;
     Property Title        : String Read fTitle;
@@ -373,6 +375,7 @@ Implementation
    fSGRMouse        := False;
    fUtf8Mouse       := False;
    fUrxvtMouse      := False;
+   fPixelMouse      := False;
    fAutoWrap        := True;
    fOrigin          := False;
    fInsert          := False;
@@ -838,6 +841,7 @@ Implementation
      1005           : Enabled := fUtf8Mouse;
      1006           : Enabled := fSGRMouse;
      1015           : Enabled := fUrxvtMouse;
+     1016           : Enabled := fPixelMouse;
      2004           : Enabled := fBracketedPaste;
     Else Exit;
     End
@@ -916,6 +920,11 @@ Implementation
      Begin
       Inc(fMouseRevision);
       fUrxvtMouse := Enabled;
+     End;
+    1016 :
+     Begin
+      Inc(fMouseRevision);
+      fPixelMouse := Enabled;
      End;
     2004 :
      fBracketedPaste := Enabled;
@@ -1056,7 +1065,7 @@ Implementation
     Begin
      For i := 0 To High(Params) Do
       Case Params[i] Of
-       1, 6, 7, 9, 25, 66, 1000, 1002, 1003, 1004, 1005, 1006, 1015, 2004 :
+       1, 6, 7, 9, 25, 66, 1000, 1002, 1003, 1004, 1005, 1006, 1015, 1016, 2004 :
         If Final = 's' Then
          fSavedModes.AddOrSetValue(Params[i], ModeStatus(Params[i], True) = 1)
         Else If fSavedModes.TryGetValue(Params[i], SavedValue) Then

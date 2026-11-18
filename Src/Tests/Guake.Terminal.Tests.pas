@@ -16,6 +16,8 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure PixelMouseFormatFragmentsAndIndependentFlags;
+    [Test] Procedure PixelMouseFormatSaveRestoreAndReset;
     [Test] Procedure UrxvtMouseFormatFragmentsAndModeQueries;
     [Test] Procedure UrxvtMouseFormatSaveRestoreAndReset;
     [Test] Procedure ScrollbackSelectionWorksWithMouseTracking;
@@ -173,6 +175,57 @@ Implementation
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+/// <summary>Checks independent pixel encoding negotiation and fragmented mode queries without enabling tracking.</summary>
+
+ Procedure TTerminalTests.PixelMouseFormatFragmentsAndIndependentFlags;
+  Var
+   Buffer : TTerminalBuffer;
+   Bytes  : TBytes;
+   Split  : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 3);
+   Try
+    Bytes     := TEncoding.UTF8.GetBytes(#27 + '[?1016h' + #27 + '[?1006;1015;1016$p');
+    For Split := 0 To Length(Bytes) Do
+     Begin
+      Buffer.Reset;
+      Buffer.Feed(Copy(Bytes, 0, Split));
+      Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+      Assert.IsTrue(Buffer.PixelMouse);
+      Assert.AreEqual(0, Buffer.MouseMode);
+      Assert.AreEqual(#27 + '[?1006;2$y' + #27 + '[?1015;2$y' + #27 + '[?1016;1$y', Buffer.TakeResponses);
+     End;
+    Buffer.FeedText(#27 + '[?1000;1005;1006;1015h' + #27 + '[?1016l');
+    Assert.IsFalse(Buffer.PixelMouse);
+    Assert.IsTrue(Buffer.Utf8Mouse And Buffer.SGRMouse And Buffer.UrxvtMouse);
+    Assert.AreEqual(1000, Buffer.MouseMode, 'Encoding flags must not disable tracking');
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Exercises pixel mode save/restore values and hard/soft reset without reviving saved state.</summary>
+
+ Procedure TTerminalTests.PixelMouseFormatSaveRestoreAndReset;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 3);
+   Try
+    Buffer.FeedText(#27 + '[?1016h' + #27 + '[?1016s' + #27 + '[?1016l' + #27 + '[?1016r');
+    Assert.IsTrue(Buffer.PixelMouse);
+    Buffer.FeedText(#27 + '[?1016l' + #27 + '[?1016s' + #27 + '[?1016h' + #27 + '[?1016r');
+    Assert.IsFalse(Buffer.PixelMouse);
+    Buffer.FeedText(#27 + '[?1016h' + #27 + '[?1016s' + #27 + '[!p' + #27 + '[?1016r');
+    Assert.IsFalse(Buffer.PixelMouse);
+    Buffer.FeedText(#27 + '[?1016h' + #27 + 'c' + #27 + '[?1016$p');
+    Assert.IsFalse(Buffer.PixelMouse);
+    Assert.AreEqual(#27 + '[?1016;2$y', Buffer.TakeResponses);
+   Finally
+    Buffer.Free;
+   End;
+  End;
 
 /// <summary>Checks independent URXVT encoding negotiation without enabling tracking or altering other formats.</summary>
 
@@ -2379,7 +2432,7 @@ Implementation
     'Console.InputEncoding=new System.Text.UTF8Encoding(false);'#13#10 +
     'if(!SetConsoleMode(GetStdHandle(-10),0x200)) throw new Exception("SetConsoleMode");'#13#10 +
     'if(!SetConsoleMode(GetStdHandle(-11),7)) throw new Exception("Output mode"); Console.Write("\u001b[?1004h\u001b[?1003h\u001b[?1006h\u001b=PROBE_READY"); var data=new List<int>();'#13#10 +
-    'for(int i=0;i<1024;i++){int c=Console.Read();if(c<0)throw new Exception("EOF");'#13#10 +
+    'for(int i=0;i<4096;i++){int c=Console.Read();if(c<0)throw new Exception("EOF");'#13#10 +
     'if(c==94){Console.Write("\u001b[?1006lLEGACY_READY");continue;}'#13#10 +
     'if(c==1){Console.Write("\u001b[?1005hUTF8_READY");continue;}'#13#10 +
     'if(c==2){Console.Write("\u001b[?1005l\u001b[?1006lASCII_READY");continue;}'#13#10 +
@@ -2582,6 +2635,23 @@ Implementation
     Expected := Expected + #27 + '[32;1;1M' + #27 + '[35;1;1M';
     Session.Buffer.FeedText(#27 + '[?1015l');
     Frame.SetBounds(0, 0, 720, 360);
+    Session.Buffer.FeedText(#27 + '[?1003;1016h');
+    Frame.SurfaceMouseDown(Nil, mbRight, [], 4, 4);
+    Frame.SurfaceMouseMove(Nil, [ssRight], 5, 4);
+    For i := 1 To 20 Do
+     Frame.SurfaceMouseMove(Nil, [ssRight], 5, 4);
+    Frame.SurfaceMouseMove(Nil, [ssRight], 6, 4);
+    Frame.SurfaceMouseUp(Nil, mbRight, [], 6, 4);
+    Expected := Expected + #27 + '[<2;1;1M' + #27 + '[<34;2;1M' + #27 + '[<34;3;1M' + #27 + '[<2;3;1m';
+    Session.Buffer.FeedText(#27 + '[?1006h');
+    Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
+    Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
+    Expected := Expected + #27 + '[<0;2;2M' + #27 + '[<0;2;2m';
+    Session.Buffer.FeedText(#27 + '[?1016l');
+    Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
+    Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
+    Expected := Expected + #27 + '[<0;1;1M' + #27 + '[<0;1;1m';
+    Session.Buffer.FeedText(#27 + '[?1003;1006l');
 
     Session.Buffer.FeedText(#27'[?9h' + #27'[?1000l');
     Assert.AreEqual(9, Session.Buffer.MouseMode);
@@ -2613,6 +2683,11 @@ Implementation
     Frame.SurfaceMouseMove(Nil, [], 5, 5);
     Frame.SurfaceMouseMove(Nil, [], 5, 5 + CellHeight);
     Expected := Expected + #27 + '[<35;1;1M';
+    Session.Buffer.FeedText(#27 + '[?1016h');
+    Frame.SurfaceMouseDown(Nil, mbRight, [], 4, 4 + CellHeight);
+    Frame.SurfaceMouseUp(Nil, mbRight, [], 4, 4 + CellHeight);
+    Expected := Expected + #27 + '[<2;1;1M' + #27 + '[<2;1;1m';
+    Session.Buffer.FeedText(#27 + '[?1016l');
     Session.Buffer.FeedText(#27 + '[?1003;1006l');
     Frame.scroll.Position         := HistoryBase;
     Settings.General.WordChars    := '-A-Za-z0-9_';

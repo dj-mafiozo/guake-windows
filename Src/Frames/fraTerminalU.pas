@@ -33,7 +33,7 @@ Interface
    Private
     fMouseShift            : TShiftState;
     fMouseCellValid        : Boolean;
-    fReportedMouseCell     : TPoint;
+    fReportedMousePosition : TPoint;
     fMouseProtocolRevision : Int64;
     fMouseColumns          : Integer;
     fMouseRows             : Integer;
@@ -1274,7 +1274,7 @@ Implementation
     Result := MouseCell(x, y).y >= fSession.Buffer.TotalLines - fSession.Buffer.Rows;
   End;
 
-/// <summary>Sends application mouse input without keyboard selection/scroll effects; suppresses same-cell motion.</summary>
+/// <summary>Sends application mouse input without keyboard selection/scroll effects; suppresses repeated cells or pixels for 1016.</summary>
 
  Procedure TfraTerminal.SendMouse(Button : Integer; Release : Boolean; Shift : TShiftState; x, y : Integer);
   Var
@@ -1294,11 +1294,18 @@ Implementation
      fMouseCellValid := False;
      Exit;
     End;
+   If fSession.Buffer.PixelMouse Then
+    Begin
+     // Terminal pixels exclude the four-pixel padding and start at the active screen, not the viewport.
+     p.x := EnsureRange(x - 4, 0, Max(0, fSession.Buffer.Columns * fCellWidth - 1));
+     p.y := EnsureRange(y - 4 + (scroll.Position - (fSession.Buffer.TotalLines - fSession.Buffer.Rows)) * fCellHeight,
+     0, Max(0, fSession.Buffer.Rows * fCellHeight - 1));
+    End;
    Motion := (Button And 32) <> 0;
    If Motion And fMouseCellValid And
    (fMouseProtocolRevision = fSession.Buffer.MouseRevision) And
    (fMouseColumns = fSession.Buffer.Columns) And (fMouseRows = fSession.Buffer.Rows) And
-   (p.x = fReportedMouseCell.x) And (p.y = fReportedMouseCell.y) Then
+   (p.x = fReportedMousePosition.x) And (p.y = fReportedMousePosition.y) Then
     Exit;
    If fSession.Buffer.MouseMode <> 9 Then
     Begin
@@ -1309,7 +1316,7 @@ Implementation
      If ssCtrl In Shift Then
       Inc(Button, 16);
     End;
-   If fSession.Buffer.SGRMouse Then
+   If fSession.Buffer.PixelMouse Or fSession.Buffer.SGRMouse Then
     Begin
      If Release Then
       Final := 'm'
@@ -1334,7 +1341,7 @@ Implementation
    Else
     Exit;
    fSession.SendText(Report);
-   fReportedMouseCell     := p;
+   fReportedMousePosition := p;
    fMouseCellValid        := True;
    fMouseProtocolRevision := fSession.Buffer.MouseRevision;
    fMouseColumns          := fSession.Buffer.Columns;
