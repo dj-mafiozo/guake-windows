@@ -121,6 +121,8 @@ Interface
     [Test] Procedure HyperlinksSearchAndDirectionalPanes;
     [Test] Procedure SessionTreeRoundTripAndFailedRestore;
     [Test] Procedure AlternateScreenRestoresPrimary;
+    [Test] Procedure EraseAboveBreaksHistoryParagraph;
+    [Test] Procedure EraseAboveAlternateKeepsPrimaryHistory;
     [Test] Procedure AlternateResizeClearsCutWideCharacters;
     [Test] Procedure AlternateResizePreservesCompleteWideCharacters;
     [Test] Procedure AlternateSavedCursorStaysInsideResizedGrid;
@@ -4785,6 +4787,64 @@ Implementation
     Buffer.FeedText(#27 + '8' + 'Y');
     Assert.AreEqual('ABC', Buffer.LineText(0));
     Assert.AreEqual('Y', Buffer.LineText(1));
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>ED above separates old history from cleared cells, including wide-wrap padding.</summary>
+
+ Procedure TTerminalTests.EraseAboveBreaksHistoryParagraph;
+  Var
+   Buffer   : TTerminalBuffer;
+   Width    : Integer;
+   Index    : Integer;
+   Sequence : String;
+   Before   : String;
+   Ch       : Char;
+  Begin
+   For Width In TArray<Integer>.Create(3, 4) Do
+    Begin
+     Buffer := TTerminalBuffer.Create(Width, 2);
+     Try
+      If Width = 3 Then
+       Buffer.FeedText('AB' + WideChar($754C) + 'CD')
+      Else
+       Buffer.FeedText('ABCDEFGHI');
+      Assert.AreEqual(3, Buffer.TotalLines);
+      Assert.IsTrue(Buffer.Cell[Width - 1, 0].SoftWrapped);
+      Before := Buffer.LineText(0);
+      Buffer.FeedText(#27 + '[1;1H');
+      Sequence := #27 + '[1J';
+      For Ch In Sequence Do
+       Buffer.FeedText(Ch);
+      Assert.IsFalse(Buffer.Cell[Width - 1, 0].SoftWrapped);
+      Assert.IsFalse(Buffer.Cell[Width - 1, 0].WrapPadding);
+      Assert.AreEqual(0, Buffer.CursorX);
+      Assert.AreEqual(0, Buffer.CursorY);
+      Buffer.FeedText('X');
+      Assert.AreEqual(Before, Buffer.LogicalLineText(0, 0, Index));
+      Assert.IsTrue(Pos(Before + sLineBreak, Buffer.Text) = 1);
+      Buffer.Resize(8, 3);
+      Assert.AreEqual(Before, Buffer.LineText(0));
+      Assert.IsTrue(Pos('X', Buffer.LineText(1)) = 1);
+     Finally
+      Buffer.Free;
+     End;
+    End;
+  End;
+
+/// <summary>ED above in the alternate buffer cannot break the hidden primary paragraph.</summary>
+
+ Procedure TTerminalTests.EraseAboveAlternateKeepsPrimaryHistory;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(4, 2);
+   Try
+    Buffer.FeedText('ABCDEFGHI' + #27 + '[?1049h' + 'ALT' + #27 + '[1J' + #27 + '[?1049l');
+    Assert.IsTrue(Buffer.Cell[3, 0].SoftWrapped);
+    Assert.AreEqual('ABCDEFGHI', Buffer.Text);
    Finally
     Buffer.Free;
    End;

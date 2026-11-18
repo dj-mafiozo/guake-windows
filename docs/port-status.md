@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 18 listopada 2026, wersja 1.0.56.89. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 18 listopada 2026, wersja 1.0.57.90. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -524,3 +524,13 @@ Zapisane oczekujące zawinięcie pozostaje aktywne tylko wtedy, gdy zapisana kol
 Ekran alternatywny nadal jest przycinany jako siatka, bez reflow. Pełna macierz mieszanych przełączeń 47/1047/1049, czyszczenia i wielokrotnych zapisów oraz porównania z uruchomionym VTE pozostają do wykonania.
 
 Weryfikacja 1.0.56.89: formatter bez błędów, sprawdzony diff i integralność źródeł; 178/178 scenariuszy DUnitX, bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.56.89-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
+
+## Granica historii po ED 1 — 1.0.57.90
+
+Zwykłe `CSI 1 J` (kasowanie od początku ekranu do kursora) przerywa logiczne połączenie ostatniego wiersza historii z ekranem. Usuwa na tej granicy znaczniki miękkiego zawinięcia i wypełnienia przed szerokim znakiem. Nie usuwa tekstu historii ani nie przesuwa kursora. Nowy tekst nie jest przez to sklejany z dawnym akapitem podczas kopiowania i reflow.
+
+Testy obejmują ASCII, zawinięcie przed CJK, podawanie sekwencji znak po znaku, odczyt logicznego wiersza i zmianę szerokości po kasowaniu. Kasowanie na ekranie alternatywnym pozostawia połączenia ukrytej historii głównej bez zmian. Selektywne DECSED `CSI ? 1 J` nie otrzymuje tej zmiany; jego dalsza macierz ochrony i granic akapitów pozostaje osobnym zadaniem.
+
+Punkt odniesienia: [clear_above_current w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L287), gdzie kasowanie powyżej kursora zamyka miękkie zawinięcie wiersza nad obszarem zapisu. Pełne zachowanie ED 2 i pozostałych wariantów kasowania nadal wymaga dalszych porównań.
+
+Weryfikacja 1.0.57.90: formatter bez błędów, sprawdzony diff i integralność źródeł; 180/180 scenariuszy DUnitX, bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.57.90-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.

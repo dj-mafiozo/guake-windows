@@ -1161,6 +1161,9 @@ Implementation
        End;
       1 :
        Begin
+        // Ordinary ED above breaks the paragraph joining history to the cleared screen.
+        If Not PrivateMode Then
+         BreakLineAfter( -1);
         For y := 0 To fY - 1 Do
          EraseLine(fScreen[y], 0, fColumns - 1, PrivateMode);
         EraseLine(fScreen[fY], 0, fX, PrivateMode);

@@ -1,6 +1,6 @@
 ﻿# Pokrycie emulatora VT
 
-Stan: 1.0.56.89. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.57.90. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -346,3 +346,11 @@ Zmiana rozmiaru ogranicza zapisane współrzędne DECSC ekranu alternatywnego do
 Zapisane oczekujące zawinięcie pozostaje aktywne tylko wtedy, gdy zapisana kolumna nadal odpowiada prawej krawędzi. Zwężenie usuwa nieaktualne zawinięcie, a zmiana samej wysokości je zachowuje. Dwa scenariusze DUnitX sprawdzają zwężenie i poszerzenie obu wymiarów, pozycję odtworzenia, kolor oraz drukowanie po odtworzeniu z zawinięciem i bez niego.
 
 Ekran alternatywny nadal jest przycinany jako siatka, bez reflow. Pełna macierz mieszanych przełączeń 47/1047/1049, czyszczenia i wielokrotnych zapisów oraz porównania z uruchomionym VTE pozostają do wykonania.
+
+## Granica historii po ED 1 — 1.0.57.90
+
+Zwykłe `CSI 1 J` (kasowanie od początku ekranu do kursora) przerywa logiczne połączenie ostatniego wiersza historii z ekranem. Usuwa na tej granicy znaczniki miękkiego zawinięcia i wypełnienia przed szerokim znakiem. Nie usuwa tekstu historii ani nie przesuwa kursora. Nowy tekst nie jest przez to sklejany z dawnym akapitem podczas kopiowania i reflow.
+
+Testy obejmują ASCII, zawinięcie przed CJK, podawanie sekwencji znak po znaku, odczyt logicznego wiersza i zmianę szerokości po kasowaniu. Kasowanie na ekranie alternatywnym pozostawia połączenia ukrytej historii głównej bez zmian. Selektywne DECSED `CSI ? 1 J` nie otrzymuje tej zmiany; jego dalsza macierz ochrony i granic akapitów pozostaje osobnym zadaniem.
+
+Punkt odniesienia: [clear_above_current w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L287), gdzie kasowanie powyżej kursora zamyka miękkie zawinięcie wiersza nad obszarem zapisu. Pełne zachowanie ED 2 i pozostałych wariantów kasowania nadal wymaga dalszych porównań.
