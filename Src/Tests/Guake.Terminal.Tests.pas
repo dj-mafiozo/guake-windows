@@ -16,6 +16,8 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure AlternateScrollModeFragmentsAndDefault;
+    [Test] Procedure AlternateScrollModeSaveRestoreAndReset;
     [Test] Procedure PixelMouseFormatFragmentsAndIndependentFlags;
     [Test] Procedure PixelMouseFormatSaveRestoreAndReset;
     [Test] Procedure UrxvtMouseFormatFragmentsAndModeQueries;
@@ -175,6 +177,57 @@ Implementation
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+/// <summary>Checks the VTE-compatible enabled default and fragmented negotiation independent of tracking and screen selection.</summary>
+
+ Procedure TTerminalTests.AlternateScrollModeFragmentsAndDefault;
+  Var
+   Buffer : TTerminalBuffer;
+   Bytes  : TBytes;
+   Split  : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 3);
+   Try
+    Assert.IsTrue(Buffer.AlternateScroll);
+    Bytes     := TEncoding.UTF8.GetBytes(#27 + '[?1007l' + #27 + '[?1007$p');
+    For Split := 0 To Length(Bytes) Do
+     Begin
+      Buffer.Reset;
+      Buffer.Feed(Copy(Bytes, 0, Split));
+      Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+      Assert.IsFalse(Buffer.AlternateScroll);
+      Assert.AreEqual(0, Buffer.MouseMode);
+      Assert.IsFalse(Buffer.AlternateScreen);
+      Assert.AreEqual(#27 + '[?1007;2$y', Buffer.TakeResponses);
+     End;
+    Buffer.FeedText(#27 + '[?1007h' + #27 + '[?1049h' + #27 + '[?1049l' + #27 + '[?1007$p');
+    Assert.IsTrue(Buffer.AlternateScroll);
+    Assert.AreEqual(#27 + '[?1007;1$y', Buffer.TakeResponses);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Checks alternate-scroll saved values and enabled defaults restored by both reset forms.</summary>
+
+ Procedure TTerminalTests.AlternateScrollModeSaveRestoreAndReset;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 3);
+   Try
+    Buffer.FeedText(#27 + '[?1007s' + #27 + '[?1007l' + #27 + '[?1007r');
+    Assert.IsTrue(Buffer.AlternateScroll);
+    Buffer.FeedText(#27 + '[?1007l' + #27 + '[?1007s' + #27 + '[?1007h' + #27 + '[?1007r');
+    Assert.IsFalse(Buffer.AlternateScroll);
+    Buffer.FeedText(#27 + '[!p' + #27 + '[?1007r');
+    Assert.IsTrue(Buffer.AlternateScroll, 'DECSTR clears saved false state and restores the enabled default');
+    Buffer.FeedText(#27 + '[?1007l' + #27 + 'c');
+    Assert.IsTrue(Buffer.AlternateScroll);
+   Finally
+    Buffer.Free;
+   End;
+  End;
 
 /// <summary>Checks independent pixel encoding negotiation and fragmented mode queries without enabling tracking.</summary>
 
@@ -2437,6 +2490,8 @@ Implementation
     'if(c==1){Console.Write("\u001b[?1005hUTF8_READY");continue;}'#13#10 +
     'if(c==2){Console.Write("\u001b[?1005l\u001b[?1006lASCII_READY");continue;}'#13#10 +
     'if(c==3){Console.Write("\u001b[?1005l\u001b[?1006hSGR_READY");continue;}'#13#10 +
+    'if(c==5){Console.Write("\u001b[?1hCURSOR_APP_READY");continue;}'#13#10 +
+    'if(c==6){Console.Write("\u001b[?1lCURSOR_NORMAL_READY");continue;}'#13#10 +
     'if(c==4){File.WriteAllText(path+".tmp",string.Join(",",data));File.Move(path+".tmp",path);return;}data.Add(c);}'#13#10 +
     'throw new Exception("Input limit");}}'#13#10 +
     '''@'#13#10 + '[Probe]::Run($args[0])', TEncoding.UTF8);
@@ -2635,6 +2690,45 @@ Implementation
     Expected := Expected + #27 + '[32;1;1M' + #27 + '[35;1;1M';
     Session.Buffer.FeedText(#27 + '[?1015l');
     Frame.SetBounds(0, 0, 720, 360);
+    Session.Buffer.FeedText(#27 + '[?1000l' + #27 + '[?1049h');
+    For i     := 1 To Max(1, (Session.Buffer.Rows + 9) Div 10) Do
+     Expected := Expected + #27 + '[A';
+    TTerminalFrameAccess(Frame).DoMouseWheel([], 120, Frame.surface.ClientToScreen(Point(5, 5)));
+    Session.SendText(#5);
+    Deadline := GetTickCount64 + 5000;
+    Repeat
+     Session.Poll;
+     If Pos('CURSOR_APP_READY', Session.Buffer.Text) > 0 Then
+      Break;
+     Sleep(10);
+    Until GetTickCount64 >= Deadline;
+    Assert.IsTrue(Pos('CURSOR_APP_READY', Session.Buffer.Text) > 0);
+    Assert.IsTrue(Session.Buffer.ApplicationCursor);
+    For i     := 1 To Max(1, (Session.Buffer.Rows + 9) Div 10) Do
+     Expected := Expected + #27 + 'OB';
+    TTerminalFrameAccess(Frame).DoMouseWheel([], -120, Frame.surface.ClientToScreen(Point(5, 5)));
+    For i     := 1 To Max(1, (Session.Buffer.Rows + 9) Div 10) Do
+     Expected := Expected + #27 + '[1;7A';
+    TTerminalFrameAccess(Frame).DoMouseWheel([ssAlt, ssCtrl], 120, Frame.surface.ClientToScreen(Point(5, 5)));
+    Session.Buffer.FeedText(#27 + '[?1007l');
+    TTerminalFrameAccess(Frame).DoMouseWheel([], 120, Frame.surface.ClientToScreen(Point(5, 5)));
+    Session.Buffer.FeedText(#27 + '[?1007;1000;1006h');
+    TTerminalFrameAccess(Frame).DoMouseWheel([], 120, Frame.surface.ClientToScreen(Point(5, 5)));
+    Expected := Expected + #27 + '[<64;1;1M';
+    Session.Buffer.FeedText(#27 + '[?1000;1006l');
+    TTerminalFrameAccess(Frame).DoMouseWheel([ssShift], 120, Frame.surface.ClientToScreen(Point(5, 5)));
+    TTerminalFrameAccess(Frame).DoMouseWheel([], 0, Frame.surface.ClientToScreen(Point(5, 5)));
+    Session.SendText(#6);
+    Deadline := GetTickCount64 + 5000;
+    Repeat
+     Session.Poll;
+     If Pos('CURSOR_NORMAL_READY', Session.Buffer.Text) > 0 Then
+      Break;
+     Sleep(10);
+    Until GetTickCount64 >= Deadline;
+    Assert.IsTrue(Pos('CURSOR_NORMAL_READY', Session.Buffer.Text) > 0);
+    Assert.IsFalse(Session.Buffer.ApplicationCursor);
+    Session.Buffer.FeedText(#27 + '[?1049l' + #27 + '[?1000h');
     Session.Buffer.FeedText(#27 + '[?1003;1016h');
     Frame.SurfaceMouseDown(Nil, mbRight, [], 4, 4);
     Frame.SurfaceMouseMove(Nil, [ssRight], 5, 4);

@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 18 listopada 2026, wersja 1.0.50.83. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 18 listopada 2026, wersja 1.0.51.84. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -461,10 +461,20 @@ Weryfikacja 1.0.49.82: formatter bez błędów i sprawdzony diff; 166/166 scenar
 
 DECSET/DECRST 1016 włącza pikselowe współrzędne raportów SGR, niezależnie od bitu 1006. Format używa CSI < przycisk ; x ; y M/m. Pozycje są od 1 względem obszaru komórek aktywnego ekranu, bez czteropikselowego marginesu widoku. Przy przewiniętej historii uwzględnione jest przesunięcie do aktywnego ekranu; zdarzenia historii nadal pozostają lokalne. Pozycja jest ograniczana do obszaru komórek.
 
-Priorytet kodowania w porcie: piksele 1016 → SGR 1006 → URXVT 1015 → UTF-8 1005 → klasyczny. Sam bit kodowania nie włącza śledzenia. DECRQM raportuje 1016, save/restore zachowuje true i false, RIS/DECSTR kasują stan i zapis. Zakres save/restore obejmuje piętnaście identyfikatorów.
+Priorytet kodowania w porcie: piksele 1016 → SGR 1006 → URXVT 1015 → UTF-8 1005 → klasyczny. Sam bit kodowania nie włącza śledzenia. DECRQM raportuje 1016, save/restore zachowuje true i false, RIS/DECSTR kasują stan i zapis. W tej wersji zakres save/restore obejmował piętnaście identyfikatorów; 1007 zwiększa go do szesnastu w 1.0.51.84.
 
 Filtr powtórzeń porównuje w tym trybie piksele, więc ruch wewnątrz jednej komórki generuje nowy raport, a powtórzenia tego samego piksela są pomijane. Po wyłączeniu 1016 wraca porównywanie komórek. Zmiana formatu unieważnia filtr.
 
 Punkt odniesienia: [SGR-Pixels w dokumentacji xterm](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Extended-coordinates). Dwa scenariusze DUnitX obejmują negocjację, niezależne flagi, fragmentację, save/restore i reset. Natywny odbiornik ConPTY sprawdza ruch co piksel, tłumienie duplikatów, zwolnienie, priorytet i powrót do komórek oraz współrzędne przy przewiniętej historii. Dalsze testy DPI, skalowania fontów i highlight tracking pozostają do wykonania.
 
 Weryfikacja 1.0.50.83: formatter bez błędów i sprawdzony diff; 168/168 scenariuszy DUnitX bez błędów i wycieków. Natywny odbiornik ConPTY potwierdził ruch co piksel, pomijanie duplikatów, zwolnienia, priorytet 1016 i powrót do komórek oraz piksele przy przewiniętej historii. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie, bez zmiany DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.50.83-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
+
+## Alternate Scroll Mode 1007 — 1.0.51.84
+
+Na ekranie alternatywnym włączony tryb 1007 zamienia kółko na sekwencje strzałek góra/dół, jeśli raportowanie myszy nie przejęło zdarzenia. W stanie domyślnym i po RIS/DECSTR tryb jest włączony, jak w VTE. DECSET/DECRST steruje nim niezależnie od wyboru ekranu i trybów myszy; DECRQM raportuje stan, a XTSAVE/XTRESTORE zapisuje true i false. Obsługiwany zakres zapisu obejmuje szesnaście trybów.
+
+Sekwencje korzystają z tego samego kodowania co klawiatura: zwykłe CSI A/B, aplikacyjne SS3 A/B przy DECCKM oraz parametry Alt/Ctrl. Jeden odebrany impuls kółka wysyła ceil(liczba_wierszy/10) strzałek, co najmniej jedną. Raportowanie myszy ma pierwszeństwo. Shift zachowuje lokalne przewijanie, a zerowy WheelDelta nie powoduje wejścia. Ekran główny nadal przewija historię lokalnie.
+
+Punkt odniesienia: [kółko na ekranie alternatywnym w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L9373), [domyślny tryb 1007](https://github.com/GNOME/vte/blob/0.76.0/src/modes.py#L1106) i [Alternate Scroll w xterm](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Wheel-mice). Dwa scenariusze DUnitX sprawdzają fragmentację, domyślny stan, zapis i reset. Natywny odbiornik ConPTY negocjuje DECCKM z procesu potomnego i porównuje strzałki normalne/aplikacyjne, modyfikatory, pierwszeństwo myszy i brak wejścia po wyłączeniu 1007 lub przy Shift/zerowej delcie. Akumulacja płynnego kółka i pełne odwzorowanie kilku skoków kółka w jednym zdarzeniu pozostają do wykonania.
+
+Weryfikacja 1.0.51.84: formatter bez błędów i sprawdzony diff; 170/170 scenariuszy DUnitX bez błędów i wycieków. Natywny odbiornik ConPTY potwierdził strzałki normalne i aplikacyjne, modyfikatory, pierwszeństwo raportów myszy oraz brak wejścia po wyłączeniu 1007 i przy Shift/zerowej delcie. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie, bez zmiany DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.51.84-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.

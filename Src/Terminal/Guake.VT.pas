@@ -110,6 +110,7 @@ Interface
     fUtf8Mouse          : Boolean;
     fUrxvtMouse         : Boolean;
     fPixelMouse         : Boolean;
+    fAlternateScroll    : Boolean;
     fRevision           : Int64;
     fLastGraphic        : Cardinal;
     Function  Blank                                                   : TTerminalCell;
@@ -182,14 +183,15 @@ Interface
     Property MouseRevision : Int64 Read fMouseRevision;
     Property MouseMode     : Integer Read fMouseMode;
     /// <summary>DEC mode 1005 permits UTF-8 mouse coordinates; SGR 1006 takes precedence when both are set.</summary>
-    Property Utf8Mouse    : Boolean Read fUtf8Mouse;
-    Property UrxvtMouse   : Boolean Read fUrxvtMouse;
-    Property PixelMouse   : Boolean Read fPixelMouse;
-    Property SGRMouse     : Boolean Read fSGRMouse;
-    Property BellCount    : UInt64 Read fBellCount;
-    Property Title        : String Read fTitle;
-    Property DirectoryURI : String Read fDirectory;
-    Property Revision     : Int64 Read fRevision;
+    Property Utf8Mouse       : Boolean Read fUtf8Mouse;
+    Property UrxvtMouse      : Boolean Read fUrxvtMouse;
+    Property PixelMouse      : Boolean Read fPixelMouse;
+    Property AlternateScroll : Boolean Read fAlternateScroll;
+    Property SGRMouse        : Boolean Read fSGRMouse;
+    Property BellCount       : UInt64 Read fBellCount;
+    Property Title           : String Read fTitle;
+    Property DirectoryURI    : String Read fDirectory;
+    Property Revision        : Int64 Read fRevision;
   End;
 
 Implementation
@@ -376,6 +378,7 @@ Implementation
    fUtf8Mouse       := False;
    fUrxvtMouse      := False;
    fPixelMouse      := False;
+   fAlternateScroll := True;
    fAutoWrap        := True;
    fOrigin          := False;
    fInsert          := False;
@@ -842,6 +845,7 @@ Implementation
      1006           : Enabled := fSGRMouse;
      1015           : Enabled := fUrxvtMouse;
      1016           : Enabled := fPixelMouse;
+     1007           : Enabled := fAlternateScroll;
      2004           : Enabled := fBracketedPaste;
     Else Exit;
     End
@@ -916,6 +920,8 @@ Implementation
       Inc(fMouseRevision);
       fSGRMouse := Enabled;
      End;
+    1007 :
+     fAlternateScroll := Enabled;
     1015 :
      Begin
       Inc(fMouseRevision);
@@ -1065,7 +1071,7 @@ Implementation
     Begin
      For i := 0 To High(Params) Do
       Case Params[i] Of
-       1, 6, 7, 9, 25, 66, 1000, 1002, 1003, 1004, 1005, 1006, 1015, 1016, 2004 :
+       1, 6, 7, 9, 25, 66, 1000, 1002, 1003, 1004, 1005, 1006, 1007, 1015, 1016, 2004 :
         If Final = 's' Then
          fSavedModes.AddOrSetValue(Params[i], ModeStatus(Params[i], True) = 1)
         Else If fSavedModes.TryGetValue(Params[i], SavedValue) Then

@@ -109,6 +109,7 @@ Interface
     Function  ApplicationMouseAt(x, y : Integer)                              : Boolean;
     Procedure Send              (Const Value : String);
     Function  EffectiveCursorShape                                            : Integer;
+    Function  CursorSequence    (Const Final : String; Shift : TShiftState)   : String;
     Procedure FollowOutput;
     Procedure WMDropFiles       (Var Message : TMessage); Message WM_DROPFILES;
    Protected
@@ -1109,6 +1110,21 @@ Implementation
    fSession.SendText(Value);
   End;
 
+/// <summary>Encodes cursor keys consistently for keyboard input and alternate-screen wheel translation.</summary>
+
+ Function TfraTerminal.CursorSequence(Const Final : String; Shift : TShiftState) : String;
+  Var
+   Modifier : Integer;
+  Begin
+   Modifier := 1 + Ord(ssShift In Shift) + 2 * Ord(ssAlt In Shift) + 4 * Ord(ssCtrl In Shift);
+   If Modifier <> 1 Then
+    Result := Format(#27 + '[1;%d%s', [Modifier, Final])
+   Else If fSession.Buffer.ApplicationCursor Then
+    Result := #27 + 'O' + Final
+   Else
+    Result := #27 + '[' + Final;
+  End;
+
  Procedure TfraTerminal.KeyDown(Var Key : Word; Shift : TShiftState);
   Const
    FNumbers : Array[0..11] Of Integer = (0, 0, 0, 0, 15, 17, 18, 19, 20, 21, 23, 24);
@@ -1144,12 +1160,7 @@ Implementation
     VK_END   : Final := 'F';
    End;
    If Final <> '' Then
-    If Modifier <> 1 Then
-     s := Format(#27'[1;%d%s', [Modifier, Final])
-    Else If fSession.Buffer.ApplicationCursor Then
-     s := #27'O' + Final
-    Else
-     s := #27'[' + Final;
+    s := CursorSequence(Final, Shift);
    If (Key >= VK_F1) And (Key <= VK_F4) Then
     Begin
      Final := Char(Ord('P') + Key - VK_F1);
@@ -1590,11 +1601,14 @@ Implementation
 
  Function TfraTerminal.DoMouseWheel(Shift : TShiftState; WheelDelta : Integer; MousePos : TPoint) : Boolean;
   Var
-   Step : Integer;
-   p    : TPoint;
+   Step     : Integer;
+   i        : Integer;
+   p        : TPoint;
+   Sequence : String;
+   Payload  : String;
   Begin
    Result := fSession <> Nil;
-   If Not Result Then
+   If Not Result Or (WheelDelta = 0) Then
     Exit;
    p := surface.ScreenToClient(MousePos);
    If ApplicationMouseAt(p.x, p.y) And Not(ssShift In Shift) Then
@@ -1603,6 +1617,19 @@ Implementation
       SendMouse(64, False, Shift, p.x, p.y)
      Else
       SendMouse(65, False, Shift, p.x, p.y);
+    End
+   Else If fSession.Buffer.AlternateScreen And fSession.Buffer.AlternateScroll And
+   Not fSession.Exited And Not(ssShift In Shift) Then
+    Begin
+     Step := Max(1, (fSession.Buffer.Rows + 9) Div 10);
+     If WheelDelta > 0 Then
+      Sequence := CursorSequence('A', Shift)
+     Else
+      Sequence := CursorSequence('B', Shift);
+     Payload   := '';
+     For i     := 1 To Step Do
+      Payload  := Payload + Sequence;
+     fSession.SendText(Payload);
     End
    Else
     Begin

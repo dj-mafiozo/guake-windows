@@ -51,10 +51,10 @@
     <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
     <VerInfo_MajorVer>1</VerInfo_MajorVer>
     <VerInfo_MinorVer>0</VerInfo_MinorVer>
-    <VerInfo_Release>50</VerInfo_Release>
-    <VerInfo_Build>83</VerInfo_Build>
+    <VerInfo_Release>51</VerInfo_Release>
+    <VerInfo_Build>84</VerInfo_Build>
     <VerInfo_Locale>1045</VerInfo_Locale>
-    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Testy Guake dla Windows;FileVersion=1.0.50.83;InternalName=GuakeTests;OriginalFilename=GuakeTests.exe;ProductName=Guake dla Windows;ProductVersion=1.0.50.83</VerInfo_Keys>
+    <VerInfo_Keys>CompanyName=Mateusz Nabialczyk;FileDescription=Testy Guake dla Windows;FileVersion=1.0.51.84;InternalName=GuakeTests;OriginalFilename=GuakeTests.exe;ProductName=Guake dla Windows;ProductVersion=1.0.51.84</VerInfo_Keys>
     <DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
     <DCC_MapFile>3</DCC_MapFile>
     <PostBuildEvent>powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(MSBuildProjectDirectory)\..\Tools\Complete-Build.ps1" -ProjectFile "$(MSBuildProjectDirectory)\GuakeTests.dproj" -OutputDirectory "$(DCC_ExeOutput)\."</PostBuildEvent>

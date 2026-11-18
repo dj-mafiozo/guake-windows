@@ -1,6 +1,6 @@
 ﻿# Pokrycie emulatora VT
 
-Stan: 1.0.50.83. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.51.84. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -9,7 +9,7 @@ Stan: 1.0.50.83. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | Tabulatory | HT, HTS (ESC H), TBC (CSI g, CSI 3 g), CHT (CSI I), CBT (CSI Z), DECST8C (CSI ? 5 W); domyślne co 8 kolumn | Testy porównawcze z VTE przy zmianach geometrii i ekranów |
 | Ruch | CUU/CUD/CUF/CUB, CNL/CPL, CHA/HPA, VPA, CUP/HVP, HPR/VPR; pionowy ruch względny respektuje kierunkowe marginesy DECSTBM | Poziome marginesy, dalsze tryby i warianty ruchu |
 | Edycja | REP (CSI Ps b), ED/EL, DECSEL/DECSED 0–2 i DECSCA, ICH/DCH/ECH, IL/DL, SU/SD, DECSTBM; ED/EL/ECH i ICH/DCH/IRM oraz zwykłe nadpisywanie naprawiają przecięte szerokie znaki | Selektywne ?3J i prostokąty DEC; poziome marginesy; dalsze przypadki szerokich znaków i reflow |
-| Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, ochrona komórek, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS i DECSTR; XTSAVE/XTRESTORE dla piętnastu wybranych trybów | Pozostałe tryby prywatne |
+| Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, ochrona komórek, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS i DECSTR; XTSAVE/XTRESTORE dla szesnastu wybranych trybów | Pozostałe tryby prywatne |
 | Kursor | Widoczność DECTCEM, DECSCUSR 0–6: preferencje lub blok/podkreślenie/pionowa kreska, warianty migające i stałe; odczyt przez DECRQSS | Dalsza zgodność geometrii z VTE, w tym zewnętrzny obrys i szerokość wystających glifów; wariant xterm 7 nie jest obsługiwany |
 | Ekrany | DECALN (ESC # 8), ekran główny i alternatywny, 47/1047/1049, historia i reflow ekranu głównego | Osobna macierz wariantów przełączania i zapisów kursora, przypadki brzegowe reflow |
 | SGR | Reset, bold/faint, italic, conceal, strike, overline, inverse; pięć stylów podkreślenia i jego kolor 58/59; miganie 5/6/25; ANSI 16/256 i RGB przez średniki i dwukropki | Dalsze warianty SGR, integracja systemowych preferencji migania i porównanie geometrii dekoracji z VTE |
@@ -80,7 +80,7 @@ Scenariusze sprawdzają SGR 5/6/25, reset, zapis/odtworzenie kursora i reflow, g
 
 DA1 (CSI c / CSI 0 c) zachowuje odpowiedź VT100 `CSI ? 1 ; 2 c`. DA2 (CSI > c / CSI > 0 c) odpowiada `CSI > 0 ; 0 ; 0 c`: typ VT100 i neutralne identyfikatory firmware/ROM, bez podszywania się pod numer wydania xterm lub VTE. Niezerowe żądania i odebrane odpowiedzi DA nie wywołują kolejnych odpowiedzi. CSI 18 t zwraca `CSI 8 ; rows ; columns t` dla aktualnego bufora, również po zmianie rozmiaru. Nie zgłasza rozmiaru monitora ani pikseli.
 
-DECRQM (`CSI mode $ p` / `CSI ? mode $ p`) zwraca DECRPM ze statusem 1 dla włączonego, 2 dla wyłączonego oraz 0 dla nieznanego trybu. Standardowe tryby: 4 i 20. Prywatne: 1, 6, 7, 9, 25, 47/1047/1049, 66, 1000/1002/1003, 1004, 1005, 1006, 1015, 1016 i 2004. Raporty odzwierciedlają aktualny stan implementacji, nie gwarantują pełnego pokrycia każdego wariantu tych trybów w VTE. Zapytania nie zmieniają oczekującego zawinięcia na prawej krawędzi.
+DECRQM (`CSI mode $ p` / `CSI ? mode $ p`) zwraca DECRPM ze statusem 1 dla włączonego, 2 dla wyłączonego oraz 0 dla nieznanego trybu. Standardowe tryby: 4 i 20. Prywatne: 1, 6, 7, 9, 25, 47/1047/1049, 66, 1000/1002/1003, 1004, 1005, 1006, 1007, 1015, 1016 i 2004. Raporty odzwierciedlają aktualny stan implementacji, nie gwarantują pełnego pokrycia każdego wariantu tych trybów w VTE. Zapytania nie zmieniają oczekującego zawinięcia na prawej krawędzi.
 
 Prywatny tryb 1004 włącza wysyłanie CSI I / CSI O przy WM_SETFOCUS / WM_KILLFOCUS ramki terminala. Raporty trafiają bezpośrednio do wejścia sesji, bez działań właściwych dla pisania, np. usuwania zaznaczenia. Wyłączenie trybu i reset blokują dalsze raporty. LNM (standardowy tryb 20) zmienia LF na początek następnego wiersza oraz Enter z CR na CR LF. Domyślnie jest wyłączony. Klawiaturę numeryczną aplikacyjną i część DECRQSS dodano w etapie 1.0.23.56.
 
@@ -297,8 +297,16 @@ Punkt odniesienia: [URXVT w dokumentacji xterm](https://invisible-island.net/xte
 
 DECSET/DECRST 1016 włącza pikselowe współrzędne raportów SGR, niezależnie od bitu 1006. Format używa CSI < przycisk ; x ; y M/m. Pozycje są od 1 względem obszaru komórek aktywnego ekranu, bez czteropikselowego marginesu widoku. Przy przewiniętej historii uwzględnione jest przesunięcie do aktywnego ekranu; zdarzenia historii nadal pozostają lokalne. Pozycja jest ograniczana do obszaru komórek.
 
-Priorytet kodowania w porcie: piksele 1016 → SGR 1006 → URXVT 1015 → UTF-8 1005 → klasyczny. Sam bit kodowania nie włącza śledzenia. DECRQM raportuje 1016, save/restore zachowuje true i false, RIS/DECSTR kasują stan i zapis. Zakres save/restore obejmuje piętnaście identyfikatorów.
+Priorytet kodowania w porcie: piksele 1016 → SGR 1006 → URXVT 1015 → UTF-8 1005 → klasyczny. Sam bit kodowania nie włącza śledzenia. DECRQM raportuje 1016, save/restore zachowuje true i false, RIS/DECSTR kasują stan i zapis. W tej wersji zakres save/restore obejmował piętnaście identyfikatorów; 1007 zwiększa go do szesnastu w 1.0.51.84.
 
 Filtr powtórzeń porównuje w tym trybie piksele, więc ruch wewnątrz jednej komórki generuje nowy raport, a powtórzenia tego samego piksela są pomijane. Po wyłączeniu 1016 wraca porównywanie komórek. Zmiana formatu unieważnia filtr.
 
 Punkt odniesienia: [SGR-Pixels w dokumentacji xterm](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Extended-coordinates). Dwa scenariusze DUnitX obejmują negocjację, niezależne flagi, fragmentację, save/restore i reset. Natywny odbiornik ConPTY sprawdza ruch co piksel, tłumienie duplikatów, zwolnienie, priorytet i powrót do komórek oraz współrzędne przy przewiniętej historii. Dalsze testy DPI, skalowania fontów i highlight tracking pozostają do wykonania.
+
+## Alternate Scroll Mode 1007 — 1.0.51.84
+
+Na ekranie alternatywnym włączony tryb 1007 zamienia kółko na sekwencje strzałek góra/dół, jeśli raportowanie myszy nie przejęło zdarzenia. W stanie domyślnym i po RIS/DECSTR tryb jest włączony, jak w VTE. DECSET/DECRST steruje nim niezależnie od wyboru ekranu i trybów myszy; DECRQM raportuje stan, a XTSAVE/XTRESTORE zapisuje true i false. Obsługiwany zakres zapisu obejmuje szesnaście trybów.
+
+Sekwencje korzystają z tego samego kodowania co klawiatura: zwykłe CSI A/B, aplikacyjne SS3 A/B przy DECCKM oraz parametry Alt/Ctrl. Jeden odebrany impuls kółka wysyła ceil(liczba_wierszy/10) strzałek, co najmniej jedną. Raportowanie myszy ma pierwszeństwo. Shift zachowuje lokalne przewijanie, a zerowy WheelDelta nie powoduje wejścia. Ekran główny nadal przewija historię lokalnie.
+
+Punkt odniesienia: [kółko na ekranie alternatywnym w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L9373), [domyślny tryb 1007](https://github.com/GNOME/vte/blob/0.76.0/src/modes.py#L1106) i [Alternate Scroll w xterm](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Wheel-mice). Dwa scenariusze DUnitX sprawdzają fragmentację, domyślny stan, zapis i reset. Natywny odbiornik ConPTY negocjuje DECCKM z procesu potomnego i porównuje strzałki normalne/aplikacyjne, modyfikatory, pierwszeństwo myszy i brak wejścia po wyłączeniu 1007 lub przy Shift/zerowej delcie. Akumulacja płynnego kółka i pełne odwzorowanie kilku skoków kółka w jednym zdarzeniu pozostają do wykonania.
