@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 18 listopada 2026, wersja 1.0.61.94. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 18 listopada 2026, wersja 1.0.62.95. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -574,3 +574,13 @@ Identyfikator musi być dokładnie `s`; parametry, prefiksy i dodatkowe bajty po
 Punkt odniesienia: [DECRQSS DECSLRM w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L3531). Sam raport nie oznacza implementacji DECLRMM/DECSLRM ani przesuwania i edycji w poziomych marginesach; te funkcje pozostają do wykonania.
 
 Weryfikacja 1.0.61.94: formatter bez błędów, sprawdzony diff i integralność źródeł; 188/188 scenariuszy DUnitX, bez błędów i wycieków. Natywny odbiornik ConPTY potwierdził dokładną odpowiedź DECRQSS dla poziomego zakresu. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.61.94-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
+
+## Zapytania o tytuł okna i ikony — 1.0.62.95
+
+`CSI 20 t` otrzymuje `OSC L ST`, a `CSI 21 t` — `OSC l ST`, bez treści tytułu. To zachowanie VTE: raport jest zawsze pusty, także gdy OSC 0/2 ustawiło tytuł zakładki. Zapytanie nie modyfikuje wyświetlanego tytułu, stosu tytułów, tekstu ani oczekującego zawinięcia.
+
+Port przyjmuje pojedynczy parametr 20 lub 21; dodatkowe parametry, prywatne prefiksy i podparametry nie uruchamiają raportu. Testy obejmują fragmentację, niepusty tytuł, przywrócenie ze stosu, dalsze drukowanie po pełnym wierszu i nieobsługiwane postacie zapytania. Natywny odbiornik ConPTY porównuje dokładne odpowiedzi obu zapytań.
+
+Punkt odniesienia: [raporty tytułów w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L8510). Osobny tytuł ikony, indeksowane sloty stosu i pozostałe operacje okienne nadal pozostają poza tym zakresem.
+
+Weryfikacja 1.0.62.95: formatter bez błędów, sprawdzony diff i integralność źródeł; 190/190 scenariuszy DUnitX, bez błędów i wycieków. Natywny odbiornik ConPTY potwierdził obie puste odpowiedzi OSC na zapytania o tytuły. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.62.95-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.

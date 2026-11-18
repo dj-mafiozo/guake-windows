@@ -1285,6 +1285,11 @@ Implementation
     't' :
      If (Length(Params) = 1) And (Params[0] = 18) Then
       fResponses := fResponses + Format(#27'[8;%d;%dt', [fRows, fColumns])
+     Else If (Length(Params) = 1) And (Params[0] = 20) Then
+     // VTE reports an empty title rather than reflecting OSC-controlled content into input.
+      fResponses := fResponses + #27 + ']L' + #27 + Chr(92)
+     Else If (Length(Params) = 1) And (Params[0] = 21) Then
+      fResponses := fResponses + #27 + ']l' + #27 + Chr(92)
      Else If (Length(Params) <= 2) And ((P(1, 0) = 0) Or (P(1, 0) = 2)) Then
       Case P(0, 0) Of
        22 :

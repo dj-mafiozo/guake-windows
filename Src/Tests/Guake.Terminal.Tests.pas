@@ -17,6 +17,8 @@ Interface
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
     [Test] Procedure AlternateScrollModeFragmentsAndDefault;
+    [Test] Procedure TitleQueriesReturnEmptyWithoutChangingState;
+    [Test] Procedure TitleQueriesRejectUnsupportedForms;
     [Test] Procedure HorizontalMarginStatusTracksWidth;
     [Test] Procedure HorizontalMarginStatusRejectsParameters;
     [Test] Procedure CursorTabulationControlSetsAndClearsStops;
@@ -298,6 +300,56 @@ Implementation
     Assert.AreEqual('', Buffer.Text);
     Assert.AreEqual(0, Buffer.CursorX);
     Assert.AreEqual(0, Buffer.CursorY);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Window/icon title queries return empty OSC replies and preserve title stack and wrap.</summary>
+
+ Procedure TTerminalTests.TitleQueriesReturnEmptyWithoutChangingState;
+  Var
+   Buffer : TTerminalBuffer;
+   Ch     : Char;
+   Query  : String;
+  Begin
+   Buffer := TTerminalBuffer.Create(4, 3);
+   Try
+    Buffer.FeedText(#27 + ']2;original' + #7 + #27 + '[22t' + #27 + ']2;current' + #7 + 'ABCD');
+    Query := #27 + '[20t' + #27 + '[21t';
+    For Ch In Query Do
+     Buffer.FeedText(Ch);
+    Assert.AreEqual(#27 + ']L' + #27 + Chr(92) + #27 + ']l' + #27 + Chr(92), Buffer.TakeResponses);
+    Assert.AreEqual('current', Buffer.Title);
+    Assert.AreEqual('ABCD', Buffer.Text);
+    Buffer.FeedText('X');
+    Assert.AreEqual('X', Buffer.LineText(1));
+    Buffer.FeedText(#27 + '[23t');
+    Assert.AreEqual('original', Buffer.Title);
+    Assert.AreEqual('', Buffer.TakeResponses);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Extra parameters and private prefixes cannot become title queries.</summary>
+
+ Procedure TTerminalTests.TitleQueriesRejectUnsupportedForms;
+  Var
+   Buffer : TTerminalBuffer;
+   Query  : String;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 3);
+   Try
+    For Query In TArray<String>.Create('[20;0t', '[21;2t', '[?20t', '[>21t', '[21:0t') Do
+     Begin
+      Buffer.FeedText(#27 + Query);
+      Assert.AreEqual('', Buffer.TakeResponses);
+     End;
+    Buffer.FeedText(#27 + '[21t');
+    Assert.AreEqual(#27 + ']l' + #27 + Chr(92), Buffer.TakeResponses);
+    Assert.AreEqual('', Buffer.Text);
+    Assert.AreEqual('', Buffer.Title);
    Finally
     Buffer.Free;
    End;
@@ -2668,6 +2720,9 @@ Implementation
     Session.Buffer.FeedText(#27'[0m'#27'P$qm'#27'\');
     Session.Poll;
     Expected := Expected + #27'P1$r0m'#27'\';
+    Session.Buffer.FeedText(#27 + '[20t' + #27 + '[21t');
+    Session.Poll;
+    Expected := Expected + #27 + ']L' + #27 + Chr(92) + #27 + ']l' + #27 + Chr(92);
     Session.Buffer.FeedText(#27 + 'P$qs' + #27 + Chr(92));
     Session.Poll;
     Expected := Expected + Format(#27 + 'P1$r1;%ds' + #27 + Chr(92), [Session.Buffer.Columns]);

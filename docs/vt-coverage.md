@@ -1,6 +1,6 @@
 ﻿# Pokrycie emulatora VT
 
-Stan: 1.0.61.94. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.62.95. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -14,7 +14,7 @@ Stan: 1.0.61.94. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | Ekrany | DECALN (ESC # 8), ekran główny i alternatywny, 47/1047/1049, historia i reflow ekranu głównego | Osobna macierz wariantów przełączania i zapisów kursora, przypadki brzegowe reflow |
 | SGR | Reset, bold/faint, italic, conceal, strike, overline, inverse; pięć stylów podkreślenia i jego kolor 58/59; miganie 5/6/25; ANSI 16/256 i RGB przez średniki i dwukropki | Dalsze warianty SGR, integracja systemowych preferencji migania i porównanie geometrii dekoracji z VTE |
 | Odpowiedzi | DSR 5, CPR 6, DECXCPR ?6 ze stroną 1, raporty DEC ?15/?25/?55/?56; wiersz względem regionu przy DECOM; DA/DECID, DA2 i DA3, DECRQM/DECRPM dla obsługiwanych trybów, rozmiar w znakach CSI 18 t, DECRQSS SGR, marginesów pionowych i pełnego zakresu kolumn, stylu kursora i ochrony komórek | Pozostałe DECRQSS, raporty rozmiaru w pikselach/monitora i pozostałe zapytania |
-| OSC i tytuł | 0/2: tytuł, 7: katalog, 8: odnośniki; CSI 22/23 t: stos tytułów okna dla 0/2 | Paleta i zapytania kolorów, osobny tytuł ikony i indeksowane sloty stosu, pozostałe OSC; polityka dostępu do schowka |
+| OSC i tytuł | 0/2: tytuł, 7: katalog, 8: odnośniki; CSI 22/23 t: stos tytułów okna dla 0/2; CSI 20/21 t: puste raporty tytułu ikony/okna jak w VTE | Paleta i zapytania kolorów, osobny tytuł ikony i indeksowane sloty stosu, pozostałe OSC; polityka dostępu do schowka |
 | DCS/APC/PM | DCS DECRQSS dla SGR, marginesów, stylu kursora i ochrony komórek; pozostałe DCS/APC/PM/SOS są konsumowane | Pozostałe DCS i dalsze porównania ciągów z VTE |
 | Zestawy znaków | UTF-8, ASCII B, brytyjski A, DEC Special Graphics 0 w G0–G3; SI/SO, LS2/LS3, SS2/SS3 | Pozostałe zestawy narodowe, GR i 96-znakowe zestawy, warianty ESC z bajtami pośrednimi |
 | Wejście | Application cursor, bracketed paste, niezależne tryby myszy X10 (9) i 1000/1002/1003 z priorytetem, częściowy format UTF-8 1005, SGR 1006, URXVT 1015 i SGR-Pixels 1016, fokus 1004, LNM 20 dla LF/Enter, aplikacyjna klawiatura numeryczna ESC = / ESC > / 66 | Pełna macierz modyfikatorów klawiatury, pozostałe protokoły klawiatury i myszy, klasyczne współrzędne poza ASCII i C1 w formacie 1005 na ConPTY |
@@ -386,3 +386,11 @@ Punkt odniesienia: [CTC w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/s
 Identyfikator musi być dokładnie `s`; parametry, prefiksy i dodatkowe bajty pośrednie otrzymują negatywną odpowiedź DECRQSS. Testy sprawdzają fragmentację, zmianę szerokości, ekran alternatywny, zachowanie zawinięcia i odrzucanie niepoprawnych żądań. Natywny odbiornik ConPTY porównuje dokładną odpowiedź dostarczoną procesowi potomnemu.
 
 Punkt odniesienia: [DECRQSS DECSLRM w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L3531). Sam raport nie oznacza implementacji DECLRMM/DECSLRM ani przesuwania i edycji w poziomych marginesach; te funkcje pozostają do wykonania.
+
+## Zapytania o tytuł okna i ikony — 1.0.62.95
+
+`CSI 20 t` otrzymuje `OSC L ST`, a `CSI 21 t` — `OSC l ST`, bez treści tytułu. To zachowanie VTE: raport jest zawsze pusty, także gdy OSC 0/2 ustawiło tytuł zakładki. Zapytanie nie modyfikuje wyświetlanego tytułu, stosu tytułów, tekstu ani oczekującego zawinięcia.
+
+Port przyjmuje pojedynczy parametr 20 lub 21; dodatkowe parametry, prywatne prefiksy i podparametry nie uruchamiają raportu. Testy obejmują fragmentację, niepusty tytuł, przywrócenie ze stosu, dalsze drukowanie po pełnym wierszu i nieobsługiwane postacie zapytania. Natywny odbiornik ConPTY porównuje dokładne odpowiedzi obu zapytań.
+
+Punkt odniesienia: [raporty tytułów w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L8510). Osobny tytuł ikony, indeksowane sloty stosu i pozostałe operacje okienne nadal pozostają poza tym zakresem.
