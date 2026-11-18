@@ -1102,7 +1102,8 @@ Implementation
      Exit;
     End;
    If Not CharInSet(Final, ['m', 'h', 'l', 's', 'u', 'n', 'c', 't', 'b', 'L', 'M', 'I']) And
-   Not((Final = 'K') And Not PrivateMode And (P(0, 0) = 0)) Then
+   Not((Final = 'K') And Not PrivateMode And (P(0, 0) = 0)) And
+   Not((Final = 'W') And Not PrivateMode) Then
     fWrapPending := False;
    n             := Min(P(0, 1), Max(fColumns, fRows));
    Case Final Of
@@ -1119,7 +1120,18 @@ Implementation
     'W' :
      If PrivateMode And (P(0, 0) = 5) Then
       For x         := 0 To High(fTabStops) Do
-       fTabStops[x] := (x > 0) And (x Mod 8 = 0);
+       fTabStops[x] := (x > 0) And (x Mod 8 = 0)
+     Else If Not PrivateMode Then
+     // CTC uses the visible cursor column without changing deferred wrap.
+      Case P(0, 0) Of
+       0 :
+        fTabStops[fX] := True;
+       2 :
+        fTabStops[fX] := False;
+       4, 5 :
+        For x         := 0 To High(fTabStops) Do
+         fTabStops[x] := False;
+      End;
     'I' :
      If Not PrivateMode Then
       MoveTab(P(0, 1), True);

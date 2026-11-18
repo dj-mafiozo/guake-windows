@@ -17,6 +17,8 @@ Interface
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
     [Test] Procedure AlternateScrollModeFragmentsAndDefault;
+    [Test] Procedure CursorTabulationControlSetsAndClearsStops;
+    [Test] Procedure CursorTabulationControlPreservesPendingWrap;
     [Test] Procedure AlternateScrollModeSaveRestoreAndReset;
     [Test] Procedure PixelMouseFormatFragmentsAndIndependentFlags;
     [Test] Procedure PixelMouseFormatSaveRestoreAndReset;
@@ -193,6 +195,62 @@ Implementation
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
 
 /// <summary>Checks the VTE-compatible enabled default and fragmented negotiation independent of tracking and screen selection.</summary>
+
+/// <summary>CTC shares programmed stops with HT/HTS/TBC and survives fragmented input.</summary>
+
+ Procedure TTerminalTests.CursorTabulationControlSetsAndClearsStops;
+  Var
+   Buffer   : TTerminalBuffer;
+   Sequence : String;
+   Ch       : Char;
+  Begin
+   For Sequence In TArray<String>.Create(#27 + '[W', #27 + '[0W') Do
+    Begin
+     Buffer := TTerminalBuffer.Create(20, 3);
+     Try
+      Buffer.FeedText(#27 + '[4G');
+      For Ch In Sequence Do
+       Buffer.FeedText(Ch);
+      Buffer.FeedText(#13#9);
+      Assert.AreEqual(3, Buffer.CursorX);
+      Buffer.FeedText(#27 + '[2W' + #13#9);
+      Assert.AreEqual(8, Buffer.CursorX);
+      Buffer.FeedText(#27 + '[4W' + #13#9);
+      Assert.AreEqual(19, Buffer.CursorX);
+      Buffer.FeedText(#27 + '[?5W' + #27 + '[5W' + #13#9);
+      Assert.AreEqual(19, Buffer.CursorX);
+      Buffer.FeedText(#27 + '[?5W' + #13#9);
+      Assert.AreEqual(8, Buffer.CursorX);
+     Finally
+      Buffer.Free;
+     End;
+    End;
+  End;
+
+/// <summary>CTC does not move the cursor or cancel deferred wrapping, including ignored options.</summary>
+
+ Procedure TTerminalTests.CursorTabulationControlPreservesPendingWrap;
+  Var
+   Buffer    : TTerminalBuffer;
+   Parameter : String;
+  Begin
+   For Parameter In TArray<String>.Create('', '0', '1', '2', '3', '4', '5', '6') Do
+    Begin
+     Buffer := TTerminalBuffer.Create(4, 3);
+     Try
+      Buffer.FeedText('ABCD' + #27 + '[' + Parameter + 'W');
+      Assert.AreEqual('ABCD', Buffer.LineText(0));
+      Assert.AreEqual(3, Buffer.CursorX);
+      Buffer.FeedText('X');
+      Assert.AreEqual('ABCD', Buffer.LineText(0));
+      Assert.AreEqual('X', Buffer.LineText(1));
+      Assert.AreEqual(1, Buffer.CursorX);
+      Assert.AreEqual(1, Buffer.CursorY);
+     Finally
+      Buffer.Free;
+     End;
+    End;
+  End;
 
  Procedure TTerminalTests.AlternateScrollModeFragmentsAndDefault;
   Var

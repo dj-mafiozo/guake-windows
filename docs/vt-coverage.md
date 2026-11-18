@@ -1,12 +1,12 @@
 ﻿# Pokrycie emulatora VT
 
-Stan: 1.0.59.92. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.60.93. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
 | Dekoder | Przyrostowe UTF-8, znaki zastępcze dla błędnych danych, podział odczytów wewnątrz znaków | Dalsze porównania obsługi błędnych UTF-8 i C1 z VTE |
 | Kontrolki C0 | BEL, BS, HT, LF/VT/FF, CR, SI/SO także wewnątrz ESC/CSI/oznaczeń zestawów; CAN/SUB anuluje, NUL/DEL nie drukuje | Odpowiedź ENQ jest pusta; dalsza macierz C1 i kontrolek w ciągach sterujących |
-| Tabulatory | HT, HTS (ESC H), TBC (CSI g, CSI 3 g), CHT (CSI I), CBT (CSI Z), DECST8C (CSI ? 5 W); domyślne co 8 kolumn | Testy porównawcze z VTE przy zmianach geometrii i ekranów |
+| Tabulatory | HT, HTS (ESC H), TBC (CSI g, CSI 3 g), CHT (CSI I), CBT (CSI Z), CTC (CSI W: 0/2/4/5), DECST8C (CSI ? 5 W); domyślne co 8 kolumn | Testy porównawcze z VTE przy zmianach geometrii i ekranów |
 | Ruch | CUU/CUD/CUF/CUB, CNL/CPL, CHA/HPA, VPA, CUP/HVP, HPR/VPR; pionowy ruch względny respektuje kierunkowe marginesy DECSTBM | Poziome marginesy, dalsze tryby i warianty ruchu |
 | Edycja | REP (CSI Ps b), ED/EL, DECSEL/DECSED 0–2 i DECSCA, ICH/DCH/ECH, IL/DL, SU/SD, DECSTBM; ED/EL/ECH i ICH/DCH/IRM oraz zwykłe nadpisywanie naprawiają przecięte szerokie znaki | Selektywne ?3J i prostokąty DEC; poziome marginesy; dalsze przypadki szerokich znaków i reflow |
 | Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, ochrona komórek, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS i DECSTR; XTSAVE/XTRESTORE dla szesnastu wybranych trybów | Pozostałe tryby prywatne |
@@ -370,3 +370,11 @@ Dwa scenariusze DUnitX obejmują ASCII i CJK, sekwencje podawane znak po znaku, 
 Wymazanie wypełnienia przed zawiniętym CJK zamienia je w zwykłą spację, zachowując połączenie wierszy. ECH nadal nie przesuwa kursora i anuluje oczekujące zawinięcie pełnego wiersza. Testy sprawdzają ASCII, CJK, domyślny parametr, zero, duży zakres, fragmentację sekwencji, tło wymazanych komórek, kopiowany tekst i reflow.
 
 Punkt odniesienia: [erase_characters w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L794), które wymienia komórki bez zamykania miękkiego połączenia wiersza. Dalsza macierz kasowania i selektywnej ochrony oraz pełna zgodność renderowania pozostają do wykonania.
+
+## CTC — sterowanie tabulatorami — 1.0.60.93
+
+Zwykłe `CSI W` i `CSI 0 W` ustawiają przystanek w bieżącej kolumnie, `CSI 2 W` usuwa go, a `CSI 4 W` i `CSI 5 W` usuwają wszystkie przystanki. Współdzielą stan z HT, HTS, TBC i DECST8C. CTC nie przesuwa kursora ani nie anuluje oczekującego zawinięcia; przy pełnym wierszu korzysta z widocznej ostatniej kolumny.
+
+Zgodnie z VTE opcje przystanków wierszowych 1/3/6 są ignorowane. Używany jest pierwszy parametr polecenia. Prywatne `CSI ? 5 W` pozostaje odrębnym DECST8C, przywracającym domyślne tabulatory co osiem kolumn. Testy sprawdzają domyślny i jawny parametr zero, fragmentację, ustawienie i usunięcie przystanku, oba warianty wyczyszczenia wszystkich oraz zachowanie zawinięcia i ignorowanie opcji wierszowych.
+
+Punkt odniesienia: [CTC w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L1831). Smart tabs zachowujące znak tabulacji podczas kopiowania i pełna macierz tabulatorów przy zmianach geometrii pozostają do wykonania.

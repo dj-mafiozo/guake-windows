@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 18 listopada 2026, wersja 1.0.59.92. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 18 listopada 2026, wersja 1.0.60.93. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -554,3 +554,13 @@ Wymazanie wypełnienia przed zawiniętym CJK zamienia je w zwykłą spację, zac
 Punkt odniesienia: [erase_characters w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L794), które wymienia komórki bez zamykania miękkiego połączenia wiersza. Dalsza macierz kasowania i selektywnej ochrony oraz pełna zgodność renderowania pozostają do wykonania.
 
 Weryfikacja 1.0.59.92: formatter bez błędów, sprawdzony diff i integralność źródeł; 184/184 scenariusze DUnitX, bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.59.92-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
+
+## CTC — sterowanie tabulatorami — 1.0.60.93
+
+Zwykłe `CSI W` i `CSI 0 W` ustawiają przystanek w bieżącej kolumnie, `CSI 2 W` usuwa go, a `CSI 4 W` i `CSI 5 W` usuwają wszystkie przystanki. Współdzielą stan z HT, HTS, TBC i DECST8C. CTC nie przesuwa kursora ani nie anuluje oczekującego zawinięcia; przy pełnym wierszu korzysta z widocznej ostatniej kolumny.
+
+Zgodnie z VTE opcje przystanków wierszowych 1/3/6 są ignorowane. Używany jest pierwszy parametr polecenia. Prywatne `CSI ? 5 W` pozostaje odrębnym DECST8C, przywracającym domyślne tabulatory co osiem kolumn. Testy sprawdzają domyślny i jawny parametr zero, fragmentację, ustawienie i usunięcie przystanku, oba warianty wyczyszczenia wszystkich oraz zachowanie zawinięcia i ignorowanie opcji wierszowych.
+
+Punkt odniesienia: [CTC w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L1831). Smart tabs zachowujące znak tabulacji podczas kopiowania i pełna macierz tabulatorów przy zmianach geometrii pozostają do wykonania.
+
+Weryfikacja 1.0.60.93: formatter bez błędów, sprawdzony diff i integralność źródeł; 186/186 scenariuszy DUnitX, bez błędów i wycieków. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.60.93-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
