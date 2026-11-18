@@ -16,6 +16,8 @@ Interface
     fNotices : TStringList;
     Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
    Public
+    [Test] Procedure UrxvtMouseFormatFragmentsAndModeQueries;
+    [Test] Procedure UrxvtMouseFormatSaveRestoreAndReset;
     [Test] Procedure ScrollbackSelectionWorksWithMouseTracking;
     [Test] Procedure X10MouseModePrioritySaveRestoreAndReset;
     [Test] Procedure X10MouseModeFragmentsAndReports;
@@ -171,6 +173,60 @@ Implementation
   End;
 
  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+
+/// <summary>Checks independent URXVT encoding negotiation without enabling tracking or altering other formats.</summary>
+
+ Procedure TTerminalTests.UrxvtMouseFormatFragmentsAndModeQueries;
+  Var
+   Buffer : TTerminalBuffer;
+   Bytes  : TBytes;
+   Split  : Integer;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 3);
+   Try
+    Bytes     := TEncoding.UTF8.GetBytes(#27 + '[?1015h' + #27 + '[?1005;1006;1015$p');
+    For Split := 0 To Length(Bytes) Do
+     Begin
+      Buffer.Reset;
+      Buffer.Feed(Copy(Bytes, 0, Split));
+      Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+      Assert.IsTrue(Buffer.UrxvtMouse);
+      Assert.AreEqual(0, Buffer.MouseMode, 'Encoding negotiation must not enable tracking');
+      Assert.AreEqual(#27 + '[?1005;2$y' + #27 + '[?1006;2$y' + #27 + '[?1015;1$y', Buffer.TakeResponses);
+     End;
+    Buffer.FeedText(#27 + '[?1005;1006;1000h');
+    Assert.IsTrue(Buffer.Utf8Mouse And Buffer.SGRMouse And Buffer.UrxvtMouse);
+    Assert.AreEqual(1000, Buffer.MouseMode);
+    Buffer.FeedText(#27 + '[?1015l');
+    Assert.IsTrue(Buffer.Utf8Mouse And Buffer.SGRMouse);
+    Assert.IsFalse(Buffer.UrxvtMouse);
+    Assert.AreEqual(1000, Buffer.MouseMode);
+   Finally
+    Buffer.Free;
+   End;
+  End;
+
+/// <summary>Exercises URXVT true/false save values and reset of both negotiated and saved state.</summary>
+
+ Procedure TTerminalTests.UrxvtMouseFormatSaveRestoreAndReset;
+  Var
+   Buffer : TTerminalBuffer;
+  Begin
+   Buffer := TTerminalBuffer.Create(8, 3);
+   Try
+    Buffer.FeedText(#27 + '[?1015h' + #27 + '[?1015s' + #27 + '[?1015l' + #27 + '[?1015r');
+    Assert.IsTrue(Buffer.UrxvtMouse);
+    Buffer.FeedText(#27 + '[?1015l' + #27 + '[?1015s' + #27 + '[?1015h' + #27 + '[?1015r');
+    Assert.IsFalse(Buffer.UrxvtMouse);
+    Buffer.FeedText(#27 + '[?1015h' + #27 + '[?1015s' + #27 + '[!p' + #27 + '[?1015r');
+    Assert.IsFalse(Buffer.UrxvtMouse);
+    Buffer.FeedText(#27 + '[?1015h' + #27 + 'c' + #27 + '[?1015$p');
+    Assert.IsFalse(Buffer.UrxvtMouse);
+    Assert.AreEqual(#27 + '[?1015;2$y', Buffer.TakeResponses);
+   Finally
+    Buffer.Free;
+   End;
+  End;
 
 /// <summary>History clicks and double-clicks stay local even with application tracking, including a drag crossing into the screen.</summary>
 
@@ -2509,6 +2565,22 @@ Implementation
     Assert.IsFalse(Session.Buffer.Utf8Mouse);
     Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
     Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
+    Session.Buffer.FeedText(#27 + '[?1015h');
+    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 2015 * CellWidth, 5);
+    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 2015 * CellWidth, 5);
+    Expected := Expected + #27 + '[34;2016;1M' + #27 + '[35;2016;1M';
+    Frame.SurfaceMouseDown(Nil, mbRight, [ssAlt, ssCtrl], 5, 5);
+    Frame.SurfaceMouseUp(Nil, mbRight, [ssAlt, ssCtrl], 5, 5);
+    Expected := Expected + #27 + '[58;1;1M' + #27 + '[59;1;1M';
+    Session.Buffer.FeedText(#27 + '[?1006h');
+    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 2015 * CellWidth, 5);
+    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 2015 * CellWidth, 5);
+    Expected := Expected + #27 + '[<2;2016;1M' + #27 + '[<2;2016;1m';
+    Session.Buffer.FeedText(#27 + '[?1006l');
+    Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
+    Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
+    Expected := Expected + #27 + '[32;1;1M' + #27 + '[35;1;1M';
+    Session.Buffer.FeedText(#27 + '[?1015l');
     Frame.SetBounds(0, 0, 720, 360);
 
     Session.Buffer.FeedText(#27'[?9h' + #27'[?1000l');

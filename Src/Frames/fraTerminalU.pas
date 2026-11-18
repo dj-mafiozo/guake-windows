@@ -1317,6 +1317,12 @@ Implementation
       Final := 'M';
      Report := Format(#27'[<%d;%d;%d%s', [Button, p.x + 1, p.y + 1, Final]);
     End
+   Else If fSession.Buffer.UrxvtMouse Then
+    Begin
+     If Release Then
+      Button := (Button And Not 3) Or 3;
+     Report  := Format(#27 + '[%d;%d;%dM', [Button + 32, p.x + 1, p.y + 1]);
+    End
    Else If ((fSession.Buffer.Utf8Mouse And (p.x < 2015) And (p.y < 2015) And
    Not InRange(p.x + 33, 128, 159) And Not InRange(p.y + 33, 128, 159)) Or
    (Not fSession.Buffer.Utf8Mouse And (p.x < 95) And (p.y < 95))) Then

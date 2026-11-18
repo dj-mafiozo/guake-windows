@@ -1,6 +1,6 @@
 ﻿# Pokrycie emulatora VT
 
-Stan: 1.0.48.81. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.49.82. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -9,7 +9,7 @@ Stan: 1.0.48.81. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | Tabulatory | HT, HTS (ESC H), TBC (CSI g, CSI 3 g), CHT (CSI I), CBT (CSI Z), DECST8C (CSI ? 5 W); domyślne co 8 kolumn | Testy porównawcze z VTE przy zmianach geometrii i ekranów |
 | Ruch | CUU/CUD/CUF/CUB, CNL/CPL, CHA/HPA, VPA, CUP/HVP, HPR/VPR; pionowy ruch względny respektuje kierunkowe marginesy DECSTBM | Poziome marginesy, dalsze tryby i warianty ruchu |
 | Edycja | REP (CSI Ps b), ED/EL, DECSEL/DECSED 0–2 i DECSCA, ICH/DCH/ECH, IL/DL, SU/SD, DECSTBM; ED/EL/ECH i ICH/DCH/IRM oraz zwykłe nadpisywanie naprawiają przecięte szerokie znaki | Selektywne ?3J i prostokąty DEC; poziome marginesy; dalsze przypadki szerokich znaków i reflow |
-| Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, ochrona komórek, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS i DECSTR; XTSAVE/XTRESTORE dla trzynastu wybranych trybów | Pozostałe tryby prywatne |
+| Stan | DECOM, DECAWM, IRM, widoczność kursora, DECSC/DECRC, SCOSC/SCORC i 1048 (współrzędne, atrybuty, ochrona komórek, zestawy znaków, origin, autowrap, oczekujące zawinięcie i single shift), RIS i DECSTR; XTSAVE/XTRESTORE dla czternastu wybranych trybów | Pozostałe tryby prywatne |
 | Kursor | Widoczność DECTCEM, DECSCUSR 0–6: preferencje lub blok/podkreślenie/pionowa kreska, warianty migające i stałe; odczyt przez DECRQSS | Dalsza zgodność geometrii z VTE, w tym zewnętrzny obrys i szerokość wystających glifów; wariant xterm 7 nie jest obsługiwany |
 | Ekrany | DECALN (ESC # 8), ekran główny i alternatywny, 47/1047/1049, historia i reflow ekranu głównego | Osobna macierz wariantów przełączania i zapisów kursora, przypadki brzegowe reflow |
 | SGR | Reset, bold/faint, italic, conceal, strike, overline, inverse; pięć stylów podkreślenia i jego kolor 58/59; miganie 5/6/25; ANSI 16/256 i RGB przez średniki i dwukropki | Dalsze warianty SGR, integracja systemowych preferencji migania i porównanie geometrii dekoracji z VTE |
@@ -17,7 +17,7 @@ Stan: 1.0.48.81. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | OSC i tytuł | 0/2: tytuł, 7: katalog, 8: odnośniki; CSI 22/23 t: stos tytułów okna dla 0/2 | Paleta i zapytania kolorów, osobny tytuł ikony i indeksowane sloty stosu, pozostałe OSC; polityka dostępu do schowka |
 | DCS/APC/PM | DCS DECRQSS dla SGR, marginesów, stylu kursora i ochrony komórek; pozostałe DCS/APC/PM/SOS są konsumowane | Pozostałe DCS i dalsze porównania ciągów z VTE |
 | Zestawy znaków | UTF-8, ASCII B, brytyjski A, DEC Special Graphics 0 w G0–G3; SI/SO, LS2/LS3, SS2/SS3 | Pozostałe zestawy narodowe, GR i 96-znakowe zestawy, warianty ESC z bajtami pośrednimi |
-| Wejście | Application cursor, bracketed paste, niezależne tryby myszy X10 (9) i 1000/1002/1003 z priorytetem, częściowy format UTF-8 1005 i SGR 1006, fokus 1004, LNM 20 dla LF/Enter, aplikacyjna klawiatura numeryczna ESC = / ESC > / 66 | Pełna macierz modyfikatorów klawiatury, pozostałe protokoły klawiatury i myszy, klasyczne współrzędne poza ASCII i C1 w formacie 1005 na ConPTY |
+| Wejście | Application cursor, bracketed paste, niezależne tryby myszy X10 (9) i 1000/1002/1003 z priorytetem, częściowy format UTF-8 1005, SGR 1006 i URXVT 1015, fokus 1004, LNM 20 dla LF/Enter, aplikacyjna klawiatura numeryczna ESC = / ESC > / 66 | Pełna macierz modyfikatorów klawiatury, pozostałe protokoły klawiatury i myszy, klasyczne współrzędne poza ASCII i C1 w formacie 1005 na ConPTY |
 | Grafemy i widok | Segmentacja ICU, szerokie komórki, znaki łączące, reflow; cache wierszy renderera | Pełny shaping, bidi i zgodność wizualna z VTE; segmentacja zależy od systemowego ICU |
 
 ## Regresje objęte testami w tym etapie
@@ -80,7 +80,7 @@ Scenariusze sprawdzają SGR 5/6/25, reset, zapis/odtworzenie kursora i reflow, g
 
 DA1 (CSI c / CSI 0 c) zachowuje odpowiedź VT100 `CSI ? 1 ; 2 c`. DA2 (CSI > c / CSI > 0 c) odpowiada `CSI > 0 ; 0 ; 0 c`: typ VT100 i neutralne identyfikatory firmware/ROM, bez podszywania się pod numer wydania xterm lub VTE. Niezerowe żądania i odebrane odpowiedzi DA nie wywołują kolejnych odpowiedzi. CSI 18 t zwraca `CSI 8 ; rows ; columns t` dla aktualnego bufora, również po zmianie rozmiaru. Nie zgłasza rozmiaru monitora ani pikseli.
 
-DECRQM (`CSI mode $ p` / `CSI ? mode $ p`) zwraca DECRPM ze statusem 1 dla włączonego, 2 dla wyłączonego oraz 0 dla nieznanego trybu. Standardowe tryby: 4 i 20. Prywatne: 1, 6, 7, 9, 25, 47/1047/1049, 66, 1000/1002/1003, 1004, 1005, 1006 i 2004. Raporty odzwierciedlają aktualny stan implementacji, nie gwarantują pełnego pokrycia każdego wariantu tych trybów w VTE. Zapytania nie zmieniają oczekującego zawinięcia na prawej krawędzi.
+DECRQM (`CSI mode $ p` / `CSI ? mode $ p`) zwraca DECRPM ze statusem 1 dla włączonego, 2 dla wyłączonego oraz 0 dla nieznanego trybu. Standardowe tryby: 4 i 20. Prywatne: 1, 6, 7, 9, 25, 47/1047/1049, 66, 1000/1002/1003, 1004, 1005, 1006, 1015 i 2004. Raporty odzwierciedlają aktualny stan implementacji, nie gwarantują pełnego pokrycia każdego wariantu tych trybów w VTE. Zapytania nie zmieniają oczekującego zawinięcia na prawej krawędzi.
 
 Prywatny tryb 1004 włącza wysyłanie CSI I / CSI O przy WM_SETFOCUS / WM_KILLFOCUS ramki terminala. Raporty trafiają bezpośrednio do wejścia sesji, bez działań właściwych dla pisania, np. usuwania zaznaczenia. Wyłączenie trybu i reset blokują dalsze raporty. LNM (standardowy tryb 20) zmienia LF na początek następnego wiersza oraz Enter z CR na CR LF. Domyślnie jest wyłączony. Klawiaturę numeryczną aplikacyjną i część DECRQSS dodano w etapie 1.0.23.56.
 
@@ -108,7 +108,7 @@ Ruch w trybie 1002 obejmuje wszystkie trzy przyciski; 1003 dodatkowo raportuje b
 
 Shift pozostaje lokalnym obejściem raportowania. Natywny test ConPTY porównuje kody SGR dla prawego, środkowego i lewego przeciągania, hover z modyfikatorami, brak raportu ruchu w 1000 i hover w 1002 oraz klasyczne zwolnienie z Ctrl/Alt. Odbiorca sam zmienia 1006, aby testować rzeczywistą negocjację z ConPTY.
 
-Do 1.0.45.78 tryby 1000/1002/1003 reprezentował jeden aktywny tryb; niezależne bity i priorytet dodano w 1.0.46.79; filtrowanie powtórzeń w tej samej komórce dodano w 1.0.28.61. Od 1.0.29.62 klasyczne współrzędne na ConPTY są ograniczone do zakresu ASCII, a większe obsługuje negocjowany format 1005 lub SGR. Zalecanym obsługiwanym formatem pozostaje SGR 1006; brak jeszcze 1015/1016 i pełnej macierzy protokołów.
+Do 1.0.45.78 tryby 1000/1002/1003 reprezentował jeden aktywny tryb; niezależne bity i priorytet dodano w 1.0.46.79; filtrowanie powtórzeń w tej samej komórce dodano w 1.0.28.61. Od 1.0.29.62 klasyczne współrzędne na ConPTY są ograniczone do zakresu ASCII, a większe obsługuje negocjowany format 1005 lub SGR. Zalecanym obsługiwanym formatem pozostaje SGR 1006; URXVT 1015 dodano w 1.0.49.82; nadal brakuje 1016 i pełnej macierzy protokołów.
 
 ## Filtrowanie raportów i oddzielenie wejścia myszy — 1.0.28.61
 
@@ -122,7 +122,7 @@ Tryb 1005 przenosi współrzędne w UTF-8: do pozycji 1–2015 dodawane jest 32.
 
 Bufor rozpoznaje 1005 w DECSET/DECRST i DECRQM; RIS go wyłącza. Każda negocjacja odświeża rewizję formatu dla filtra myszy. Przy obu ustawionych formatach w tej implementacji pierwszeństwo ma 1006. To nie oznacza pełnego odwzorowania nakładania formatów innych terminali.
 
-Test ConPTY ustawia kodowanie wejścia odbiorcy na UTF-8 i negocjuje 1005 z procesu potomnego. W pierwszym przebiegu wartość 128 zniknęła w ścieżce wejścia, podczas gdy 2047 dotarła prawidłowo. Dlatego raporty zawierające C1 (128–159, indeksy 95–126 w dowolnej osi) są w tym porcie pomijane w całości. Jest to jawne ograniczenie częściowo obsługiwanego 1005. Końcowy test sprawdza poprawne wartości 127, 160 i 2047 oraz pominięcie 128. Weryfikuje również pominięcie pozycji poza zakresem oraz powrót do ograniczenia klasycznego po wyłączeniu 1005. SGR jest sprawdzany również dla pozycji 96 i 2016 i nie ma tych luk. Pełne bajtowe X10 do 223, zakres C1 w 1005 i formaty 1015/1016 pozostają poza zakresem tej implementacji.
+Test ConPTY ustawia kodowanie wejścia odbiorcy na UTF-8 i negocjuje 1005 z procesu potomnego. W pierwszym przebiegu wartość 128 zniknęła w ścieżce wejścia, podczas gdy 2047 dotarła prawidłowo. Dlatego raporty zawierające C1 (128–159, indeksy 95–126 w dowolnej osi) są w tym porcie pomijane w całości. Jest to jawne ograniczenie częściowo obsługiwanego 1005. Końcowy test sprawdza poprawne wartości 127, 160 i 2047 oraz pominięcie 128. Weryfikuje również pominięcie pozycji poza zakresem oraz powrót do ograniczenia klasycznego po wyłączeniu 1005. SGR jest sprawdzany również dla pozycji 96 i 2016 i nie ma tych luk. Pełne bajtowe X10 do 223, zakres C1 w 1005 i format 1016 pozostają poza zakresem tej implementacji. URXVT 1015 dodano w 1.0.49.82.
 
 ## Stos tytułów okna — 1.0.30.63
 
@@ -263,17 +263,17 @@ Punkt odniesienia: [DSR_DEC w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76
 
 Tryby 1000 (przyciski), 1002 (ruch z przyciskiem) i 1003 (dowolny ruch) mają niezależne bity DECSET/DECRST. Efektywny protokół wynika z priorytetu 1003 → 1002 → 1000. Włączenie niższego trybu nie zastępuje wyższego; wyłączenie wyższego przywraca wcześniej włączony niższy. Wyłączenie nieaktywnego trybu nie wyłącza pozostałych.
 
-DECRQM raportuje każdy bit, a nie tylko aktywny protokół. XTSAVE/XTRESTORE zapisuje i przywraca te trzy bity niezależnie, także wartości false; liczba obsługiwanych zapisów wynosiła w tej wersji dwanaście; od 1.0.47.80 z X10 wynosi trzynaście. RIS i DECSTR kasują bity i ich zapis. Negocjacja nadal unieważnia filtr raportów tej samej komórki, więc pierwszy raport po zmianie protokołu nie ginie.
+DECRQM raportuje każdy bit, a nie tylko aktywny protokół. XTSAVE/XTRESTORE zapisuje i przywraca te trzy bity niezależnie, także wartości false; liczba obsługiwanych zapisów wynosiła w tej wersji dwanaście; od 1.0.47.80 z X10 wynosiła trzynaście; od 1.0.49.82 z URXVT wynosi czternaście. RIS i DECSTR kasują bity i ich zapis. Negocjacja nadal unieważnia filtr raportów tej samej komórki, więc pierwszy raport po zmianie protokołu nie ginie.
 
-Punkt odniesienia: [update_mouse_protocol w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L392). Dwa nowe scenariusze DUnitX sprawdzają osiem kombinacji bitów, ich raporty, wyłączanie, fragmentację save/restore i reset. Natywny odbiornik ConPTY weryfikuje powrót z 1003 do 1002 i 1000 wraz z rzeczywistym ruchem myszy. X10 dodano w 1.0.47.80. Highlight i 1015/1016 nadal wymagają implementacji.
+Punkt odniesienia: [update_mouse_protocol w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L392). Dwa nowe scenariusze DUnitX sprawdzają osiem kombinacji bitów, ich raporty, wyłączanie, fragmentację save/restore i reset. Natywny odbiornik ConPTY weryfikuje powrót z 1003 do 1002 i 1000 wraz z rzeczywistym ruchem myszy. X10 dodano w 1.0.47.80. URXVT 1015 dodano w 1.0.49.82. Highlight i 1016 nadal wymagają implementacji.
 
 ## Tryb myszy X10 — 1.0.47.80
 
-DECSET/DECRST 9 steruje niezależnym bitem X10. Jest to najniższy priorytet śledzenia: 1003 → 1002 → 1000 → 9. Po wyłączeniu wyższych trybów aktywny X10 zostaje przywrócony. DECRQM raportuje jego własny bit, a XTSAVE/XTRESTORE zapisuje true i false; zakres zapisu obejmuje obecnie trzynaście identyfikatorów. RIS i DECSTR kasują stan oraz zapis X10.
+DECSET/DECRST 9 steruje niezależnym bitem X10. Jest to najniższy priorytet śledzenia: 1003 → 1002 → 1000 → 9. Po wyłączeniu wyższych trybów aktywny X10 zostaje przywrócony. DECRQM raportuje jego własny bit, a XTSAVE/XTRESTORE zapisuje true i false; zakres zapisu obejmował wówczas trzynaście identyfikatorów; URXVT 1015 zwiększył go do czternastu w 1.0.49.82. RIS i DECSTR kasują stan oraz zapis X10.
 
 Widok wysyła naciśnięcia bez bitów modyfikatorów, a pomija ruch i zwolnienie przycisku. Shift nadal umożliwia lokalną obsługę terminala. Format współrzędnych pozostaje negocjowany osobno: klasyczny, częściowy UTF-8 1005 lub SGR 1006. Ograniczenia zakresu klasycznego formatu na ConPTY pozostają bez zmian.
 
-Punkt odniesienia: [priorytet protokołów w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L392), [zdarzenia i modyfikatory](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L5575). Dwa scenariusze DUnitX sprawdzają stan, priorytet, save/restore, fragmentację i reset. Natywny odbiornik ConPTY porównuje naciśnięcia w klasycznym i SGR oraz brak ruchu/zwolnienia i modyfikatorów. Highlight, 1015/1016 i dalsze porównania protokołów nadal wymagają pracy.
+Punkt odniesienia: [priorytet protokołów w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L392), [zdarzenia i modyfikatory](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L5575). Dwa scenariusze DUnitX sprawdzają stan, priorytet, save/restore, fragmentację i reset. Natywny odbiornik ConPTY porównuje naciśnięcia w klasycznym i SGR oraz brak ruchu/zwolnienia i modyfikatorów. URXVT 1015 dodano w 1.0.49.82. Highlight, 1016 i dalsze porównania protokołów nadal wymagają pracy.
 
 ## Mysz na przewiniętej historii — 1.0.48.81
 
@@ -282,3 +282,13 @@ Zdarzenia myszy nad scrollbackiem nie są wysyłane do procesu terminala. Raport
 Przy włączonym śledzeniu myszy historia nadal pozwala lokalnie kliknąć, zaznaczyć słowo dwuklikiem, przeciągnąć zaznaczenie i przewijać kółkiem. Zaznaczenie rozpoczęte w historii może zakończyć się nad aktywnym ekranem bez wysłania zwolnienia do procesu. Shift nadal wymusza lokalną obsługę także nad aktywnym ekranem.
 
 Punkt odniesienia: [feed_mouse_event w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L5575). Nowy scenariusz DUnitX sprawdza lokalne zaznaczenie i kółko. Rozszerzony natywny odbiornik ConPTY potwierdza brak raportów dla historii, współrzędne pierwszego aktywnego wiersza po przewinięciu i pierwszy raport po powrocie z historii. Dalsze porównania menu i zachowania przy zmianie zawartości podczas przeciągania pozostają do wykonania.
+
+## Format myszy URXVT 1015 — 1.0.49.82
+
+DECSET/DECRST 1015 negocjuje dziesiętny format URXVT niezależnie od trybu śledzenia. Raport ma postać CSI Cb ; Cx ; Cy M: Cb zawiera kod przycisku powiększony o 32, a współrzędne są od 1. Zwolnienie używa kodu 3 z zachowaniem bitów modyfikatorów i końcowego M. Format nie ma limitu 95/2015 ani luk C1 istniejących w ścieżce klasycznej i częściowym 1005 portu; nadal obowiązuje geometria terminala.
+
+Przy kilku bitach kodowania włączonych jednocześnie port wybiera SGR 1006, następnie URXVT 1015, potem UTF-8 1005 i format klasyczny. Wyłączenie wyższego formatu przywraca włączony niższy. Jest to jawny priorytet tej implementacji, nie deklaracja jednakowego zachowania wszystkich terminali. Samo kodowanie nie włącza śledzenia.
+
+DECRQM raportuje 1015, XTSAVE/XTRESTORE obsługuje true i false, a RIS/DECSTR kasują stan i zapis. Zmiana 1015 unieważnia filtr ruchu w tej samej komórce. Zakres save/restore obejmuje czternaście identyfikatorów.
+
+Punkt odniesienia: [URXVT w dokumentacji xterm](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Extended-coordinates). Dwa scenariusze DUnitX sprawdzają fragmentację, raporty trybów, niezależność, save/restore i reset. Natywny odbiornik ConPTY porównuje kolumnę 2016, modyfikatory, zwolnienie i priorytet/przywracanie SGR oraz URXVT. Format 1016 i dalsze porównania protokołów pozostają do wykonania.

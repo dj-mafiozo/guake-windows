@@ -108,6 +108,7 @@ Interface
     fMouseRevision      : Int64;
     fSGRMouse           : Boolean;
     fUtf8Mouse          : Boolean;
+    fUrxvtMouse         : Boolean;
     fRevision           : Int64;
     fLastGraphic        : Cardinal;
     Function  Blank                                                   : TTerminalCell;
@@ -181,6 +182,7 @@ Interface
     Property MouseMode     : Integer Read fMouseMode;
     /// <summary>DEC mode 1005 permits UTF-8 mouse coordinates; SGR 1006 takes precedence when both are set.</summary>
     Property Utf8Mouse    : Boolean Read fUtf8Mouse;
+    Property UrxvtMouse   : Boolean Read fUrxvtMouse;
     Property SGRMouse     : Boolean Read fSGRMouse;
     Property BellCount    : UInt64 Read fBellCount;
     Property Title        : String Read fTitle;
@@ -370,6 +372,7 @@ Implementation
    Inc(fMouseRevision);
    fSGRMouse        := False;
    fUtf8Mouse       := False;
+   fUrxvtMouse      := False;
    fAutoWrap        := True;
    fOrigin          := False;
    fInsert          := False;
@@ -834,6 +837,7 @@ Implementation
      1004           : Enabled := fFocusReporting;
      1005           : Enabled := fUtf8Mouse;
      1006           : Enabled := fSGRMouse;
+     1015           : Enabled := fUrxvtMouse;
      2004           : Enabled := fBracketedPaste;
     Else Exit;
     End
@@ -907,6 +911,11 @@ Implementation
      Begin
       Inc(fMouseRevision);
       fSGRMouse := Enabled;
+     End;
+    1015 :
+     Begin
+      Inc(fMouseRevision);
+      fUrxvtMouse := Enabled;
      End;
     2004 :
      fBracketedPaste := Enabled;
@@ -1047,7 +1056,7 @@ Implementation
     Begin
      For i := 0 To High(Params) Do
       Case Params[i] Of
-       1, 6, 7, 9, 25, 66, 1000, 1002, 1003, 1004, 1005, 1006, 2004 :
+       1, 6, 7, 9, 25, 66, 1000, 1002, 1003, 1004, 1005, 1006, 1015, 2004 :
         If Final = 's' Then
          fSavedModes.AddOrSetValue(Params[i], ModeStatus(Params[i], True) = 1)
         Else If fSavedModes.TryGetValue(Params[i], SavedValue) Then

@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 17 listopada 2026, wersja 1.0.48.81. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 18 listopada 2026, wersja 1.0.49.82. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -419,19 +419,19 @@ Weryfikacja 1.0.45.78: formatter bez błędów i sprawdzony diff; 159/159 scenar
 
 Tryby 1000 (przyciski), 1002 (ruch z przyciskiem) i 1003 (dowolny ruch) mają niezależne bity DECSET/DECRST. Efektywny protokół wynika z priorytetu 1003 → 1002 → 1000. Włączenie niższego trybu nie zastępuje wyższego; wyłączenie wyższego przywraca wcześniej włączony niższy. Wyłączenie nieaktywnego trybu nie wyłącza pozostałych.
 
-DECRQM raportuje każdy bit, a nie tylko aktywny protokół. XTSAVE/XTRESTORE zapisuje i przywraca te trzy bity niezależnie, także wartości false; liczba obsługiwanych zapisów wynosiła w tej wersji dwanaście; od 1.0.47.80 z X10 wynosi trzynaście. RIS i DECSTR kasują bity i ich zapis. Negocjacja nadal unieważnia filtr raportów tej samej komórki, więc pierwszy raport po zmianie protokołu nie ginie.
+DECRQM raportuje każdy bit, a nie tylko aktywny protokół. XTSAVE/XTRESTORE zapisuje i przywraca te trzy bity niezależnie, także wartości false; liczba obsługiwanych zapisów wynosiła w tej wersji dwanaście; od 1.0.47.80 z X10 wynosiła trzynaście; od 1.0.49.82 z URXVT wynosi czternaście. RIS i DECSTR kasują bity i ich zapis. Negocjacja nadal unieważnia filtr raportów tej samej komórki, więc pierwszy raport po zmianie protokołu nie ginie.
 
-Punkt odniesienia: [update_mouse_protocol w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L392). Dwa nowe scenariusze DUnitX sprawdzają osiem kombinacji bitów, ich raporty, wyłączanie, fragmentację save/restore i reset. Natywny odbiornik ConPTY weryfikuje powrót z 1003 do 1002 i 1000 wraz z rzeczywistym ruchem myszy. X10 dodano w 1.0.47.80. Highlight i 1015/1016 nadal wymagają implementacji.
+Punkt odniesienia: [update_mouse_protocol w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L392). Dwa nowe scenariusze DUnitX sprawdzają osiem kombinacji bitów, ich raporty, wyłączanie, fragmentację save/restore i reset. Natywny odbiornik ConPTY weryfikuje powrót z 1003 do 1002 i 1000 wraz z rzeczywistym ruchem myszy. X10 dodano w 1.0.47.80. URXVT 1015 dodano w 1.0.49.82. Highlight i 1016 nadal wymagają implementacji.
 
 Weryfikacja 1.0.46.79: formatter bez błędów i sprawdzony diff; 161/161 scenariuszy DUnitX bez błędów i wycieków. Natywny odbiornik ConPTY potwierdził raport ruchu po powrocie z 1003 do 1002 i jego brak po przejściu do 1000. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie, bez zmiany DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.46.79-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
 
 ## Tryb myszy X10 — 1.0.47.80
 
-DECSET/DECRST 9 steruje niezależnym bitem X10. Jest to najniższy priorytet śledzenia: 1003 → 1002 → 1000 → 9. Po wyłączeniu wyższych trybów aktywny X10 zostaje przywrócony. DECRQM raportuje jego własny bit, a XTSAVE/XTRESTORE zapisuje true i false; zakres zapisu obejmuje obecnie trzynaście identyfikatorów. RIS i DECSTR kasują stan oraz zapis X10.
+DECSET/DECRST 9 steruje niezależnym bitem X10. Jest to najniższy priorytet śledzenia: 1003 → 1002 → 1000 → 9. Po wyłączeniu wyższych trybów aktywny X10 zostaje przywrócony. DECRQM raportuje jego własny bit, a XTSAVE/XTRESTORE zapisuje true i false; zakres zapisu obejmował wówczas trzynaście identyfikatorów; URXVT 1015 zwiększył go do czternastu w 1.0.49.82. RIS i DECSTR kasują stan oraz zapis X10.
 
 Widok wysyła naciśnięcia bez bitów modyfikatorów, a pomija ruch i zwolnienie przycisku. Shift nadal umożliwia lokalną obsługę terminala. Format współrzędnych pozostaje negocjowany osobno: klasyczny, częściowy UTF-8 1005 lub SGR 1006. Ograniczenia zakresu klasycznego formatu na ConPTY pozostają bez zmian.
 
-Punkt odniesienia: [priorytet protokołów w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L392), [zdarzenia i modyfikatory](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L5575). Dwa scenariusze DUnitX sprawdzają stan, priorytet, save/restore, fragmentację i reset. Natywny odbiornik ConPTY porównuje naciśnięcia w klasycznym i SGR oraz brak ruchu/zwolnienia i modyfikatorów. Highlight, 1015/1016 i dalsze porównania protokołów nadal wymagają pracy.
+Punkt odniesienia: [priorytet protokołów w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L392), [zdarzenia i modyfikatory](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L5575). Dwa scenariusze DUnitX sprawdzają stan, priorytet, save/restore, fragmentację i reset. Natywny odbiornik ConPTY porównuje naciśnięcia w klasycznym i SGR oraz brak ruchu/zwolnienia i modyfikatorów. URXVT 1015 dodano w 1.0.49.82. Highlight, 1016 i dalsze porównania protokołów nadal wymagają pracy.
 
 Weryfikacja 1.0.47.80: formatter bez błędów i sprawdzony diff; 163/163 scenariusze DUnitX bez błędów i wycieków. Natywny odbiornik ConPTY potwierdził naciśnięcia X10 w klasycznym i SGR oraz brak raportów ruchu, zwolnienia i modyfikatorów. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie, bez zmiany DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.47.80-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
 
@@ -444,3 +444,15 @@ Przy włączonym śledzeniu myszy historia nadal pozwala lokalnie kliknąć, zaz
 Punkt odniesienia: [feed_mouse_event w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vte.cc#L5575). Nowy scenariusz DUnitX sprawdza lokalne zaznaczenie i kółko. Rozszerzony natywny odbiornik ConPTY potwierdza brak raportów dla historii, współrzędne pierwszego aktywnego wiersza po przewinięciu i pierwszy raport po powrocie z historii. Dalsze porównania menu i zachowania przy zmianie zawartości podczas przeciągania pozostają do wykonania.
 
 Weryfikacja 1.0.48.81: formatter bez błędów i sprawdzony diff; 164/164 scenariusze DUnitX bez błędów i wycieków. Test widoku potwierdził zaznaczanie i kółko w historii, a natywny odbiornik ConPTY brak raportów scrollbacku i prawidłowe współrzędne aktywnego ekranu. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie, bez zmiany DPROJ podczas budowania. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.48.81-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
+
+## Format myszy URXVT 1015 — 1.0.49.82
+
+DECSET/DECRST 1015 negocjuje dziesiętny format URXVT niezależnie od trybu śledzenia. Raport ma postać CSI Cb ; Cx ; Cy M: Cb zawiera kod przycisku powiększony o 32, a współrzędne są od 1. Zwolnienie używa kodu 3 z zachowaniem bitów modyfikatorów i końcowego M. Format nie ma limitu 95/2015 ani luk C1 istniejących w ścieżce klasycznej i częściowym 1005 portu; nadal obowiązuje geometria terminala.
+
+Przy kilku bitach kodowania włączonych jednocześnie port wybiera SGR 1006, następnie URXVT 1015, potem UTF-8 1005 i format klasyczny. Wyłączenie wyższego formatu przywraca włączony niższy. Jest to jawny priorytet tej implementacji, nie deklaracja jednakowego zachowania wszystkich terminali. Samo kodowanie nie włącza śledzenia.
+
+DECRQM raportuje 1015, XTSAVE/XTRESTORE obsługuje true i false, a RIS/DECSTR kasują stan i zapis. Zmiana 1015 unieważnia filtr ruchu w tej samej komórce. Zakres save/restore obejmuje czternaście identyfikatorów.
+
+Punkt odniesienia: [URXVT w dokumentacji xterm](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html#h3-Extended-coordinates). Dwa scenariusze DUnitX sprawdzają fragmentację, raporty trybów, niezależność, save/restore i reset. Natywny odbiornik ConPTY porównuje kolumnę 2016, modyfikatory, zwolnienie i priorytet/przywracanie SGR oraz URXVT. Format 1016 i dalsze porównania protokołów pozostają do wykonania.
+
+Weryfikacja 1.0.49.82: formatter bez błędów i sprawdzony diff; 166/166 scenariuszy DUnitX bez błędów i wycieków. Natywny odbiornik ConPTY potwierdził dziesiętne współrzędne URXVT dla kolumny 2016, modyfikatory, zwolnienia i powrót po wyłączeniu SGR. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie, bez zmiany DPROJ podczas budowania. Oba EXE mają wersję 1.0.49.82. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.49.82-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
