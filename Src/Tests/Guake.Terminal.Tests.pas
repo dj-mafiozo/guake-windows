@@ -5,6402 +5,6712 @@ Unit Guake.Terminal.Tests;
 
 Interface
 
- Uses
-  DUnitX.TestFramework, System.Classes;
+  Uses
+    DUnitX.TestFramework, System.Classes;
 
- Type
+  Type
 
-  [TestFixture]
-  TTerminalTests = Class
-   Private
-    fNotices : TStringList;
-    Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
-   Public
-    [Test] Procedure AlternateScrollModeFragmentsAndDefault;
-    [Test] Procedure TitleQueriesReturnEmptyWithoutChangingState;
-    [Test] Procedure TitleQueriesRejectUnsupportedForms;
-    [Test] Procedure HorizontalMarginStatusTracksWidth;
-    [Test] Procedure HorizontalMarginStatusRejectsParameters;
-    [Test] Procedure CursorTabulationControlSetsAndClearsStops;
-    [Test] Procedure CursorTabulationControlPreservesPendingWrap;
-    [Test] Procedure AlternateScrollModeSaveRestoreAndReset;
-    [Test] Procedure PixelMouseFormatFragmentsAndIndependentFlags;
-    [Test] Procedure PixelMouseFormatSaveRestoreAndReset;
-    [Test] Procedure UrxvtMouseFormatFragmentsAndModeQueries;
-    [Test] Procedure UrxvtMouseFormatSaveRestoreAndReset;
-    [Test] Procedure ScrollbackSelectionWorksWithMouseTracking;
-    [Test] Procedure X10MouseModePrioritySaveRestoreAndReset;
-    [Test] Procedure X10MouseModeFragmentsAndReports;
-    [Test] Procedure MouseTrackingModesAreIndependentAndPrioritized;
-    [Test] Procedure MouseTrackingSaveRestoreFragmentsAndReset;
-    [Test] Procedure DECStatusReportsFragmentsStateAndReplyLoops;
-    [Test] Procedure ExtendedCursorReportIncludesPageAndPreservesWrap;
-    [Test] Procedure ForwardTabsPreservePendingWrapAcrossFragments;
-    [Test] Procedure BackwardTabsCancelWrapAndForwardTabsRespectDisabledAutowrap;
-    [Test] Procedure TopPartialScrollAddsHistoryAndPreservesRows;
-    [Test] Procedure ScrollBoundariesBreakOnlyDisconnectedWraps;
-    [Test] Procedure ScrollHistoryLimitsAndAlternateIsolation;
-    [Test] Procedure WideOverwriteRepairsBothBoundaries;
-    [Test] Procedure WidePrintWithoutAutowrapFitsAtRightEdge;
-    [Test] Procedure GraphemeGrowthRepairsNeighbourAndKeepsSoftWrap;
-    [Test] Procedure InsertDeleteLinesRespectRegionAndCarriageReturn;
-    [Test] Procedure InsertDeleteLinesPreserveIgnoredWrap;
-    [Test] Procedure ReverseIndexClearsWrapAndRespectsRegion;
-    [Test] Procedure RelativeVerticalMotionRespectsDirectionalMargins;
-    [Test] Procedure RelativeVerticalMotionOriginFragmentsAndWrap;
-    [Test] Procedure TertiaryDeviceAttributesFragmentsAndState;
-    [Test] Procedure TertiaryDeviceAttributesRejectsMalformedQueriesAndReplyLoops;
-    [Test] Procedure AlignmentPatternFragmentsAndBasicCells;
-    [Test] Procedure AlignmentPatternPreservesHistoryModesAndPrimaryScreen;
-    [Test] Procedure AlignmentPatternRejectsOtherEscapeIntermediates;
-    [Test] Procedure RepeatGraphicDefaultsFragmentsAndBoundaries;
-    [Test] Procedure RepeatGraphicUnicodeCharsetsAndInsertMode;
-    [Test] Procedure RepeatGraphicCommandBoundariesAndReset;
-    [Test] Procedure WideInsertColumnBoundaries;
-    [Test] Procedure WideDeleteAndEraseColumnBoundaries;
-    [Test] Procedure InsertModeUsesAtomicColumnShift;
-    [Test] Procedure ColumnEditingGridInvariantsAndSoftWrap;
-    [Test] Procedure CharacterProtectionFragmentsAndCursorSave;
-    [Test] Procedure SelectiveEraseDirectionsAndHistory;
-    [Test] Procedure SelectiveEraseWideCellsAndReflow;
-    [Test] Procedure SoftResetPreservesContentAndResetsModes;
-    [Test] Procedure SoftResetPreservesTabsTitlesAndAlternateScreen;
-    [Test] Procedure SoftResetFragmentsSavedCursorAndPendingWrap;
-    [Test] Procedure PrivateModesSaveRestoreAndFragmentation;
-    [Test] Procedure PrivateModeOriginResetAndIsolation;
-    [Test] Procedure TitleStackFragmentsNestingAndEmptyTitle;
-    [Test] Procedure TitleStackLimitsResetAndScreenIsolation;
-    [Test] Procedure CursorStyleParsingQueriesAndReset;
-    [Test] Procedure CursorStyleRendersAndOverridesPreferences;
-    [Test] Procedure UnfocusedCursorKeepsOutlineAndRefreshesCache;
-    [Test] Procedure RefocusAndLazyHideRespectForeground;
-    [Test] Procedure LogicalLinesJoinSoftWrapsAndMapCells;
-    [Test] Procedure UnchangedSplitPanesReuseComposition;
-    [Test] Procedure BatchedAsciiPreservesCellPixels;
-    [Test] Procedure TerminalCompositionLatency;
-    [Test] Procedure TabColorsScopesAndSessionRestore;
-    [Test] Procedure TabColorsRenderAndDeferredClose;
-    [Test] Procedure TabActivityHonorsGraceAndSelection;
-    [Test] Procedure QuickOpenDiagnosticsAndShellQuoting;
-    [Test] Procedure QuickOpenCtrlClickAndContextMenu;
-    [Test] Procedure PerPixelAlphaComposition;
-    [Test] Procedure TerminalBackgroundAlphaAndWindowControls;
-    [Test] Procedure AnimatedGifBackgroundDelaysAndRemoval;
-    [Test] Procedure AnimatedGifDisposalAndFiniteLoop;
-    [Test] Procedure DCSStatusStringsRoundTripAndLimits;
-    [Test] Procedure ApplicationKeypadModeQueriesAndReset;
-    [Test] Procedure DeviceModeQueriesReflectImplementedState;
-    [Test] Procedure DeviceRepliesPreserveWrapAndRejectReplyLoops;
-    [Test] Procedure NewLineModeControlsLineFeed;
-    [Test] Procedure FocusNewLineAndQueryRepliesReachConPTY;
-    [Test] Procedure BlinkSGRStateResetRestoreAndReflow;
-    [Test] Procedure BlinkOnlyRasterizesAffectedVisibleRows;
-    [Test] Procedure BlinkIgnoresConcealBlankCellsAndOffscreenHistory;
-    [Test] Procedure ExtendedSGRStateAndCursorRestore;
-    [Test] Procedure SGRDecorationsRenderWithOpaqueCoverage;
-    [Test] Procedure FaintConcealAndIncrementalAttributeRefresh;
-    [Test] Procedure C0ControlsInsideFragmentedSequences;
-    [Test] Procedure OverlongCSIAndNumericOverflowAreDiscarded;
-    [Test] Procedure OverlongOSCDoesNotPublishTruncatedValues;
-    [Test] Procedure EscapeRecoveryAndIntermediateConsumption;
-    [Test] Procedure SGRColonAndSemicolonColors;
-    [Test] Procedure SGRInvalidColorsDoNotBecomeAttributes;
-    [Test] Procedure ParserFragmentationProducesSameState;
-    [Test] Procedure SCOCursorAliasesPreserveSingleShift;
-    [Test] Procedure DECGraphicsAndCharacterShifts;
-    [Test] Procedure CharsetDesignationFragmentsAndCancellation;
-    [Test] Procedure DECCursorRestoresRenditionModesAndCharsets;
-    [Test] Procedure DECCursorPreservesPendingWrap;
-    [Test] Procedure DECCursorScreenIsolationAnd1048;
-    [Test] Procedure DECCursorDefaultsAndResize;
-    [Test] Procedure UnsupportedCSIHasNoAliasedEffects;
-    [Test] Procedure OriginRelativeCursorReports;
-    [Test] Procedure ProgrammableTabStops;
-    [Test] Procedure TabStopsResizeAndReset;
-    [Test] Procedure IncrementalUnicodeAndCSI;
-    [Test] Procedure ExtendedGraphemesAcrossByteFragments;
-    [Test] Procedure ReflowPreservesHistoryStylesAndCursor;
-    [Test] Procedure ProjectYamlAndCustomCommandMenu;
-    [Test] Procedure StartupRestoreAutosaveAndNotifications;
-    [Test] Procedure NativeHooksAutostartAndBell;
-    [Test] Procedure TrayOnlyStyleRejectsVclMutation;
-    [Test] Procedure HyperlinksSearchAndDirectionalPanes;
-    [Test] Procedure SessionTreeRoundTripAndFailedRestore;
-    [Test] Procedure AlternateScreenRestoresPrimary;
-    [Test] Procedure EraseAboveBreaksHistoryParagraph;
-    [Test] Procedure EraseCharactersPreservesLogicalWrap;
-    [Test] Procedure EraseCharactersReplacesWideWrapPadding;
-    [Test] Procedure EraseToEndPreservesPendingWrap;
-    [Test] Procedure OtherLineErasesCancelPendingWrap;
-    [Test] Procedure EraseAboveAlternateKeepsPrimaryHistory;
-    [Test] Procedure AlternateResizeClearsCutWideCharacters;
-    [Test] Procedure AlternateResizePreservesCompleteWideCharacters;
-    [Test] Procedure AlternateSavedCursorStaysInsideResizedGrid;
-    [Test] Procedure AlternateSavedWrapTracksTheGridEdge;
-    [Test] Procedure PrimaryPendingWrapSurvivesAlternateScreen;
-    [Test] Procedure PrimaryPendingWrapReflowsWhileAlternate;
-    [Test] Procedure SavedPrimaryCursorReflowsAcrossScreens;
-    [Test] Procedure SavedPrimaryCursorKeepsAttributesAfterReflow;
-    [Test] Procedure ColorsCursorAndDeviceResponses;
-    [Test] Procedure ScrollbackAndMargins;
-    [Test] Procedure WideAndCombiningCells;
-    [Test] Procedure ResizePreservesContent;
-    [Test] Procedure CmdEnvironmentDirectoryAndExitCode;
-    [Test] Procedure InteractivePowerShell;
-    [Test] Procedure InteractiveBash;
-    [Test] Procedure InteractiveZsh;
-    [Test] Procedure ShutdownWithUndrainedOutput;
-    [Test] Procedure FailedStartDoesNotLeakHandles;
-    [Test] Procedure ControllerTabsSplitsAndFailure;
-    [Test] Procedure WindowsAccelerators;
-    [Test] Procedure DefaultColorsAfterPromptReset;
-    [Test] Procedure ZshUsesTerminalCapabilities;
-    [Test] Procedure IdleTerminalDoesNotRepaint;
-    [Test] Procedure ReferenceMenusAndTabChooser;
-    [Test] Procedure BackgroundImageLayoutsAndRemoval;
-    [Test] Procedure MainWindowCreatesTerminalAndSplitFrames;
-    [Test] Procedure OccupiedGlobalShortcutDoesNotStopTerminal;
-    [Test] Procedure FullscreenScrollOpacityAndMouseSelection;
-    [Test] Procedure GitZshEnvironmentAndExitStatus;
-    [Test] Procedure DropDownAnimationReversesAndKeepsTerminalSize;
-  End;
+    [TestFixture]
+    TTerminalTests = Class
+      Private
+        fNotices : TStringList;
+        Procedure CaptureNotification(Sender : TObject; Const Title, Body : String);
+      Public
+        [Test] Procedure AlternateScrollModeFragmentsAndDefault;
+        [Test] Procedure InsertClipboardAliases;
+        [Test] Procedure LiveDirectorySurvivesSessionRestore;
+        [Test] Procedure GitShellLiveDirectory;
+        [Test] Procedure OpenTerminalKeepsItsMonitor;
+        [Test] Procedure TerminalParameterRequestsPreserveState;
+        [Test] Procedure TerminalParameterReportsDoNotLoop;
+        [Test] Procedure TitleQueriesReturnEmptyWithoutChangingState;
+        [Test] Procedure TitleQueriesRejectUnsupportedForms;
+        [Test] Procedure HorizontalMarginStatusTracksWidth;
+        [Test] Procedure HorizontalMarginStatusRejectsParameters;
+        [Test] Procedure CursorTabulationControlSetsAndClearsStops;
+        [Test] Procedure CursorTabulationControlPreservesPendingWrap;
+        [Test] Procedure AlternateScrollModeSaveRestoreAndReset;
+        [Test] Procedure PixelMouseFormatFragmentsAndIndependentFlags;
+        [Test] Procedure PixelMouseFormatSaveRestoreAndReset;
+        [Test] Procedure UrxvtMouseFormatFragmentsAndModeQueries;
+        [Test] Procedure UrxvtMouseFormatSaveRestoreAndReset;
+        [Test] Procedure ScrollbackSelectionWorksWithMouseTracking;
+        [Test] Procedure X10MouseModePrioritySaveRestoreAndReset;
+        [Test] Procedure X10MouseModeFragmentsAndReports;
+        [Test] Procedure MouseTrackingModesAreIndependentAndPrioritized;
+        [Test] Procedure MouseTrackingSaveRestoreFragmentsAndReset;
+        [Test] Procedure DECStatusReportsFragmentsStateAndReplyLoops;
+        [Test] Procedure ExtendedCursorReportIncludesPageAndPreservesWrap;
+        [Test] Procedure ForwardTabsPreservePendingWrapAcrossFragments;
+        [Test] Procedure BackwardTabsCancelWrapAndForwardTabsRespectDisabledAutowrap;
+        [Test] Procedure TopPartialScrollAddsHistoryAndPreservesRows;
+        [Test] Procedure ScrollBoundariesBreakOnlyDisconnectedWraps;
+        [Test] Procedure ScrollHistoryLimitsAndAlternateIsolation;
+        [Test] Procedure WideOverwriteRepairsBothBoundaries;
+        [Test] Procedure WidePrintWithoutAutowrapFitsAtRightEdge;
+        [Test] Procedure GraphemeGrowthRepairsNeighbourAndKeepsSoftWrap;
+        [Test] Procedure InsertDeleteLinesRespectRegionAndCarriageReturn;
+        [Test] Procedure InsertDeleteLinesPreserveIgnoredWrap;
+        [Test] Procedure ReverseIndexClearsWrapAndRespectsRegion;
+        [Test] Procedure RelativeVerticalMotionRespectsDirectionalMargins;
+        [Test] Procedure RelativeVerticalMotionOriginFragmentsAndWrap;
+        [Test] Procedure TertiaryDeviceAttributesFragmentsAndState;
+        [Test] Procedure TertiaryDeviceAttributesRejectsMalformedQueriesAndReplyLoops;
+        [Test] Procedure AlignmentPatternFragmentsAndBasicCells;
+        [Test] Procedure AlignmentPatternPreservesHistoryModesAndPrimaryScreen;
+        [Test] Procedure AlignmentPatternRejectsOtherEscapeIntermediates;
+        [Test] Procedure RepeatGraphicDefaultsFragmentsAndBoundaries;
+        [Test] Procedure RepeatGraphicUnicodeCharsetsAndInsertMode;
+        [Test] Procedure RepeatGraphicCommandBoundariesAndReset;
+        [Test] Procedure WideInsertColumnBoundaries;
+        [Test] Procedure WideDeleteAndEraseColumnBoundaries;
+        [Test] Procedure InsertModeUsesAtomicColumnShift;
+        [Test] Procedure ColumnEditingGridInvariantsAndSoftWrap;
+        [Test] Procedure CharacterProtectionFragmentsAndCursorSave;
+        [Test] Procedure SelectiveEraseDirectionsAndHistory;
+        [Test] Procedure SelectiveEraseWideCellsAndReflow;
+        [Test] Procedure SoftResetPreservesContentAndResetsModes;
+        [Test] Procedure SoftResetPreservesTabsTitlesAndAlternateScreen;
+        [Test] Procedure SoftResetFragmentsSavedCursorAndPendingWrap;
+        [Test] Procedure PrivateModesSaveRestoreAndFragmentation;
+        [Test] Procedure PrivateModeOriginResetAndIsolation;
+        [Test] Procedure TitleStackFragmentsNestingAndEmptyTitle;
+        [Test] Procedure TitleStackLimitsResetAndScreenIsolation;
+        [Test] Procedure CursorStyleParsingQueriesAndReset;
+        [Test] Procedure CursorStyleRendersAndOverridesPreferences;
+        [Test] Procedure UnfocusedCursorKeepsOutlineAndRefreshesCache;
+        [Test] Procedure RefocusAndLazyHideRespectForeground;
+        [Test] Procedure LogicalLinesJoinSoftWrapsAndMapCells;
+        [Test] Procedure UnchangedSplitPanesReuseComposition;
+        [Test] Procedure BatchedAsciiPreservesCellPixels;
+        [Test] Procedure TerminalCompositionLatency;
+        [Test] Procedure TabColorsScopesAndSessionRestore;
+        [Test] Procedure TabColorsRenderAndDeferredClose;
+        [Test] Procedure TabActivityHonorsGraceAndSelection;
+        [Test] Procedure QuickOpenDiagnosticsAndShellQuoting;
+        [Test] Procedure QuickOpenCtrlClickAndContextMenu;
+        [Test] Procedure PerPixelAlphaComposition;
+        [Test] Procedure TerminalBackgroundAlphaAndWindowControls;
+        [Test] Procedure AnimatedGifBackgroundDelaysAndRemoval;
+        [Test] Procedure AnimatedGifDisposalAndFiniteLoop;
+        [Test] Procedure DCSStatusStringsRoundTripAndLimits;
+        [Test] Procedure ApplicationKeypadModeQueriesAndReset;
+        [Test] Procedure DeviceModeQueriesReflectImplementedState;
+        [Test] Procedure DeviceRepliesPreserveWrapAndRejectReplyLoops;
+        [Test] Procedure NewLineModeControlsLineFeed;
+        [Test] Procedure FocusNewLineAndQueryRepliesReachConPTY;
+        [Test] Procedure BlinkSGRStateResetRestoreAndReflow;
+        [Test] Procedure BlinkOnlyRasterizesAffectedVisibleRows;
+        [Test] Procedure BlinkIgnoresConcealBlankCellsAndOffscreenHistory;
+        [Test] Procedure ExtendedSGRStateAndCursorRestore;
+        [Test] Procedure SGRDecorationsRenderWithOpaqueCoverage;
+        [Test] Procedure FaintConcealAndIncrementalAttributeRefresh;
+        [Test] Procedure C0ControlsInsideFragmentedSequences;
+        [Test] Procedure OverlongCSIAndNumericOverflowAreDiscarded;
+        [Test] Procedure OverlongOSCDoesNotPublishTruncatedValues;
+        [Test] Procedure EscapeRecoveryAndIntermediateConsumption;
+        [Test] Procedure SGRColonAndSemicolonColors;
+        [Test] Procedure SGRInvalidColorsDoNotBecomeAttributes;
+        [Test] Procedure ParserFragmentationProducesSameState;
+        [Test] Procedure SCOCursorAliasesPreserveSingleShift;
+        [Test] Procedure DECGraphicsAndCharacterShifts;
+        [Test] Procedure CharsetDesignationFragmentsAndCancellation;
+        [Test] Procedure DECCursorRestoresRenditionModesAndCharsets;
+        [Test] Procedure DECCursorPreservesPendingWrap;
+        [Test] Procedure DECCursorScreenIsolationAnd1048;
+        [Test] Procedure DECCursorDefaultsAndResize;
+        [Test] Procedure UnsupportedCSIHasNoAliasedEffects;
+        [Test] Procedure OriginRelativeCursorReports;
+        [Test] Procedure ProgrammableTabStops;
+        [Test] Procedure TabStopsResizeAndReset;
+        [Test] Procedure IncrementalUnicodeAndCSI;
+        [Test] Procedure ExtendedGraphemesAcrossByteFragments;
+        [Test] Procedure ReflowPreservesHistoryStylesAndCursor;
+        [Test] Procedure ProjectYamlAndCustomCommandMenu;
+        [Test] Procedure StartupRestoreAutosaveAndNotifications;
+        [Test] Procedure NativeHooksAutostartAndBell;
+        [Test] Procedure TrayOnlyStyleRejectsVclMutation;
+        [Test] Procedure HyperlinksSearchAndDirectionalPanes;
+        [Test] Procedure SessionTreeRoundTripAndFailedRestore;
+        [Test] Procedure AlternateScreenRestoresPrimary;
+        [Test] Procedure EraseAboveBreaksHistoryParagraph;
+        [Test] Procedure EraseCharactersPreservesLogicalWrap;
+        [Test] Procedure EraseCharactersReplacesWideWrapPadding;
+        [Test] Procedure EraseToEndPreservesPendingWrap;
+        [Test] Procedure OtherLineErasesCancelPendingWrap;
+        [Test] Procedure EraseAboveAlternateKeepsPrimaryHistory;
+        [Test] Procedure AlternateResizeClearsCutWideCharacters;
+        [Test] Procedure AlternateResizePreservesCompleteWideCharacters;
+        [Test] Procedure AlternateSavedCursorStaysInsideResizedGrid;
+        [Test] Procedure AlternateSavedWrapTracksTheGridEdge;
+        [Test] Procedure PrimaryPendingWrapSurvivesAlternateScreen;
+        [Test] Procedure PrimaryPendingWrapReflowsWhileAlternate;
+        [Test] Procedure SavedPrimaryCursorReflowsAcrossScreens;
+        [Test] Procedure SavedPrimaryCursorKeepsAttributesAfterReflow;
+        [Test] Procedure ColorsCursorAndDeviceResponses;
+        [Test] Procedure ScrollbackAndMargins;
+        [Test] Procedure WideAndCombiningCells;
+        [Test] Procedure ResizePreservesContent;
+        [Test] Procedure CmdEnvironmentDirectoryAndExitCode;
+        [Test] Procedure InteractivePowerShell;
+        [Test] Procedure InteractiveBash;
+        [Test] Procedure InteractiveZsh;
+        [Test] Procedure ShutdownWithUndrainedOutput;
+        [Test] Procedure FailedStartDoesNotLeakHandles;
+        [Test] Procedure ControllerTabsSplitsAndFailure;
+        [Test] Procedure WindowsAccelerators;
+        [Test] Procedure DefaultColorsAfterPromptReset;
+        [Test] Procedure ZshUsesTerminalCapabilities;
+        [Test] Procedure IdleTerminalDoesNotRepaint;
+        [Test] Procedure ReferenceMenusAndTabChooser;
+        [Test] Procedure BackgroundImageLayoutsAndRemoval;
+        [Test] Procedure MainWindowCreatesTerminalAndSplitFrames;
+        [Test] Procedure OccupiedGlobalShortcutDoesNotStopTerminal;
+        [Test] Procedure FullscreenScrollOpacityAndMouseSelection;
+        [Test] Procedure GitZshEnvironmentAndExitStatus;
+        [Test] Procedure DropDownAnimationReversesAndKeepsTerminalSize;
+    End;
 
 Implementation
 
- Uses
-  System.Math, System.Diagnostics, Guake.Colors, Guake.CommandLine, Guake.QuickOpen, System.Types, Guake.Composition, Guake.AnimatedBackground, Vcl.Imaging.GIFImg, frmAboutU, Guake.WindowsIntegration, System.Win.Registry, Guake.ProjectConfig, System.JSON, System.Generics.Collections, Guake.Unicode, Guake.Links, Winapi.Windows, Winapi.Messages, System.SysUtils, System.IOUtils,
-  frmMainU, fraTerminalU, Vcl.Graphics, Vcl.Imaging.pngimage, Vcl.ComCtrls, Vcl.Controls, Guake.ConPTY, Guake.VT, Guake.Shells, Guake.Sessions, Guake.Settings, Guake.Keybindings, Vcl.Forms;
+  Uses
+    System.Math, System.Diagnostics, Guake.Colors, Guake.CommandLine, Guake.QuickOpen, System.Types, Guake.Composition, Guake.AnimatedBackground, Vcl.Imaging.GIFImg, frmAboutU, Guake.WindowsIntegration, System.Win.Registry, Guake.ProjectConfig, System.JSON, System.Generics.Collections, Guake.Unicode, Guake.Links, Winapi.Windows, Winapi.Messages, System.SysUtils, System.IOUtils,
+    frmMainU, fraTerminalU, Vcl.Graphics, Vcl.Imaging.pngimage, Vcl.ComCtrls, Vcl.Controls, Guake.ConPTY, Guake.VT, Guake.Shells, Guake.Sessions, Guake.Settings, Guake.Keybindings, Vcl.Forms, Vcl.Clipbrd;
 
- Type
-  TTerminalFrameAccess = Class(TfraTerminal)
-  End;
+  Type
+    TTerminalFrameAccess = Class(TfraTerminal)
+    End;
 
-  TTabControlAccess = Class(TTabControl)
-  End;
+    TTabControlAccess = Class(TTabControl)
+    End;
 
- Function WaitForText(Session : TConPtySession; Buffer : TTerminalBuffer; Const Value : String; Timeout : Cardinal = 15000) : Boolean;
-  Var
-   Deadline : UInt64;
-   Response : String;
-  Begin
-   Deadline := GetTickCount64 + Timeout;
-   Repeat
-    Buffer.Feed(Session.ReadAvailable);
-    Response := Buffer.TakeResponses;
-    If (Response <> '') And Session.Running Then
-     Session.SendText(Response);
-    If Pos(Value, Buffer.Text) > 0 Then
-     Exit(True);
-    Sleep(10);
-   Until GetTickCount64 >= Deadline;
-   Result := False;
-  End;
+  Function WaitForText(Session : TConPtySession; Buffer : TTerminalBuffer; Const Value : String; Timeout : Cardinal = 15000) : Boolean;
+    Var
+      Deadline : UInt64;
+      Response : String;
+    Begin
+      Deadline := GetTickCount64 + Timeout;
+      Repeat
+        Buffer.Feed(Session.ReadAvailable);
+        Response := Buffer.TakeResponses;
+        If (Response <> '') And Session.Running Then
+          Session.SendText(Response);
+        If Pos(Value, Buffer.Text) > 0 Then
+          Exit(True);
+        Sleep(10);
+      Until GetTickCount64 >= Deadline;
+      Result := False;
+    End;
 
- Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
+  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad; Forward;
 
 /// <summary>Checks the VTE-compatible enabled default and fragmented negotiation independent of tracking and screen selection.</summary>
 
 /// <summary>CTC shares programmed stops with HT/HTS/TBC and survives fragmented input.</summary>
 
- Procedure TTerminalTests.CursorTabulationControlSetsAndClearsStops;
-  Var
-   Buffer   : TTerminalBuffer;
-   Sequence : String;
-   Ch       : Char;
-  Begin
-   For Sequence In TArray<String>.Create(#27 + '[W', #27 + '[0W') Do
+  Procedure TTerminalTests.CursorTabulationControlSetsAndClearsStops;
+    Var
+      Buffer   : TTerminalBuffer;
+      Sequence : String;
+      Ch       : Char;
     Begin
-     Buffer := TTerminalBuffer.Create(20, 3);
-     Try
-      Buffer.FeedText(#27 + '[4G');
-      For Ch In Sequence Do
-       Buffer.FeedText(Ch);
-      Buffer.FeedText(#13#9);
-      Assert.AreEqual(3, Buffer.CursorX);
-      Buffer.FeedText(#27 + '[2W' + #13#9);
-      Assert.AreEqual(8, Buffer.CursorX);
-      Buffer.FeedText(#27 + '[4W' + #13#9);
-      Assert.AreEqual(19, Buffer.CursorX);
-      Buffer.FeedText(#27 + '[?5W' + #27 + '[5W' + #13#9);
-      Assert.AreEqual(19, Buffer.CursorX);
-      Buffer.FeedText(#27 + '[?5W' + #13#9);
-      Assert.AreEqual(8, Buffer.CursorX);
-     Finally
-      Buffer.Free;
-     End;
+      For Sequence In TArray<String>.Create(#27 + '[W', #27 + '[0W') Do
+        Begin
+          Buffer := TTerminalBuffer.Create(20, 3);
+          Try
+            Buffer.FeedText(#27 + '[4G');
+            For Ch In Sequence Do
+              Buffer.FeedText(Ch);
+            Buffer.FeedText(#13#9);
+            Assert.AreEqual(3, Buffer.CursorX);
+            Buffer.FeedText(#27 + '[2W' + #13#9);
+            Assert.AreEqual(8, Buffer.CursorX);
+            Buffer.FeedText(#27 + '[4W' + #13#9);
+            Assert.AreEqual(19, Buffer.CursorX);
+            Buffer.FeedText(#27 + '[?5W' + #27 + '[5W' + #13#9);
+            Assert.AreEqual(19, Buffer.CursorX);
+            Buffer.FeedText(#27 + '[?5W' + #13#9);
+            Assert.AreEqual(8, Buffer.CursorX);
+          Finally
+            Buffer.Free;
+          End;
+        End;
     End;
-  End;
 
 /// <summary>CTC does not move the cursor or cancel deferred wrapping, including ignored options.</summary>
 
- Procedure TTerminalTests.CursorTabulationControlPreservesPendingWrap;
-  Var
-   Buffer    : TTerminalBuffer;
-   Parameter : String;
-  Begin
-   For Parameter In TArray<String>.Create('', '0', '1', '2', '3', '4', '5', '6') Do
+  Procedure TTerminalTests.CursorTabulationControlPreservesPendingWrap;
+    Var
+      Buffer    : TTerminalBuffer;
+      Parameter : String;
     Begin
-     Buffer := TTerminalBuffer.Create(4, 3);
-     Try
-      Buffer.FeedText('ABCD' + #27 + '[' + Parameter + 'W');
-      Assert.AreEqual('ABCD', Buffer.LineText(0));
-      Assert.AreEqual(3, Buffer.CursorX);
-      Buffer.FeedText('X');
-      Assert.AreEqual('ABCD', Buffer.LineText(0));
-      Assert.AreEqual('X', Buffer.LineText(1));
-      Assert.AreEqual(1, Buffer.CursorX);
-      Assert.AreEqual(1, Buffer.CursorY);
-     Finally
-      Buffer.Free;
-     End;
+      For Parameter In TArray<String>.Create('', '0', '1', '2', '3', '4', '5', '6') Do
+        Begin
+          Buffer := TTerminalBuffer.Create(4, 3);
+          Try
+            Buffer.FeedText('ABCD' + #27 + '[' + Parameter + 'W');
+            Assert.AreEqual('ABCD', Buffer.LineText(0));
+            Assert.AreEqual(3, Buffer.CursorX);
+            Buffer.FeedText('X');
+            Assert.AreEqual('ABCD', Buffer.LineText(0));
+            Assert.AreEqual('X', Buffer.LineText(1));
+            Assert.AreEqual(1, Buffer.CursorX);
+            Assert.AreEqual(1, Buffer.CursorY);
+          Finally
+            Buffer.Free;
+          End;
+        End;
     End;
-  End;
 
 /// <summary>DECRQSS s reports the full width while preserving deferred wrap.</summary>
 
- Procedure TTerminalTests.HorizontalMarginStatusTracksWidth;
-  Var
-   Buffer  : TTerminalBuffer;
-   Ch      : Char;
-   Request : String;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 4);
-   Try
-    Buffer.FeedText('ABCDEFGH');
-    Request := #27 + 'P$qs' + #27 + Chr(92);
-    For Ch In Request Do
-     Buffer.FeedText(Ch);
-    Assert.AreEqual(#27 + 'P1$r1;8s' + #27 + Chr(92), Buffer.TakeResponses);
-    Buffer.FeedText('X');
-    Assert.AreEqual('X', Buffer.LineText(1));
-    Buffer.Resize(12, 4);
-    Buffer.FeedText(Request);
-    Assert.AreEqual(#27 + 'P1$r1;12s' + #27 + Chr(92), Buffer.TakeResponses);
-    Buffer.FeedText(#27 + '[?1049h' + Request);
-    Assert.AreEqual(#27 + 'P1$r1;12s' + #27 + Chr(92), Buffer.TakeResponses);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.HorizontalMarginStatusTracksWidth;
+    Var
+      Buffer  : TTerminalBuffer;
+      Ch      : Char;
+      Request : String;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 4);
+      Try
+        Buffer.FeedText('ABCDEFGH');
+        Request := #27 + 'P$qs' + #27 + Chr(92);
+        For Ch In Request Do
+          Buffer.FeedText(Ch);
+        Assert.AreEqual(#27 + 'P1$r1;8s' + #27 + Chr(92), Buffer.TakeResponses);
+        Buffer.FeedText('X');
+        Assert.AreEqual('X', Buffer.LineText(1));
+        Buffer.Resize(12, 4);
+        Buffer.FeedText(Request);
+        Assert.AreEqual(#27 + 'P1$r1;12s' + #27 + Chr(92), Buffer.TakeResponses);
+        Buffer.FeedText(#27 + '[?1049h' + Request);
+        Assert.AreEqual(#27 + 'P1$r1;12s' + #27 + Chr(92), Buffer.TakeResponses);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Reject parameterized or unsupported horizontal-margin status identifiers.</summary>
 
- Procedure TTerminalTests.HorizontalMarginStatusRejectsParameters;
-  Var
-   Buffer  : TTerminalBuffer;
-   Request : String;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 4);
-   Try
-    For Request In TArray<String>.Create('0s', '1;8s', '?s', ' s') Do
-     Begin
-      Buffer.FeedText(#27 + 'P$q' + Request + #27 + Chr(92));
-      Assert.AreEqual(#27 + 'P0$r' + #27 + Chr(92), Buffer.TakeResponses);
-     End;
-    Assert.AreEqual('', Buffer.Text);
-    Assert.AreEqual(0, Buffer.CursorX);
-    Assert.AreEqual(0, Buffer.CursorY);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.HorizontalMarginStatusRejectsParameters;
+    Var
+      Buffer  : TTerminalBuffer;
+      Request : String;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 4);
+      Try
+        For Request In TArray<String>.Create('0s', '1;8s', '?s', ' s') Do
+          Begin
+            Buffer.FeedText(#27 + 'P$q' + Request + #27 + Chr(92));
+            Assert.AreEqual(#27 + 'P0$r' + #27 + Chr(92), Buffer.TakeResponses);
+          End;
+        Assert.AreEqual('', Buffer.Text);
+        Assert.AreEqual(0, Buffer.CursorX);
+        Assert.AreEqual(0, Buffer.CursorY);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Window/icon title queries return empty OSC replies and preserve title stack and wrap.</summary>
 
- Procedure TTerminalTests.TitleQueriesReturnEmptyWithoutChangingState;
-  Var
-   Buffer : TTerminalBuffer;
-   Ch     : Char;
-   Query  : String;
-  Begin
-   Buffer := TTerminalBuffer.Create(4, 3);
-   Try
-    Buffer.FeedText(#27 + ']2;original' + #7 + #27 + '[22t' + #27 + ']2;current' + #7 + 'ABCD');
-    Query := #27 + '[20t' + #27 + '[21t';
-    For Ch In Query Do
-     Buffer.FeedText(Ch);
-    Assert.AreEqual(#27 + ']L' + #27 + Chr(92) + #27 + ']l' + #27 + Chr(92), Buffer.TakeResponses);
-    Assert.AreEqual('current', Buffer.Title);
-    Assert.AreEqual('ABCD', Buffer.Text);
-    Buffer.FeedText('X');
-    Assert.AreEqual('X', Buffer.LineText(1));
-    Buffer.FeedText(#27 + '[23t');
-    Assert.AreEqual('original', Buffer.Title);
-    Assert.AreEqual('', Buffer.TakeResponses);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.TitleQueriesReturnEmptyWithoutChangingState;
+    Var
+      Buffer : TTerminalBuffer;
+      Ch     : Char;
+      Query  : String;
+    Begin
+      Buffer := TTerminalBuffer.Create(4, 3);
+      Try
+        Buffer.FeedText(#27 + ']2;original' + #7 + #27 + '[22t' + #27 + ']2;current' + #7 + 'ABCD');
+        Query := #27 + '[20t' + #27 + '[21t';
+        For Ch In Query Do
+          Buffer.FeedText(Ch);
+        Assert.AreEqual(#27 + ']L' + #27 + Chr(92) + #27 + ']l' + #27 + Chr(92), Buffer.TakeResponses);
+        Assert.AreEqual('current', Buffer.Title);
+        Assert.AreEqual('ABCD', Buffer.Text);
+        Buffer.FeedText('X');
+        Assert.AreEqual('X', Buffer.LineText(1));
+        Buffer.FeedText(#27 + '[23t');
+        Assert.AreEqual('original', Buffer.Title);
+        Assert.AreEqual('', Buffer.TakeResponses);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Extra parameters and private prefixes cannot become title queries.</summary>
 
- Procedure TTerminalTests.TitleQueriesRejectUnsupportedForms;
-  Var
-   Buffer : TTerminalBuffer;
-   Query  : String;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 3);
-   Try
-    For Query In TArray<String>.Create('[20;0t', '[21;2t', '[?20t', '[>21t', '[21:0t') Do
-     Begin
-      Buffer.FeedText(#27 + Query);
-      Assert.AreEqual('', Buffer.TakeResponses);
-     End;
-    Buffer.FeedText(#27 + '[21t');
-    Assert.AreEqual(#27 + ']l' + #27 + Chr(92), Buffer.TakeResponses);
-    Assert.AreEqual('', Buffer.Text);
-    Assert.AreEqual('', Buffer.Title);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.TitleQueriesRejectUnsupportedForms;
+    Var
+      Buffer : TTerminalBuffer;
+      Query  : String;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 3);
+      Try
+        For Query In TArray<String>.Create('[20;0t', '[21;2t', '[?20t', '[>21t', '[21:0t') Do
+          Begin
+            Buffer.FeedText(#27 + Query);
+            Assert.AreEqual('', Buffer.TakeResponses);
+          End;
+        Buffer.FeedText(#27 + '[21t');
+        Assert.AreEqual(#27 + ']l' + #27 + Chr(92), Buffer.TakeResponses);
+        Assert.AreEqual('', Buffer.Text);
+        Assert.AreEqual('', Buffer.Title);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
- Procedure TTerminalTests.AlternateScrollModeFragmentsAndDefault;
-  Var
-   Buffer : TTerminalBuffer;
-   Bytes  : TBytes;
-   Split  : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 3);
-   Try
-    Assert.IsTrue(Buffer.AlternateScroll);
-    Bytes     := TEncoding.UTF8.GetBytes(#27 + '[?1007l' + #27 + '[?1007$p');
-    For Split := 0 To Length(Bytes) Do
-     Begin
-      Buffer.Reset;
-      Buffer.Feed(Copy(Bytes, 0, Split));
-      Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
-      Assert.IsFalse(Buffer.AlternateScroll);
-      Assert.AreEqual(0, Buffer.MouseMode);
-      Assert.IsFalse(Buffer.AlternateScreen);
-      Assert.AreEqual(#27 + '[?1007;2$y', Buffer.TakeResponses);
-     End;
-    Buffer.FeedText(#27 + '[?1007h' + #27 + '[?1049h' + #27 + '[?1049l' + #27 + '[?1007$p');
-    Assert.IsTrue(Buffer.AlternateScroll);
-    Assert.AreEqual(#27 + '[?1007;1$y', Buffer.TakeResponses);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+/// <summary>DECREQTPARM replies for default, zero and one preserve cursor, rendition and deferred wrap.</summary>
+
+  Procedure TTerminalTests.TerminalParameterRequestsPreserveState;
+    Var
+      Buffer   : TTerminalBuffer;
+      Request  : String;
+      Expected : String;
+      Ch       : Char;
+    Begin
+      For Request In TArray<String>.Create(#27 + '[x', #27 + '[0x', #27 + '[1x') Do
+        Begin
+          Buffer := TTerminalBuffer.Create(4, 3);
+          Try
+            Buffer.FeedText('ABCD' + #27 + '[31m');
+            For Ch In Request Do
+              Buffer.FeedText(Ch);
+            If Request = #27 + '[1x' Then
+              Expected := #27 + '[3;1;1;120;120;1;0x'
+            Else
+              Expected := #27 + '[2;1;1;120;120;1;0x';
+            Assert.AreEqual(Expected, Buffer.TakeResponses);
+            Assert.AreEqual('', Buffer.TakeResponses);
+            Assert.AreEqual(3, Buffer.CursorX);
+            Buffer.FeedText('X');
+            Assert.AreEqual('ABCD', Buffer.LineText(0));
+            Assert.AreEqual('X', Buffer.LineText(1));
+            Assert.AreEqual(1, Buffer.Cell[0, 1].Foreground);
+          Finally
+            Buffer.Free;
+          End;
+        End;
+    End;
+
+/// <summary>Reports, unsupported parameters and WYSE-shaped commands cannot trigger reply loops.</summary>
+
+  Procedure TTerminalTests.TerminalParameterReportsDoNotLoop;
+    Var
+      Buffer  : TTerminalBuffer;
+      Request : String;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 3);
+      Try
+        For Request In TArray<String>.Create('[2x', '[3x', '[9x', '[0;1x', '[0;0;0x', '[?0x', '[>0x', '[0:0x', '[2;1;1;120;120;1;0x', '[3;1;1;120;120;1;0x') Do
+          Begin
+            Buffer.FeedText(#27 + Request);
+            Assert.AreEqual('', Buffer.TakeResponses);
+          End;
+        Assert.AreEqual('', Buffer.Text);
+        Assert.AreEqual(0, Buffer.CursorX);
+        Assert.AreEqual(0, Buffer.CursorY);
+      Finally
+        Buffer.Free;
+      End;
+    End;
+
+/// <summary>Insert aliases use the selection and paste into a live CMD process.</summary>
+
+  Procedure TTerminalTests.InsertClipboardAliases;
+    Var
+      Settings : TGuakeSettings;
+      Main     : TfrmMain;
+      Frame    : TfraTerminal;
+      Key      : Word;
+      Previous : String;
+      Output   : String;
+      Deadline : UInt64;
+    Begin
+      Previous := Clipboard.AsText;
+      Output   := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
+      Settings := TGuakeSettings.Create(Output + '.ini');
+      Main     := Nil;
+      Try
+        Settings.General.DefaultShell         := 'cmd';
+        Settings.General.UseTrayicon          := False;
+        Settings.General.UsePopup             := False;
+        Settings.General.CopyOnSelect         := False;
+        Settings.General.SaveTabsWhenChanged  := False;
+        Settings.Keybindings.Global.ShowHide  := 'disabled';
+        Settings.Keybindings.Global.ShowFocus := 'disabled';
+        Main                                  := TfrmMain.Create(Nil);
+        Main.Bind(Settings);
+        Main.StartTerminal;
+        Frame                      := Main.ActiveTerminalFrame;
+        Main.pollTimer.Enabled     := False;
+        Frame.refreshTimer.Enabled := False;
+        Frame.Session.Buffer.Reset;
+        Frame.Session.Buffer.FeedText('COPY_ALIAS');
+        Frame.SelectAll;
+        Key := VK_INSERT;
+        TTerminalFrameAccess(Frame).KeyDown(Key, [ssCtrl, ssShift]);
+        Application.ProcessMessages;
+        Assert.AreEqual('COPY_ALIAS', TrimRight(Clipboard.AsText));
+        Frame.Session.Buffer.Reset;
+        Frame.Session.Buffer.FeedText('CTRL_INSERT');
+        Frame.SelectAll;
+        Key := VK_INSERT;
+        TTerminalFrameAccess(Frame).KeyDown(Key, [ssCtrl]);
+        Application.ProcessMessages;
+        Assert.AreEqual('CTRL_INSERT', TrimRight(Clipboard.AsText));
+        Clipboard.AsText := 'echo PASTE_OK > "' + Output + '"' + #13;
+        Key              := VK_INSERT;
+        TTerminalFrameAccess(Frame).KeyDown(Key, [ssShift]);
+        Application.ProcessMessages;
+        Deadline := GetTickCount64 + 5000;
+        While Not TFile.Exists(Output) And (GetTickCount64 < Deadline) Do
+          Sleep(10);
+        Assert.IsTrue(TFile.Exists(Output), 'Shift+Insert must paste into the shell');
+      Finally
+        Main.Free;
+        Settings.Free;
+        Clipboard.AsText := Previous;
+        If TFile.Exists(Output) Then
+          TFile.Delete(Output);
+      End;
+    End;
+
+/// <summary>Save/restore uses the directory reached by cd/Set-Location, including spaces and plus signs.</summary>
+
+  Procedure TTerminalTests.LiveDirectorySurvivesSessionRestore;
+    Var
+      Settings   : TGuakeSettings;
+      Controller : TTerminalController;
+      Root       : String;
+      Target     : String;
+      Shell      : String;
+      State      : String;
+      Deadline   : UInt64;
+    Begin
+      Root   := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
+      Target := TPath.Combine(Root, 'folder + space');
+      TDirectory.CreateDirectory(Target);
+      Settings := TGuakeSettings.Create(Root + '.ini');
+      Try
+        For Shell In TArray<String>.Create('cmd', 'powershell') Do
+          Begin
+            Settings.General.DefaultShell := Shell;
+            Controller                    := TTerminalController.Create(Settings);
+            Try
+              Controller.NewTab(Root);
+              If Shell = 'cmd' Then
+                Controller.ActiveSession.SendText('cd /d "' + Target + '"' + #13)
+              Else
+                Controller.ActiveSession.SendText('Set-Location -LiteralPath ' + #39 + Target + #39 + #13);
+              Deadline := GetTickCount64 + 15000;
+              Repeat
+                Controller.ActiveSession.Poll;
+                If SameText(ExcludeTrailingPathDelimiter(Target), ExcludeTrailingPathDelimiter(Controller.ActiveSession.Directory)) Then
+                  Break;
+                Sleep(20);
+              Until GetTickCount64 >= Deadline;
+              Assert.AreEqual(LowerCase(Target), LowerCase(ExcludeTrailingPathDelimiter(Controller.ActiveSession.Directory)), Shell + ' live directory');
+              State := Controller.SessionState;
+              Controller.RestoreState(State);
+              Assert.AreEqual(LowerCase(Target), LowerCase(ExcludeTrailingPathDelimiter(Controller.ActiveSession.Directory)), Shell + ' restored directory');
+            Finally
+              Controller.Free;
+            End;
+          End;
+      Finally
+        Settings.Free;
+        TDirectory.Delete(Root, True);
+      End;
+    End;
+
+/// <summary>Git SDK Bash and wrapper-launched Zsh expose their live filesystem directory.</summary>
+
+  Procedure TTerminalTests.GitShellLiveDirectory;
+    Var
+      Settings : TGuakeSettings;
+      Session  : TTerminalSession;
+      Profile  : TShellProfile;
+      Kind     : TGuakeShell;
+      Root     : String;
+      Target   : String;
+      Deadline : UInt64;
+    Begin
+      Root   := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
+      Target := TPath.Combine(Root, 'git + directory');
+      TDirectory.CreateDirectory(Target);
+      Settings := TGuakeSettings.Create(Root + '.ini');
+      Try
+        For Kind In [gsBash, gsZsh] Do
+          Begin
+            Profile := TShellProfile.Resolve(Kind);
+            If Kind = gsZsh Then
+              Profile.Executable := TPath.Combine(ExtractFilePath(GetEnvironmentVariable('GUAKE_TEST_EXE')), 'git-zsh.exe');
+            Assert.IsTrue(Profile.Available, 'Git SDK shell must be available');
+            Session := TTerminalSession.Create(Profile, Root, Settings);
+            Try
+              Session.SendText('cd ' + #39 + StringReplace(Target, '\', '/', [rfReplaceAll]) + #39 + #13);
+              Deadline := GetTickCount64 + 15000;
+              Repeat
+                Session.Poll;
+                If SameText(ExcludeTrailingPathDelimiter(Session.Directory), Target) Then
+                  Break;
+                Sleep(20);
+              Until GetTickCount64 >= Deadline;
+              Assert.AreEqual(LowerCase(Target), LowerCase(ExcludeTrailingPathDelimiter(Session.Directory)), Profile.Executable);
+            Finally
+              Session.Free;
+            End;
+          End;
+      Finally
+        Settings.Free;
+        TDirectory.Delete(Root, True);
+      End;
+    End;
+
+/// <summary>Applying settings to a visible dropdown does not follow the cursor to another monitor.</summary>
+
+  Procedure TTerminalTests.OpenTerminalKeepsItsMonitor;
+    Var
+      Settings : TGuakeSettings;
+      Main     : TfrmMain;
+      Previous : TPoint;
+      Work     : TRect;
+    Begin
+      If Screen.MonitorCount < 2 Then
+        Begin
+          Assert.IsTrue(Screen.MonitorCount = 1, 'Cross-monitor check requires two monitors');
+          Exit;
+        End;
+      Previous := Mouse.CursorPos;
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Main     := Nil;
+      Try
+        Settings.General.MouseDisplay      := True;
+        Settings.General.UseTrayicon       := False;
+        Settings.General.DropDownAnimation := False;
+        Main                               := TfrmMain.Create(Nil);
+        Main.Bind(Settings);
+        Work := Screen.Monitors[0].WorkareaRect;
+        Main.SetBounds(Work.Left + 10, Work.Top + 10, 400, 200);
+        Main.Show;
+        Work            := Screen.Monitors[1].WorkareaRect;
+        Mouse.CursorPos := Point(Work.Left + 20, Work.Top + 20);
+        Main.ApplySettings;
+        Assert.AreEqual(Screen.Monitors[0].Handle, Screen.MonitorFromWindow(Main.Handle).Handle);
+      Finally
+        Main.Free;
+        Settings.Free;
+        Mouse.CursorPos := Previous;
+      End;
+    End;
+
+  Procedure TTerminalTests.AlternateScrollModeFragmentsAndDefault;
+    Var
+      Buffer : TTerminalBuffer;
+      Bytes  : TBytes;
+      Split  : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 3);
+      Try
+        Assert.IsTrue(Buffer.AlternateScroll);
+        Bytes     := TEncoding.UTF8.GetBytes(#27 + '[?1007l' + #27 + '[?1007$p');
+        For Split := 0 To Length(Bytes) Do
+          Begin
+            Buffer.Reset;
+            Buffer.Feed(Copy(Bytes, 0, Split));
+            Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+            Assert.IsFalse(Buffer.AlternateScroll);
+            Assert.AreEqual(0, Buffer.MouseMode);
+            Assert.IsFalse(Buffer.AlternateScreen);
+            Assert.AreEqual(#27 + '[?1007;2$y', Buffer.TakeResponses);
+          End;
+        Buffer.FeedText(#27 + '[?1007h' + #27 + '[?1049h' + #27 + '[?1049l' + #27 + '[?1007$p');
+        Assert.IsTrue(Buffer.AlternateScroll);
+        Assert.AreEqual(#27 + '[?1007;1$y', Buffer.TakeResponses);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Checks alternate-scroll saved values and enabled defaults restored by both reset forms.</summary>
 
- Procedure TTerminalTests.AlternateScrollModeSaveRestoreAndReset;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 3);
-   Try
-    Buffer.FeedText(#27 + '[?1007s' + #27 + '[?1007l' + #27 + '[?1007r');
-    Assert.IsTrue(Buffer.AlternateScroll);
-    Buffer.FeedText(#27 + '[?1007l' + #27 + '[?1007s' + #27 + '[?1007h' + #27 + '[?1007r');
-    Assert.IsFalse(Buffer.AlternateScroll);
-    Buffer.FeedText(#27 + '[!p' + #27 + '[?1007r');
-    Assert.IsTrue(Buffer.AlternateScroll, 'DECSTR clears saved false state and restores the enabled default');
-    Buffer.FeedText(#27 + '[?1007l' + #27 + 'c');
-    Assert.IsTrue(Buffer.AlternateScroll);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.AlternateScrollModeSaveRestoreAndReset;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 3);
+      Try
+        Buffer.FeedText(#27 + '[?1007s' + #27 + '[?1007l' + #27 + '[?1007r');
+        Assert.IsTrue(Buffer.AlternateScroll);
+        Buffer.FeedText(#27 + '[?1007l' + #27 + '[?1007s' + #27 + '[?1007h' + #27 + '[?1007r');
+        Assert.IsFalse(Buffer.AlternateScroll);
+        Buffer.FeedText(#27 + '[!p' + #27 + '[?1007r');
+        Assert.IsTrue(Buffer.AlternateScroll, 'DECSTR clears saved false state and restores the enabled default');
+        Buffer.FeedText(#27 + '[?1007l' + #27 + 'c');
+        Assert.IsTrue(Buffer.AlternateScroll);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Checks independent pixel encoding negotiation and fragmented mode queries without enabling tracking.</summary>
 
- Procedure TTerminalTests.PixelMouseFormatFragmentsAndIndependentFlags;
-  Var
-   Buffer : TTerminalBuffer;
-   Bytes  : TBytes;
-   Split  : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 3);
-   Try
-    Bytes     := TEncoding.UTF8.GetBytes(#27 + '[?1016h' + #27 + '[?1006;1015;1016$p');
-    For Split := 0 To Length(Bytes) Do
-     Begin
-      Buffer.Reset;
-      Buffer.Feed(Copy(Bytes, 0, Split));
-      Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
-      Assert.IsTrue(Buffer.PixelMouse);
-      Assert.AreEqual(0, Buffer.MouseMode);
-      Assert.AreEqual(#27 + '[?1006;2$y' + #27 + '[?1015;2$y' + #27 + '[?1016;1$y', Buffer.TakeResponses);
-     End;
-    Buffer.FeedText(#27 + '[?1000;1005;1006;1015h' + #27 + '[?1016l');
-    Assert.IsFalse(Buffer.PixelMouse);
-    Assert.IsTrue(Buffer.Utf8Mouse And Buffer.SGRMouse And Buffer.UrxvtMouse);
-    Assert.AreEqual(1000, Buffer.MouseMode, 'Encoding flags must not disable tracking');
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.PixelMouseFormatFragmentsAndIndependentFlags;
+    Var
+      Buffer : TTerminalBuffer;
+      Bytes  : TBytes;
+      Split  : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 3);
+      Try
+        Bytes     := TEncoding.UTF8.GetBytes(#27 + '[?1016h' + #27 + '[?1006;1015;1016$p');
+        For Split := 0 To Length(Bytes) Do
+          Begin
+            Buffer.Reset;
+            Buffer.Feed(Copy(Bytes, 0, Split));
+            Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+            Assert.IsTrue(Buffer.PixelMouse);
+            Assert.AreEqual(0, Buffer.MouseMode);
+            Assert.AreEqual(#27 + '[?1006;2$y' + #27 + '[?1015;2$y' + #27 + '[?1016;1$y', Buffer.TakeResponses);
+          End;
+        Buffer.FeedText(#27 + '[?1000;1005;1006;1015h' + #27 + '[?1016l');
+        Assert.IsFalse(Buffer.PixelMouse);
+        Assert.IsTrue(Buffer.Utf8Mouse And Buffer.SGRMouse And Buffer.UrxvtMouse);
+        Assert.AreEqual(1000, Buffer.MouseMode, 'Encoding flags must not disable tracking');
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Exercises pixel mode save/restore values and hard/soft reset without reviving saved state.</summary>
 
- Procedure TTerminalTests.PixelMouseFormatSaveRestoreAndReset;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 3);
-   Try
-    Buffer.FeedText(#27 + '[?1016h' + #27 + '[?1016s' + #27 + '[?1016l' + #27 + '[?1016r');
-    Assert.IsTrue(Buffer.PixelMouse);
-    Buffer.FeedText(#27 + '[?1016l' + #27 + '[?1016s' + #27 + '[?1016h' + #27 + '[?1016r');
-    Assert.IsFalse(Buffer.PixelMouse);
-    Buffer.FeedText(#27 + '[?1016h' + #27 + '[?1016s' + #27 + '[!p' + #27 + '[?1016r');
-    Assert.IsFalse(Buffer.PixelMouse);
-    Buffer.FeedText(#27 + '[?1016h' + #27 + 'c' + #27 + '[?1016$p');
-    Assert.IsFalse(Buffer.PixelMouse);
-    Assert.AreEqual(#27 + '[?1016;2$y', Buffer.TakeResponses);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.PixelMouseFormatSaveRestoreAndReset;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 3);
+      Try
+        Buffer.FeedText(#27 + '[?1016h' + #27 + '[?1016s' + #27 + '[?1016l' + #27 + '[?1016r');
+        Assert.IsTrue(Buffer.PixelMouse);
+        Buffer.FeedText(#27 + '[?1016l' + #27 + '[?1016s' + #27 + '[?1016h' + #27 + '[?1016r');
+        Assert.IsFalse(Buffer.PixelMouse);
+        Buffer.FeedText(#27 + '[?1016h' + #27 + '[?1016s' + #27 + '[!p' + #27 + '[?1016r');
+        Assert.IsFalse(Buffer.PixelMouse);
+        Buffer.FeedText(#27 + '[?1016h' + #27 + 'c' + #27 + '[?1016$p');
+        Assert.IsFalse(Buffer.PixelMouse);
+        Assert.AreEqual(#27 + '[?1016;2$y', Buffer.TakeResponses);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Checks independent URXVT encoding negotiation without enabling tracking or altering other formats.</summary>
 
- Procedure TTerminalTests.UrxvtMouseFormatFragmentsAndModeQueries;
-  Var
-   Buffer : TTerminalBuffer;
-   Bytes  : TBytes;
-   Split  : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 3);
-   Try
-    Bytes     := TEncoding.UTF8.GetBytes(#27 + '[?1015h' + #27 + '[?1005;1006;1015$p');
-    For Split := 0 To Length(Bytes) Do
-     Begin
-      Buffer.Reset;
-      Buffer.Feed(Copy(Bytes, 0, Split));
-      Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
-      Assert.IsTrue(Buffer.UrxvtMouse);
-      Assert.AreEqual(0, Buffer.MouseMode, 'Encoding negotiation must not enable tracking');
-      Assert.AreEqual(#27 + '[?1005;2$y' + #27 + '[?1006;2$y' + #27 + '[?1015;1$y', Buffer.TakeResponses);
-     End;
-    Buffer.FeedText(#27 + '[?1005;1006;1000h');
-    Assert.IsTrue(Buffer.Utf8Mouse And Buffer.SGRMouse And Buffer.UrxvtMouse);
-    Assert.AreEqual(1000, Buffer.MouseMode);
-    Buffer.FeedText(#27 + '[?1015l');
-    Assert.IsTrue(Buffer.Utf8Mouse And Buffer.SGRMouse);
-    Assert.IsFalse(Buffer.UrxvtMouse);
-    Assert.AreEqual(1000, Buffer.MouseMode);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.UrxvtMouseFormatFragmentsAndModeQueries;
+    Var
+      Buffer : TTerminalBuffer;
+      Bytes  : TBytes;
+      Split  : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 3);
+      Try
+        Bytes     := TEncoding.UTF8.GetBytes(#27 + '[?1015h' + #27 + '[?1005;1006;1015$p');
+        For Split := 0 To Length(Bytes) Do
+          Begin
+            Buffer.Reset;
+            Buffer.Feed(Copy(Bytes, 0, Split));
+            Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+            Assert.IsTrue(Buffer.UrxvtMouse);
+            Assert.AreEqual(0, Buffer.MouseMode, 'Encoding negotiation must not enable tracking');
+            Assert.AreEqual(#27 + '[?1005;2$y' + #27 + '[?1006;2$y' + #27 + '[?1015;1$y', Buffer.TakeResponses);
+          End;
+        Buffer.FeedText(#27 + '[?1005;1006;1000h');
+        Assert.IsTrue(Buffer.Utf8Mouse And Buffer.SGRMouse And Buffer.UrxvtMouse);
+        Assert.AreEqual(1000, Buffer.MouseMode);
+        Buffer.FeedText(#27 + '[?1015l');
+        Assert.IsTrue(Buffer.Utf8Mouse And Buffer.SGRMouse);
+        Assert.IsFalse(Buffer.UrxvtMouse);
+        Assert.AreEqual(1000, Buffer.MouseMode);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Exercises URXVT true/false save values and reset of both negotiated and saved state.</summary>
 
- Procedure TTerminalTests.UrxvtMouseFormatSaveRestoreAndReset;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 3);
-   Try
-    Buffer.FeedText(#27 + '[?1015h' + #27 + '[?1015s' + #27 + '[?1015l' + #27 + '[?1015r');
-    Assert.IsTrue(Buffer.UrxvtMouse);
-    Buffer.FeedText(#27 + '[?1015l' + #27 + '[?1015s' + #27 + '[?1015h' + #27 + '[?1015r');
-    Assert.IsFalse(Buffer.UrxvtMouse);
-    Buffer.FeedText(#27 + '[?1015h' + #27 + '[?1015s' + #27 + '[!p' + #27 + '[?1015r');
-    Assert.IsFalse(Buffer.UrxvtMouse);
-    Buffer.FeedText(#27 + '[?1015h' + #27 + 'c' + #27 + '[?1015$p');
-    Assert.IsFalse(Buffer.UrxvtMouse);
-    Assert.AreEqual(#27 + '[?1015;2$y', Buffer.TakeResponses);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.UrxvtMouseFormatSaveRestoreAndReset;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 3);
+      Try
+        Buffer.FeedText(#27 + '[?1015h' + #27 + '[?1015s' + #27 + '[?1015l' + #27 + '[?1015r');
+        Assert.IsTrue(Buffer.UrxvtMouse);
+        Buffer.FeedText(#27 + '[?1015l' + #27 + '[?1015s' + #27 + '[?1015h' + #27 + '[?1015r');
+        Assert.IsFalse(Buffer.UrxvtMouse);
+        Buffer.FeedText(#27 + '[?1015h' + #27 + '[?1015s' + #27 + '[!p' + #27 + '[?1015r');
+        Assert.IsFalse(Buffer.UrxvtMouse);
+        Buffer.FeedText(#27 + '[?1015h' + #27 + 'c' + #27 + '[?1015$p');
+        Assert.IsFalse(Buffer.UrxvtMouse);
+        Assert.AreEqual(#27 + '[?1015;2$y', Buffer.TakeResponses);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>History clicks and double-clicks stay local even with application tracking, including a drag crossing into the screen.</summary>
 
- Procedure TTerminalTests.ScrollbackSelectionWorksWithMouseTracking;
-  Var
-   Settings : TGuakeSettings;
-   Main     : TfrmMain;
-   Frame    : TfraTerminal;
-   i        : Integer;
-   Height   : Integer;
-   History  : Integer;
-  Begin
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Main     := Nil;
-   Try
-    Settings.General.DefaultShell         := 'cmd';
-    Settings.General.UseTrayicon          := False;
-    Settings.General.UsePopup             := False;
-    Settings.General.SaveTabsWhenChanged  := False;
-    Settings.General.CopyOnSelect         := False;
-    Settings.General.WordChars            := '-A-Za-z0-9_';
-    Settings.Keybindings.Global.ShowHide  := 'disabled';
-    Settings.Keybindings.Global.ShowFocus := 'disabled';
-    Main                                  := TfrmMain.Create(Nil);
-    Main.Bind(Settings);
-    Main.StartTerminal;
-    Main.SetTerminalVisible(True);
-    Main.SetBounds( -30000, 0, 500, 240);
-    Main.pollTimer.Enabled     := False;
-    Frame                      := Main.ActiveTerminalFrame;
-    Frame.refreshTimer.Enabled := False;
-    Frame.Session.Buffer.Reset;
-    Frame.Session.Buffer.FeedText('HISTORY_WORD' + #13#10);
-    For i := 1 To Frame.Session.Buffer.Rows Do
-     Frame.Session.Buffer.FeedText('line' + #13#10);
-    Frame.Session.Buffer.FeedText(#27 + '[?1003;1006h');
-    Frame.RefreshTick(Nil);
-    Frame.scroll.Position := 0;
-    Height                := Frame.surface.Canvas.TextHeight('Mg');
-    History               := Frame.Session.Buffer.TotalLines - Frame.Session.Buffer.Rows;
-    Assert.IsTrue(History > 0);
-    Assert.IsTrue(TTerminalFrameAccess(Frame).DoMouseWheel([], -30, Frame.surface.ClientToScreen(Point(5, 5))));
-    Assert.IsTrue(TTerminalFrameAccess(Frame).DoMouseWheel([], -30, Frame.surface.ClientToScreen(Point(5, 5))));
-    Assert.AreEqual(0, Frame.scroll.Position, 'Partial wheel movement must not scroll a full notch');
-    Assert.IsTrue(TTerminalFrameAccess(Frame).DoMouseWheel([], -60, Frame.surface.ClientToScreen(Point(5, 5))));
-    Assert.IsTrue(Frame.scroll.Position > 0, 'Wheel over history scrolls locally instead of reporting application input');
-    Frame.scroll.Position := 0;
-    Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
-    Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
-    Assert.AreEqual('', Frame.SelectedText, 'A history click only starts a local selection');
-    Frame.SurfaceDblClick(Nil);
-    Assert.AreEqual('HISTORY_WORD', Frame.SelectedText);
-    Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
-    Frame.SurfaceMouseMove(Nil, [ssLeft], 30, 5 + History * Height);
-    Frame.SurfaceMouseUp(Nil, mbLeft, [], 30, 5 + History * Height);
-    Assert.IsTrue(Pos('HISTORY_WORD', Frame.SelectedText) > 0, 'Local selection can finish over active-screen rows');
-   Finally
-    Main.Free;
-    Settings.Free;
-   End;
-  End;
+  Procedure TTerminalTests.ScrollbackSelectionWorksWithMouseTracking;
+    Var
+      Settings : TGuakeSettings;
+      Main     : TfrmMain;
+      Frame    : TfraTerminal;
+      i        : Integer;
+      Height   : Integer;
+      History  : Integer;
+    Begin
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Main     := Nil;
+      Try
+        Settings.General.DefaultShell         := 'cmd';
+        Settings.General.UseTrayicon          := False;
+        Settings.General.UsePopup             := False;
+        Settings.General.SaveTabsWhenChanged  := False;
+        Settings.General.CopyOnSelect         := False;
+        Settings.General.WordChars            := '-A-Za-z0-9_';
+        Settings.Keybindings.Global.ShowHide  := 'disabled';
+        Settings.Keybindings.Global.ShowFocus := 'disabled';
+        Main                                  := TfrmMain.Create(Nil);
+        Main.Bind(Settings);
+        Main.StartTerminal;
+        Main.SetTerminalVisible(True);
+        Main.SetBounds( -30000, 0, 500, 240);
+        Main.pollTimer.Enabled     := False;
+        Frame                      := Main.ActiveTerminalFrame;
+        Frame.refreshTimer.Enabled := False;
+        Frame.Session.Buffer.Reset;
+        Frame.Session.Buffer.FeedText('HISTORY_WORD' + #13#10);
+        For i := 1 To Frame.Session.Buffer.Rows Do
+          Frame.Session.Buffer.FeedText('line' + #13#10);
+        Frame.Session.Buffer.FeedText(#27 + '[?1003;1006h');
+        Frame.RefreshTick(Nil);
+        Frame.scroll.Position := 0;
+        Height                := Frame.surface.Canvas.TextHeight('Mg');
+        History               := Frame.Session.Buffer.TotalLines - Frame.Session.Buffer.Rows;
+        Assert.IsTrue(History > 0);
+        Assert.IsTrue(TTerminalFrameAccess(Frame).DoMouseWheel([], -30, Frame.surface.ClientToScreen(Point(5, 5))));
+        Assert.IsTrue(TTerminalFrameAccess(Frame).DoMouseWheel([], -30, Frame.surface.ClientToScreen(Point(5, 5))));
+        Assert.AreEqual(0, Frame.scroll.Position, 'Partial wheel movement must not scroll a full notch');
+        Assert.IsTrue(TTerminalFrameAccess(Frame).DoMouseWheel([], -60, Frame.surface.ClientToScreen(Point(5, 5))));
+        Assert.IsTrue(Frame.scroll.Position > 0, 'Wheel over history scrolls locally instead of reporting application input');
+        Frame.scroll.Position := 0;
+        Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
+        Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
+        Assert.AreEqual('', Frame.SelectedText, 'A history click only starts a local selection');
+        Frame.SurfaceDblClick(Nil);
+        Assert.AreEqual('HISTORY_WORD', Frame.SelectedText);
+        Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
+        Frame.SurfaceMouseMove(Nil, [ssLeft], 30, 5 + History * Height);
+        Frame.SurfaceMouseUp(Nil, mbLeft, [], 30, 5 + History * Height);
+        Assert.IsTrue(Pos('HISTORY_WORD', Frame.SelectedText) > 0, 'Local selection can finish over active-screen rows');
+      Finally
+        Main.Free;
+        Settings.Free;
+      End;
+    End;
 
 /// <summary>Checks X10 as the lowest independent tracking bit, with saved values and reset.</summary>
 
- Procedure TTerminalTests.X10MouseModePrioritySaveRestoreAndReset;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 3);
-   Try
-    Buffer.FeedText(#27 + '[?9h' + #27 + '[?9s');
-    Assert.AreEqual(9, Buffer.MouseMode);
-    Buffer.FeedText(#27 + '[?1000h' + #27 + '[?9h');
-    Assert.AreEqual(1000, Buffer.MouseMode);
-    Buffer.FeedText(#27 + '[?1002;1003h' + #27 + '[?1003l');
-    Assert.AreEqual(1002, Buffer.MouseMode);
-    Buffer.FeedText(#27 + '[?1002;1000l');
-    Assert.AreEqual(9, Buffer.MouseMode, 'Disabling higher modes falls back to X10');
-    Buffer.FeedText(#27 + '[?9l');
-    Assert.AreEqual(0, Buffer.MouseMode);
-    Buffer.FeedText(#27 + '[?9r');
-    Assert.AreEqual(9, Buffer.MouseMode);
-    Buffer.FeedText(#27 + '[!p' + #27 + '[?9r' + #27 + '[?9$p');
-    Assert.AreEqual(0, Buffer.MouseMode);
-    Assert.AreEqual(#27 + '[?9;2$y', Buffer.TakeResponses);
-    Buffer.FeedText(#27 + '[?9h' + #27 + 'c' + #27 + '[?9$p');
-    Assert.AreEqual(0, Buffer.MouseMode);
-    Assert.AreEqual(#27 + '[?9;2$y', Buffer.TakeResponses);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.X10MouseModePrioritySaveRestoreAndReset;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 3);
+      Try
+        Buffer.FeedText(#27 + '[?9h' + #27 + '[?9s');
+        Assert.AreEqual(9, Buffer.MouseMode);
+        Buffer.FeedText(#27 + '[?1000h' + #27 + '[?9h');
+        Assert.AreEqual(1000, Buffer.MouseMode);
+        Buffer.FeedText(#27 + '[?1002;1003h' + #27 + '[?1003l');
+        Assert.AreEqual(1002, Buffer.MouseMode);
+        Buffer.FeedText(#27 + '[?1002;1000l');
+        Assert.AreEqual(9, Buffer.MouseMode, 'Disabling higher modes falls back to X10');
+        Buffer.FeedText(#27 + '[?9l');
+        Assert.AreEqual(0, Buffer.MouseMode);
+        Buffer.FeedText(#27 + '[?9r');
+        Assert.AreEqual(9, Buffer.MouseMode);
+        Buffer.FeedText(#27 + '[!p' + #27 + '[?9r' + #27 + '[?9$p');
+        Assert.AreEqual(0, Buffer.MouseMode);
+        Assert.AreEqual(#27 + '[?9;2$y', Buffer.TakeResponses);
+        Buffer.FeedText(#27 + '[?9h' + #27 + 'c' + #27 + '[?9$p');
+        Assert.AreEqual(0, Buffer.MouseMode);
+        Assert.AreEqual(#27 + '[?9;2$y', Buffer.TakeResponses);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Verifies fragmented X10 negotiation and independent mode queries.</summary>
 
- Procedure TTerminalTests.X10MouseModeFragmentsAndReports;
-  Var
-   Buffer : TTerminalBuffer;
-   Bytes  : TBytes;
-   Split  : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 3);
-   Try
-    Bytes     := TEncoding.UTF8.GetBytes(#27 + '[?9h' + #27 + '[?9;1000;1002;1003$p');
-    For Split := 0 To Length(Bytes) Do
-     Begin
-      Buffer.Reset;
-      Buffer.Feed(Copy(Bytes, 0, Split));
-      Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
-      Assert.AreEqual(9, Buffer.MouseMode);
-      Assert.AreEqual(#27 + '[?9;1$y' + #27 + '[?1000;2$y' + #27 + '[?1002;2$y' + #27 + '[?1003;2$y', Buffer.TakeResponses);
-     End;
-    Buffer.FeedText(#27 + '[?9l' + #27 + '[?9s' + #27 + '[?9h' + #27 + '[?9r');
-    Assert.AreEqual(0, Buffer.MouseMode, 'Saved false X10 state must be restored');
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.X10MouseModeFragmentsAndReports;
+    Var
+      Buffer : TTerminalBuffer;
+      Bytes  : TBytes;
+      Split  : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 3);
+      Try
+        Bytes     := TEncoding.UTF8.GetBytes(#27 + '[?9h' + #27 + '[?9;1000;1002;1003$p');
+        For Split := 0 To Length(Bytes) Do
+          Begin
+            Buffer.Reset;
+            Buffer.Feed(Copy(Bytes, 0, Split));
+            Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+            Assert.AreEqual(9, Buffer.MouseMode);
+            Assert.AreEqual(#27 + '[?9;1$y' + #27 + '[?1000;2$y' + #27 + '[?1002;2$y' + #27 + '[?1003;2$y', Buffer.TakeResponses);
+          End;
+        Buffer.FeedText(#27 + '[?9l' + #27 + '[?9s' + #27 + '[?9h' + #27 + '[?9r');
+        Assert.AreEqual(0, Buffer.MouseMode, 'Saved false X10 state must be restored');
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Checks every combination of supported mouse modes, independent DECRQM bits and priority fallback.</summary>
 
- Procedure TTerminalTests.MouseTrackingModesAreIndependentAndPrioritized;
-  Const
-   Modes : Array[0..2] Of Integer = (1000, 1002, 1003);
-  Var
-   Buffer     : TTerminalBuffer;
-   Mask       : Integer;
-   Index      : Integer;
-   ActiveMask : Integer;
-   Expected   : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 3);
-   Try
-    For Mask   := 0 To 7 Do
-     For Index := 0 To 2 Do
-      Begin
-       Buffer.Reset;
-       If (Mask And 4) <> 0 Then
-        Buffer.FeedText(#27 + '[?1003h');
-       If (Mask And 2) <> 0 Then
-        Buffer.FeedText(#27 + '[?1002h');
-       If (Mask And 1) <> 0 Then
-        Buffer.FeedText(#27 + '[?1000h');
-       Buffer.FeedText(#27 + '[?1000;1002;1003$p');
-       Assert.AreEqual(Format(#27 + '[?1000;%d$y' + #27 + '[?1002;%d$y' + #27 + '[?1003;%d$y',
-       [2 - Ord((Mask And 1) <> 0), 2 - Ord((Mask And 2) <> 0), 2 - Ord((Mask And 4) <> 0)]), Buffer.TakeResponses);
-       If (Mask And 4) <> 0 Then
-        Expected := 1003
-       Else If (Mask And 2) <> 0 Then
-        Expected := 1002
-       Else If (Mask And 1) <> 0 Then
-        Expected := 1000
-       Else
-        Expected := 0;
-       Assert.AreEqual(Expected, Buffer.MouseMode, 'Activation order must not replace higher-priority modes');
-       Buffer.FeedText(#27 + '[?' + IntToStr(Modes[Index]) + 'l');
-       ActiveMask := Mask And Not(1 Shl Index);
-       If (ActiveMask And 4) <> 0 Then
-        Expected := 1003
-       Else If (ActiveMask And 2) <> 0 Then
-        Expected := 1002
-       Else If (ActiveMask And 1) <> 0 Then
-        Expected := 1000
-       Else
-        Expected := 0;
-       Assert.AreEqual(Expected, Buffer.MouseMode, 'Disabling one mode preserves all other bits');
+  Procedure TTerminalTests.MouseTrackingModesAreIndependentAndPrioritized;
+    Const
+      Modes : Array[0..2] Of Integer = (1000, 1002, 1003);
+    Var
+      Buffer     : TTerminalBuffer;
+      Mask       : Integer;
+      Index      : Integer;
+      ActiveMask : Integer;
+      Expected   : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 3);
+      Try
+        For Mask    := 0 To 7 Do
+          For Index := 0 To 2 Do
+            Begin
+              Buffer.Reset;
+              If (Mask And 4) <> 0 Then
+                Buffer.FeedText(#27 + '[?1003h');
+              If (Mask And 2) <> 0 Then
+                Buffer.FeedText(#27 + '[?1002h');
+              If (Mask And 1) <> 0 Then
+                Buffer.FeedText(#27 + '[?1000h');
+              Buffer.FeedText(#27 + '[?1000;1002;1003$p');
+              Assert.AreEqual(Format(#27 + '[?1000;%d$y' + #27 + '[?1002;%d$y' + #27 + '[?1003;%d$y',
+              [2 - Ord((Mask And 1) <> 0), 2 - Ord((Mask And 2) <> 0), 2 - Ord((Mask And 4) <> 0)]), Buffer.TakeResponses);
+              If (Mask And 4) <> 0 Then
+                Expected := 1003
+              Else If (Mask And 2) <> 0 Then
+                Expected := 1002
+              Else If (Mask And 1) <> 0 Then
+                Expected := 1000
+              Else
+                Expected := 0;
+              Assert.AreEqual(Expected, Buffer.MouseMode, 'Activation order must not replace higher-priority modes');
+              Buffer.FeedText(#27 + '[?' + IntToStr(Modes[Index]) + 'l');
+              ActiveMask := Mask And Not(1 Shl Index);
+              If (ActiveMask And 4) <> 0 Then
+                Expected := 1003
+              Else If (ActiveMask And 2) <> 0 Then
+                Expected := 1002
+              Else If (ActiveMask And 1) <> 0 Then
+                Expected := 1000
+              Else
+                Expected := 0;
+              Assert.AreEqual(Expected, Buffer.MouseMode, 'Disabling one mode preserves all other bits');
+            End;
+      Finally
+        Buffer.Free;
       End;
-   Finally
-    Buffer.Free;
-   End;
-  End;
+    End;
 
 /// <summary>Exercises saved mouse mode bits across fragmented commands, priority changes and soft/hard reset.</summary>
 
- Procedure TTerminalTests.MouseTrackingSaveRestoreFragmentsAndReset;
-  Var
-   Buffer : TTerminalBuffer;
-   Bytes  : TBytes;
-   Split  : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 3);
-   Try
-    Bytes     := TEncoding.UTF8.GetBytes(#27 + '[?1000;1002;1003h' + #27 + '[?1000;1002;1003s' + #27 + '[?1000;1002;1003l' + #27 + '[?1000;1002;1003r');
-    For Split := 0 To Length(Bytes) Do
-     Begin
-      Buffer.Reset;
-      Buffer.Feed(Copy(Bytes, 0, Split));
-      Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
-      Assert.AreEqual(1003, Buffer.MouseMode);
-      Buffer.FeedText(#27 + '[?1003l');
-      Assert.AreEqual(1002, Buffer.MouseMode);
-      Buffer.FeedText(#27 + '[?1002l');
-      Assert.AreEqual(1000, Buffer.MouseMode);
-      Buffer.FeedText(#27 + '[?1000l');
-      Assert.AreEqual(0, Buffer.MouseMode);
-     End;
-    Buffer.Reset;
-    Buffer.FeedText(#27 + '[?1000;1002;1003s' + #27 + '[?1000;1002;1003h' + #27 + '[?1000;1002;1003r');
-    Assert.AreEqual(0, Buffer.MouseMode, 'Saved false values are restored independently');
-    Buffer.FeedText(#27 + '[?1000;1002;1003h' + #27 + '[?1000;1002;1003s' + #27 + '[!p' + #27 + '[?1000;1002;1003r');
-    Assert.AreEqual(0, Buffer.MouseMode, 'DECSTR clears active and saved tracking modes');
-    Buffer.FeedText(#27 + '[?1000;1002;1003h' + #27 + 'c' + #27 + '[?1000;1002;1003$p');
-    Assert.AreEqual(0, Buffer.MouseMode);
-    Assert.AreEqual(#27 + '[?1000;2$y' + #27 + '[?1002;2$y' + #27 + '[?1003;2$y', Buffer.TakeResponses);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.MouseTrackingSaveRestoreFragmentsAndReset;
+    Var
+      Buffer : TTerminalBuffer;
+      Bytes  : TBytes;
+      Split  : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 3);
+      Try
+        Bytes     := TEncoding.UTF8.GetBytes(#27 + '[?1000;1002;1003h' + #27 + '[?1000;1002;1003s' + #27 + '[?1000;1002;1003l' + #27 + '[?1000;1002;1003r');
+        For Split := 0 To Length(Bytes) Do
+          Begin
+            Buffer.Reset;
+            Buffer.Feed(Copy(Bytes, 0, Split));
+            Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+            Assert.AreEqual(1003, Buffer.MouseMode);
+            Buffer.FeedText(#27 + '[?1003l');
+            Assert.AreEqual(1002, Buffer.MouseMode);
+            Buffer.FeedText(#27 + '[?1002l');
+            Assert.AreEqual(1000, Buffer.MouseMode);
+            Buffer.FeedText(#27 + '[?1000l');
+            Assert.AreEqual(0, Buffer.MouseMode);
+          End;
+        Buffer.Reset;
+        Buffer.FeedText(#27 + '[?1000;1002;1003s' + #27 + '[?1000;1002;1003h' + #27 + '[?1000;1002;1003r');
+        Assert.AreEqual(0, Buffer.MouseMode, 'Saved false values are restored independently');
+        Buffer.FeedText(#27 + '[?1000;1002;1003h' + #27 + '[?1000;1002;1003s' + #27 + '[!p' + #27 + '[?1000;1002;1003r');
+        Assert.AreEqual(0, Buffer.MouseMode, 'DECSTR clears active and saved tracking modes');
+        Buffer.FeedText(#27 + '[?1000;1002;1003h' + #27 + 'c' + #27 + '[?1000;1002;1003$p');
+        Assert.AreEqual(0, Buffer.MouseMode);
+        Assert.AreEqual(#27 + '[?1000;2$y' + #27 + '[?1002;2$y' + #27 + '[?1003;2$y', Buffer.TakeResponses);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Checks absent DEC facilities, fragmented requests, reply-loop rejection and unchanged pending wrap.</summary>
 
- Procedure TTerminalTests.DECStatusReportsFragmentsStateAndReplyLoops;
-  Const
-   Requests : Array[0..3] Of String = (#27'[?15n', #27'[?25n', #27'[?55n', #27'[?56n');
-   Replies : Array[0..3] Of String = (#27'[?13n', #27'[?21n', #27'[?53n', #27'[?57;0n');
-  Var
-   Buffer : TTerminalBuffer;
-   Bytes  : TBytes;
-   i      : Integer;
-   Split  : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(4, 3);
-   Try
-    For i := Low(Requests) To High(Requests) Do
-     Begin
-      Bytes     := TEncoding.UTF8.GetBytes(Requests[i]);
-      For Split := 0 To Length(Bytes) Do
-       Begin
+  Procedure TTerminalTests.DECStatusReportsFragmentsStateAndReplyLoops;
+    Const
+      Requests : Array[0..3] Of String = (#27'[?15n', #27'[?25n', #27'[?55n', #27'[?56n');
+      Replies : Array[0..3] Of String = (#27'[?13n', #27'[?21n', #27'[?53n', #27'[?57;0n');
+    Var
+      Buffer : TTerminalBuffer;
+      Bytes  : TBytes;
+      i      : Integer;
+      Split  : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(4, 3);
+      Try
+        For i := Low(Requests) To High(Requests) Do
+          Begin
+            Bytes     := TEncoding.UTF8.GetBytes(Requests[i]);
+            For Split := 0 To Length(Bytes) Do
+              Begin
+                Buffer.Reset;
+                Buffer.FeedText(#27 + '[31mABCD');
+                Buffer.Feed(Copy(Bytes, 0, Split));
+                Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+                Assert.AreEqual(Replies[i], Buffer.TakeResponses);
+                Assert.AreEqual(3, Buffer.CursorX);
+                Assert.AreEqual(0, Buffer.CursorY);
+                Buffer.FeedText('X');
+                Assert.AreEqual('X', Buffer.LineText(1), 'Reports preserve pending wrap');
+                Assert.AreEqual(1, Buffer.Cell[0, 1].Foreground);
+                Buffer.FeedText(Replies[i]);
+                Assert.AreEqual('', Buffer.TakeResponses, 'Reflected status replies must not cause a response loop');
+              End;
+          End;
         Buffer.Reset;
-        Buffer.FeedText(#27 + '[31mABCD');
-        Buffer.Feed(Copy(Bytes, 0, Split));
-        Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
-        Assert.AreEqual(Replies[i], Buffer.TakeResponses);
-        Assert.AreEqual(3, Buffer.CursorX);
-        Assert.AreEqual(0, Buffer.CursorY);
-        Buffer.FeedText('X');
-        Assert.AreEqual('X', Buffer.LineText(1), 'Reports preserve pending wrap');
-        Assert.AreEqual(1, Buffer.Cell[0, 1].Foreground);
-        Buffer.FeedText(Replies[i]);
-        Assert.AreEqual('', Buffer.TakeResponses, 'Reflected status replies must not cause a response loop');
-       End;
-     End;
-    Buffer.Reset;
-    Buffer.FeedText(#27 + '[15n' + #27 + '[25n' + #27 + '[55n' + #27 + '[56n' + #27 + '[?15;0n' + #27 + '[?25:0n' + #27 + '[?55 n');
-    Assert.AreEqual('', Buffer.TakeResponses, 'Unsupported public and malformed DEC queries are ignored');
-   Finally
-    Buffer.Free;
-   End;
-  End;
+        Buffer.FeedText(#27 + '[15n' + #27 + '[25n' + #27 + '[55n' + #27 + '[56n' + #27 + '[?15;0n' + #27 + '[?25:0n' + #27 + '[?55 n');
+        Assert.AreEqual('', Buffer.TakeResponses, 'Unsupported public and malformed DEC queries are ignored');
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Verifies the page-one field in DECXCPR, including DECOM and pending wrap, without changing standard CPR.</summary>
 
- Procedure TTerminalTests.ExtendedCursorReportIncludesPageAndPreservesWrap;
-  Var
-   Buffer : TTerminalBuffer;
-   Bytes  : TBytes;
-   Split  : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(4, 6);
-   Try
-    Bytes     := TEncoding.UTF8.GetBytes(#27 + '[?6n');
-    For Split := 0 To Length(Bytes) Do
-     Begin
-      Buffer.Reset;
-      Buffer.FeedText(#27 + '[2;5r' + #27 + '[?6h' + #27 + '[2;1HABCD');
-      Buffer.Feed(Copy(Bytes, 0, Split));
-      Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
-      Assert.AreEqual(#27 + '[?2;4;1R', Buffer.TakeResponses);
-      Buffer.FeedText(#27 + '[6n');
-      Assert.AreEqual(#27 + '[2;4R', Buffer.TakeResponses);
-      Buffer.FeedText('X');
-      Assert.AreEqual(3, Buffer.CursorY);
-      Assert.AreEqual('X', Buffer.Cell[0, 3].Text);
-     End;
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.ExtendedCursorReportIncludesPageAndPreservesWrap;
+    Var
+      Buffer : TTerminalBuffer;
+      Bytes  : TBytes;
+      Split  : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(4, 6);
+      Try
+        Bytes     := TEncoding.UTF8.GetBytes(#27 + '[?6n');
+        For Split := 0 To Length(Bytes) Do
+          Begin
+            Buffer.Reset;
+            Buffer.FeedText(#27 + '[2;5r' + #27 + '[?6h' + #27 + '[2;1HABCD');
+            Buffer.Feed(Copy(Bytes, 0, Split));
+            Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+            Assert.AreEqual(#27 + '[?2;4;1R', Buffer.TakeResponses);
+            Buffer.FeedText(#27 + '[6n');
+            Assert.AreEqual(#27 + '[2;4R', Buffer.TakeResponses);
+            Buffer.FeedText('X');
+            Assert.AreEqual(3, Buffer.CursorY);
+            Assert.AreEqual('X', Buffer.Cell[0, 3].Text);
+          End;
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>HT and CHT cannot discard pending wrap at a full row, including with a programmed final-column stop.</summary>
 
- Procedure TTerminalTests.ForwardTabsPreservePendingWrapAcrossFragments;
-  Const
-   Commands : Array[0..3] Of String = (#9, #27'[I', #27'[0I', #27'[2147483647I');
-  Var
-   Buffer       : TTerminalBuffer;
-   Bytes        : TBytes;
-   CommandIndex : Integer;
-   Split        : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(4, 3);
-   Try
-    For CommandIndex := Low(Commands) To High(Commands) Do
-     Begin
-      Bytes     := TEncoding.UTF8.GetBytes(Commands[CommandIndex]);
-      For Split := 0 To Length(Bytes) Do
-       Begin
-        Buffer.Reset;
-        Buffer.FeedText(#27 + '[4G' + #27 + 'H' + #27 + '[HABCD');
-        Buffer.Feed(Copy(Bytes, 0, Split));
-        Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
-        Assert.AreEqual(3, Buffer.CursorX);
-        Assert.AreEqual(0, Buffer.CursorY);
-        Assert.AreEqual('ABCD', Buffer.LineText(0));
-        Buffer.FeedText('X');
-        Assert.AreEqual('ABCD', Buffer.LineText(0), 'Forward tab must not make the next character overwrite the right edge');
-        Assert.AreEqual('X', Buffer.LineText(1));
-        Assert.IsTrue(Buffer.Cell[3, 0].SoftWrapped);
-       End;
-     End;
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.ForwardTabsPreservePendingWrapAcrossFragments;
+    Const
+      Commands : Array[0..3] Of String = (#9, #27'[I', #27'[0I', #27'[2147483647I');
+    Var
+      Buffer       : TTerminalBuffer;
+      Bytes        : TBytes;
+      CommandIndex : Integer;
+      Split        : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(4, 3);
+      Try
+        For CommandIndex := Low(Commands) To High(Commands) Do
+          Begin
+            Bytes     := TEncoding.UTF8.GetBytes(Commands[CommandIndex]);
+            For Split := 0 To Length(Bytes) Do
+              Begin
+                Buffer.Reset;
+                Buffer.FeedText(#27 + '[4G' + #27 + 'H' + #27 + '[HABCD');
+                Buffer.Feed(Copy(Bytes, 0, Split));
+                Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+                Assert.AreEqual(3, Buffer.CursorX);
+                Assert.AreEqual(0, Buffer.CursorY);
+                Assert.AreEqual('ABCD', Buffer.LineText(0));
+                Buffer.FeedText('X');
+                Assert.AreEqual('ABCD', Buffer.LineText(0), 'Forward tab must not make the next character overwrite the right edge');
+                Assert.AreEqual('X', Buffer.LineText(1));
+                Assert.IsTrue(Buffer.Cell[3, 0].SoftWrapped);
+              End;
+          End;
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Backward tab clears pending wrap; forward tabs do not invent wrapping when DECAWM is disabled.</summary>
 
- Procedure TTerminalTests.BackwardTabsCancelWrapAndForwardTabsRespectDisabledAutowrap;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(16, 3);
-   Try
-    Buffer.FeedText(StringOfChar('A', 16) + #27 + '[Z');
-    Assert.AreEqual(8, Buffer.CursorX);
-    Buffer.FeedText('X');
-    Assert.AreEqual(0, Buffer.CursorY);
-    Assert.AreEqual('X', Buffer.Cell[8, 0].Text);
-    Assert.IsFalse(Buffer.Cell[15, 0].SoftWrapped);
-    Buffer.Reset;
-    Buffer.FeedText(#27 + '[3g' + #27 + '[4G' + #27 + 'H' + #27 + '[12G' + #27 + 'H' + #27 + '[H' + StringOfChar('A', 16) + #27 + '[Z');
-    Assert.AreEqual(11, Buffer.CursorX);
-    Buffer.FeedText(#27 + '[999Z');
-    Assert.AreEqual(0, Buffer.CursorX);
-    Buffer.FeedText('Y');
-    Assert.AreEqual('Y', Buffer.Cell[0, 0].Text);
-    Assert.AreEqual(0, Buffer.CursorY);
-    Buffer.Reset;
-    Buffer.FeedText(#27 + '[?7l' + StringOfChar('A', 16) + #9 + #27 + '[999IX');
-    Assert.AreEqual(0, Buffer.CursorY);
-    Assert.AreEqual(15, Buffer.CursorX);
-    Assert.AreEqual('X', Buffer.Cell[15, 0].Text);
-    Assert.AreEqual('', Buffer.LineText(1));
-    Assert.IsFalse(Buffer.Cell[15, 0].SoftWrapped);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.BackwardTabsCancelWrapAndForwardTabsRespectDisabledAutowrap;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(16, 3);
+      Try
+        Buffer.FeedText(StringOfChar('A', 16) + #27 + '[Z');
+        Assert.AreEqual(8, Buffer.CursorX);
+        Buffer.FeedText('X');
+        Assert.AreEqual(0, Buffer.CursorY);
+        Assert.AreEqual('X', Buffer.Cell[8, 0].Text);
+        Assert.IsFalse(Buffer.Cell[15, 0].SoftWrapped);
+        Buffer.Reset;
+        Buffer.FeedText(#27 + '[3g' + #27 + '[4G' + #27 + 'H' + #27 + '[12G' + #27 + 'H' + #27 + '[H' + StringOfChar('A', 16) + #27 + '[Z');
+        Assert.AreEqual(11, Buffer.CursorX);
+        Buffer.FeedText(#27 + '[999Z');
+        Assert.AreEqual(0, Buffer.CursorX);
+        Buffer.FeedText('Y');
+        Assert.AreEqual('Y', Buffer.Cell[0, 0].Text);
+        Assert.AreEqual(0, Buffer.CursorY);
+        Buffer.Reset;
+        Buffer.FeedText(#27 + '[?7l' + StringOfChar('A', 16) + #9 + #27 + '[999IX');
+        Assert.AreEqual(0, Buffer.CursorY);
+        Assert.AreEqual(15, Buffer.CursorX);
+        Assert.AreEqual('X', Buffer.Cell[15, 0].Text);
+        Assert.AreEqual('', Buffer.LineText(1));
+        Assert.IsFalse(Buffer.Cell[15, 0].SoftWrapped);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>A region starting at row zero appends scrolled-out rows to history even with a partial bottom margin.</summary>
 
- Procedure TTerminalTests.TopPartialScrollAddsHistoryAndPreservesRows;
-  Var
-   Buffer : TTerminalBuffer;
-   Final  : Char;
-   y      : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(4, 5);
-   Try
-    For Final In ['S', 'M'] Do
-     Begin
-      Buffer.Reset;
-      For y := 0 To 4 Do
-       Buffer.FeedText(#27 + '[' + IntToStr(y + 1) + ';1H' + StringOfChar(Char(Ord('A') + y), 3));
-      Buffer.FeedText(#27 + '[1;3r' + #27 + '[2' + Final);
-      Assert.AreEqual(7, Buffer.TotalLines);
-      Assert.AreEqual('AAA', Buffer.LineText(0));
-      Assert.AreEqual('BBB', Buffer.LineText(1));
-      Assert.AreEqual('CCC', Buffer.LineText(2));
-      Assert.AreEqual('', Buffer.LineText(3));
-      Assert.AreEqual('', Buffer.LineText(4));
-      Assert.AreEqual('DDD', Buffer.LineText(5));
-      Assert.AreEqual('EEE', Buffer.LineText(6));
-      Assert.AreEqual(0, Buffer.CursorY, 'Scrollback insertion does not move the viewport-relative cursor');
-     End;
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.TopPartialScrollAddsHistoryAndPreservesRows;
+    Var
+      Buffer : TTerminalBuffer;
+      Final  : Char;
+      y      : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(4, 5);
+      Try
+        For Final In ['S', 'M'] Do
+          Begin
+            Buffer.Reset;
+            For y := 0 To 4 Do
+              Buffer.FeedText(#27 + '[' + IntToStr(y + 1) + ';1H' + StringOfChar(Char(Ord('A') + y), 3));
+            Buffer.FeedText(#27 + '[1;3r' + #27 + '[2' + Final);
+            Assert.AreEqual(7, Buffer.TotalLines);
+            Assert.AreEqual('AAA', Buffer.LineText(0));
+            Assert.AreEqual('BBB', Buffer.LineText(1));
+            Assert.AreEqual('CCC', Buffer.LineText(2));
+            Assert.AreEqual('', Buffer.LineText(3));
+            Assert.AreEqual('', Buffer.LineText(4));
+            Assert.AreEqual('DDD', Buffer.LineText(5));
+            Assert.AreEqual('EEE', Buffer.LineText(6));
+            Assert.AreEqual(0, Buffer.CursorY, 'Scrollback insertion does not move the viewport-relative cursor');
+          End;
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Partial-region scrolling breaks new boundaries while full-screen upward scrolling retains logical lines.</summary>
 
- Procedure TTerminalTests.ScrollBoundariesBreakOnlyDisconnectedWraps;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(4, 5);
-   Try
-    Buffer.FeedText('abcdefghijklmnopq' + #27 + '[2;4r' + #27 + '[S');
-    Assert.IsFalse(Buffer.Cell[3, 0].SoftWrapped);
-    Assert.IsTrue(Buffer.Cell[3, 1].SoftWrapped, 'An intact interior paragraph remains joined');
-    Assert.IsFalse(Buffer.Cell[3, 2].SoftWrapped Or Buffer.Cell[3, 3].SoftWrapped);
-    Assert.AreEqual('abcd', Buffer.LineText(0));
-    Assert.AreEqual('ijkl', Buffer.LineText(1));
-    Assert.AreEqual('mnop', Buffer.LineText(2));
-    Assert.AreEqual('q', Buffer.LineText(4));
-    Buffer.Reset;
-    Buffer.FeedText('abcdefghijklmnopq' + #27 + '[2;4r' + #27 + '[T');
-    Assert.IsFalse(Buffer.Cell[3, 0].SoftWrapped Or Buffer.Cell[3, 3].SoftWrapped);
-    Assert.IsTrue(Buffer.Cell[3, 2].SoftWrapped);
-    Buffer.Reset;
-    Buffer.FeedText('abcdefghijklmnopq' + #27 + '[S');
-    Assert.AreEqual(6, Buffer.TotalLines);
-    Assert.IsTrue(Buffer.Cell[3, 0].SoftWrapped, 'Full-screen upward scrolling retains the history-to-screen join');
-    Buffer.FeedText(#27 + '[T');
-    Assert.IsFalse(Buffer.Cell[3, 0].SoftWrapped, 'Scrolling down breaks the history-to-screen join');
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.ScrollBoundariesBreakOnlyDisconnectedWraps;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(4, 5);
+      Try
+        Buffer.FeedText('abcdefghijklmnopq' + #27 + '[2;4r' + #27 + '[S');
+        Assert.IsFalse(Buffer.Cell[3, 0].SoftWrapped);
+        Assert.IsTrue(Buffer.Cell[3, 1].SoftWrapped, 'An intact interior paragraph remains joined');
+        Assert.IsFalse(Buffer.Cell[3, 2].SoftWrapped Or Buffer.Cell[3, 3].SoftWrapped);
+        Assert.AreEqual('abcd', Buffer.LineText(0));
+        Assert.AreEqual('ijkl', Buffer.LineText(1));
+        Assert.AreEqual('mnop', Buffer.LineText(2));
+        Assert.AreEqual('q', Buffer.LineText(4));
+        Buffer.Reset;
+        Buffer.FeedText('abcdefghijklmnopq' + #27 + '[2;4r' + #27 + '[T');
+        Assert.IsFalse(Buffer.Cell[3, 0].SoftWrapped Or Buffer.Cell[3, 3].SoftWrapped);
+        Assert.IsTrue(Buffer.Cell[3, 2].SoftWrapped);
+        Buffer.Reset;
+        Buffer.FeedText('abcdefghijklmnopq' + #27 + '[S');
+        Assert.AreEqual(6, Buffer.TotalLines);
+        Assert.IsTrue(Buffer.Cell[3, 0].SoftWrapped, 'Full-screen upward scrolling retains the history-to-screen join');
+        Buffer.FeedText(#27 + '[T');
+        Assert.IsFalse(Buffer.Cell[3, 0].SoftWrapped, 'Scrolling down breaks the history-to-screen join');
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Checks bounded/disabled history and absence of alternate-screen history for a top partial region.</summary>
 
- Procedure TTerminalTests.ScrollHistoryLimitsAndAlternateIsolation;
-  Var
-   Buffer : TTerminalBuffer;
-   y      : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(4, 5, 1);
-   Try
-    For y := 0 To 4 Do
-     Buffer.FeedText(#27 + '[' + IntToStr(y + 1) + ';1H' + Char(Ord('A') + y));
-    Buffer.FeedText(#27 + '[1;3r' + #27 + '[2S');
-    Assert.AreEqual(6, Buffer.TotalLines);
-    Assert.AreEqual('B', Buffer.LineText(0), 'The history limit drops the oldest row');
-    Buffer.SetHistoryLimit(0);
-    Assert.AreEqual(5, Buffer.TotalLines);
-    Buffer.FeedText(#27 + '[S');
-    Assert.AreEqual(5, Buffer.TotalLines);
-    Buffer.SetHistoryLimit(10);
-    Buffer.FeedText(#27 + '[?1049h' + #27 + '[1;3r' + #27 + '[2S');
-    Assert.AreEqual(5, Buffer.TotalLines, 'Alternate scrolling never appends primary history');
-    Buffer.FeedText(#27 + '[?1049l');
-    Assert.AreEqual('D', Buffer.LineText(3));
-    Assert.AreEqual('E', Buffer.LineText(4));
-    Buffer.Reset;
-    Buffer.FeedText('abcdefghijklmnopqrstu');
-    Assert.IsTrue(Buffer.Cell[3, 0].SoftWrapped);
-    Buffer.FeedText(#27 + '[?1049h' + #27 + '[T' + #27 + '[?1049l');
-    Assert.IsTrue(Buffer.Cell[3, 0].SoftWrapped, 'Alternate scrolling must not break primary history metadata');
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.ScrollHistoryLimitsAndAlternateIsolation;
+    Var
+      Buffer : TTerminalBuffer;
+      y      : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(4, 5, 1);
+      Try
+        For y := 0 To 4 Do
+          Buffer.FeedText(#27 + '[' + IntToStr(y + 1) + ';1H' + Char(Ord('A') + y));
+        Buffer.FeedText(#27 + '[1;3r' + #27 + '[2S');
+        Assert.AreEqual(6, Buffer.TotalLines);
+        Assert.AreEqual('B', Buffer.LineText(0), 'The history limit drops the oldest row');
+        Buffer.SetHistoryLimit(0);
+        Assert.AreEqual(5, Buffer.TotalLines);
+        Buffer.FeedText(#27 + '[S');
+        Assert.AreEqual(5, Buffer.TotalLines);
+        Buffer.SetHistoryLimit(10);
+        Buffer.FeedText(#27 + '[?1049h' + #27 + '[1;3r' + #27 + '[2S');
+        Assert.AreEqual(5, Buffer.TotalLines, 'Alternate scrolling never appends primary history');
+        Buffer.FeedText(#27 + '[?1049l');
+        Assert.AreEqual('D', Buffer.LineText(3));
+        Assert.AreEqual('E', Buffer.LineText(4));
+        Buffer.Reset;
+        Buffer.FeedText('abcdefghijklmnopqrstu');
+        Assert.IsTrue(Buffer.Cell[3, 0].SoftWrapped);
+        Buffer.FeedText(#27 + '[?1049h' + #27 + '[T' + #27 + '[?1049l');
+        Assert.IsTrue(Buffer.Cell[3, 0].SoftWrapped, 'Alternate scrolling must not break primary history metadata');
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Overwriting two columns repairs both intersected old glyphs and preserves the row wrap marker.</summary>
 
- Procedure TTerminalTests.WideOverwriteRepairsBothBoundaries;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(6, 3);
-   Try
-    Buffer.FeedText('A' + #$4E2D + 'BCD' + #27 + '[H' + #$754C);
-    Assert.AreEqual(String(#$754C) + ' BCD', Buffer.LineText(0));
-    Assert.IsTrue(Buffer.Cell[1, 0].Continuation);
-    Assert.IsFalse(Buffer.Cell[2, 0].Continuation);
-    Buffer.Reset;
-    Buffer.FeedText(String(#$4E2D) + #$4E2D + 'XY' + #27 + '[1;2H' + #$754C);
-    Assert.AreEqual(' ' + #$754C + ' XY', Buffer.LineText(0));
-    Assert.IsFalse(Buffer.Cell[0, 0].Continuation Or Buffer.Cell[3, 0].Continuation);
-    Assert.IsTrue(Buffer.Cell[2, 0].Continuation);
-    Buffer.Reset;
-    Buffer.FeedText('abcd' + #$4E2D + 'Z' + #27 + '[1;5HX');
-    Assert.AreEqual('abcdX', Buffer.LineText(0));
-    Assert.IsFalse(Buffer.Cell[5, 0].Continuation);
-    Assert.IsTrue(Buffer.Cell[5, 0].SoftWrapped, 'Cleanup at the right edge retains the logical wrap marker');
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.WideOverwriteRepairsBothBoundaries;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(6, 3);
+      Try
+        Buffer.FeedText('A' + #$4E2D + 'BCD' + #27 + '[H' + #$754C);
+        Assert.AreEqual(String(#$754C) + ' BCD', Buffer.LineText(0));
+        Assert.IsTrue(Buffer.Cell[1, 0].Continuation);
+        Assert.IsFalse(Buffer.Cell[2, 0].Continuation);
+        Buffer.Reset;
+        Buffer.FeedText(String(#$4E2D) + #$4E2D + 'XY' + #27 + '[1;2H' + #$754C);
+        Assert.AreEqual(' ' + #$754C + ' XY', Buffer.LineText(0));
+        Assert.IsFalse(Buffer.Cell[0, 0].Continuation Or Buffer.Cell[3, 0].Continuation);
+        Assert.IsTrue(Buffer.Cell[2, 0].Continuation);
+        Buffer.Reset;
+        Buffer.FeedText('abcd' + #$4E2D + 'Z' + #27 + '[1;5HX');
+        Assert.AreEqual('abcdX', Buffer.LineText(0));
+        Assert.IsFalse(Buffer.Cell[5, 0].Continuation);
+        Assert.IsTrue(Buffer.Cell[5, 0].SoftWrapped, 'Cleanup at the right edge retains the logical wrap marker');
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>With DECAWM disabled, a wide glyph retreats to fit instead of leaving a truncated lead cell.</summary>
 
- Procedure TTerminalTests.WidePrintWithoutAutowrapFitsAtRightEdge;
-  Var
-   Buffer     : TTerminalBuffer;
-   InsertMode : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(4, 3);
-   Try
-    For InsertMode := 0 To 1 Do
-     Begin
-      Buffer.Reset;
-      Buffer.FeedText('ABCD' + #27 + '[?7l');
-      If InsertMode = 1 Then
-       Buffer.FeedText(#27 + '[4h');
-      Buffer.FeedText(#$4E2D);
-      Assert.AreEqual('AB' + #$4E2D, Buffer.LineText(0));
-      Assert.IsTrue(Buffer.Cell[3, 0].Continuation);
-      Assert.AreEqual(3, Buffer.CursorX);
-      Assert.AreEqual(0, Buffer.CursorY);
-      Assert.IsFalse(Buffer.Cell[3, 0].SoftWrapped Or Buffer.Cell[3, 0].WrapPadding);
-      Buffer.FeedText('X');
-      Assert.AreEqual('AB X', Buffer.LineText(0), 'A narrow overwrite repairs the preceding wide glyph');
-      Assert.IsFalse(Buffer.Cell[3, 0].Continuation);
-     End;
-    Buffer.Reset;
-    Buffer.FeedText('ABC' + #$4E2D);
-    Assert.AreEqual(String(#$4E2D), Buffer.LineText(1), 'Enabled autowrap still moves the whole glyph');
-    Assert.IsTrue(Buffer.Cell[3, 0].SoftWrapped And Buffer.Cell[3, 0].WrapPadding);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.WidePrintWithoutAutowrapFitsAtRightEdge;
+    Var
+      Buffer     : TTerminalBuffer;
+      InsertMode : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(4, 3);
+      Try
+        For InsertMode := 0 To 1 Do
+          Begin
+            Buffer.Reset;
+            Buffer.FeedText('ABCD' + #27 + '[?7l');
+            If InsertMode = 1 Then
+              Buffer.FeedText(#27 + '[4h');
+            Buffer.FeedText(#$4E2D);
+            Assert.AreEqual('AB' + #$4E2D, Buffer.LineText(0));
+            Assert.IsTrue(Buffer.Cell[3, 0].Continuation);
+            Assert.AreEqual(3, Buffer.CursorX);
+            Assert.AreEqual(0, Buffer.CursorY);
+            Assert.IsFalse(Buffer.Cell[3, 0].SoftWrapped Or Buffer.Cell[3, 0].WrapPadding);
+            Buffer.FeedText('X');
+            Assert.AreEqual('AB X', Buffer.LineText(0), 'A narrow overwrite repairs the preceding wide glyph');
+            Assert.IsFalse(Buffer.Cell[3, 0].Continuation);
+          End;
+        Buffer.Reset;
+        Buffer.FeedText('ABC' + #$4E2D);
+        Assert.AreEqual(String(#$4E2D), Buffer.LineText(1), 'Enabled autowrap still moves the whole glyph');
+        Assert.IsTrue(Buffer.Cell[3, 0].SoftWrapped And Buffer.Cell[3, 0].WrapPadding);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Emoji presentation growth removes a displaced wide neighbour and ordinary overwrite retains soft wrap.</summary>
 
- Procedure TTerminalTests.GraphemeGrowthRepairsNeighbourAndKeepsSoftWrap;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(6, 3);
-   Try
-    Buffer.FeedText('A' + #$4E2D + 'BCD' + #27 + '[H' + #$2764 + #$FE0F);
-    Assert.AreEqual(String(#$2764) + #$FE0F + ' BCD', Buffer.LineText(0));
-    Assert.IsTrue(Buffer.Cell[1, 0].Continuation);
-    Assert.IsFalse(Buffer.Cell[2, 0].Continuation, 'Growing a glyph clears the old neighbour fragment');
-    Buffer.Reset;
-    Buffer.FeedText('abcdefZ' + #27 + '[1;6HX');
-    Assert.AreEqual('abcdeX', Buffer.LineText(0));
-    Assert.IsTrue(Buffer.Cell[5, 0].SoftWrapped);
-    Assert.IsFalse(Buffer.Cell[5, 0].WrapPadding);
-    Buffer.Reset;
-    Buffer.FeedText('abcd' + #$2764 + 'XZ' + #27 + '[1;5H' + #$2764 + #$FE0F);
-    Assert.IsTrue(Buffer.Cell[5, 0].Continuation);
-    Assert.IsTrue(Buffer.Cell[5, 0].SoftWrapped, 'Growth ending in the last cell preserves the logical wrap marker');
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.GraphemeGrowthRepairsNeighbourAndKeepsSoftWrap;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(6, 3);
+      Try
+        Buffer.FeedText('A' + #$4E2D + 'BCD' + #27 + '[H' + #$2764 + #$FE0F);
+        Assert.AreEqual(String(#$2764) + #$FE0F + ' BCD', Buffer.LineText(0));
+        Assert.IsTrue(Buffer.Cell[1, 0].Continuation);
+        Assert.IsFalse(Buffer.Cell[2, 0].Continuation, 'Growing a glyph clears the old neighbour fragment');
+        Buffer.Reset;
+        Buffer.FeedText('abcdefZ' + #27 + '[1;6HX');
+        Assert.AreEqual('abcdeX', Buffer.LineText(0));
+        Assert.IsTrue(Buffer.Cell[5, 0].SoftWrapped);
+        Assert.IsFalse(Buffer.Cell[5, 0].WrapPadding);
+        Buffer.Reset;
+        Buffer.FeedText('abcd' + #$2764 + 'XZ' + #27 + '[1;5H' + #$2764 + #$FE0F);
+        Assert.IsTrue(Buffer.Cell[5, 0].Continuation);
+        Assert.IsTrue(Buffer.Cell[5, 0].SoftWrapped, 'Growth ending in the last cell preserves the logical wrap marker');
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Verifies IL/DL row movement, unchanged rows outside the region and carriage return only on execution.</summary>
 
- Procedure TTerminalTests.InsertDeleteLinesRespectRegionAndCarriageReturn;
-  Var
-   Buffer    : TTerminalBuffer;
-   Final     : Char;
-   StartRow  : Integer;
-   y         : Integer;
-   SourceRow : Integer;
-   Expected  : String;
-  Begin
-   Buffer := TTerminalBuffer.Create(6, 7);
-   Try
-    For Final In ['L', 'M'] Do
-     For StartRow := 0 To 6 Do
-      Begin
-       Buffer.Reset;
-       For y := 0 To 6 Do
-        Buffer.FeedText(#27 + '[' + IntToStr(y + 1) + ';1H' + StringOfChar(Char(Ord('A') + y), 5));
-       Buffer.FeedText(#27 + '[3;5r' + #27 + '[' + IntToStr(StartRow + 1) + ';4H' + #27 + '[' + Final);
-       Assert.AreEqual(StartRow, Buffer.CursorY);
-       If (StartRow >= 2) And (StartRow <= 4) Then
-        Assert.AreEqual(0, Buffer.CursorX, 'Executed IL/DL returns to first column')
-       Else
-        Assert.AreEqual(3, Buffer.CursorX, 'Ignored IL/DL preserves the column');
-       For y := 0 To 6 Do
-        Begin
-         SourceRow := y;
-         If (StartRow >= 2) And (StartRow <= 4) And (y >= StartRow) And (y <= 4) Then
-          If Final = 'L' Then
-           Begin
-            SourceRow := y - 1;
-            If y = StartRow Then
-             SourceRow := -1;
-           End
-          Else
-           Begin
-            SourceRow := y + 1;
-            If y = 4 Then
-             SourceRow := -1;
-           End;
-         Expected := '';
-         If SourceRow >= 0 Then
-          Expected := StringOfChar(Char(Ord('A') + SourceRow), 5);
-         Assert.AreEqual(Expected, Buffer.LineText(y), 'Edited row: ' + IntToStr(y));
-        End;
-       Assert.AreEqual(7, Buffer.TotalLines, 'Partial-region edits must not add history');
+  Procedure TTerminalTests.InsertDeleteLinesRespectRegionAndCarriageReturn;
+    Var
+      Buffer    : TTerminalBuffer;
+      Final     : Char;
+      StartRow  : Integer;
+      y         : Integer;
+      SourceRow : Integer;
+      Expected  : String;
+    Begin
+      Buffer := TTerminalBuffer.Create(6, 7);
+      Try
+        For Final In ['L', 'M'] Do
+          For StartRow := 0 To 6 Do
+            Begin
+              Buffer.Reset;
+              For y := 0 To 6 Do
+                Buffer.FeedText(#27 + '[' + IntToStr(y + 1) + ';1H' + StringOfChar(Char(Ord('A') + y), 5));
+              Buffer.FeedText(#27 + '[3;5r' + #27 + '[' + IntToStr(StartRow + 1) + ';4H' + #27 + '[' + Final);
+              Assert.AreEqual(StartRow, Buffer.CursorY);
+              If (StartRow >= 2) And (StartRow <= 4) Then
+                Assert.AreEqual(0, Buffer.CursorX, 'Executed IL/DL returns to first column')
+              Else
+                Assert.AreEqual(3, Buffer.CursorX, 'Ignored IL/DL preserves the column');
+              For y := 0 To 6 Do
+                Begin
+                  SourceRow := y;
+                  If (StartRow >= 2) And (StartRow <= 4) And (y >= StartRow) And (y <= 4) Then
+                    If Final = 'L' Then
+                      Begin
+                        SourceRow := y - 1;
+                        If y = StartRow Then
+                          SourceRow := -1;
+                      End
+                    Else
+                      Begin
+                        SourceRow := y + 1;
+                        If y = 4 Then
+                          SourceRow := -1;
+                      End;
+                  Expected := '';
+                  If SourceRow >= 0 Then
+                    Expected := StringOfChar(Char(Ord('A') + SourceRow), 5);
+                  Assert.AreEqual(Expected, Buffer.LineText(y), 'Edited row: ' + IntToStr(y));
+                End;
+              Assert.AreEqual(7, Buffer.TotalLines, 'Partial-region edits must not add history');
+            End;
+      Finally
+        Buffer.Free;
       End;
-   Finally
-    Buffer.Free;
-   End;
-  End;
+    End;
 
 /// <summary>Checks pending wrap for ignored IL/DL and first-column output for executed edits.</summary>
 
- Procedure TTerminalTests.InsertDeleteLinesPreserveIgnoredWrap;
-  Var
-   Buffer   : TTerminalBuffer;
-   Final    : Char;
-   StartRow : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(4, 7);
-   Try
-    For Final In ['L', 'M'] Do
-     Begin
-      For StartRow In [0, 5] Do
-       Begin
-        Buffer.Reset;
-        Buffer.FeedText(#27 + '[3;5r' + #27 + '[' + IntToStr(StartRow + 1) + ';1HABCD' + #27 + '[' + Final + 'X');
-        Assert.AreEqual(StartRow + 1, Buffer.CursorY, 'Ignored line edit must preserve pending wrap');
-        Assert.AreEqual('X', Buffer.Cell[0, StartRow + 1].Text);
-       End;
-      Buffer.Reset;
-      Buffer.FeedText(#27 + '[3;5r' + #27 + '[4;1HABCD' + #27 + '[' + Final + 'X');
-      Assert.AreEqual(3, Buffer.CursorY);
-      Assert.AreEqual('X', Buffer.Cell[0, 3].Text, 'Executed line edit clears wrap and resets column');
-     End;
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.InsertDeleteLinesPreserveIgnoredWrap;
+    Var
+      Buffer   : TTerminalBuffer;
+      Final    : Char;
+      StartRow : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(4, 7);
+      Try
+        For Final In ['L', 'M'] Do
+          Begin
+            For StartRow In [0, 5] Do
+              Begin
+                Buffer.Reset;
+                Buffer.FeedText(#27 + '[3;5r' + #27 + '[' + IntToStr(StartRow + 1) + ';1HABCD' + #27 + '[' + Final + 'X');
+                Assert.AreEqual(StartRow + 1, Buffer.CursorY, 'Ignored line edit must preserve pending wrap');
+                Assert.AreEqual('X', Buffer.Cell[0, StartRow + 1].Text);
+              End;
+            Buffer.Reset;
+            Buffer.FeedText(#27 + '[3;5r' + #27 + '[4;1HABCD' + #27 + '[' + Final + 'X');
+            Assert.AreEqual(3, Buffer.CursorY);
+            Assert.AreEqual('X', Buffer.Cell[0, 3].Text, 'Executed line edit clears wrap and resets column');
+          End;
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Exercises RI at all rows, fragmented escape input and pending wrap at and away from the top margin.</summary>
 
- Procedure TTerminalTests.ReverseIndexClearsWrapAndRespectsRegion;
-  Var
-   Buffer      : TTerminalBuffer;
-   StartRow    : Integer;
-   ExpectedRow : Integer;
-   Split       : Integer;
-   Bytes       : TBytes;
-  Begin
-   Buffer := TTerminalBuffer.Create(4, 7);
-   Try
-    Bytes        := TEncoding.UTF8.GetBytes(#27 + 'M');
-    For StartRow := 0 To 6 Do
-     For Split   := 0 To Length(Bytes) Do
-      Begin
-       Buffer.Reset;
-       Buffer.FeedText(#27 + '[3;5r' + #27 + '[20h' + #27 + '[' + IntToStr(StartRow + 1) + ';1HABCD');
-       Buffer.Feed(Copy(Bytes, 0, Split));
-       Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
-       ExpectedRow := Max(0, StartRow - 1);
-       If StartRow = 2 Then
-        ExpectedRow := 2;
-       Assert.AreEqual(ExpectedRow, Buffer.CursorY);
-       Assert.AreEqual(3, Buffer.CursorX, 'RI does not return the carriage, including with LNM');
-       Buffer.FeedText('X');
-       Assert.AreEqual(ExpectedRow, Buffer.CursorY, 'RI cancels pending wrap');
-       Assert.AreEqual('X', Buffer.Cell[3, ExpectedRow].Text);
-       Assert.AreEqual(7, Buffer.TotalLines);
-       If StartRow = 2 Then
-        Assert.AreEqual('ABCD', Buffer.LineText(3), 'RI at top margin shifts the region down');
+  Procedure TTerminalTests.ReverseIndexClearsWrapAndRespectsRegion;
+    Var
+      Buffer      : TTerminalBuffer;
+      StartRow    : Integer;
+      ExpectedRow : Integer;
+      Split       : Integer;
+      Bytes       : TBytes;
+    Begin
+      Buffer := TTerminalBuffer.Create(4, 7);
+      Try
+        Bytes        := TEncoding.UTF8.GetBytes(#27 + 'M');
+        For StartRow := 0 To 6 Do
+          For Split  := 0 To Length(Bytes) Do
+            Begin
+              Buffer.Reset;
+              Buffer.FeedText(#27 + '[3;5r' + #27 + '[20h' + #27 + '[' + IntToStr(StartRow + 1) + ';1HABCD');
+              Buffer.Feed(Copy(Bytes, 0, Split));
+              Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+              ExpectedRow := Max(0, StartRow - 1);
+              If StartRow = 2 Then
+                ExpectedRow := 2;
+              Assert.AreEqual(ExpectedRow, Buffer.CursorY);
+              Assert.AreEqual(3, Buffer.CursorX, 'RI does not return the carriage, including with LNM');
+              Buffer.FeedText('X');
+              Assert.AreEqual(ExpectedRow, Buffer.CursorY, 'RI cancels pending wrap');
+              Assert.AreEqual('X', Buffer.Cell[3, ExpectedRow].Text);
+              Assert.AreEqual(7, Buffer.TotalLines);
+              If StartRow = 2 Then
+                Assert.AreEqual('ABCD', Buffer.LineText(3), 'RI at top margin shifts the region down');
+            End;
+      Finally
+        Buffer.Free;
       End;
-   Finally
-    Buffer.Free;
-   End;
-  End;
+    End;
 
 /// <summary>Checks relative vertical motion from inside, above and below a scrolling region without DECOM.</summary>
 
- Procedure TTerminalTests.RelativeVerticalMotionRespectsDirectionalMargins;
-  Const
-   Finals : Array[0..4] Of Char = ('A', 'B', 'e', 'E', 'F');
-   Counts : Array[0..3] Of Integer = (0, 1, 3, 2147483647);
-  Var
-   Buffer         : TTerminalBuffer;
-   StartRow       : Integer;
-   CommandIndex   : Integer;
-   CountIndex     : Integer;
-   ExpectedRow    : Integer;
-   ExpectedColumn : Integer;
-   Distance       : Integer;
-   Snapshot       : String;
-   Up             : Boolean;
-  Begin
-   Buffer := TTerminalBuffer.Create(9, 7);
-   Try
-    For StartRow      := 0 To 6 Do
-     For CommandIndex := Low(Finals) To High(Finals) Do
-      For CountIndex  := Low(Counts) To High(Counts) Do
-       Begin
-        Buffer.Reset;
-        Buffer.FeedText('sentinel' + #27 + '[3;5r' + #27 + '[' + IntToStr(StartRow + 1) + ';4H');
-        Snapshot := Buffer.Text;
-        Up       := CharInSet(Finals[CommandIndex], ['A', 'F']);
-        Distance := Counts[CountIndex];
-        If Distance = 0 Then
-         Distance := 1;
-        Distance  := Min(Distance, 7);
-        If Up Then
-         Begin
-          If StartRow >= 2 Then
-           ExpectedRow := Max(2, StartRow - Distance)
-          Else
-           ExpectedRow := Max(0, StartRow - Distance);
-         End
-        Else
-         Begin
-          If StartRow <= 4 Then
-           ExpectedRow := Min(4, StartRow + Distance)
-          Else
-           ExpectedRow := Min(6, StartRow + Distance);
-         End;
-        ExpectedColumn := 3;
-        If CharInSet(Finals[CommandIndex], ['E', 'F']) Then
-         ExpectedColumn := 0;
-        Buffer.FeedText(#27 + '[' + IntToStr(Counts[CountIndex]) + Finals[CommandIndex]);
-        Assert.AreEqual(ExpectedRow, Buffer.CursorY, 'Directional margin: ' + IntToStr(StartRow) + ' ' + Finals[CommandIndex] + ' ' + IntToStr(Counts[CountIndex]));
-        Assert.AreEqual(ExpectedColumn, Buffer.CursorX);
-        Assert.AreEqual(Snapshot, Buffer.Text, 'Relative movement must not scroll or erase cells');
-        Assert.AreEqual(7, Buffer.TotalLines);
-       End;
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.RelativeVerticalMotionRespectsDirectionalMargins;
+    Const
+      Finals : Array[0..4] Of Char = ('A', 'B', 'e', 'E', 'F');
+      Counts : Array[0..3] Of Integer = (0, 1, 3, 2147483647);
+    Var
+      Buffer         : TTerminalBuffer;
+      StartRow       : Integer;
+      CommandIndex   : Integer;
+      CountIndex     : Integer;
+      ExpectedRow    : Integer;
+      ExpectedColumn : Integer;
+      Distance       : Integer;
+      Snapshot       : String;
+      Up             : Boolean;
+    Begin
+      Buffer := TTerminalBuffer.Create(9, 7);
+      Try
+        For StartRow       := 0 To 6 Do
+          For CommandIndex := Low(Finals) To High(Finals) Do
+            For CountIndex := Low(Counts) To High(Counts) Do
+              Begin
+                Buffer.Reset;
+                Buffer.FeedText('sentinel' + #27 + '[3;5r' + #27 + '[' + IntToStr(StartRow + 1) + ';4H');
+                Snapshot := Buffer.Text;
+                Up       := CharInSet(Finals[CommandIndex], ['A', 'F']);
+                Distance := Counts[CountIndex];
+                If Distance = 0 Then
+                  Distance := 1;
+                Distance   := Min(Distance, 7);
+                If Up Then
+                  Begin
+                    If StartRow >= 2 Then
+                      ExpectedRow := Max(2, StartRow - Distance)
+                    Else
+                      ExpectedRow := Max(0, StartRow - Distance);
+                  End
+                Else
+                  Begin
+                    If StartRow <= 4 Then
+                      ExpectedRow := Min(4, StartRow + Distance)
+                    Else
+                      ExpectedRow := Min(6, StartRow + Distance);
+                  End;
+                ExpectedColumn := 3;
+                If CharInSet(Finals[CommandIndex], ['E', 'F']) Then
+                  ExpectedColumn := 0;
+                Buffer.FeedText(#27 + '[' + IntToStr(Counts[CountIndex]) + Finals[CommandIndex]);
+                Assert.AreEqual(ExpectedRow, Buffer.CursorY, 'Directional margin: ' + IntToStr(StartRow) + ' ' + Finals[CommandIndex] + ' ' + IntToStr(Counts[CountIndex]));
+                Assert.AreEqual(ExpectedColumn, Buffer.CursorX);
+                Assert.AreEqual(Snapshot, Buffer.Text, 'Relative movement must not scroll or erase cells');
+                Assert.AreEqual(7, Buffer.TotalLines);
+              End;
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Verifies fragmented motion, DECOM, default counts and cancellation of pending wrap.</summary>
 
- Procedure TTerminalTests.RelativeVerticalMotionOriginFragmentsAndWrap;
-  Var
-   Buffer : TTerminalBuffer;
-   Bytes  : TBytes;
-   Split  : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(4, 7);
-   Try
-    Bytes     := TEncoding.UTF8.GetBytes(#27 + '[999B');
-    For Split := 0 To Length(Bytes) Do
-     Begin
-      Buffer.Reset;
-      Buffer.FeedText(#27 + '[3;5r' + #27 + '[4;1H' + 'ABCD');
-      Buffer.Feed(Copy(Bytes, 0, Split));
-      Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
-      Assert.AreEqual(4, Buffer.CursorY);
-      Assert.AreEqual(3, Buffer.CursorX);
-      Buffer.FeedText('X');
-      Assert.AreEqual('X', Buffer.Cell[3, 4].Text, 'Movement cancels pending wrap without scrolling');
-      Assert.AreEqual(4, Buffer.CursorY);
-     End;
-    Buffer.Reset;
-    Buffer.FeedText(#27 + '[3;5r' + #27 + '[?6h' + #27 + '[2;3H' + #27 + '[2147483647A');
-    Assert.AreEqual(2, Buffer.CursorY);
-    Buffer.FeedText(#27 + '[2147483647B');
-    Assert.AreEqual(4, Buffer.CursorY);
-    Assert.AreEqual(2, Buffer.CursorX);
-    Buffer.FeedText(#27 + '[F');
-    Assert.AreEqual(3, Buffer.CursorY);
-    Assert.AreEqual(0, Buffer.CursorX);
-    Buffer.FeedText(#27 + '[E');
-    Assert.AreEqual(4, Buffer.CursorY);
-    Buffer.FeedText(#27 + '[A');
-    Assert.AreEqual(3, Buffer.CursorY);
-    Buffer.FeedText(#27 + '[e');
-    Assert.AreEqual(4, Buffer.CursorY);
-    Buffer.FeedText(#27 + '[?6l' + #27 + '[H' + #27 + '[999B');
-    Assert.AreEqual(4, Buffer.CursorY, 'Starting above the region stops at its bottom margin');
-    Buffer.FeedText(#27 + '[7;1H' + #27 + '[999A');
-    Assert.AreEqual(2, Buffer.CursorY, 'Starting below the region stops at its top margin');
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.RelativeVerticalMotionOriginFragmentsAndWrap;
+    Var
+      Buffer : TTerminalBuffer;
+      Bytes  : TBytes;
+      Split  : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(4, 7);
+      Try
+        Bytes     := TEncoding.UTF8.GetBytes(#27 + '[999B');
+        For Split := 0 To Length(Bytes) Do
+          Begin
+            Buffer.Reset;
+            Buffer.FeedText(#27 + '[3;5r' + #27 + '[4;1H' + 'ABCD');
+            Buffer.Feed(Copy(Bytes, 0, Split));
+            Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+            Assert.AreEqual(4, Buffer.CursorY);
+            Assert.AreEqual(3, Buffer.CursorX);
+            Buffer.FeedText('X');
+            Assert.AreEqual('X', Buffer.Cell[3, 4].Text, 'Movement cancels pending wrap without scrolling');
+            Assert.AreEqual(4, Buffer.CursorY);
+          End;
+        Buffer.Reset;
+        Buffer.FeedText(#27 + '[3;5r' + #27 + '[?6h' + #27 + '[2;3H' + #27 + '[2147483647A');
+        Assert.AreEqual(2, Buffer.CursorY);
+        Buffer.FeedText(#27 + '[2147483647B');
+        Assert.AreEqual(4, Buffer.CursorY);
+        Assert.AreEqual(2, Buffer.CursorX);
+        Buffer.FeedText(#27 + '[F');
+        Assert.AreEqual(3, Buffer.CursorY);
+        Assert.AreEqual(0, Buffer.CursorX);
+        Buffer.FeedText(#27 + '[E');
+        Assert.AreEqual(4, Buffer.CursorY);
+        Buffer.FeedText(#27 + '[A');
+        Assert.AreEqual(3, Buffer.CursorY);
+        Buffer.FeedText(#27 + '[e');
+        Assert.AreEqual(4, Buffer.CursorY);
+        Buffer.FeedText(#27 + '[?6l' + #27 + '[H' + #27 + '[999B');
+        Assert.AreEqual(4, Buffer.CursorY, 'Starting above the region stops at its bottom margin');
+        Buffer.FeedText(#27 + '[7;1H' + #27 + '[999A');
+        Assert.AreEqual(2, Buffer.CursorY, 'Starting below the region stops at its top margin');
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Verifies DA3 at every byte split without changing cells, rendition, cursor or pending wrap.</summary>
 
- Procedure TTerminalTests.TertiaryDeviceAttributesFragmentsAndState;
-  Var
-   Buffer : TTerminalBuffer;
-   Bytes  : TBytes;
-   Split  : Integer;
-   Reply  : String;
-  Begin
-   Buffer := TTerminalBuffer.Create(4, 2);
-   Try
-    Reply     := #27 + 'P!|7E474B57' + #27 + Chr(92);
-    Bytes     := TEncoding.UTF8.GetBytes(#27 + '[=0c');
-    For Split := 0 To Length(Bytes) Do
-     Begin
-      Buffer.Reset;
-      Buffer.FeedText(#27 + '[31mABCD');
-      Buffer.Feed(Copy(Bytes, 0, Split));
-      Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
-      Assert.AreEqual(Reply, Buffer.TakeResponses);
-      Assert.AreEqual('', Buffer.TakeResponses, 'Replies are consumed once');
-      Assert.AreEqual(3, Buffer.CursorX);
-      Assert.AreEqual(0, Buffer.CursorY);
-      Assert.AreEqual('ABCD', Buffer.LineText(0));
-      Buffer.FeedText('X');
-      Assert.AreEqual('X', Buffer.LineText(1), 'DA3 preserves pending wrap');
-      Assert.AreEqual(1, Buffer.Cell[0, 1].Foreground);
-     End;
-    Buffer.Reset;
-    Buffer.FeedText(#27 + '[=c' + #27 + '[=00c');
-    Assert.AreEqual(Reply + Reply, Buffer.TakeResponses, 'Default and explicit zero request the same identifier');
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.TertiaryDeviceAttributesFragmentsAndState;
+    Var
+      Buffer : TTerminalBuffer;
+      Bytes  : TBytes;
+      Split  : Integer;
+      Reply  : String;
+    Begin
+      Buffer := TTerminalBuffer.Create(4, 2);
+      Try
+        Reply     := #27 + 'P!|7E474B57' + #27 + Chr(92);
+        Bytes     := TEncoding.UTF8.GetBytes(#27 + '[=0c');
+        For Split := 0 To Length(Bytes) Do
+          Begin
+            Buffer.Reset;
+            Buffer.FeedText(#27 + '[31mABCD');
+            Buffer.Feed(Copy(Bytes, 0, Split));
+            Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+            Assert.AreEqual(Reply, Buffer.TakeResponses);
+            Assert.AreEqual('', Buffer.TakeResponses, 'Replies are consumed once');
+            Assert.AreEqual(3, Buffer.CursorX);
+            Assert.AreEqual(0, Buffer.CursorY);
+            Assert.AreEqual('ABCD', Buffer.LineText(0));
+            Buffer.FeedText('X');
+            Assert.AreEqual('X', Buffer.LineText(1), 'DA3 preserves pending wrap');
+            Assert.AreEqual(1, Buffer.Cell[0, 1].Foreground);
+          End;
+        Buffer.Reset;
+        Buffer.FeedText(#27 + '[=c' + #27 + '[=00c');
+        Assert.AreEqual(Reply + Reply, Buffer.TakeResponses, 'Default and explicit zero request the same identifier');
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Rejects other prefixed commands and invalid DA3 parameters, and consumes reflected DCS replies.</summary>
 
- Procedure TTerminalTests.TertiaryDeviceAttributesRejectsMalformedQueriesAndReplyLoops;
-  Const
-   Invalid : Array[0..8] Of String = (#27'[=1c', #27'[=0;0c', #27'[=0:0c', #27'[=0 c', #27'[==0c', #27'[=2147483648c', #27'[=0m', #27'[=6n', #27'[=0$p');
-  Var
-   Buffer : TTerminalBuffer;
-   i      : Integer;
-   Reply  : String;
-  Begin
-   Buffer := TTerminalBuffer.Create(12, 3);
-   Try
-    For i := Low(Invalid) To High(Invalid) Do
-     Begin
-      Buffer.Reset;
-      Buffer.FeedText('A' + Invalid[i] + 'B');
-      Assert.AreEqual('', Buffer.TakeResponses, 'Unsupported DA3 variant: ' + IntToStr(i));
-      Assert.AreEqual('AB', Buffer.LineText(0));
-     End;
-    Buffer.Reset;
-    Buffer.FeedText(#27 + '[=c');
-    Reply := Buffer.TakeResponses;
-    Buffer.FeedText(Reply);
-    Assert.AreEqual('', Buffer.TakeResponses, 'A reflected DECRPTUI must not produce another response');
-    Assert.AreEqual('', Buffer.LineText(0), 'The DCS payload is not displayed');
-    Buffer.FeedText(#27 + '[=0c' + #27 + '[c' + #27 + '[>c');
-    Assert.AreEqual(Reply + #27 + '[?1;2c' + #27 + '[>0;0;0c', Buffer.TakeResponses, 'DA families remain independent');
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.TertiaryDeviceAttributesRejectsMalformedQueriesAndReplyLoops;
+    Const
+      Invalid : Array[0..8] Of String = (#27'[=1c', #27'[=0;0c', #27'[=0:0c', #27'[=0 c', #27'[==0c', #27'[=2147483648c', #27'[=0m', #27'[=6n', #27'[=0$p');
+    Var
+      Buffer : TTerminalBuffer;
+      i      : Integer;
+      Reply  : String;
+    Begin
+      Buffer := TTerminalBuffer.Create(12, 3);
+      Try
+        For i := Low(Invalid) To High(Invalid) Do
+          Begin
+            Buffer.Reset;
+            Buffer.FeedText('A' + Invalid[i] + 'B');
+            Assert.AreEqual('', Buffer.TakeResponses, 'Unsupported DA3 variant: ' + IntToStr(i));
+            Assert.AreEqual('AB', Buffer.LineText(0));
+          End;
+        Buffer.Reset;
+        Buffer.FeedText(#27 + '[=c');
+        Reply := Buffer.TakeResponses;
+        Buffer.FeedText(Reply);
+        Assert.AreEqual('', Buffer.TakeResponses, 'A reflected DECRPTUI must not produce another response');
+        Assert.AreEqual('', Buffer.LineText(0), 'The DCS payload is not displayed');
+        Buffer.FeedText(#27 + '[=0c' + #27 + '[c' + #27 + '[>c');
+        Assert.AreEqual(Reply + #27 + '[?1;2c' + #27 + '[>0;0;0c', Buffer.TakeResponses, 'DA families remain independent');
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Exercises exact DECALN at every byte split, with basic cells and cursor/margin reset.</summary>
 
- Procedure TTerminalTests.AlignmentPatternFragmentsAndBasicCells;
-  Var
-   Buffer : TTerminalBuffer;
-   Bytes  : TBytes;
-   Split  : Integer;
-   x      : Integer;
-   y      : Integer;
-   Cell   : TTerminalCell;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 4);
-   Try
-    Bytes     := TEncoding.UTF8.GetBytes(#27 + '#8');
-    For Split := 0 To Length(Bytes) Do
-     Begin
-      Buffer.Reset;
-      Buffer.FeedText(#27 + '[31;44;1;4m' + #27 + '[1"q' + #$4E2D + 'abcdef' + #27 + '[2;3r' + #27 + '[?6h');
-      Buffer.Feed(Copy(Bytes, 0, Split));
-      Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
-      Assert.AreEqual(0, Buffer.CursorX);
-      Assert.AreEqual(0, Buffer.CursorY);
-      For y  := 0 To 3 Do
-       For x := 0 To 7 Do
-        Begin
-         Cell := Buffer.Cell[x, y];
-         Assert.AreEqual('E', Cell.Text);
-         Assert.AreEqual( -1, Cell.Foreground);
-         Assert.AreEqual( -2, Cell.Background);
-         Assert.IsFalse(Cell.Bold Or Cell.Underline Or Cell.Continuation Or Cell.EraseProtected Or Cell.SoftWrapped Or Cell.WrapPadding);
-         Assert.AreEqual('', Cell.Hyperlink);
-        End;
-      Buffer.FeedText('X');
-      Assert.AreEqual('XEEEEEEE', Buffer.LineText(0), 'Pattern cancels pending wrap and DECOM');
-      Cell := Buffer.Cell[0, 0];
-      Assert.AreEqual(1, Cell.Foreground, 'Current rendition survives DECALN');
-      Assert.IsTrue(Cell.Bold And Cell.EraseProtected);
-      Buffer.FeedText(#27 + 'P$qr' + #27 + Chr(92));
-      Assert.AreEqual(#27 + 'P1$r1;4r' + #27 + Chr(92), Buffer.TakeResponses, 'Margins reset to the full screen');
-     End;
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.AlignmentPatternFragmentsAndBasicCells;
+    Var
+      Buffer : TTerminalBuffer;
+      Bytes  : TBytes;
+      Split  : Integer;
+      x      : Integer;
+      y      : Integer;
+      Cell   : TTerminalCell;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 4);
+      Try
+        Bytes     := TEncoding.UTF8.GetBytes(#27 + '#8');
+        For Split := 0 To Length(Bytes) Do
+          Begin
+            Buffer.Reset;
+            Buffer.FeedText(#27 + '[31;44;1;4m' + #27 + '[1"q' + #$4E2D + 'abcdef' + #27 + '[2;3r' + #27 + '[?6h');
+            Buffer.Feed(Copy(Bytes, 0, Split));
+            Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+            Assert.AreEqual(0, Buffer.CursorX);
+            Assert.AreEqual(0, Buffer.CursorY);
+            For y   := 0 To 3 Do
+              For x := 0 To 7 Do
+                Begin
+                  Cell := Buffer.Cell[x, y];
+                  Assert.AreEqual('E', Cell.Text);
+                  Assert.AreEqual( -1, Cell.Foreground);
+                  Assert.AreEqual( -2, Cell.Background);
+                  Assert.IsFalse(Cell.Bold Or Cell.Underline Or Cell.Continuation Or Cell.EraseProtected Or Cell.SoftWrapped Or Cell.WrapPadding);
+                  Assert.AreEqual('', Cell.Hyperlink);
+                End;
+            Buffer.FeedText('X');
+            Assert.AreEqual('XEEEEEEE', Buffer.LineText(0), 'Pattern cancels pending wrap and DECOM');
+            Cell := Buffer.Cell[0, 0];
+            Assert.AreEqual(1, Cell.Foreground, 'Current rendition survives DECALN');
+            Assert.IsTrue(Cell.Bold And Cell.EraseProtected);
+            Buffer.FeedText(#27 + 'P$qr' + #27 + Chr(92));
+            Assert.AreEqual(#27 + 'P1$r1;4r' + #27 + Chr(92), Buffer.TakeResponses, 'Margins reset to the full screen');
+          End;
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Checks that DECALN does not reset input modes, history, tab stops, saved cursor or the inactive screen.</summary>
 
- Procedure TTerminalTests.AlignmentPatternPreservesHistoryModesAndPrimaryScreen;
-  Var
-   Buffer  : TTerminalBuffer;
-   Count   : Integer;
-   History : String;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 3);
-   Try
-    Buffer.FeedText('history' + #13#10 + 'primary' + #13#10 + 'third' + #13#10 + 'fourth');
-    Count   := Buffer.TotalLines - Buffer.Rows;
-    History := Buffer.LineText(0);
-    Buffer.FeedText(#27 + '[?1h' + #27 + '[4h' + #27 + '[3g' + #27 + '[1;4H' + #27 + 'H' + #27 + '7' + #27 + '#8');
-    Assert.AreEqual(Count, Buffer.TotalLines - Buffer.Rows);
-    Assert.AreEqual(History, Buffer.LineText(0));
-    Assert.IsTrue(Buffer.ApplicationCursor);
-    Buffer.FeedText(#27 + '8');
-    Assert.AreEqual(3, Buffer.CursorX, 'Saved cursor survives');
-    Buffer.FeedText(#27 + '[H' + #9);
-    Assert.AreEqual(3, Buffer.CursorX, 'Custom tab stop survives');
-    Buffer.FeedText('X');
-    Assert.AreEqual('EEEXEEEE', Buffer.LineText(Count), 'IRM remains enabled');
-    Buffer.Reset;
-    Buffer.FeedText('primary' + #27 + '[?1049h' + 'alternate' + #27 + '#8');
-    Assert.AreEqual('EEEEEEEE', Buffer.LineText(0));
-    Buffer.FeedText(#27 + '[?1049l');
-    Assert.AreEqual('primary', Buffer.LineText(0), 'Inactive primary screen is not filled');
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.AlignmentPatternPreservesHistoryModesAndPrimaryScreen;
+    Var
+      Buffer  : TTerminalBuffer;
+      Count   : Integer;
+      History : String;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 3);
+      Try
+        Buffer.FeedText('history' + #13#10 + 'primary' + #13#10 + 'third' + #13#10 + 'fourth');
+        Count   := Buffer.TotalLines - Buffer.Rows;
+        History := Buffer.LineText(0);
+        Buffer.FeedText(#27 + '[?1h' + #27 + '[4h' + #27 + '[3g' + #27 + '[1;4H' + #27 + 'H' + #27 + '7' + #27 + '#8');
+        Assert.AreEqual(Count, Buffer.TotalLines - Buffer.Rows);
+        Assert.AreEqual(History, Buffer.LineText(0));
+        Assert.IsTrue(Buffer.ApplicationCursor);
+        Buffer.FeedText(#27 + '8');
+        Assert.AreEqual(3, Buffer.CursorX, 'Saved cursor survives');
+        Buffer.FeedText(#27 + '[H' + #9);
+        Assert.AreEqual(3, Buffer.CursorX, 'Custom tab stop survives');
+        Buffer.FeedText('X');
+        Assert.AreEqual('EEEXEEEE', Buffer.LineText(Count), 'IRM remains enabled');
+        Buffer.Reset;
+        Buffer.FeedText('primary' + #27 + '[?1049h' + 'alternate' + #27 + '#8');
+        Assert.AreEqual('EEEEEEEE', Buffer.LineText(0));
+        Buffer.FeedText(#27 + '[?1049l');
+        Assert.AreEqual('primary', Buffer.LineText(0), 'Inactive primary screen is not filled');
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Rejects other ESC intermediates, excessive intermediate data and cancelled patterns without aliased effects.</summary>
 
- Procedure TTerminalTests.AlignmentPatternRejectsOtherEscapeIntermediates;
-  Const
-   Other : Array[0..5] Of String = (#27'8', #27'#7', #27'!8', #27'##8', #27'#'#24'8', #27'#'#26'8');
-  Var
-   Buffer : TTerminalBuffer;
-   i      : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 3);
-   Try
-    For i := Low(Other) To High(Other) Do
-     Begin
-      Buffer.Reset;
-      Buffer.FeedText('A' + Other[i]);
-      Assert.IsTrue(Pos('EEEE', Buffer.Text) = 0, 'Only exact ESC # 8 triggers the pattern');
-     End;
-    Buffer.Reset;
-    Buffer.FeedText('A' + #27 + '#' + StringOfChar('#', 300) + '8Z');
-    Assert.AreEqual('AZ', Buffer.LineText(0), 'Overlong intermediates are consumed without dispatch');
-    Buffer.Reset;
-    Buffer.FeedText('A' + #27 + '#' + #7 + '8');
-    Assert.AreEqual('EEEEEEEE', Buffer.LineText(0), 'BEL executes without consuming the pending intermediate');
-    Buffer.FeedText(#27 + '[2b');
-    Assert.AreEqual('EEEEEEEE', Buffer.LineText(0), 'Alignment cells are not the preceding graphic for REP');
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.AlignmentPatternRejectsOtherEscapeIntermediates;
+    Const
+      Other : Array[0..5] Of String = (#27'8', #27'#7', #27'!8', #27'##8', #27'#'#24'8', #27'#'#26'8');
+    Var
+      Buffer : TTerminalBuffer;
+      i      : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 3);
+      Try
+        For i := Low(Other) To High(Other) Do
+          Begin
+            Buffer.Reset;
+            Buffer.FeedText('A' + Other[i]);
+            Assert.IsTrue(Pos('EEEE', Buffer.Text) = 0, 'Only exact ESC # 8 triggers the pattern');
+          End;
+        Buffer.Reset;
+        Buffer.FeedText('A' + #27 + '#' + StringOfChar('#', 300) + '8Z');
+        Assert.AreEqual('AZ', Buffer.LineText(0), 'Overlong intermediates are consumed without dispatch');
+        Buffer.Reset;
+        Buffer.FeedText('A' + #27 + '#' + #7 + '8');
+        Assert.AreEqual('EEEEEEEE', Buffer.LineText(0), 'BEL executes without consuming the pending intermediate');
+        Buffer.FeedText(#27 + '[2b');
+        Assert.AreEqual('EEEEEEEE', Buffer.LineText(0), 'Alignment cells are not the preceding graphic for REP');
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Exercises REP defaults, fragmented input, column limits and pending autowrap.</summary>
 
- Procedure TTerminalTests.RepeatGraphicDefaultsFragmentsAndBoundaries;
-  Var
-   Buffer : TTerminalBuffer;
-   Bytes  : TBytes;
-   Split  : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 3);
-   Try
-    Bytes     := TEncoding.UTF8.GetBytes('A' + #27 + '[3b');
-    For Split := 0 To Length(Bytes) Do
-     Begin
-      Buffer.Reset;
-      Buffer.Feed(Copy(Bytes, 0, Split));
-      Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
-      Assert.AreEqual('AAAA', Buffer.LineText(0));
-      Assert.AreEqual(4, Buffer.CursorX);
-     End;
-    Buffer.Reset;
-    Buffer.FeedText('A' + #27 + '[bB' + #27 + '[0b');
-    Assert.AreEqual('AABB', Buffer.LineText(0));
-    Buffer.Reset;
-    Buffer.FeedText(#27 + '[3b');
-    Assert.AreEqual('', Buffer.LineText(0), 'No preceding graphic means no repetition');
-    Buffer.FeedText('X' + #27 + '[2147483647b');
-    Assert.AreEqual('XXXXXXXX', Buffer.LineText(0));
-    Assert.AreEqual('', Buffer.LineText(1));
-    Buffer.FeedText(#27 + '[bY');
-    Assert.AreEqual('Y', Buffer.LineText(1), 'REP must retain pending wrap');
-    Buffer.Reset;
-    Buffer.FeedText('12345678' + #27 + '[3bZ');
-    Assert.AreEqual('12345678', Buffer.LineText(0));
-    Assert.AreEqual('Z', Buffer.LineText(1), 'A full row has no REP capacity');
-    Buffer.Reset;
-    Buffer.FeedText('X' + #27 + '[2b' + #27 + '[2b');
-    Assert.AreEqual('XXX', Buffer.LineText(0), 'A completed REP clears the preceding graphic');
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.RepeatGraphicDefaultsFragmentsAndBoundaries;
+    Var
+      Buffer : TTerminalBuffer;
+      Bytes  : TBytes;
+      Split  : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 3);
+      Try
+        Bytes     := TEncoding.UTF8.GetBytes('A' + #27 + '[3b');
+        For Split := 0 To Length(Bytes) Do
+          Begin
+            Buffer.Reset;
+            Buffer.Feed(Copy(Bytes, 0, Split));
+            Buffer.Feed(Copy(Bytes, Split, Length(Bytes) - Split));
+            Assert.AreEqual('AAAA', Buffer.LineText(0));
+            Assert.AreEqual(4, Buffer.CursorX);
+          End;
+        Buffer.Reset;
+        Buffer.FeedText('A' + #27 + '[bB' + #27 + '[0b');
+        Assert.AreEqual('AABB', Buffer.LineText(0));
+        Buffer.Reset;
+        Buffer.FeedText(#27 + '[3b');
+        Assert.AreEqual('', Buffer.LineText(0), 'No preceding graphic means no repetition');
+        Buffer.FeedText('X' + #27 + '[2147483647b');
+        Assert.AreEqual('XXXXXXXX', Buffer.LineText(0));
+        Assert.AreEqual('', Buffer.LineText(1));
+        Buffer.FeedText(#27 + '[bY');
+        Assert.AreEqual('Y', Buffer.LineText(1), 'REP must retain pending wrap');
+        Buffer.Reset;
+        Buffer.FeedText('12345678' + #27 + '[3bZ');
+        Assert.AreEqual('12345678', Buffer.LineText(0));
+        Assert.AreEqual('Z', Buffer.LineText(1), 'A full row has no REP capacity');
+        Buffer.Reset;
+        Buffer.FeedText('X' + #27 + '[2b' + #27 + '[2b');
+        Assert.AreEqual('XXX', Buffer.LineText(0), 'A completed REP clears the preceding graphic');
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Repeats Unicode spacing characters through normal insertion, preserving DEC mapping and attributes.</summary>
 
- Procedure TTerminalTests.RepeatGraphicUnicodeCharsetsAndInsertMode;
-  Var
-   Buffer : TTerminalBuffer;
-   x      : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(12, 3);
-   Try
-    Buffer.FeedText(#27 + '[31m' + #$4E2D + #27 + '[2b');
-    Assert.AreEqual(String(#$4E2D) + #$4E2D + #$4E2D, Buffer.LineText(0));
-    Assert.AreEqual(6, Buffer.CursorX);
-    For x := 0 To 5 Do
-     Begin
-      Assert.AreEqual(x Mod 2 = 1, Buffer.Cell[x, 0].Continuation);
-      Assert.AreEqual(1, Buffer.Cell[x, 0].Foreground);
-     End;
-    Buffer.Reset;
-    Buffer.FeedText('e' + #$0301 + #27 + '[2b');
-    Assert.AreEqual('e' + #$0301 + 'ee', Buffer.LineText(0), 'Combining accent does not replace the base graphic');
-    Buffer.Reset;
-    Buffer.FeedText(#27 + '(0q' + #27 + '[2b');
-    Assert.AreEqual(String(#$2500) + #$2500 + #$2500, Buffer.LineText(0), 'Repeat retains the unmapped DEC graphic');
-    Buffer.Reset;
-    Buffer.FeedText('abcd' + #27 + '[1;2H' + #27 + '[4hX' + #27 + '[2b');
-    Assert.AreEqual('aXXXbcd', Buffer.LineText(0), 'REP uses IRM rather than overwriting the tail');
-    Buffer.Reset;
-    Buffer.FeedText(#27 + '[?7lA' + #27 + '[2147483647b');
-    Assert.AreEqual('AAAAAAAAAAAA', Buffer.LineText(0));
-    Assert.AreEqual('', Buffer.LineText(1), 'Autowrap disabled must not grow history');
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.RepeatGraphicUnicodeCharsetsAndInsertMode;
+    Var
+      Buffer : TTerminalBuffer;
+      x      : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(12, 3);
+      Try
+        Buffer.FeedText(#27 + '[31m' + #$4E2D + #27 + '[2b');
+        Assert.AreEqual(String(#$4E2D) + #$4E2D + #$4E2D, Buffer.LineText(0));
+        Assert.AreEqual(6, Buffer.CursorX);
+        For x := 0 To 5 Do
+          Begin
+            Assert.AreEqual(x Mod 2 = 1, Buffer.Cell[x, 0].Continuation);
+            Assert.AreEqual(1, Buffer.Cell[x, 0].Foreground);
+          End;
+        Buffer.Reset;
+        Buffer.FeedText('e' + #$0301 + #27 + '[2b');
+        Assert.AreEqual('e' + #$0301 + 'ee', Buffer.LineText(0), 'Combining accent does not replace the base graphic');
+        Buffer.Reset;
+        Buffer.FeedText(#27 + '(0q' + #27 + '[2b');
+        Assert.AreEqual(String(#$2500) + #$2500 + #$2500, Buffer.LineText(0), 'Repeat retains the unmapped DEC graphic');
+        Buffer.Reset;
+        Buffer.FeedText('abcd' + #27 + '[1;2H' + #27 + '[4hX' + #27 + '[2b');
+        Assert.AreEqual('aXXXbcd', Buffer.LineText(0), 'REP uses IRM rather than overwriting the tail');
+        Buffer.Reset;
+        Buffer.FeedText(#27 + '[?7lA' + #27 + '[2147483647b');
+        Assert.AreEqual('AAAAAAAAAAAA', Buffer.LineText(0));
+        Assert.AreEqual('', Buffer.LineText(1), 'Autowrap disabled must not grow history');
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Checks command boundaries, ignored NUL/DEL, malformed REP and reset isolation.</summary>
 
- Procedure TTerminalTests.RepeatGraphicCommandBoundariesAndReset;
-  Const
-   Commands : Array[0..8] Of String = (#27'[31m', #13, #7, #27'[H', #27'7', #27'(B', #27']2;title'#7, #27'[!p', #27'c');
-  Var
-   Buffer : TTerminalBuffer;
-   i      : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(12, 3);
-   Try
-    For i := Low(Commands) To High(Commands) Do
-     Begin
-      Buffer.Reset;
-      Buffer.FeedText('A' + Commands[i] + #27 + '[4b');
-      Assert.IsTrue(Pos('AA', Buffer.Text) = 0, 'Command boundary must prevent reuse: ' + IntToStr(i));
-     End;
-    Buffer.Reset;
-    Buffer.FeedText('A' + #0 + #127 + #27 + '[2b');
-    Assert.AreEqual('AAA', Buffer.LineText(0), 'Ignored NUL and DEL do not clear the graphic');
-    Buffer.Reset;
-    Buffer.FeedText('A' + #27 + '[?3b' + #27 + '[3b');
-    Assert.AreEqual('A', Buffer.LineText(0));
-    Buffer.Reset;
-    Buffer.FeedText('A' + #27 + '[1;2b');
-    Assert.AreEqual('A', Buffer.LineText(0), 'REP accepts one parameter only');
-    Buffer.Reset;
-    Buffer.FeedText('A' + #27 + '[1:2b');
-    Assert.AreEqual('A', Buffer.LineText(0));
-    Buffer.Reset;
-    Buffer.FeedText('A');
-    Buffer.Reset;
-    Buffer.FeedText(#27 + '[b');
-    Assert.AreEqual('', Buffer.LineText(0), 'Reset clears repetition memory');
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.RepeatGraphicCommandBoundariesAndReset;
+    Const
+      Commands : Array[0..8] Of String = (#27'[31m', #13, #7, #27'[H', #27'7', #27'(B', #27']2;title'#7, #27'[!p', #27'c');
+    Var
+      Buffer : TTerminalBuffer;
+      i      : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(12, 3);
+      Try
+        For i := Low(Commands) To High(Commands) Do
+          Begin
+            Buffer.Reset;
+            Buffer.FeedText('A' + Commands[i] + #27 + '[4b');
+            Assert.IsTrue(Pos('AA', Buffer.Text) = 0, 'Command boundary must prevent reuse: ' + IntToStr(i));
+          End;
+        Buffer.Reset;
+        Buffer.FeedText('A' + #0 + #127 + #27 + '[2b');
+        Assert.AreEqual('AAA', Buffer.LineText(0), 'Ignored NUL and DEL do not clear the graphic');
+        Buffer.Reset;
+        Buffer.FeedText('A' + #27 + '[?3b' + #27 + '[3b');
+        Assert.AreEqual('A', Buffer.LineText(0));
+        Buffer.Reset;
+        Buffer.FeedText('A' + #27 + '[1;2b');
+        Assert.AreEqual('A', Buffer.LineText(0), 'REP accepts one parameter only');
+        Buffer.Reset;
+        Buffer.FeedText('A' + #27 + '[1:2b');
+        Assert.AreEqual('A', Buffer.LineText(0));
+        Buffer.Reset;
+        Buffer.FeedText('A');
+        Buffer.Reset;
+        Buffer.FeedText(#27 + '[b');
+        Assert.AreEqual('', Buffer.LineText(0), 'Reset clears repetition memory');
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
- Procedure TTerminalTests.DCSStatusStringsRoundTripAndLimits;
-  Var
-   Buffer   : TTerminalBuffer;
-   Restored : TTerminalBuffer;
-   Reply    : String;
-   Status   : String;
-   a        : TTerminalCell;
-   b        : TTerminalCell;
-   Value    : Byte;
-  Begin
-   Buffer   := TTerminalBuffer.Create(32, 8);
-   Restored := TTerminalBuffer.Create(32, 8);
-   Try
-    Buffer.FeedText(#27'[1;2;3;4:5;5;7;8;9;53;38;2;17;34;51;48;5;123;58:2::1:2:3mA');
-    For Value In TEncoding.UTF8.GetBytes(#27'P$qm'#27'\') Do
-     Buffer.Feed(TBytes.Create(Value));
-    Reply := Buffer.TakeResponses;
-    Assert.AreEqual(#27'P1$r', Copy(Reply, 1, 5));
-    Assert.AreEqual(#27'\', Copy(Reply, Length(Reply) - 1, 2));
-    Status := Copy(Reply, 6, Length(Reply) - 7);
-    Restored.FeedText(#27'[' + Status + 'A');
-    a := Buffer.Cell[0, 0];
-    b := Restored.Cell[0, 0];
-    Assert.AreEqual(a.Foreground, b.Foreground);
-    Assert.AreEqual(a.Background, b.Background);
-    Assert.AreEqual(a.UnderlineColor, b.UnderlineColor);
-    Assert.AreEqual(Integer(a.UnderlineStyle), Integer(b.UnderlineStyle));
-    Assert.IsTrue(b.Bold And b.Faint And b.Italic And b.Underline And b.Blink And b.Inverse And b.Conceal And b.Strike And b.Overline);
-    Buffer.FeedText(#27'[2;7r'#27'P$qr'#27'\'#27'P$qunknown'#27'\');
-    Assert.AreEqual(#27'P1$r2;7r'#27'\'#27'P0$r'#27'\', Buffer.TakeResponses);
-    Buffer.FeedText(#27'P$qm' + StringOfChar('x', 5000) + #27'\');
-    Assert.AreEqual('', Buffer.TakeResponses);
-    Buffer.FeedText(#27'P$qm'#24'Q');
-    Assert.AreEqual('', Buffer.TakeResponses);
-    Buffer.FeedText(#27'P$qm'#27'[0;31mR');
-    Assert.AreEqual('', Buffer.TakeResponses);
-    Assert.IsTrue(Pos('QR', Buffer.Text) > 0);
-   Finally
-    Restored.Free;
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.DCSStatusStringsRoundTripAndLimits;
+    Var
+      Buffer   : TTerminalBuffer;
+      Restored : TTerminalBuffer;
+      Reply    : String;
+      Status   : String;
+      a        : TTerminalCell;
+      b        : TTerminalCell;
+      Value    : Byte;
+    Begin
+      Buffer   := TTerminalBuffer.Create(32, 8);
+      Restored := TTerminalBuffer.Create(32, 8);
+      Try
+        Buffer.FeedText(#27'[1;2;3;4:5;5;7;8;9;53;38;2;17;34;51;48;5;123;58:2::1:2:3mA');
+        For Value In TEncoding.UTF8.GetBytes(#27'P$qm'#27'\') Do
+          Buffer.Feed(TBytes.Create(Value));
+        Reply := Buffer.TakeResponses;
+        Assert.AreEqual(#27'P1$r', Copy(Reply, 1, 5));
+        Assert.AreEqual(#27'\', Copy(Reply, Length(Reply) - 1, 2));
+        Status := Copy(Reply, 6, Length(Reply) - 7);
+        Restored.FeedText(#27'[' + Status + 'A');
+        a := Buffer.Cell[0, 0];
+        b := Restored.Cell[0, 0];
+        Assert.AreEqual(a.Foreground, b.Foreground);
+        Assert.AreEqual(a.Background, b.Background);
+        Assert.AreEqual(a.UnderlineColor, b.UnderlineColor);
+        Assert.AreEqual(Integer(a.UnderlineStyle), Integer(b.UnderlineStyle));
+        Assert.IsTrue(b.Bold And b.Faint And b.Italic And b.Underline And b.Blink And b.Inverse And b.Conceal And b.Strike And b.Overline);
+        Buffer.FeedText(#27'[2;7r'#27'P$qr'#27'\'#27'P$qunknown'#27'\');
+        Assert.AreEqual(#27'P1$r2;7r'#27'\'#27'P0$r'#27'\', Buffer.TakeResponses);
+        Buffer.FeedText(#27'P$qm' + StringOfChar('x', 5000) + #27'\');
+        Assert.AreEqual('', Buffer.TakeResponses);
+        Buffer.FeedText(#27'P$qm'#24'Q');
+        Assert.AreEqual('', Buffer.TakeResponses);
+        Buffer.FeedText(#27'P$qm'#27'[0;31mR');
+        Assert.AreEqual('', Buffer.TakeResponses);
+        Assert.IsTrue(Pos('QR', Buffer.Text) > 0);
+      Finally
+        Restored.Free;
+        Buffer.Free;
+      End;
+    End;
 
- Procedure TTerminalTests.ApplicationKeypadModeQueriesAndReset;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(20, 4);
-   Try
-    Assert.IsFalse(Buffer.ApplicationKeypad);
-    Buffer.FeedText(#27'='#27'[?66$p');
-    Assert.IsTrue(Buffer.ApplicationKeypad);
-    Assert.AreEqual(#27'[?66;1$y', Buffer.TakeResponses);
-    Buffer.FeedText(#27'>'#27'[?66$p');
-    Assert.IsFalse(Buffer.ApplicationKeypad);
-    Assert.AreEqual(#27'[?66;2$y', Buffer.TakeResponses);
-    Buffer.FeedText(#27'[?66h');
-    Assert.IsTrue(Buffer.ApplicationKeypad);
-    Buffer.FeedText(#27'[?66l');
-    Assert.IsFalse(Buffer.ApplicationKeypad);
-    Buffer.FeedText(#27'='#27'c');
-    Assert.IsFalse(Buffer.ApplicationKeypad);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.ApplicationKeypadModeQueriesAndReset;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(20, 4);
+      Try
+        Assert.IsFalse(Buffer.ApplicationKeypad);
+        Buffer.FeedText(#27'='#27'[?66$p');
+        Assert.IsTrue(Buffer.ApplicationKeypad);
+        Assert.AreEqual(#27'[?66;1$y', Buffer.TakeResponses);
+        Buffer.FeedText(#27'>'#27'[?66$p');
+        Assert.IsFalse(Buffer.ApplicationKeypad);
+        Assert.AreEqual(#27'[?66;2$y', Buffer.TakeResponses);
+        Buffer.FeedText(#27'[?66h');
+        Assert.IsTrue(Buffer.ApplicationKeypad);
+        Buffer.FeedText(#27'[?66l');
+        Assert.IsFalse(Buffer.ApplicationKeypad);
+        Buffer.FeedText(#27'='#27'c');
+        Assert.IsFalse(Buffer.ApplicationKeypad);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
- Procedure TTerminalTests.DeviceModeQueriesReflectImplementedState;
-  Var
-   Buffer : TTerminalBuffer;
-   Mode   : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(20, 5);
-   Try
-    For Mode In TArray<Integer>.Create(1, 6, 7, 25, 1000, 1002, 1003, 1004, 1005, 1006, 2004) Do
-     Begin
-      Buffer.FeedText(Format(#27'[?%dh'#27'[?%d$p', [Mode, Mode]));
-      Assert.AreEqual(Format(#27'[?%d;1$y', [Mode]), Buffer.TakeResponses);
-      Buffer.FeedText(Format(#27'[?%dl'#27'[?%d$p', [Mode, Mode]));
-      Assert.AreEqual(Format(#27'[?%d;2$y', [Mode]), Buffer.TakeResponses);
-     End;
-    Buffer.FeedText(#27'[4;20h'#27'[4;20$p'#27'[?9999$p');
-    Assert.AreEqual(#27'[4;1$y'#27'[20;1$y'#27'[?9999;0$y', Buffer.TakeResponses);
-    Buffer.FeedText(#27'[4;20l'#27'[4;20$p'#27'[9999$p');
-    Assert.AreEqual(#27'[4;2$y'#27'[20;2$y'#27'[9999;0$y', Buffer.TakeResponses);
-    Buffer.Reset;
-    Assert.IsFalse(Buffer.FocusReporting Or Buffer.NewLineMode Or Buffer.Utf8Mouse);
-    Buffer.FeedText(#27'[?7;25;1004$p');
-    Assert.AreEqual(#27'[?7;1$y'#27'[?25;1$y'#27'[?1004;2$y', Buffer.TakeResponses);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.DeviceModeQueriesReflectImplementedState;
+    Var
+      Buffer : TTerminalBuffer;
+      Mode   : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(20, 5);
+      Try
+        For Mode In TArray<Integer>.Create(1, 6, 7, 25, 1000, 1002, 1003, 1004, 1005, 1006, 2004) Do
+          Begin
+            Buffer.FeedText(Format(#27'[?%dh'#27'[?%d$p', [Mode, Mode]));
+            Assert.AreEqual(Format(#27'[?%d;1$y', [Mode]), Buffer.TakeResponses);
+            Buffer.FeedText(Format(#27'[?%dl'#27'[?%d$p', [Mode, Mode]));
+            Assert.AreEqual(Format(#27'[?%d;2$y', [Mode]), Buffer.TakeResponses);
+          End;
+        Buffer.FeedText(#27'[4;20h'#27'[4;20$p'#27'[?9999$p');
+        Assert.AreEqual(#27'[4;1$y'#27'[20;1$y'#27'[?9999;0$y', Buffer.TakeResponses);
+        Buffer.FeedText(#27'[4;20l'#27'[4;20$p'#27'[9999$p');
+        Assert.AreEqual(#27'[4;2$y'#27'[20;2$y'#27'[9999;0$y', Buffer.TakeResponses);
+        Buffer.Reset;
+        Assert.IsFalse(Buffer.FocusReporting Or Buffer.NewLineMode Or Buffer.Utf8Mouse);
+        Buffer.FeedText(#27'[?7;25;1004$p');
+        Assert.AreEqual(#27'[?7;1$y'#27'[?25;1$y'#27'[?1004;2$y', Buffer.TakeResponses);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
- Procedure TTerminalTests.DeviceRepliesPreserveWrapAndRejectReplyLoops;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(4, 2);
-   Try
-    Buffer.FeedText('ABCD'#27'[c'#27'[>c'#27'[18t'#27'[6n'#27'[?7$pX');
-    Assert.AreEqual(#27'[?1;2c'#27'[>0;0;0c'#27'[8;2;4t'#27'[1;4R'#27'[?7;1$y', Buffer.TakeResponses);
-    Assert.AreEqual('ABCD', Buffer.LineText(0));
-    Assert.AreEqual('X', Buffer.LineText(1));
-    Buffer.FeedText(#27'[?1;2c'#27'[>0;0;0c'#27'[1c'#27'[>1c'#27'[?7;1$y');
-    Assert.AreEqual('', Buffer.TakeResponses);
-    Buffer.Resize(32, 8);
-    Buffer.FeedText(#27'[18t');
-    Assert.AreEqual(#27'[8;8;32t', Buffer.TakeResponses);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.DeviceRepliesPreserveWrapAndRejectReplyLoops;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(4, 2);
+      Try
+        Buffer.FeedText('ABCD'#27'[c'#27'[>c'#27'[18t'#27'[6n'#27'[?7$pX');
+        Assert.AreEqual(#27'[?1;2c'#27'[>0;0;0c'#27'[8;2;4t'#27'[1;4R'#27'[?7;1$y', Buffer.TakeResponses);
+        Assert.AreEqual('ABCD', Buffer.LineText(0));
+        Assert.AreEqual('X', Buffer.LineText(1));
+        Buffer.FeedText(#27'[?1;2c'#27'[>0;0;0c'#27'[1c'#27'[>1c'#27'[?7;1$y');
+        Assert.AreEqual('', Buffer.TakeResponses);
+        Buffer.Resize(32, 8);
+        Buffer.FeedText(#27'[18t');
+        Assert.AreEqual(#27'[8;8;32t', Buffer.TakeResponses);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
- Procedure TTerminalTests.NewLineModeControlsLineFeed;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(20, 6);
-   Try
-    Buffer.FeedText('ab'#10'C');
-    Assert.AreEqual('C', Buffer.Cell[2, 1].Text);
-    Buffer.FeedText(#27'[20h'#10'D');
-    Assert.IsTrue(Buffer.NewLineMode);
-    Assert.AreEqual('D', Buffer.Cell[0, 2].Text);
-    Buffer.FeedText(#27'[20l'#10'E');
-    Assert.AreEqual('E', Buffer.Cell[1, 3].Text);
-    Buffer.FeedText(#27'[?1004h');
-    Assert.IsTrue(Buffer.FocusReporting);
-    Buffer.FeedText(#27'c');
-    Assert.IsFalse(Buffer.NewLineMode Or Buffer.FocusReporting);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.NewLineModeControlsLineFeed;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(20, 6);
+      Try
+        Buffer.FeedText('ab'#10'C');
+        Assert.AreEqual('C', Buffer.Cell[2, 1].Text);
+        Buffer.FeedText(#27'[20h'#10'D');
+        Assert.IsTrue(Buffer.NewLineMode);
+        Assert.AreEqual('D', Buffer.Cell[0, 2].Text);
+        Buffer.FeedText(#27'[20l'#10'E');
+        Assert.AreEqual('E', Buffer.Cell[1, 3].Text);
+        Buffer.FeedText(#27'[?1004h');
+        Assert.IsTrue(Buffer.FocusReporting);
+        Buffer.FeedText(#27'c');
+        Assert.IsFalse(Buffer.NewLineMode Or Buffer.FocusReporting);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Soft wraps preserve UTF-16 hit positions; explicit newlines remain separate.</summary>
 
 /// <summary>Insertion repairs an intersected wide glyph and preserves moved cell attributes.</summary>
 
- Procedure TTerminalTests.WideInsertColumnBoundaries;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(6, 3);
-   Try
-    Buffer.FeedText('A' + #$4E2D + 'BC' + #27'[1;3H' + #27'[@');
-    Assert.AreEqual('A   BC', Buffer.LineText(0));
-    Assert.AreEqual(2, Buffer.CursorX);
-    Buffer.Reset;
-    Buffer.FeedText('abcd' + #$4E2D + #27'[H' + #27'[@');
-    Assert.AreEqual(' abcd', Buffer.LineText(0));
-    Assert.IsFalse(Buffer.Cell[5, 0].Continuation);
-    Buffer.Reset;
-    Buffer.FeedText('A' + #27'[31m' + #27'[1' + #34'q' + #$4E2D + #27'[0' + #34'q' + 'BC' + #27'[1;2H' + #27'[@');
-    Assert.AreEqual('A ' + #$4E2D + 'BC', Buffer.LineText(0));
-    Assert.AreEqual(#$4E2D, Buffer.Cell[2, 0].Text);
-    Assert.IsTrue(Buffer.Cell[3, 0].Continuation);
-    Assert.IsTrue(Buffer.Cell[2, 0].EraseProtected And Buffer.Cell[3, 0].EraseProtected);
-    Assert.AreEqual(1, Buffer.Cell[2, 0].Foreground);
-    Assert.IsFalse(Buffer.Cell[1, 0].EraseProtected);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.WideInsertColumnBoundaries;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(6, 3);
+      Try
+        Buffer.FeedText('A' + #$4E2D + 'BC' + #27'[1;3H' + #27'[@');
+        Assert.AreEqual('A   BC', Buffer.LineText(0));
+        Assert.AreEqual(2, Buffer.CursorX);
+        Buffer.Reset;
+        Buffer.FeedText('abcd' + #$4E2D + #27'[H' + #27'[@');
+        Assert.AreEqual(' abcd', Buffer.LineText(0));
+        Assert.IsFalse(Buffer.Cell[5, 0].Continuation);
+        Buffer.Reset;
+        Buffer.FeedText('A' + #27'[31m' + #27'[1' + #34'q' + #$4E2D + #27'[0' + #34'q' + 'BC' + #27'[1;2H' + #27'[@');
+        Assert.AreEqual('A ' + #$4E2D + 'BC', Buffer.LineText(0));
+        Assert.AreEqual(#$4E2D, Buffer.Cell[2, 0].Text);
+        Assert.IsTrue(Buffer.Cell[3, 0].Continuation);
+        Assert.IsTrue(Buffer.Cell[2, 0].EraseProtected And Buffer.Cell[3, 0].EraseProtected);
+        Assert.AreEqual(1, Buffer.Cell[2, 0].Foreground);
+        Assert.IsFalse(Buffer.Cell[1, 0].EraseProtected);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Deletion and ECH remove split wide characters while retaining their column-count semantics.</summary>
 
- Procedure TTerminalTests.WideDeleteAndEraseColumnBoundaries;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(6, 3);
-   Try
-    Buffer.FeedText('A' + #$4E2D + 'BC' + #27'[1;2H' + #27'[P');
-    Assert.AreEqual('A BC', Buffer.LineText(0));
-    Buffer.Reset;
-    Buffer.FeedText('A' + #$4E2D + 'BC' + #27'[1;3H' + #27'[P');
-    Assert.AreEqual('A BC', Buffer.LineText(0));
-    Assert.AreEqual(2, Buffer.CursorX);
-    Buffer.Reset;
-    Buffer.FeedText('A' + #$4E2D + 'BC' + #27'[H' + #27'[2P');
-    Assert.AreEqual(' BC', Buffer.LineText(0));
-    Buffer.Reset;
-    Buffer.FeedText('A' + #$4E2D + 'BC' + #27'[1;3H' + #27'[X');
-    Assert.AreEqual('A  BC', Buffer.LineText(0));
-    Assert.IsFalse(Buffer.Cell[1, 0].Continuation Or Buffer.Cell[2, 0].Continuation);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.WideDeleteAndEraseColumnBoundaries;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(6, 3);
+      Try
+        Buffer.FeedText('A' + #$4E2D + 'BC' + #27'[1;2H' + #27'[P');
+        Assert.AreEqual('A BC', Buffer.LineText(0));
+        Buffer.Reset;
+        Buffer.FeedText('A' + #$4E2D + 'BC' + #27'[1;3H' + #27'[P');
+        Assert.AreEqual('A BC', Buffer.LineText(0));
+        Assert.AreEqual(2, Buffer.CursorX);
+        Buffer.Reset;
+        Buffer.FeedText('A' + #$4E2D + 'BC' + #27'[H' + #27'[2P');
+        Assert.AreEqual(' BC', Buffer.LineText(0));
+        Buffer.Reset;
+        Buffer.FeedText('A' + #$4E2D + 'BC' + #27'[1;3H' + #27'[X');
+        Assert.AreEqual('A  BC', Buffer.LineText(0));
+        Assert.IsFalse(Buffer.Cell[1, 0].Continuation Or Buffer.Cell[2, 0].Continuation);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>IRM uses the same boundary repair for narrow and wide inserted graphemes.</summary>
 
- Procedure TTerminalTests.InsertModeUsesAtomicColumnShift;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(6, 3);
-   Try
-    Buffer.FeedText('abcd' + #$4E2D + #27'[H' + #27'[4hX');
-    Assert.AreEqual('Xabcd', Buffer.LineText(0));
-    Buffer.Reset;
-    Buffer.FeedText('A' + #$4E2D + 'BC' + #27'[1;3H' + #27'[4hZ');
-    Assert.AreEqual('A Z BC', Buffer.LineText(0));
-    Assert.AreEqual(3, Buffer.CursorX);
-    Buffer.Reset;
-    Buffer.FeedText('abcdXY' + #27'[H' + #27'[4h' + #$4E2D);
-    Assert.AreEqual(#$4E2D + 'abcd', Buffer.LineText(0));
-    Assert.IsTrue(Buffer.Cell[1, 0].Continuation);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.InsertModeUsesAtomicColumnShift;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(6, 3);
+      Try
+        Buffer.FeedText('abcd' + #$4E2D + #27'[H' + #27'[4hX');
+        Assert.AreEqual('Xabcd', Buffer.LineText(0));
+        Buffer.Reset;
+        Buffer.FeedText('A' + #$4E2D + 'BC' + #27'[1;3H' + #27'[4hZ');
+        Assert.AreEqual('A Z BC', Buffer.LineText(0));
+        Assert.AreEqual(3, Buffer.CursorX);
+        Buffer.Reset;
+        Buffer.FeedText('abcdXY' + #27'[H' + #27'[4h' + #$4E2D);
+        Assert.AreEqual(#$4E2D + 'abcd', Buffer.LineText(0));
+        Assert.IsTrue(Buffer.Cell[1, 0].Continuation);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Exercises every edit position/count in mixed-width rows and keeps wrap metadata on the row edge.</summary>
 
- Procedure TTerminalTests.ColumnEditingGridInvariantsAndSoftWrap;
-  Var
-   Buffer    : TTerminalBuffer;
-   Pattern   : String;
-   Operation : Char;
-   Column    : Integer;
-   Count     : Integer;
-   x         : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 3);
-   Try
-    For Pattern In TArray<String>.Create('ab' + #$4E2D + 'cd', 'abcdef' + #$4E2D,
-    #$4E2D + #$4E2D + #$4E2D + #$4E2D, 'a' + #$0301 + #$4E2D + 'Z') Do
-     For Operation In '@PX' Do
-      For Column := 0 To 7 Do
-       For Count := 1 To 8 Do
-        Begin
-         Buffer.Reset;
-         Buffer.FeedText(Pattern + Format(#27'[1;%dH' + #27'[%d%s', [Column + 1, Count, String(Operation)]));
-         Assert.AreEqual(Column, Buffer.CursorX);
-         For x := 0 To 7 Do
-          If Buffer.Cell[x, 0].Continuation Then
-           Begin
-            Assert.IsTrue(x > 0);
-            Assert.IsFalse(Buffer.Cell[x - 1, 0].Continuation);
-            Assert.AreEqual(2, GraphemeWidth(Buffer.Cell[x - 1, 0].Text));
-           End
-          Else If GraphemeWidth(Buffer.Cell[x, 0].Text) = 2 Then
-           Begin
-            Assert.IsTrue(x < 7);
-            Assert.IsTrue(Buffer.Cell[x + 1, 0].Continuation);
-           End;
-        End;
-    Buffer.Reset;
-    Buffer.FeedText('abcdefghi' + #27'[1;2H' + #27'[@' + #27'[P');
-    Assert.IsTrue(Buffer.Cell[7, 0].SoftWrapped);
-    For x := 0 To 6 Do
-     Assert.IsFalse(Buffer.Cell[x, 0].SoftWrapped);
-    Buffer.Reset;
-    Buffer.FeedText('ABC' + #27'[1;2H' + #27'[0@');
-    Assert.AreEqual('A BC', Buffer.LineText(0), 'Zero means one inserted column');
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.ColumnEditingGridInvariantsAndSoftWrap;
+    Var
+      Buffer    : TTerminalBuffer;
+      Pattern   : String;
+      Operation : Char;
+      Column    : Integer;
+      Count     : Integer;
+      x         : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 3);
+      Try
+        For Pattern In TArray<String>.Create('ab' + #$4E2D + 'cd', 'abcdef' + #$4E2D,
+        #$4E2D + #$4E2D + #$4E2D + #$4E2D, 'a' + #$0301 + #$4E2D + 'Z') Do
+          For Operation In '@PX' Do
+            For Column  := 0 To 7 Do
+              For Count := 1 To 8 Do
+                Begin
+                  Buffer.Reset;
+                  Buffer.FeedText(Pattern + Format(#27'[1;%dH' + #27'[%d%s', [Column + 1, Count, String(Operation)]));
+                  Assert.AreEqual(Column, Buffer.CursorX);
+                  For x := 0 To 7 Do
+                    If Buffer.Cell[x, 0].Continuation Then
+                      Begin
+                        Assert.IsTrue(x > 0);
+                        Assert.IsFalse(Buffer.Cell[x - 1, 0].Continuation);
+                        Assert.AreEqual(2, GraphemeWidth(Buffer.Cell[x - 1, 0].Text));
+                      End
+                    Else If GraphemeWidth(Buffer.Cell[x, 0].Text) = 2 Then
+                      Begin
+                        Assert.IsTrue(x < 7);
+                        Assert.IsTrue(Buffer.Cell[x + 1, 0].Continuation);
+                      End;
+                End;
+        Buffer.Reset;
+        Buffer.FeedText('abcdefghi' + #27'[1;2H' + #27'[@' + #27'[P');
+        Assert.IsTrue(Buffer.Cell[7, 0].SoftWrapped);
+        For x := 0 To 6 Do
+          Assert.IsFalse(Buffer.Cell[x, 0].SoftWrapped);
+        Buffer.Reset;
+        Buffer.FeedText('ABC' + #27'[1;2H' + #27'[0@');
+        Assert.AreEqual('A BC', Buffer.LineText(0), 'Zero means one inserted column');
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Protection is independent of SGR and retained by DEC cursor save.</summary>
 
- Procedure TTerminalTests.CharacterProtectionFragmentsAndCursorSave;
-  Var
-   Buffer   : TTerminalBuffer;
-   Sequence : String;
-   Split    : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(12, 4);
-   Try
-    Sequence  := #27'[1' + #34'q' + #27'[0mA' + #27'7' + #27'[0' + #34'q' + #27'8B';
-    For Split := 0 To Length(Sequence) Do
-     Begin
-      Buffer.Reset;
-      Buffer.FeedText(Copy(Sequence, 1, Split));
-      Buffer.FeedText(Copy(Sequence, Split + 1, MaxInt));
-      Assert.IsTrue(Buffer.Cell[0, 0].EraseProtected);
-      Assert.IsTrue(Buffer.Cell[1, 0].EraseProtected);
-      Buffer.FeedText(#27'P$q' + #34'q' + #27 + Chr(92));
-      Assert.AreEqual(#27'P1$r1' + #34'q' + #27 + Chr(92), Buffer.TakeResponses);
-     End;
-    Buffer.FeedText(#27'[3' + #34'q' + 'C');
-    Assert.IsTrue(Buffer.Cell[2, 0].EraseProtected);
-    Buffer.FeedText(#27'[2' + #34'q' + 'D');
-    Assert.IsFalse(Buffer.Cell[3, 0].EraseProtected);
-    Buffer.FeedText(#27'[1' + #34'q' + #27'[!pE');
-    Assert.IsFalse(Buffer.Cell[4, 0].EraseProtected);
-    Assert.IsTrue(Buffer.Cell[0, 0].EraseProtected);
-    Buffer.FeedText(#27'cF');
-    Assert.IsFalse(Buffer.Cell[0, 0].EraseProtected);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.CharacterProtectionFragmentsAndCursorSave;
+    Var
+      Buffer   : TTerminalBuffer;
+      Sequence : String;
+      Split    : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(12, 4);
+      Try
+        Sequence  := #27'[1' + #34'q' + #27'[0mA' + #27'7' + #27'[0' + #34'q' + #27'8B';
+        For Split := 0 To Length(Sequence) Do
+          Begin
+            Buffer.Reset;
+            Buffer.FeedText(Copy(Sequence, 1, Split));
+            Buffer.FeedText(Copy(Sequence, Split + 1, MaxInt));
+            Assert.IsTrue(Buffer.Cell[0, 0].EraseProtected);
+            Assert.IsTrue(Buffer.Cell[1, 0].EraseProtected);
+            Buffer.FeedText(#27'P$q' + #34'q' + #27 + Chr(92));
+            Assert.AreEqual(#27'P1$r1' + #34'q' + #27 + Chr(92), Buffer.TakeResponses);
+          End;
+        Buffer.FeedText(#27'[3' + #34'q' + 'C');
+        Assert.IsTrue(Buffer.Cell[2, 0].EraseProtected);
+        Buffer.FeedText(#27'[2' + #34'q' + 'D');
+        Assert.IsFalse(Buffer.Cell[3, 0].EraseProtected);
+        Buffer.FeedText(#27'[1' + #34'q' + #27'[!pE');
+        Assert.IsFalse(Buffer.Cell[4, 0].EraseProtected);
+        Assert.IsTrue(Buffer.Cell[0, 0].EraseProtected);
+        Buffer.FeedText(#27'cF');
+        Assert.IsFalse(Buffer.Cell[0, 0].EraseProtected);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Selective ED/EL retain protected cells in all directions and do not delete history.</summary>
 
- Procedure TTerminalTests.SelectiveEraseDirectionsAndHistory;
-  Var
-   Buffer : TTerminalBuffer;
-   Mode   : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 3);
-   Try
-    For Mode := 0 To 2 Do
-     Begin
-      Buffer.Reset;
-      Buffer.FeedText('a' + #27'[1' + #34'qP' + #27'[0' + #34'qbc');
-      Buffer.FeedText(#27'[1;3H' + #27'[?' + IntToStr(Mode) + 'K');
-      If Mode = 0 Then
-       Assert.AreEqual('aP', Buffer.LineText(0));
-      If Mode = 1 Then
-       Assert.AreEqual(' P c', Buffer.LineText(0));
-      If Mode = 2 Then
-       Assert.AreEqual(' P', Buffer.LineText(0));
-      Buffer.FeedText(#27'[2K');
-      Assert.AreEqual('', Buffer.LineText(0), 'Normal erase ignores protection');
-     End;
-    For Mode := 0 To 2 Do
-     Begin
-      Buffer.Reset;
-      Buffer.FeedText('top' + #27'[2;1H' + #27'[1' + #34'qP' + #27'[0' + #34'qdata' + #27'[3;1Hbottom');
-      Buffer.FeedText(#27'[2;3r' + #27'[2;3H' + #27'[?' + IntToStr(Mode) + 'J');
-      Assert.AreEqual('P', Buffer.Cell[0, 1].Text);
-      If Mode = 0 Then
-       Begin
-        Assert.AreEqual('top', Buffer.LineText(0));
-        Assert.AreEqual('', Buffer.LineText(2));
-       End;
-      If Mode = 1 Then
-       Begin
-        Assert.AreEqual('', Buffer.LineText(0));
-        Assert.AreEqual('bottom', Buffer.LineText(2));
-       End;
-      If Mode = 2 Then
-       Begin
-        Assert.AreEqual('', Buffer.LineText(0));
-        Assert.AreEqual('', Buffer.LineText(2));
-       End;
-     End;
-    Buffer.Reset;
-    Buffer.FeedText('history' + #13#10'one' + #13#10'two' + #13#10'three');
-    Buffer.FeedText(#27'[?2J' + #27'[?3J');
-    Assert.AreEqual('history', Buffer.LineText(0));
-    Assert.IsTrue(Buffer.TotalLines > Buffer.Rows);
-    Buffer.FeedText(#27'[3J');
-    Assert.AreEqual(Buffer.Rows, Buffer.TotalLines);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.SelectiveEraseDirectionsAndHistory;
+    Var
+      Buffer : TTerminalBuffer;
+      Mode   : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 3);
+      Try
+        For Mode := 0 To 2 Do
+          Begin
+            Buffer.Reset;
+            Buffer.FeedText('a' + #27'[1' + #34'qP' + #27'[0' + #34'qbc');
+            Buffer.FeedText(#27'[1;3H' + #27'[?' + IntToStr(Mode) + 'K');
+            If Mode = 0 Then
+              Assert.AreEqual('aP', Buffer.LineText(0));
+            If Mode = 1 Then
+              Assert.AreEqual(' P c', Buffer.LineText(0));
+            If Mode = 2 Then
+              Assert.AreEqual(' P', Buffer.LineText(0));
+            Buffer.FeedText(#27'[2K');
+            Assert.AreEqual('', Buffer.LineText(0), 'Normal erase ignores protection');
+          End;
+        For Mode := 0 To 2 Do
+          Begin
+            Buffer.Reset;
+            Buffer.FeedText('top' + #27'[2;1H' + #27'[1' + #34'qP' + #27'[0' + #34'qdata' + #27'[3;1Hbottom');
+            Buffer.FeedText(#27'[2;3r' + #27'[2;3H' + #27'[?' + IntToStr(Mode) + 'J');
+            Assert.AreEqual('P', Buffer.Cell[0, 1].Text);
+            If Mode = 0 Then
+              Begin
+                Assert.AreEqual('top', Buffer.LineText(0));
+                Assert.AreEqual('', Buffer.LineText(2));
+              End;
+            If Mode = 1 Then
+              Begin
+                Assert.AreEqual('', Buffer.LineText(0));
+                Assert.AreEqual('bottom', Buffer.LineText(2));
+              End;
+            If Mode = 2 Then
+              Begin
+                Assert.AreEqual('', Buffer.LineText(0));
+                Assert.AreEqual('', Buffer.LineText(2));
+              End;
+          End;
+        Buffer.Reset;
+        Buffer.FeedText('history' + #13#10'one' + #13#10'two' + #13#10'three');
+        Buffer.FeedText(#27'[?2J' + #27'[?3J');
+        Assert.AreEqual('history', Buffer.LineText(0));
+        Assert.IsTrue(Buffer.TotalLines > Buffer.Rows);
+        Buffer.FeedText(#27'[3J');
+        Assert.AreEqual(Buffer.Rows, Buffer.TotalLines);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Erasure keeps wide characters atomic, and protection survives reflow.</summary>
 
- Procedure TTerminalTests.SelectiveEraseWideCellsAndReflow;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 4);
-   Try
-    Buffer.FeedText(#27'[1' + #34'q' + #$4E2D + #27'[0' + #34'qx');
-    Buffer.FeedText(#27'[1;2H' + #27'[?K');
-    Assert.AreEqual(#$4E2D, Buffer.Cell[0, 0].Text);
-    Assert.IsTrue(Buffer.Cell[1, 0].Continuation);
-    Assert.AreEqual('', Trim(Buffer.Cell[2, 0].Text));
-    Buffer.FeedText(#27'[K');
-    Assert.AreEqual('', Buffer.LineText(0));
-    Assert.IsFalse(Buffer.Cell[1, 0].Continuation);
-    Buffer.Reset;
-    Buffer.FeedText(#$4E2D + 'x' + #27'[1;1H' + #27'[?1K');
-    Assert.AreEqual('  x', Buffer.LineText(0));
-    Assert.IsFalse(Buffer.Cell[1, 0].Continuation);
-    Buffer.Reset;
-    Buffer.FeedText('abcd' + #27'[1' + #34'q' + #$4E2D + #27'[0' + #34'qefgh');
-    Buffer.Resize(4, 4);
-    Buffer.FeedText(#27'[?2J');
-    Assert.IsTrue(Pos(#$4E2D, Buffer.Text) > 0);
-    Assert.IsTrue(Buffer.Cell[0, 1].EraseProtected);
-    Assert.IsTrue(Buffer.Cell[1, 1].Continuation);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.SelectiveEraseWideCellsAndReflow;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 4);
+      Try
+        Buffer.FeedText(#27'[1' + #34'q' + #$4E2D + #27'[0' + #34'qx');
+        Buffer.FeedText(#27'[1;2H' + #27'[?K');
+        Assert.AreEqual(#$4E2D, Buffer.Cell[0, 0].Text);
+        Assert.IsTrue(Buffer.Cell[1, 0].Continuation);
+        Assert.AreEqual('', Trim(Buffer.Cell[2, 0].Text));
+        Buffer.FeedText(#27'[K');
+        Assert.AreEqual('', Buffer.LineText(0));
+        Assert.IsFalse(Buffer.Cell[1, 0].Continuation);
+        Buffer.Reset;
+        Buffer.FeedText(#$4E2D + 'x' + #27'[1;1H' + #27'[?1K');
+        Assert.AreEqual('  x', Buffer.LineText(0));
+        Assert.IsFalse(Buffer.Cell[1, 0].Continuation);
+        Buffer.Reset;
+        Buffer.FeedText('abcd' + #27'[1' + #34'q' + #$4E2D + #27'[0' + #34'qefgh');
+        Buffer.Resize(4, 4);
+        Buffer.FeedText(#27'[?2J');
+        Assert.IsTrue(Pos(#$4E2D, Buffer.Text) > 0);
+        Assert.IsTrue(Buffer.Cell[0, 1].EraseProtected);
+        Assert.IsTrue(Buffer.Cell[1, 1].Continuation);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>DECSTR preserves screen/history/coordinates but restores default modes and future-cell attributes.</summary>
 
- Procedure TTerminalTests.SoftResetPreservesContentAndResetsModes;
-  Var
-   Buffer : TTerminalBuffer;
-   Before : String;
-   x      : Integer;
-   y      : Integer;
-   Lines  : Integer;
-   Row    : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(20, 5);
-   Try
-    Buffer.FeedText(#27'[31;1mR' + #27'[0m' + #13#10 + 'a' + #13#10 + 'b' + #13#10 + 'c' + #13#10 + 'd' + #13#10 + 'e');
-    Buffer.FeedText(#27'[2;4r' + #27'[?1;6;66;1004;1005;1006;2004h' + #27'[?7;25l' + #27'[4;20h' + #27'[6 q');
-    Buffer.FeedText(#27'[1;3;5;8;9;53;4:3;38;2;1;2;3;48;2;4;5;6m' + #27']8;;https://example.org' + #7);
-    Before := Buffer.Text;
-    x      := Buffer.CursorX;
-    y      := Buffer.CursorY;
-    Lines  := Buffer.TotalLines;
-    Buffer.FeedText(#27'[!p');
-    Assert.AreEqual(Before, Buffer.Text);
-    Assert.AreEqual(Lines, Buffer.TotalLines);
-    Assert.AreEqual(x, Buffer.CursorX);
-    Assert.AreEqual(y, Buffer.CursorY);
-    Assert.IsTrue(Buffer.CursorVisible);
-    Assert.AreEqual(0, Buffer.CursorStyle);
-    Assert.IsFalse(Buffer.ApplicationCursor Or Buffer.ApplicationKeypad Or Buffer.FocusReporting Or Buffer.NewLineMode Or Buffer.BracketedPaste Or Buffer.Utf8Mouse Or Buffer.SGRMouse);
-    Assert.AreEqual(0, Buffer.MouseMode);
-    Assert.AreEqual(1, Buffer.Cell[0, 0].Foreground);
-    Assert.IsTrue(Buffer.Cell[0, 0].Bold, 'Existing rendition must remain in history');
-    Buffer.FeedText(#27'[?6;7;25$p' + #27'[4;20$p');
-    Assert.AreEqual(#27'[?6;2$y' + #27'[?7;1$y' + #27'[?25;1$y' + #27'[4;2$y' + #27'[20;2$y', Buffer.TakeResponses);
-    Buffer.FeedText(#27'P$qm' + #27'\' + #27'P$qr' + #27'\');
-    Assert.AreEqual(#27'P1$r0m' + #27'\' + #27'P1$r1;5r' + #27'\', Buffer.TakeResponses);
-    Row := Buffer.TotalLines - Buffer.Rows + Buffer.CursorY;
-    Buffer.FeedText('Z');
-    Assert.AreEqual( -1, Buffer.Cell[x, Row].Foreground);
-    Assert.AreEqual( -2, Buffer.Cell[x, Row].Background);
-    Assert.IsFalse(Buffer.Cell[x, Row].Bold Or Buffer.Cell[x, Row].Blink Or Buffer.Cell[x, Row].Conceal);
-    Assert.AreEqual('', Buffer.Cell[x, Row].Hyperlink);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.SoftResetPreservesContentAndResetsModes;
+    Var
+      Buffer : TTerminalBuffer;
+      Before : String;
+      x      : Integer;
+      y      : Integer;
+      Lines  : Integer;
+      Row    : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(20, 5);
+      Try
+        Buffer.FeedText(#27'[31;1mR' + #27'[0m' + #13#10 + 'a' + #13#10 + 'b' + #13#10 + 'c' + #13#10 + 'd' + #13#10 + 'e');
+        Buffer.FeedText(#27'[2;4r' + #27'[?1;6;66;1004;1005;1006;2004h' + #27'[?7;25l' + #27'[4;20h' + #27'[6 q');
+        Buffer.FeedText(#27'[1;3;5;8;9;53;4:3;38;2;1;2;3;48;2;4;5;6m' + #27']8;;https://example.org' + #7);
+        Before := Buffer.Text;
+        x      := Buffer.CursorX;
+        y      := Buffer.CursorY;
+        Lines  := Buffer.TotalLines;
+        Buffer.FeedText(#27'[!p');
+        Assert.AreEqual(Before, Buffer.Text);
+        Assert.AreEqual(Lines, Buffer.TotalLines);
+        Assert.AreEqual(x, Buffer.CursorX);
+        Assert.AreEqual(y, Buffer.CursorY);
+        Assert.IsTrue(Buffer.CursorVisible);
+        Assert.AreEqual(0, Buffer.CursorStyle);
+        Assert.IsFalse(Buffer.ApplicationCursor Or Buffer.ApplicationKeypad Or Buffer.FocusReporting Or Buffer.NewLineMode Or Buffer.BracketedPaste Or Buffer.Utf8Mouse Or Buffer.SGRMouse);
+        Assert.AreEqual(0, Buffer.MouseMode);
+        Assert.AreEqual(1, Buffer.Cell[0, 0].Foreground);
+        Assert.IsTrue(Buffer.Cell[0, 0].Bold, 'Existing rendition must remain in history');
+        Buffer.FeedText(#27'[?6;7;25$p' + #27'[4;20$p');
+        Assert.AreEqual(#27'[?6;2$y' + #27'[?7;1$y' + #27'[?25;1$y' + #27'[4;2$y' + #27'[20;2$y', Buffer.TakeResponses);
+        Buffer.FeedText(#27'P$qm' + #27'\' + #27'P$qr' + #27'\');
+        Assert.AreEqual(#27'P1$r0m' + #27'\' + #27'P1$r1;5r' + #27'\', Buffer.TakeResponses);
+        Row := Buffer.TotalLines - Buffer.Rows + Buffer.CursorY;
+        Buffer.FeedText('Z');
+        Assert.AreEqual( -1, Buffer.Cell[x, Row].Foreground);
+        Assert.AreEqual( -2, Buffer.Cell[x, Row].Background);
+        Assert.IsFalse(Buffer.Cell[x, Row].Bold Or Buffer.Cell[x, Row].Blink Or Buffer.Cell[x, Row].Conceal);
+        Assert.AreEqual('', Buffer.Cell[x, Row].Hyperlink);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Soft reset keeps custom tabs and title history, stays in alternate screen and preserves primary contents.</summary>
 
- Procedure TTerminalTests.SoftResetPreservesTabsTitlesAndAlternateScreen;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(16, 4);
-   Try
-    Buffer.FeedText(#27'[3g' + #27'[1;4H' + #27'H' + #27']2;base' + #7 + #27'[22;2t' + #27']2;temporary' + #7);
-    Buffer.FeedText(#27'[?1h' + #27'[?1s' + #27'[!p' + #27'[?1r' + #27'[23;2t' + #27'[H' + #9);
-    Assert.IsFalse(Buffer.ApplicationCursor, 'Soft reset clears private-mode caches');
-    Assert.AreEqual('base', Buffer.Title);
-    Assert.AreEqual(3, Buffer.CursorX, 'Custom tab stops survive DECSTR');
-    Buffer.FeedText(#27'[H' + 'PRIMARY' + #27'[2;3H' + #27'[?1049h' + 'ALT');
-    Buffer.FeedText(#27'[!p');
-    Assert.IsTrue(Buffer.AlternateScreen);
-    Assert.AreEqual('ALT', Buffer.LineText(0));
-    Assert.AreEqual(3, Buffer.CursorX);
-    Assert.AreEqual(0, Buffer.CursorY);
-    Buffer.FeedText(#27'[H' + #27'8');
-    Assert.AreEqual(3, Buffer.CursorX, 'DECSTR refreshes the active saved cursor');
-    Buffer.FeedText(#27'[?1049l');
-    Assert.IsFalse(Buffer.AlternateScreen);
-    Assert.AreEqual('PRIMARY', Buffer.LineText(0));
-    Assert.AreEqual(2, Buffer.CursorX);
-    Assert.AreEqual(1, Buffer.CursorY);
-    Buffer.Reset;
-    Buffer.FeedText('1234567890123456' + #27'[?1049h' + 'ALT' + #27'[!p' + #27'[?1049l' + 'X');
-    Assert.AreEqual('1234567890123456', Buffer.LineText(0));
-    Assert.AreEqual('X', Buffer.LineText(1), 'Soft reset in alternate screen preserves primary pending wrap');
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.SoftResetPreservesTabsTitlesAndAlternateScreen;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(16, 4);
+      Try
+        Buffer.FeedText(#27'[3g' + #27'[1;4H' + #27'H' + #27']2;base' + #7 + #27'[22;2t' + #27']2;temporary' + #7);
+        Buffer.FeedText(#27'[?1h' + #27'[?1s' + #27'[!p' + #27'[?1r' + #27'[23;2t' + #27'[H' + #9);
+        Assert.IsFalse(Buffer.ApplicationCursor, 'Soft reset clears private-mode caches');
+        Assert.AreEqual('base', Buffer.Title);
+        Assert.AreEqual(3, Buffer.CursorX, 'Custom tab stops survive DECSTR');
+        Buffer.FeedText(#27'[H' + 'PRIMARY' + #27'[2;3H' + #27'[?1049h' + 'ALT');
+        Buffer.FeedText(#27'[!p');
+        Assert.IsTrue(Buffer.AlternateScreen);
+        Assert.AreEqual('ALT', Buffer.LineText(0));
+        Assert.AreEqual(3, Buffer.CursorX);
+        Assert.AreEqual(0, Buffer.CursorY);
+        Buffer.FeedText(#27'[H' + #27'8');
+        Assert.AreEqual(3, Buffer.CursorX, 'DECSTR refreshes the active saved cursor');
+        Buffer.FeedText(#27'[?1049l');
+        Assert.IsFalse(Buffer.AlternateScreen);
+        Assert.AreEqual('PRIMARY', Buffer.LineText(0));
+        Assert.AreEqual(2, Buffer.CursorX);
+        Assert.AreEqual(1, Buffer.CursorY);
+        Buffer.Reset;
+        Buffer.FeedText('1234567890123456' + #27'[?1049h' + 'ALT' + #27'[!p' + #27'[?1049l' + 'X');
+        Assert.AreEqual('1234567890123456', Buffer.LineText(0));
+        Assert.AreEqual('X', Buffer.LineText(1), 'Soft reset in alternate screen preserves primary pending wrap');
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Recognizes fragmented DECSTR, rejects lookalikes and retains VTE-style pending wrap.</summary>
 
- Procedure TTerminalTests.SoftResetFragmentsSavedCursorAndPendingWrap;
-  Var
-   Buffer   : TTerminalBuffer;
-   Split    : Integer;
-   Sequence : String;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 4);
-   Try
-    Sequence  := #27'[!p';
-    For Split := 0 To Length(Sequence) Do
-     Begin
-      Buffer.Reset;
-      Buffer.FeedText('12345678' + #27'[?1h' + #27'[6 q');
-      Buffer.FeedText(Copy(Sequence, 1, Split));
-      Buffer.FeedText(Copy(Sequence, Split + 1, MaxInt));
-      Assert.IsFalse(Buffer.ApplicationCursor);
-      Assert.AreEqual(0, Buffer.CursorStyle);
-      Buffer.FeedText('X');
-      Assert.AreEqual('12345678', Buffer.LineText(0));
-      Assert.AreEqual('X', Buffer.LineText(1));
-     End;
-    Buffer.Reset;
-    Buffer.FeedText(#27'[?1h' + #27'[?1!p' + #27'[0!p' + #27'[!!p');
-    Assert.IsTrue(Buffer.ApplicationCursor, 'Unsupported reset variants do not execute DECSTR');
-    Buffer.FeedText(#27'[!' + #24 + 'p');
-    Assert.IsTrue(Buffer.ApplicationCursor, 'CAN cancels an unfinished reset');
-    Buffer.FeedText(#27'[!p');
-    Assert.IsFalse(Buffer.ApplicationCursor);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.SoftResetFragmentsSavedCursorAndPendingWrap;
+    Var
+      Buffer   : TTerminalBuffer;
+      Split    : Integer;
+      Sequence : String;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 4);
+      Try
+        Sequence  := #27'[!p';
+        For Split := 0 To Length(Sequence) Do
+          Begin
+            Buffer.Reset;
+            Buffer.FeedText('12345678' + #27'[?1h' + #27'[6 q');
+            Buffer.FeedText(Copy(Sequence, 1, Split));
+            Buffer.FeedText(Copy(Sequence, Split + 1, MaxInt));
+            Assert.IsFalse(Buffer.ApplicationCursor);
+            Assert.AreEqual(0, Buffer.CursorStyle);
+            Buffer.FeedText('X');
+            Assert.AreEqual('12345678', Buffer.LineText(0));
+            Assert.AreEqual('X', Buffer.LineText(1));
+          End;
+        Buffer.Reset;
+        Buffer.FeedText(#27'[?1h' + #27'[?1!p' + #27'[0!p' + #27'[!!p');
+        Assert.IsTrue(Buffer.ApplicationCursor, 'Unsupported reset variants do not execute DECSTR');
+        Buffer.FeedText(#27'[!' + #24 + 'p');
+        Assert.IsTrue(Buffer.ApplicationCursor, 'CAN cancels an unfinished reset');
+        Buffer.FeedText(#27'[!p');
+        Assert.IsFalse(Buffer.ApplicationCursor);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Private mode caches preserve independent true/false values and work across input fragments.</summary>
 
- Procedure TTerminalTests.PrivateModesSaveRestoreAndFragmentation;
-  Var
-   Buffer   : TTerminalBuffer;
-   Mode     : Integer;
-   Split    : Integer;
-   Sequence : String;
-  Begin
-   Buffer := TTerminalBuffer.Create(20, 5);
-   Try
-    For Mode In TArray<Integer>.Create(1, 6, 7, 25, 66, 1004, 1005, 1006, 2004) Do
-     Begin
-      Buffer.Reset;
-      Buffer.FeedText(Format(#27'[?%dh' + #27'[?%ds' + #27'[?%dl' + #27'[?%dr' + #27'[?%d$p', [Mode, Mode, Mode, Mode, Mode]));
-      Assert.AreEqual(Format(#27'[?%d;1$y', [Mode]), Buffer.TakeResponses);
-      Buffer.FeedText(Format(#27'[?%dl' + #27'[?%ds' + #27'[?%dh' + #27'[?%dr' + #27'[?%d$p', [Mode, Mode, Mode, Mode, Mode]));
-      Assert.AreEqual(Format(#27'[?%d;2$y', [Mode]), Buffer.TakeResponses, 'False overwrites the previous saved true value');
-     End;
-    Sequence  := #27'[?1;25;2004h' + #27'[?1;25;2004s' + #27'[?1;25;2004l' + #27'[?1;2004r' + #27'[?1;25;2004$p';
-    For Split := 0 To Length(Sequence) Do
-     Begin
-      Buffer.Reset;
-      Buffer.FeedText(Copy(Sequence, 1, Split));
-      Buffer.FeedText(Copy(Sequence, Split + 1, MaxInt));
-      Assert.AreEqual(#27'[?1;1$y' + #27'[?25;2$y' + #27'[?2004;1$y', Buffer.TakeResponses);
-     End;
-    Buffer.Reset;
-    Buffer.FeedText(#27'[?1h' + #27'[?1s' + #27'[?1l' + #27'[?1:25s' + #27'[?999999999999s' + #27'[?1r');
-    Assert.IsTrue(Buffer.ApplicationCursor, 'Invalid saves do not replace the saved mode');
-    Buffer.FeedText(#27'[?1003h' + #27'[?1003s' + #27'[?1000h' + #27'[?1003r');
-    Assert.AreEqual(1003, Buffer.MouseMode, 'Tracking-mode restore preserves independent lower-priority flags');
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.PrivateModesSaveRestoreAndFragmentation;
+    Var
+      Buffer   : TTerminalBuffer;
+      Mode     : Integer;
+      Split    : Integer;
+      Sequence : String;
+    Begin
+      Buffer := TTerminalBuffer.Create(20, 5);
+      Try
+        For Mode In TArray<Integer>.Create(1, 6, 7, 25, 66, 1004, 1005, 1006, 2004) Do
+          Begin
+            Buffer.Reset;
+            Buffer.FeedText(Format(#27'[?%dh' + #27'[?%ds' + #27'[?%dl' + #27'[?%dr' + #27'[?%d$p', [Mode, Mode, Mode, Mode, Mode]));
+            Assert.AreEqual(Format(#27'[?%d;1$y', [Mode]), Buffer.TakeResponses);
+            Buffer.FeedText(Format(#27'[?%dl' + #27'[?%ds' + #27'[?%dh' + #27'[?%dr' + #27'[?%d$p', [Mode, Mode, Mode, Mode, Mode]));
+            Assert.AreEqual(Format(#27'[?%d;2$y', [Mode]), Buffer.TakeResponses, 'False overwrites the previous saved true value');
+          End;
+        Sequence  := #27'[?1;25;2004h' + #27'[?1;25;2004s' + #27'[?1;25;2004l' + #27'[?1;2004r' + #27'[?1;25;2004$p';
+        For Split := 0 To Length(Sequence) Do
+          Begin
+            Buffer.Reset;
+            Buffer.FeedText(Copy(Sequence, 1, Split));
+            Buffer.FeedText(Copy(Sequence, Split + 1, MaxInt));
+            Assert.AreEqual(#27'[?1;1$y' + #27'[?25;2$y' + #27'[?2004;1$y', Buffer.TakeResponses);
+          End;
+        Buffer.Reset;
+        Buffer.FeedText(#27'[?1h' + #27'[?1s' + #27'[?1l' + #27'[?1:25s' + #27'[?999999999999s' + #27'[?1r');
+        Assert.IsTrue(Buffer.ApplicationCursor, 'Invalid saves do not replace the saved mode');
+        Buffer.FeedText(#27'[?1003h' + #27'[?1003s' + #27'[?1000h' + #27'[?1003r');
+        Assert.AreEqual(1003, Buffer.MouseMode, 'Tracking-mode restore preserves independent lower-priority flags');
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Restored origin mode homes within current margins; RIS clears caches and buffers remain independent.</summary>
 
- Procedure TTerminalTests.PrivateModeOriginResetAndIsolation;
-  Var
-   Buffer : TTerminalBuffer;
-   Other  : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 5);
-   Other  := TTerminalBuffer.Create(8, 5);
-   Try
-    Buffer.FeedText(#27'[2;4r' + #27'[H' + 'ABCDEFGH' + #27'[?6h' + 'X');
-    Assert.AreEqual('X', Buffer.Cell[0, 1].Text, 'Origin homing cancels pending wrap');
-    Assert.AreEqual(1, Buffer.CursorY);
-    Buffer.FeedText(#27'[?6s' + #27'[?6l' + #27'[3;4H' + #27'[?6r');
-    Assert.AreEqual(0, Buffer.CursorX);
-    Assert.AreEqual(1, Buffer.CursorY);
-    Buffer.FeedText(#27'[6n');
-    Assert.AreEqual(#27'[1;1R', Buffer.TakeResponses);
-    Buffer.FeedText(#27'[?1h' + #27'[?1s' + #27'[?1049h' + #27'[?1l' + #27'[?1r');
-    Assert.IsTrue(Buffer.ApplicationCursor, 'Saved modes are shared across screens');
-    Buffer.FeedText(#27'[?1049l');
-    Other.FeedText(#27'[?1r');
-    Assert.IsFalse(Other.ApplicationCursor, 'Restore without a saved value is a no-op');
-    Buffer.FeedText(#27'c' + #27'[?1r');
-    Assert.IsFalse(Buffer.ApplicationCursor, 'RIS discards saved private modes');
-    Buffer.FeedText(#27'[?2004h' + #27'[?2004s' + #27'[?2004l');
-    Buffer.Resize(10, 6);
-    Buffer.FeedText(#27'[?2004r');
-    Assert.IsTrue(Buffer.BracketedPaste, 'Resize preserves saved modes');
-   Finally
-    Other.Free;
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.PrivateModeOriginResetAndIsolation;
+    Var
+      Buffer : TTerminalBuffer;
+      Other  : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 5);
+      Other  := TTerminalBuffer.Create(8, 5);
+      Try
+        Buffer.FeedText(#27'[2;4r' + #27'[H' + 'ABCDEFGH' + #27'[?6h' + 'X');
+        Assert.AreEqual('X', Buffer.Cell[0, 1].Text, 'Origin homing cancels pending wrap');
+        Assert.AreEqual(1, Buffer.CursorY);
+        Buffer.FeedText(#27'[?6s' + #27'[?6l' + #27'[3;4H' + #27'[?6r');
+        Assert.AreEqual(0, Buffer.CursorX);
+        Assert.AreEqual(1, Buffer.CursorY);
+        Buffer.FeedText(#27'[6n');
+        Assert.AreEqual(#27'[1;1R', Buffer.TakeResponses);
+        Buffer.FeedText(#27'[?1h' + #27'[?1s' + #27'[?1049h' + #27'[?1l' + #27'[?1r');
+        Assert.IsTrue(Buffer.ApplicationCursor, 'Saved modes are shared across screens');
+        Buffer.FeedText(#27'[?1049l');
+        Other.FeedText(#27'[?1r');
+        Assert.IsFalse(Other.ApplicationCursor, 'Restore without a saved value is a no-op');
+        Buffer.FeedText(#27'c' + #27'[?1r');
+        Assert.IsFalse(Buffer.ApplicationCursor, 'RIS discards saved private modes');
+        Buffer.FeedText(#27'[?2004h' + #27'[?2004s' + #27'[?2004l');
+        Buffer.Resize(10, 6);
+        Buffer.FeedText(#27'[?2004r');
+        Assert.IsTrue(Buffer.BracketedPaste, 'Resize preserves saved modes');
+      Finally
+        Other.Free;
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Exercises title stack fragmentation, nesting and empty values without changing screen state.</summary>
 
- Procedure TTerminalTests.TitleStackFragmentsNestingAndEmptyTitle;
-  Var
-   Buffer   : TTerminalBuffer;
-   Sequence : String;
-   Split    : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 4);
-   Try
-    Sequence  := #27'[22;2t' + #27']2;editor' + #27'\' + #27'[23;2t';
-    For Split := 0 To Length(Sequence) Do
-     Begin
-      Buffer.Reset;
-      Buffer.FeedText(#27']2;original' + #7);
-      Buffer.FeedText(Copy(Sequence, 1, Split));
-      Buffer.FeedText(Copy(Sequence, Split + 1, MaxInt));
-      Assert.AreEqual('original', Buffer.Title);
-     End;
-    Buffer.FeedText(#27'[22t' + #27']0;outer' + #7 + #27'[22;0t' + #27']2;inner' + #7);
-    Buffer.FeedText(#27'[23t');
-    Assert.AreEqual('outer', Buffer.Title);
-    Buffer.FeedText(#27'[23;0t');
-    Assert.AreEqual('original', Buffer.Title);
-    Buffer.FeedText(#27'[23;2t');
-    Assert.AreEqual('original', Buffer.Title, 'Empty stack is a no-op');
-    Buffer.FeedText(#27']2;' + #7 + #27'[22;2t' + #27']2;temporary' + #7 + #27'[23;2t');
-    Assert.AreEqual('', Buffer.Title, 'An empty saved title is a valid entry');
-    Buffer.Reset;
-    Buffer.FeedText('12345678' + #27'[22;2t' + #27']2;new' + #7 + #27'[23;2t' + 'X');
-    Assert.AreEqual('12345678', Buffer.LineText(0));
-    Assert.AreEqual('X', Buffer.LineText(1), 'Title operations preserve pending wrap');
-    Assert.AreEqual('', Buffer.TakeResponses);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.TitleStackFragmentsNestingAndEmptyTitle;
+    Var
+      Buffer   : TTerminalBuffer;
+      Sequence : String;
+      Split    : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 4);
+      Try
+        Sequence  := #27'[22;2t' + #27']2;editor' + #27'\' + #27'[23;2t';
+        For Split := 0 To Length(Sequence) Do
+          Begin
+            Buffer.Reset;
+            Buffer.FeedText(#27']2;original' + #7);
+            Buffer.FeedText(Copy(Sequence, 1, Split));
+            Buffer.FeedText(Copy(Sequence, Split + 1, MaxInt));
+            Assert.AreEqual('original', Buffer.Title);
+          End;
+        Buffer.FeedText(#27'[22t' + #27']0;outer' + #7 + #27'[22;0t' + #27']2;inner' + #7);
+        Buffer.FeedText(#27'[23t');
+        Assert.AreEqual('outer', Buffer.Title);
+        Buffer.FeedText(#27'[23;0t');
+        Assert.AreEqual('original', Buffer.Title);
+        Buffer.FeedText(#27'[23;2t');
+        Assert.AreEqual('original', Buffer.Title, 'Empty stack is a no-op');
+        Buffer.FeedText(#27']2;' + #7 + #27'[22;2t' + #27']2;temporary' + #7 + #27'[23;2t');
+        Assert.AreEqual('', Buffer.Title, 'An empty saved title is a valid entry');
+        Buffer.Reset;
+        Buffer.FeedText('12345678' + #27'[22;2t' + #27']2;new' + #7 + #27'[23;2t' + 'X');
+        Assert.AreEqual('12345678', Buffer.LineText(0));
+        Assert.AreEqual('X', Buffer.LineText(1), 'Title operations preserve pending wrap');
+        Assert.AreEqual('', Buffer.TakeResponses);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Bounds retained titles and verifies reset, screen sharing and ignored icon/indexed operations.</summary>
 
- Procedure TTerminalTests.TitleStackLimitsResetAndScreenIsolation;
-  Var
-   Buffer : TTerminalBuffer;
-   Other  : TTerminalBuffer;
-   i      : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(20, 4);
-   Other  := TTerminalBuffer.Create(20, 4);
-   Try
-    For i := 1 To 70 Do
-     Buffer.FeedText(#27']2;' + IntToStr(i) + #7 + #27'[22;2t');
-    Buffer.FeedText(#27']2;current' + #7);
-    For i := 70 Downto 7 Do
-     Begin
-      Buffer.FeedText(#27'[23;2t');
-      Assert.AreEqual(IntToStr(i), Buffer.Title);
-     End;
-    Buffer.FeedText(#27'[23;2t');
-    Assert.AreEqual('7', Buffer.Title, 'Oldest entries are discarded beyond the 64-entry bound');
-    Buffer.FeedText(#27'[22;2t' + #27']2;keep' + #7 + #27'[22;1t' + #27'[23;1t' + #27'[22;2;1t' + #27'[23;2;1t');
-    Assert.AreEqual('keep', Buffer.Title);
-    Buffer.FeedText(#27'[23;2t');
-    Assert.AreEqual('7', Buffer.Title, 'Unsupported operations do not consume the window stack');
-    Buffer.FeedText(#27'[22;2t' + #27'[?1049h' + #27']2;alternate' + #7 + #27'[23;2t' + #27'[?1049l');
-    Assert.AreEqual('7', Buffer.Title, 'The window title stack is shared across screens');
-    Other.FeedText(#27'[23;2t');
-    Assert.AreEqual('', Other.Title, 'Terminals own independent stacks');
-    Buffer.FeedText(#27'[22;2t' + #27'c' + #27']2;after-reset' + #7 + #27'[23;2t');
-    Assert.AreEqual('after-reset', Buffer.Title, 'RIS discards saved titles');
-    Buffer.FeedText(#27'[22;2t' + #27']2;resized' + #7);
-    Buffer.Resize(10, 5);
-    Buffer.FeedText(#27'[23;2t');
-    Assert.AreEqual('after-reset', Buffer.Title, 'Resize preserves the title stack');
-   Finally
-    Other.Free;
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.TitleStackLimitsResetAndScreenIsolation;
+    Var
+      Buffer : TTerminalBuffer;
+      Other  : TTerminalBuffer;
+      i      : Integer;
+    Begin
+      Buffer := TTerminalBuffer.Create(20, 4);
+      Other  := TTerminalBuffer.Create(20, 4);
+      Try
+        For i := 1 To 70 Do
+          Buffer.FeedText(#27']2;' + IntToStr(i) + #7 + #27'[22;2t');
+        Buffer.FeedText(#27']2;current' + #7);
+        For i := 70 Downto 7 Do
+          Begin
+            Buffer.FeedText(#27'[23;2t');
+            Assert.AreEqual(IntToStr(i), Buffer.Title);
+          End;
+        Buffer.FeedText(#27'[23;2t');
+        Assert.AreEqual('7', Buffer.Title, 'Oldest entries are discarded beyond the 64-entry bound');
+        Buffer.FeedText(#27'[22;2t' + #27']2;keep' + #7 + #27'[22;1t' + #27'[23;1t' + #27'[22;2;1t' + #27'[23;2;1t');
+        Assert.AreEqual('keep', Buffer.Title);
+        Buffer.FeedText(#27'[23;2t');
+        Assert.AreEqual('7', Buffer.Title, 'Unsupported operations do not consume the window stack');
+        Buffer.FeedText(#27'[22;2t' + #27'[?1049h' + #27']2;alternate' + #7 + #27'[23;2t' + #27'[?1049l');
+        Assert.AreEqual('7', Buffer.Title, 'The window title stack is shared across screens');
+        Other.FeedText(#27'[23;2t');
+        Assert.AreEqual('', Other.Title, 'Terminals own independent stacks');
+        Buffer.FeedText(#27'[22;2t' + #27'c' + #27']2;after-reset' + #7 + #27'[23;2t');
+        Assert.AreEqual('after-reset', Buffer.Title, 'RIS discards saved titles');
+        Buffer.FeedText(#27'[22;2t' + #27']2;resized' + #7);
+        Buffer.Resize(10, 5);
+        Buffer.FeedText(#27'[23;2t');
+        Assert.AreEqual('after-reset', Buffer.Title, 'Resize preserves the title stack');
+      Finally
+        Other.Free;
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>DECSCUSR preserves content and pending wrap, accepts fragments and reports the stored VTE style.</summary>
 
- Procedure TTerminalTests.CursorStyleParsingQueriesAndReset;
-  Var
-   Buffer   : TTerminalBuffer;
-   Style    : Integer;
-   Split    : Integer;
-   Sequence : String;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 4);
-   Try
-    For Style := 0 To 6 Do
-     Begin
-      Sequence  := #27'[' + IntToStr(Style) + ' q' + #27'P$q q'#27'\';
-      For Split := 0 To Length(Sequence) Do
-       Begin
+  Procedure TTerminalTests.CursorStyleParsingQueriesAndReset;
+    Var
+      Buffer   : TTerminalBuffer;
+      Style    : Integer;
+      Split    : Integer;
+      Sequence : String;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 4);
+      Try
+        For Style := 0 To 6 Do
+          Begin
+            Sequence  := #27'[' + IntToStr(Style) + ' q' + #27'P$q q'#27'\';
+            For Split := 0 To Length(Sequence) Do
+              Begin
+                Buffer.Reset;
+                Buffer.FeedText(Copy(Sequence, 1, Split));
+                Buffer.FeedText(Copy(Sequence, Split + 1, MaxInt));
+                Assert.AreEqual(Style, Buffer.CursorStyle);
+                Assert.AreEqual(#27'P1$r' + IntToStr(Style) + ' q'#27'\', Buffer.TakeResponses);
+              End;
+          End;
+        Buffer.FeedText(#27'[4 q');
+        Buffer.FeedText(#27'[7 q'#27'[?5 q'#27'[>6 q'#27'[1;2 q'#27'[999999999999 q');
+        Assert.AreEqual(4, Buffer.CursorStyle, 'Invalid or unsupported styles do not replace the current style');
+        Buffer.FeedText(#27'[5 '#24'q');
+        Assert.AreEqual(4, Buffer.CursorStyle, 'CAN cancels the incomplete style sequence');
+        Buffer.FeedText(#27'[ q');
+        Assert.AreEqual(0, Buffer.CursorStyle);
         Buffer.Reset;
-        Buffer.FeedText(Copy(Sequence, 1, Split));
-        Buffer.FeedText(Copy(Sequence, Split + 1, MaxInt));
-        Assert.AreEqual(Style, Buffer.CursorStyle);
-        Assert.AreEqual(#27'P1$r' + IntToStr(Style) + ' q'#27'\', Buffer.TakeResponses);
-       End;
-     End;
-    Buffer.FeedText(#27'[4 q');
-    Buffer.FeedText(#27'[7 q'#27'[?5 q'#27'[>6 q'#27'[1;2 q'#27'[999999999999 q');
-    Assert.AreEqual(4, Buffer.CursorStyle, 'Invalid or unsupported styles do not replace the current style');
-    Buffer.FeedText(#27'[5 '#24'q');
-    Assert.AreEqual(4, Buffer.CursorStyle, 'CAN cancels the incomplete style sequence');
-    Buffer.FeedText(#27'[ q');
-    Assert.AreEqual(0, Buffer.CursorStyle);
-    Buffer.Reset;
-    Buffer.FeedText('12345678'#27'[6 q'#27'P$q q'#27'\' + 'X');
-    Assert.AreEqual('12345678', Buffer.LineText(0));
-    Assert.AreEqual('X', Buffer.LineText(1));
-    Assert.AreEqual(6, Buffer.CursorStyle);
-    Buffer.FeedText(#27'7'#27'[4 q'#27'8');
-    Assert.AreEqual(4, Buffer.CursorStyle, 'Cursor style is terminal state, not DECSC rendition');
-    Buffer.FeedText(#27'[?1049h'#27'[2 q'#27'[?1049l');
-    Assert.AreEqual(2, Buffer.CursorStyle, 'Cursor style is shared across screens');
-    Buffer.FeedText(#27'[?25l'#27'[5 q');
-    Assert.IsFalse(Buffer.CursorVisible, 'Changing style must not force cursor visibility');
-    Buffer.FeedText(#27'c');
-    Assert.AreEqual(0, Buffer.CursorStyle);
-    Assert.IsTrue(Buffer.CursorVisible);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+        Buffer.FeedText('12345678'#27'[6 q'#27'P$q q'#27'\' + 'X');
+        Assert.AreEqual('12345678', Buffer.LineText(0));
+        Assert.AreEqual('X', Buffer.LineText(1));
+        Assert.AreEqual(6, Buffer.CursorStyle);
+        Buffer.FeedText(#27'7'#27'[4 q'#27'8');
+        Assert.AreEqual(4, Buffer.CursorStyle, 'Cursor style is terminal state, not DECSC rendition');
+        Buffer.FeedText(#27'[?1049h'#27'[2 q'#27'[?1049l');
+        Assert.AreEqual(2, Buffer.CursorStyle, 'Cursor style is shared across screens');
+        Buffer.FeedText(#27'[?25l'#27'[5 q');
+        Assert.IsFalse(Buffer.CursorVisible, 'Changing style must not force cursor visibility');
+        Buffer.FeedText(#27'c');
+        Assert.AreEqual(0, Buffer.CursorStyle);
+        Assert.IsTrue(Buffer.CursorVisible);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Checks actual cursor pixels and cache invalidation, deterministic blink phases and preference fallback.</summary>
 
- Procedure TTerminalTests.CursorStyleRendersAndOverridesPreferences;
-  Var
-   Settings : TGuakeSettings;
-   Main     : TfrmMain;
-   Frame    : TfraTerminal;
-   Output   : TBitmap;
-   Width    : Integer;
-   Height   : Integer;
-   Style    : Integer;
-  Begin
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Main     := Nil;
-   Output   := TBitmap.Create;
-   Try
-    Settings.General.DefaultShell         := 'cmd';
-    Settings.General.UseTrayicon          := False;
-    Settings.General.UsePopup             := False;
-    Settings.General.SaveTabsWhenChanged  := False;
-    Settings.Keybindings.Global.ShowHide  := 'disabled';
-    Settings.Keybindings.Global.ShowFocus := 'disabled';
-    Settings.Style.CursorShape            := 1;
-    Settings.Style.CursorBlinkMode        := 2;
-    Main                                  := TfrmMain.Create(Nil);
-    Main.Bind(Settings);
-    Main.StartTerminal;
-    Main.SetTerminalVisible(True);
-    Main.SetBounds( -30000, 0, 500, 200);
-    Main.pollTimer.Enabled     := False;
-    Frame                      := Main.ActiveTerminalFrame;
-    Frame.refreshTimer.Enabled := False;
-    Frame.Session.Buffer.Reset;
-    Frame.SetFocus;
-    Assert.IsTrue(Frame.Focused);
-    Output.Canvas.Font.Assign(Frame.Font);
-    Width  := Output.Canvas.TextWidth('M');
-    Height := Output.Canvas.TextHeight('Mg');
-    Assert.IsTrue((Width > 4) And (Height > 4));
-    For Style := 1 To 6 Do
-     Begin
-      Frame.Session.Buffer.FeedText(#27'[' + IntToStr(Style) + ' q');
-      Assert.IsTrue(Frame.CursorVisibleAt(0));
-      Assert.AreEqual(Style Mod 2 = 0, Frame.CursorVisibleAt(500));
-     End;
-    Frame.Session.Buffer.FeedText(#27'[4 q');
-    Frame.RenderAlpha(Output, 96);
-    Assert.AreEqual(255, Integer(PixelAt(Output, 4 + Width - 1, 4 + Height - 1).rgbReserved));
-    Assert.AreEqual(96, Integer(PixelAt(Output, 4, 4).rgbReserved));
-    Frame.Session.Buffer.FeedText(#27'[6 q');
-    Frame.RenderAlpha(Output, 96);
-    Assert.AreEqual(255, Integer(PixelAt(Output, 4, 4).rgbReserved));
-    Assert.AreEqual(96, Integer(PixelAt(Output, 4 + Width - 1, 4 + Height - 1).rgbReserved), 'Old Underline pixels must be cleared');
-    Frame.Session.Buffer.FeedText(#27'[2 q');
-    Frame.RenderAlpha(Output, 96);
-    Assert.AreEqual(255, Integer(PixelAt(Output, 4 + Width - 1, 4).rgbReserved));
-    Assert.AreEqual(255, Integer(PixelAt(Output, 4 + Width Div 2, 4 + Height Div 2).rgbReserved));
-    Frame.Session.Buffer.FeedText(#27'[8mM' + #27'[H');
-    Frame.RenderAlpha(Output, 96);
-    Assert.AreEqual(255, Integer(PixelAt(Output, 4 + Width Div 2, 4 + Height Div 2).rgbReserved), 'Concealed glyph must not punch a hole in the cursor mask');
-    Frame.Session.Buffer.Reset;
-    Frame.Session.Buffer.FeedText(#$4E2D + #27'[1;2H' + #27'[2 q');
-    Frame.RenderAlpha(Output, 96);
-    Assert.AreEqual(255, Integer(PixelAt(Output, 4 + 2 * Width - 1, 4).rgbReserved), 'Block spans the complete wide glyph');
-    Assert.AreEqual(96, Integer(PixelAt(Output, 4 + 2 * Width, 4).rgbReserved), 'Cursor must not cover the next cell');
-    Frame.Session.Buffer.Reset;
-    Frame.Session.Buffer.FeedText(#27'[0 q');
-    Frame.RenderAlpha(Output, 96);
-    Assert.AreEqual(255, Integer(PixelAt(Output, 4, 4).rgbReserved));
-    Assert.AreEqual(96, Integer(PixelAt(Output, 4 + Width - 1, 4).rgbReserved));
-    Assert.IsTrue(Frame.CursorVisibleAt(500));
-    Settings.Style.CursorBlinkMode := 1;
-    Assert.IsFalse(Frame.CursorVisibleAt(500));
-    Assert.AreEqual(1, Settings.Style.CursorShape, 'Application sequences Do Not modify preferences');
-    Frame.Session.Buffer.FeedText(#27'[?25l');
-    Assert.IsFalse(Frame.CursorVisibleAt(0));
-    Frame.Session.Buffer.FeedText(#27'[?25h');
-    Main.Hide;
-    Assert.IsFalse(Frame.CursorVisibleAt(0), 'An unfocused Terminal does Not paint the active Cursor');
-   Finally
-    Output.Free;
-    Main.Free;
-    Settings.Free;
-   End;
-  End;
+  Procedure TTerminalTests.CursorStyleRendersAndOverridesPreferences;
+    Var
+      Settings : TGuakeSettings;
+      Main     : TfrmMain;
+      Frame    : TfraTerminal;
+      Output   : TBitmap;
+      Width    : Integer;
+      Height   : Integer;
+      Style    : Integer;
+    Begin
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Main     := Nil;
+      Output   := TBitmap.Create;
+      Try
+        Settings.General.DefaultShell         := 'cmd';
+        Settings.General.UseTrayicon          := False;
+        Settings.General.UsePopup             := False;
+        Settings.General.SaveTabsWhenChanged  := False;
+        Settings.Keybindings.Global.ShowHide  := 'disabled';
+        Settings.Keybindings.Global.ShowFocus := 'disabled';
+        Settings.Style.CursorShape            := 1;
+        Settings.Style.CursorBlinkMode        := 2;
+        Main                                  := TfrmMain.Create(Nil);
+        Main.Bind(Settings);
+        Main.StartTerminal;
+        Main.SetTerminalVisible(True);
+        Main.SetBounds( -30000, 0, 500, 200);
+        Main.pollTimer.Enabled     := False;
+        Frame                      := Main.ActiveTerminalFrame;
+        Frame.refreshTimer.Enabled := False;
+        Frame.Session.Buffer.Reset;
+        Frame.SetFocus;
+        Assert.IsTrue(Frame.Focused);
+        Output.Canvas.Font.Assign(Frame.Font);
+        Width  := Output.Canvas.TextWidth('M');
+        Height := Output.Canvas.TextHeight('Mg');
+        Assert.IsTrue((Width > 4) And (Height > 4));
+        For Style := 1 To 6 Do
+          Begin
+            Frame.Session.Buffer.FeedText(#27'[' + IntToStr(Style) + ' q');
+            Assert.IsTrue(Frame.CursorVisibleAt(0));
+            Assert.AreEqual(Style Mod 2 = 0, Frame.CursorVisibleAt(500));
+          End;
+        Frame.Session.Buffer.FeedText(#27'[4 q');
+        Frame.RenderAlpha(Output, 96);
+        Assert.AreEqual(255, Integer(PixelAt(Output, 4 + Width - 1, 4 + Height - 1).rgbReserved));
+        Assert.AreEqual(96, Integer(PixelAt(Output, 4, 4).rgbReserved));
+        Frame.Session.Buffer.FeedText(#27'[6 q');
+        Frame.RenderAlpha(Output, 96);
+        Assert.AreEqual(255, Integer(PixelAt(Output, 4, 4).rgbReserved));
+        Assert.AreEqual(96, Integer(PixelAt(Output, 4 + Width - 1, 4 + Height - 1).rgbReserved), 'Old Underline pixels must be cleared');
+        Frame.Session.Buffer.FeedText(#27'[2 q');
+        Frame.RenderAlpha(Output, 96);
+        Assert.AreEqual(255, Integer(PixelAt(Output, 4 + Width - 1, 4).rgbReserved));
+        Assert.AreEqual(255, Integer(PixelAt(Output, 4 + Width Div 2, 4 + Height Div 2).rgbReserved));
+        Frame.Session.Buffer.FeedText(#27'[8mM' + #27'[H');
+        Frame.RenderAlpha(Output, 96);
+        Assert.AreEqual(255, Integer(PixelAt(Output, 4 + Width Div 2, 4 + Height Div 2).rgbReserved), 'Concealed glyph must not punch a hole in the cursor mask');
+        Frame.Session.Buffer.Reset;
+        Frame.Session.Buffer.FeedText(#$4E2D + #27'[1;2H' + #27'[2 q');
+        Frame.RenderAlpha(Output, 96);
+        Assert.AreEqual(255, Integer(PixelAt(Output, 4 + 2 * Width - 1, 4).rgbReserved), 'Block spans the complete wide glyph');
+        Assert.AreEqual(96, Integer(PixelAt(Output, 4 + 2 * Width, 4).rgbReserved), 'Cursor must not cover the next cell');
+        Frame.Session.Buffer.Reset;
+        Frame.Session.Buffer.FeedText(#27'[0 q');
+        Frame.RenderAlpha(Output, 96);
+        Assert.AreEqual(255, Integer(PixelAt(Output, 4, 4).rgbReserved));
+        Assert.AreEqual(96, Integer(PixelAt(Output, 4 + Width - 1, 4).rgbReserved));
+        Assert.IsTrue(Frame.CursorVisibleAt(500));
+        Settings.Style.CursorBlinkMode := 1;
+        Assert.IsFalse(Frame.CursorVisibleAt(500));
+        Assert.AreEqual(1, Settings.Style.CursorShape, 'Application sequences Do Not modify preferences');
+        Frame.Session.Buffer.FeedText(#27'[?25l');
+        Assert.IsFalse(Frame.CursorVisibleAt(0));
+        Frame.Session.Buffer.FeedText(#27'[?25h');
+        Main.Hide;
+        Assert.IsFalse(Frame.CursorVisibleAt(0), 'An unfocused Terminal does Not paint the active Cursor');
+      Finally
+        Output.Free;
+        Main.Free;
+        Settings.Free;
+      End;
+    End;
 
 /// <summary>Verifies steady inactive cursors, wide block outlines, focus cache transitions and DECTCEM.</summary>
 
- Procedure TTerminalTests.UnfocusedCursorKeepsOutlineAndRefreshesCache;
-  Var
-   Settings : TGuakeSettings;
-   Main     : TfrmMain;
-   Frame    : TfraTerminal;
-   Output   : TBitmap;
-   Width    : Integer;
-   Height   : Integer;
-   Style    : Integer;
-  Begin
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Main     := Nil;
-   Output   := TBitmap.Create;
-   Try
-    Settings.General.DefaultShell         := 'cmd';
-    Settings.General.UseTrayicon          := False;
-    Settings.General.UsePopup             := False;
-    Settings.General.SaveTabsWhenChanged  := False;
-    Settings.Keybindings.Global.ShowHide  := 'disabled';
-    Settings.Keybindings.Global.ShowFocus := 'disabled';
-    Settings.Style.CursorShape            := 1;
-    Settings.Style.CursorBlinkMode        := 2;
-    Main                                  := TfrmMain.Create(Nil);
-    Main.Bind(Settings);
-    Main.StartTerminal;
-    Main.SetTerminalVisible(True);
-    Main.SetBounds( -30000, 0, 500, 200);
-    Main.pollTimer.Enabled     := False;
-    Frame                      := Main.ActiveTerminalFrame;
-    Frame.refreshTimer.Enabled := False;
-    Frame.Session.Buffer.Reset;
-    Frame.SetFocus;
-    Assert.IsTrue(Frame.Focused);
-    Output.Canvas.Font.Assign(Frame.Font);
-    Width  := Output.Canvas.TextWidth('M');
-    Height := Output.Canvas.TextHeight('Mg');
-    Assert.IsTrue((Width > 4) And (Height > 4));
-    Frame.Session.Buffer.FeedText(#$4E2D + #27'[1;2H' + #27'[2 q');
-    Frame.RenderAlpha(Output, 96);
-    Assert.AreEqual(255, Integer(PixelAt(Output, 4 + Width, 4 + Height Div 2).rgbReserved));
-    For Style := 1 To 3 Do
-     Begin
-      Frame.scroll.SetFocus;
-      Assert.IsFalse(Frame.Focused);
-      Assert.IsTrue(Frame.CursorVisibleAt(0));
-      Assert.IsTrue(Frame.CursorVisibleAt(500), 'Inactive cursor does not blink');
-      Frame.RenderAlpha(Output, 96);
-      Assert.AreEqual(255, Integer(PixelAt(Output, 4 + 2 * Width - 1, 4).rgbReserved), 'Outline covers both cells');
-      // Inspect the empty right-hand spacing, outside the CJK glyph.
-      Assert.AreEqual(96, Integer(PixelAt(Output, 4 + 2 * Width - 2, 5).rgbReserved), 'Inactive block is hollow');
-      Frame.SetFocus;
-      Assert.IsTrue(Frame.Focused);
-      Frame.RenderAlpha(Output, 96);
-      Assert.AreEqual(255, Integer(PixelAt(Output, 4 + 2 * Width - 2, 5).rgbReserved), 'Restoring focus replaces the outline with a filled block');
-     End;
-    Frame.Session.Buffer.Reset;
-    Frame.scroll.SetFocus;
-    For Style := 3 To 6 Do
-     Begin
-      Frame.Session.Buffer.FeedText(#27'[' + IntToStr(Style) + ' q');
-      Assert.IsTrue(Frame.CursorVisibleAt(500), 'Inactive bar and underline remain steady');
-      Frame.RenderAlpha(Output, 96);
-      If Style <= 4 Then
-       Assert.AreEqual(255, Integer(PixelAt(Output, 4 + Width - 1, 4 + Height - 1).rgbReserved))
-      Else
-       Assert.AreEqual(255, Integer(PixelAt(Output, 4, 4).rgbReserved));
-     End;
-    Frame.Session.Buffer.FeedText(#27'[?25l');
-    Assert.IsFalse(Frame.CursorVisibleAt(0));
-    Frame.RenderAlpha(Output, 96);
-    Assert.AreEqual(96, Integer(PixelAt(Output, 4, 4).rgbReserved), 'DECTCEM also hides the inactive cursor');
-    Frame.Session.Buffer.FeedText(#27'[?25h');
-    Main.Hide;
-    Assert.IsFalse(Frame.CursorVisibleAt(0), 'Hidden panes do not render a cursor');
-   Finally
-    Output.Free;
-    Main.Free;
-    Settings.Free;
-   End;
-  End;
+  Procedure TTerminalTests.UnfocusedCursorKeepsOutlineAndRefreshesCache;
+    Var
+      Settings : TGuakeSettings;
+      Main     : TfrmMain;
+      Frame    : TfraTerminal;
+      Output   : TBitmap;
+      Width    : Integer;
+      Height   : Integer;
+      Style    : Integer;
+    Begin
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Main     := Nil;
+      Output   := TBitmap.Create;
+      Try
+        Settings.General.DefaultShell         := 'cmd';
+        Settings.General.UseTrayicon          := False;
+        Settings.General.UsePopup             := False;
+        Settings.General.SaveTabsWhenChanged  := False;
+        Settings.Keybindings.Global.ShowHide  := 'disabled';
+        Settings.Keybindings.Global.ShowFocus := 'disabled';
+        Settings.Style.CursorShape            := 1;
+        Settings.Style.CursorBlinkMode        := 2;
+        Main                                  := TfrmMain.Create(Nil);
+        Main.Bind(Settings);
+        Main.StartTerminal;
+        Main.SetTerminalVisible(True);
+        Main.SetBounds( -30000, 0, 500, 200);
+        Main.pollTimer.Enabled     := False;
+        Frame                      := Main.ActiveTerminalFrame;
+        Frame.refreshTimer.Enabled := False;
+        Frame.Session.Buffer.Reset;
+        Frame.SetFocus;
+        Assert.IsTrue(Frame.Focused);
+        Output.Canvas.Font.Assign(Frame.Font);
+        Width  := Output.Canvas.TextWidth('M');
+        Height := Output.Canvas.TextHeight('Mg');
+        Assert.IsTrue((Width > 4) And (Height > 4));
+        Frame.Session.Buffer.FeedText(#$4E2D + #27'[1;2H' + #27'[2 q');
+        Frame.RenderAlpha(Output, 96);
+        Assert.AreEqual(255, Integer(PixelAt(Output, 4 + Width, 4 + Height Div 2).rgbReserved));
+        For Style := 1 To 3 Do
+          Begin
+            Frame.scroll.SetFocus;
+            Assert.IsFalse(Frame.Focused);
+            Assert.IsTrue(Frame.CursorVisibleAt(0));
+            Assert.IsTrue(Frame.CursorVisibleAt(500), 'Inactive cursor does not blink');
+            Frame.RenderAlpha(Output, 96);
+            Assert.AreEqual(255, Integer(PixelAt(Output, 4 + 2 * Width - 1, 4).rgbReserved), 'Outline covers both cells');
+            // Inspect the empty right-hand spacing, outside the CJK glyph.
+            Assert.AreEqual(96, Integer(PixelAt(Output, 4 + 2 * Width - 2, 5).rgbReserved), 'Inactive block is hollow');
+            Frame.SetFocus;
+            Assert.IsTrue(Frame.Focused);
+            Frame.RenderAlpha(Output, 96);
+            Assert.AreEqual(255, Integer(PixelAt(Output, 4 + 2 * Width - 2, 5).rgbReserved), 'Restoring focus replaces the outline with a filled block');
+          End;
+        Frame.Session.Buffer.Reset;
+        Frame.scroll.SetFocus;
+        For Style := 3 To 6 Do
+          Begin
+            Frame.Session.Buffer.FeedText(#27'[' + IntToStr(Style) + ' q');
+            Assert.IsTrue(Frame.CursorVisibleAt(500), 'Inactive bar and underline remain steady');
+            Frame.RenderAlpha(Output, 96);
+            If Style <= 4 Then
+              Assert.AreEqual(255, Integer(PixelAt(Output, 4 + Width - 1, 4 + Height - 1).rgbReserved))
+            Else
+              Assert.AreEqual(255, Integer(PixelAt(Output, 4, 4).rgbReserved));
+          End;
+        Frame.Session.Buffer.FeedText(#27'[?25l');
+        Assert.IsFalse(Frame.CursorVisibleAt(0));
+        Frame.RenderAlpha(Output, 96);
+        Assert.AreEqual(96, Integer(PixelAt(Output, 4, 4).rgbReserved), 'DECTCEM also hides the inactive cursor');
+        Frame.Session.Buffer.FeedText(#27'[?25h');
+        Main.Hide;
+        Assert.IsFalse(Frame.CursorVisibleAt(0), 'Hidden panes do not render a cursor');
+      Finally
+        Output.Free;
+        Main.Free;
+        Settings.Free;
+      End;
+    End;
 
 /// <summary>Uses a separate native foreground process to verify activation, deferred hiding and dialog protection.</summary>
 
- Procedure TTerminalTests.RefocusAndLazyHideRespectForeground;
-  Var
-   WindowValue    : String;
-   Settings       : TGuakeSettings;
-   Main           : TfrmMain;
-   Dialog         : TfrmAbout;
-   ScriptName     : String;
-   WindowFile     : String;
-   Command        : String;
-   Startup        : TStartupInfo;
-   Process        : TProcessInformation;
-   OtherWindow    : HWND;
-   PreviousWindow : HWND;
-   Deadline       : UInt64;
-
-   Procedure Pump(Milliseconds : Cardinal);
+  Procedure TTerminalTests.RefocusAndLazyHideRespectForeground;
     Var
-     UntilTick : UInt64;
+      WindowValue    : String;
+      Settings       : TGuakeSettings;
+      Main           : TfrmMain;
+      Dialog         : TfrmAbout;
+      ScriptName     : String;
+      WindowFile     : String;
+      Command        : String;
+      Startup        : TStartupInfo;
+      Process        : TProcessInformation;
+      OtherWindow    : HWND;
+      PreviousWindow : HWND;
+      Deadline       : UInt64;
+
+      Procedure Pump(Milliseconds : Cardinal);
+        Var
+          UntilTick : UInt64;
+        Begin
+          UntilTick := GetTickCount64 + Milliseconds;
+          Repeat
+            Application.ProcessMessages;
+            Sleep(2);
+          Until GetTickCount64 >= UntilTick;
+        End;
+
+      Procedure ActivateOther;
+        Var
+          FocusDeadline    : UInt64;
+          ForegroundThread : Cardinal;
+          Attached         : Boolean;
+        Begin
+          FocusDeadline := GetTickCount64 + 2000;
+          Repeat
+            ForegroundThread := GetWindowThreadProcessId(GetForegroundWindow, Nil);
+            Attached         := (ForegroundThread <> 0) And (ForegroundThread <> GetCurrentThreadId) And
+            AttachThreadInput(GetCurrentThreadId, ForegroundThread, True);
+            Try
+              SetForegroundWindow(OtherWindow);
+            Finally
+              If Attached Then
+                AttachThreadInput(GetCurrentThreadId, ForegroundThread, False);
+            End;
+            Pump(30);
+          Until(GetForegroundWindow = OtherWindow) Or (GetTickCount64 >= FocusDeadline);
+          Assert.AreEqual(NativeUInt(OtherWindow), NativeUInt(GetForegroundWindow), 'External test window must own foreground');
+        End;
+
     Begin
-     UntilTick := GetTickCount64 + Milliseconds;
-     Repeat
-      Application.ProcessMessages;
-      Sleep(2);
-     Until GetTickCount64 >= UntilTick;
-    End;
-
-   Procedure ActivateOther;
-    Begin
-     SetForegroundWindow(OtherWindow);
-     Pump(30);
-     Assert.AreEqual(NativeUInt(OtherWindow), NativeUInt(GetForegroundWindow), 'External test window must own foreground');
-    End;
-
-  Begin
-   Settings   := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   ScriptName := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName + '.ps1');
-   WindowFile := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
-   Main       := Nil;
-   Dialog     := Nil;
-   FillChar(Process, SizeOf(Process), 0);
-   PreviousWindow := GetForegroundWindow;
-   Try
-    TFile.WriteAllText(ScriptName,
-    'Add-Type -TypeDefinition @'''#13#10 +
-    'using System; using System.IO; using System.Runtime.InteropServices;'#13#10 +
-    'public static class FocusProbe {'#13#10 +
-    '[DllImport("user32.dll")] static extern bool AllowSetForegroundWindow(uint pid);'#13#10 +
-    '[DllImport("user32.dll",CharSet=CharSet.Unicode)] static extern IntPtr CreateWindowEx(uint ex,string cls,string name,uint style,int x,int y,int w,int h,IntPtr p,IntPtr m,IntPtr i,IntPtr a);'#13#10 +
-    '[DllImport("user32.dll")] static extern int GetMessage(IntPtr msg,IntPtr wnd,uint a,uint b);'#13#10 +
-    '[DllImport("user32.dll")] static extern bool TranslateMessage(IntPtr msg);'#13#10 +
-    '[DllImport("user32.dll")] static extern IntPtr DispatchMessage(IntPtr msg);'#13#10 +
-    'public static void Run(string path,uint parent){var w=CreateWindowEx(0x80,"STATIC","Guake focus probe",0x90000000,-30000,0,100,30,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero);i' +
-    'f(w==IntPtr.Zero)throw new Exception("CreateWindowEx");File.WriteAllText(path+".tmp",w.ToInt64().ToString());File.Move(path+".tmp",path);new System.Threading.Thread(()=>{while(true' +
-    '){AllowSetForegroundWindow(parent);System.Threading.Thread.Sleep(10);}}){IsBackground=true}.Start();var m=Marshal.AllocHGlobal(64);try{while(GetMessage(m,IntPtr.Zero,0,0)>0){Transl' +
-    'ateMessage(m);DispatchMessage(m);}}finally{Marshal.FreeHGlobal(m);}}}'#13#10 +
-    '''@'#13#10 + '[FocusProbe]::Run($args[0],[uint32]$args[1])', TEncoding.UTF8);
-    Command := QuoteProcessArgument(TShellProfile.Resolve(gsPowerShell).Executable) +
-    ' -NoLogo -NoProfile -ExecutionPolicy Bypass -File ' + QuoteProcessArgument(ScriptName) + ' ' + QuoteProcessArgument(WindowFile) + ' ' + IntToStr(GetCurrentProcessId);
-    UniqueString(Command);
-    FillChar(Startup, SizeOf(Startup), 0);
-    Startup.cb := SizeOf(Startup);
-    Win32Check(CreateProcess(Nil, PChar(Command), Nil, Nil, False, CREATE_NO_WINDOW, Nil, Nil, Startup, Process));
-    Deadline := GetTickCount64 + 15000;
-    While Not TFile.Exists(WindowFile) And (GetTickCount64 < Deadline) Do
-     Sleep(10);
-    Assert.IsTrue(TFile.Exists(WindowFile), 'Native foreground helper must start');
-    WindowValue := '';
-    Deadline    := GetTickCount64 + 2000;
-    Repeat
-     Try
-      WindowValue := TFile.ReadAllText(WindowFile);
-     Except
-      On E : EFOpenError Do
-       Sleep(10);
-      On E : EInOutError Do
-       Sleep(10);
-     End;
-    Until(WindowValue <> '') Or (GetTickCount64 >= Deadline);
-    Assert.IsTrue(WindowValue <> '', 'Published foreground window handle must be readable');
-    OtherWindow := HWND(StrToInt64(WindowValue));
-    Assert.IsTrue(IsWindow(OtherWindow));
-    Settings.General.DefaultShell         := 'cmd';
-    Settings.General.UsePopup             := False;
-    Settings.General.UseTrayicon          := False;
-    Settings.General.DropDownAnimation    := False;
-    Settings.General.SaveTabsWhenChanged  := False;
-    Settings.Keybindings.Global.ShowHide  := 'disabled';
-    Settings.Keybindings.Global.ShowFocus := 'disabled';
-    Main                                  := TfrmMain.Create(Nil);
-    Main.Bind(Settings);
-    Main.StartTerminal;
-    Main.SetTerminalVisible(True);
-    Main.SetBounds( -30000, 100, 500, 180);
-    Pump(20);
-    ActivateOther;
-    Settings.General.WindowRefocus := True;
-    Main.ToggleVisibility;
-    Pump(20);
-    Assert.IsTrue(Main.Visible);
-    Assert.AreEqual(NativeUInt(Main.Handle), NativeUInt(GetAncestor(GetForegroundWindow, GA_ROOT)), 'Refocus must activate the terminal window');
-    Assert.IsTrue(Main.ActiveTerminalFrame.Focused, 'Refocus restores the active input pane');
-    Main.ToggleVisibility;
-    Assert.IsFalse(Main.Visible, 'A focused terminal still toggles off');
-    Main.SetTerminalVisible(True);
-    ActivateOther;
-    Settings.General.WindowRefocus := False;
-    Main.ToggleVisibility;
-    Assert.IsFalse(Main.Visible, 'Without refocus a visible unfocused terminal toggles off');
-    Main.SetTerminalVisible(True);
-    Settings.General.WindowLosefocus := True;
-    Settings.General.LazyLosefocus   := True;
-    ActivateOther;
-    Assert.IsTrue(Main.focusTimer.Enabled);
-    Assert.AreEqual(300, Main.focusTimer.Interval);
-    Assert.IsTrue(Main.Visible, 'Lazy hide must not hide immediately');
-    Main.SetTerminalVisible(True);
-    Pump(350);
-    Assert.IsTrue(Main.Visible, 'Returning focus cancels delayed hide');
-    Assert.IsFalse(Main.focusTimer.Enabled);
-    ActivateOther;
-    Pump(340);
-    Assert.IsFalse(Main.Visible, 'Persistent external focus hides after 300 ms');
-    Main.SetTerminalVisible(True);
-    Dialog := TfrmAbout.Create(Main);
-    Dialog.Show;
-    Pump(350);
-    Assert.IsTrue(Main.Visible, 'An owned dialog must not hide the terminal');
-    Main.ToggleVisibility;
-    Assert.IsTrue(Main.Visible, 'The global toggle must not hide behind an owned dialog');
-    Dialog.Free;
-    Dialog := Nil;
-    Main.SetTerminalVisible(True);
-    Settings.General.LazyLosefocus := False;
-    ActivateOther;
-    Pump(30);
-    Assert.IsFalse(Main.Visible, 'Non-lazy hide runs after the foreground transition');
-    Main.SetTerminalVisible(True);
-    Settings.General.LazyLosefocus := True;
-    ActivateOther;
-    Settings.General.WindowLosefocus := False;
-    Pump(340);
-    Assert.IsTrue(Main.Visible, 'Disabling hide-on-focus-loss cancels its effect');
-    Settings.General.WindowLosefocus := True;
-    Main.FormDeactivate(Nil);
-    Assert.IsTrue(Main.focusTimer.Enabled);
-    Main.StopTerminal;
-    Assert.IsFalse(Main.focusTimer.Enabled, 'Shutdown cancels deferred work');
-   Finally
-    Dialog.Free;
-    Main.Free;
-    Settings.Free;
-    If Process.hProcess <> 0 Then
-     Begin
-      TerminateProcess(Process.hProcess, 0);
-      WaitForSingleObject(Process.hProcess, 5000);
-      CloseHandle(Process.hProcess);
-     End;
-    If Process.hThread <> 0 Then
-     CloseHandle(Process.hThread);
-    If PreviousWindow <> 0 Then
-     SetForegroundWindow(PreviousWindow);
-    If TFile.Exists(ScriptName) Then
-     TFile.Delete(ScriptName);
-    If TFile.Exists(WindowFile) Then
-     TFile.Delete(WindowFile);
-    If TFile.Exists(WindowFile + '.tmp') Then
-     TFile.Delete(WindowFile + '.tmp');
-   End;
-  End;
-
- Procedure TTerminalTests.LogicalLinesJoinSoftWrapsAndMapCells;
-  Var
-   Buffer : TTerminalBuffer;
-   Index  : Integer;
-   Text   : String;
-  Begin
-   Buffer := TTerminalBuffer.Create(10, 5);
-   Try
-    Buffer.FeedText('https://example.org/path');
-    Text := Buffer.LogicalLineText(3, 1, Index);
-    Assert.AreEqual('https://example.org/path', Text);
-    Assert.AreEqual(13, Index);
-    Assert.AreEqual(Text, TerminalLinkAt(Text, Index));
-    Buffer.FeedText(#13#10'next');
-    Assert.AreEqual('next', Buffer.LogicalLineText(1, 3, Index));
-    Assert.AreEqual(1, Index);
-    Buffer.FeedText(#27'c' + StringOfChar('a', 9) + #$4E2D + 'b');
-    Assert.AreEqual('', Buffer.LogicalLineText(9, 0, Index));
-    Assert.AreEqual( -1, Index);
-    Assert.AreEqual(StringOfChar('a', 9) + #$4E2D + 'b', Buffer.LogicalLineText(1, 1, Index));
-    Assert.AreEqual(9, Index, 'Continuation cell maps to the whole wide character');
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.FocusNewLineAndQueryRepliesReachConPTY;
-  Var
-   Settings      : TGuakeSettings;
-   Main          : TfrmMain;
-   Frame         : TfraTerminal;
-   Peer          : TfraTerminal;
-   Session       : TTerminalSession;
-   Profile       : TShellProfile;
-   ScriptName    : String;
-   OutputName    : String;
-   Expected      : String;
-   ExpectedCodes : String;
-   Deadline      : UInt64;
-   Key           : Char;
-   i             : Integer;
-   CellWidth     : Integer;
-   CellHeight    : Integer;
-   HistoryBase   : Integer;
-  Begin
-   Settings   := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   ScriptName := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName + '.ps1');
-   OutputName := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
-   Session    := Nil;
-   Main       := Nil;
-   Frame      := Nil;
-   Try
-    TFile.WriteAllText(ScriptName,
-    'Add-Type -TypeDefinition @'''#13#10 +
-    'using System; using System.IO; using System.Collections.Generic; using System.Runtime.InteropServices;'#13#10 +
-    'public static class Probe {'#13#10 +
-    '[DllImport("kernel32.dll")] static extern IntPtr GetStdHandle(int n);'#13#10 +
-    '[DllImport("kernel32.dll")] static extern bool SetConsoleMode(IntPtr h,uint m);'#13#10 +
-    'public static void Run(string path) {'#13#10 +
-    'Console.InputEncoding=new System.Text.UTF8Encoding(false);'#13#10 +
-    'if(!SetConsoleMode(GetStdHandle(-10),0x200)) throw new Exception("SetConsoleMode");'#13#10 +
-    'if(!SetConsoleMode(GetStdHandle(-11),7)) throw new Exception("Output mode"); Console.Write("\u001b[?1004h\u001b[?1003h\u001b[?1006h\u001b=PROBE_READY"); var data=new List<int>();'#13#10 +
-    'for(int i=0;i<4096;i++){int c=Console.Read();if(c<0)throw new Exception("EOF");'#13#10 +
-    'if(c==94){Console.Write("\u001b[?1006lLEGACY_READY");continue;}'#13#10 +
-    'if(c==1){Console.Write("\u001b[?1005hUTF8_READY");continue;}'#13#10 +
-    'if(c==2){Console.Write("\u001b[?1005l\u001b[?1006lASCII_READY");continue;}'#13#10 +
-    'if(c==3){Console.Write("\u001b[?1005l\u001b[?1006hSGR_READY");continue;}'#13#10 +
-    'if(c==5){Console.Write("\u001b[?1hCURSOR_APP_READY");continue;}'#13#10 +
-    'if(c==6){Console.Write("\u001b[?1lCURSOR_NORMAL_READY");continue;}'#13#10 +
-    'if(c==4){File.WriteAllText(path+".tmp",string.Join(",",data));File.Move(path+".tmp",path);return;}data.Add(c);}'#13#10 +
-    'throw new Exception("Input limit");}}'#13#10 +
-    '''@'#13#10 + '[Probe]::Run($args[0])', TEncoding.UTF8);
-    Profile                               := TShellProfile.Resolve(gsPowerShell);
-    Profile.Arguments                     := '-NoLogo -NoProfile -ExecutionPolicy Bypass -File ' + QuoteProcessArgument(ScriptName) + ' ' + QuoteProcessArgument(OutputName);
-    Session                               := TTerminalSession.Create(Profile, GetCurrentDir, Settings);
-    Settings.Keybindings.Global.ShowHide  := 'disabled';
-    Settings.Keybindings.Global.ShowFocus := 'disabled';
-    Settings.General.UseTrayicon          := False;
-    Settings.General.UsePopup             := False;
-    Main                                  := TfrmMain.Create(Nil);
-    Main.Bind(Settings);
-    Frame        := TfraTerminal.Create(Nil);
-    Frame.Parent := Main.tabHost;
-    Frame.Bind(Session, Settings);
-    Frame.HandleNeeded;
-    Frame.refreshTimer.Enabled := False;
-    Deadline                   := GetTickCount64 + 20000;
-    Repeat
-     Session.Poll;
-     If Pos('PROBE_READY', Session.Buffer.Text) > 0 Then
-      Break;
-     Sleep(10);
-    Until(GetTickCount64 >= Deadline) Or Session.Exited;
-    Assert.IsTrue(Pos('PROBE_READY', Session.Buffer.Text) > 0, 'Native input probe must be ready: ' + Session.Buffer.Text);
-    Assert.IsTrue(Session.Buffer.FocusReporting, 'Child focus request must reach the terminal model');
-    Assert.IsTrue(Session.Buffer.ApplicationKeypad, 'Child keypad request must reach the terminal model');
-    Session.Buffer.FeedText(#27'[?1004s' + #27'[?1004l' + #27'[?1003l');
-    Frame.Perform(WM_SETFOCUS, 0, 0);
-    Session.Buffer.FeedText(#27'[?1004r' + #27'[18t' + #27'[?1004$p' + #27'[=c');
-    Expected := Format(#27'[8;%d;%dt', [Session.Buffer.Rows, Session.Buffer.Columns]) + #27'[?1004;1$y' + #27 + 'P!|7E474B57' + #27 + Chr(92);
-    Session.Poll;
-    Frame.Perform(WM_SETFOCUS, 0, 0);
-    Frame.Perform(WM_KILLFOCUS, 0, 0);
-    Expected := Expected + #27'[I'#27'[O';
-    Session.Buffer.FeedText(#27 + '[?15n' + #27 + '[?25n' + #27 + '[?55n' + #27 + '[?56n');
-    Session.Poll;
-    Expected := Expected + #27 + '[?13n' + #27 + '[?21n' + #27 + '[?53n' + #27 + '[?57;0n';
-    Session.Buffer.FeedText(#27'[?1004l'#27'[20h');
-    Frame.Perform(WM_SETFOCUS, 0, 0);
-    Key := #13;
-    TTerminalFrameAccess(Frame).KeyPress(Key);
-    Assert.AreEqual(#0, Key);
-    Session.Buffer.FeedText(#27'[20l');
-    Key := #13;
-    TTerminalFrameAccess(Frame).KeyPress(Key);
-    Expected := Expected + #13#10#13;
-    Session.Buffer.FeedText(#27'[0m'#27'P$qm'#27'\');
-    Session.Poll;
-    Expected := Expected + #27'P1$r0m'#27'\';
-    Session.Buffer.FeedText(#27 + '[20t' + #27 + '[21t');
-    Session.Poll;
-    Expected := Expected + #27 + ']L' + #27 + Chr(92) + #27 + ']l' + #27 + Chr(92);
-    Session.Buffer.FeedText(#27 + 'P$qs' + #27 + Chr(92));
-    Session.Poll;
-    Expected := Expected + Format(#27 + 'P1$r1;%ds' + #27 + Chr(92), [Session.Buffer.Columns]);
-    Session.Buffer.FeedText(#27'[6 q'#27'P$q q'#27'\');
-    Session.Poll;
-    Expected := Expected + #27'P1$r6 q'#27'\';
-    Session.Buffer.FeedText(#27'[1' + #34'q' + #27'P$q' + #34'q' + #27 + Chr(92));
-    Session.Poll;
-    Expected := Expected + #27'P1$r1' + #34'q' + #27 + Chr(92);
-    Session.Buffer.FeedText(#27'[0' + #34'q');
-    Frame.Perform(WM_KEYDOWN, VK_NUMPAD1, 0);
-    Frame.Perform(WM_CHAR, Ord('1'), 0);
-    Frame.Perform(WM_KEYDOWN, VK_RETURN, $01000000);
-    Frame.Perform(WM_CHAR, 13, 0);
-    Frame.Perform(WM_KEYDOWN, VK_LEFT, $01000000);
-    Frame.Perform(WM_KEYDOWN, VK_LEFT, 0);
-    Expected := Expected + #27'Oq'#27'OM'#27'[D'#27'Ot';
-    Session.Buffer.FeedText(#27'>' + #27'[?66s' + #27'[?66h' + #27'[?66r');
-    Frame.Perform(WM_KEYDOWN, VK_NUMPAD2, 0);
-    Frame.Perform(WM_CHAR, Ord('2'), 0);
-    Expected := Expected + '2';
-    Main.SetBounds( -30000, 0, 700, 200);
-    Main.Show;
-    CellWidth := Frame.surface.Canvas.TextWidth('M');
-    Session.Buffer.FeedText(#27'[?1002h'#27'[?1006h');
-    Frame.SurfaceMouseMove(Nil, [], 5, 5); // Mode 1002 must suppress hover.
-    Frame.SurfaceMouseDown(Nil, mbRight, [], 5, 5);
-    Frame.SurfaceMouseMove(Nil, [ssRight], 6, 5); // Still in the clicked cell.
-    Frame.SurfaceMouseMove(Nil, [ssRight], 5 + CellWidth, 5);
-    For i := 1 To 200 Do
-     Frame.SurfaceMouseMove(Nil, [ssRight], 6 + CellWidth, 5);
-    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + CellWidth, 5);
-    Expected := Expected + #27'[<2;1;1M'#27'[<34;2;1M'#27'[<2;2;1m';
-    Frame.SurfaceMouseDown(Nil, mbMiddle, [], 5, 5);
-    Frame.SurfaceMouseMove(Nil, [ssMiddle, ssAlt, ssCtrl], 5 + CellWidth, 5);
-    Frame.SurfaceMouseUp(Nil, mbMiddle, [ssAlt, ssCtrl], 5 + CellWidth, 5);
-    Expected := Expected + #27'[<1;1;1M'#27'[<57;2;1M'#27'[<25;2;1m';
-    Frame.SurfaceMouseMove(Nil, [ssLeft], 5, 5);
-    Expected := Expected + #27'[<32;1;1M';
-    Session.Buffer.FeedText(#27'[?1003h');
-    Frame.SurfaceMouseMove(Nil, [], 5, 5);
-    Frame.SurfaceMouseMove(Nil, [ssCtrl], 5, 5); // Modifier-only changes are not cell motion.
-    Frame.SurfaceMouseMove(Nil, [ssCtrl], 5 + CellWidth, 5);
-    Frame.SurfaceMouseMove(Nil, [ssShift, ssRight], 5 + CellWidth, 5);
-    Frame.SurfaceMouseMove(Nil, [], 5 + CellWidth, 5); // Returning from local Shift resets the cache.
-    Expected := Expected + #27'[<35;1;1M'#27'[<51;2;1M'#27'[<35;2;1M';
-    Session.Buffer.FeedText(#27'[?1003l'#27'[?1003h');
-    Frame.SurfaceMouseMove(Nil, [], 5 + CellWidth, 5);
-    Expected := Expected + #27'[<35;2;1M';
-    Session.Buffer.FeedText('noise'#27'[6 q');
-    Frame.SurfaceMouseMove(Nil, [], 5 + CellWidth, 5); // Ordinary output does not reset protocol state.
-    Session.Buffer.Resize(Session.Buffer.Columns + 1, Session.Buffer.Rows);
-    Frame.SurfaceMouseMove(Nil, [], 5 + CellWidth, 5);
-    Expected := Expected + #27'[<35;2;1M';
-    Frame.Bind(Session, Settings);
-    Frame.refreshTimer.Enabled := False;
-    Frame.SurfaceMouseMove(Nil, [], 5 + CellWidth, 5);
-    Expected := Expected + #27'[<35;2;1M';
-    Session.Buffer.FeedText(#27'[?1000h' + #27'[?1003l');
-    Assert.AreEqual(1002, Session.Buffer.MouseMode, 'Disabling any-motion falls back to the enabled button-motion mode');
-    Frame.SurfaceMouseMove(Nil, [], 5, 5);
-    Frame.SurfaceMouseMove(Nil, [ssRight], 5, 5);
-    Expected := Expected + #27'[<34;1;1M';
-    Session.Buffer.FeedText(#27'[?1002l');
-    Assert.AreEqual(1000, Session.Buffer.MouseMode);
-    Frame.SurfaceMouseMove(Nil, [ssRight], 5, 5); // Mode 1000 never reports motion.
-    Session.SendText('^');
-    Deadline := GetTickCount64 + 5000;
-    Repeat
-     Session.Poll;
-     If Pos('LEGACY_READY', Session.Buffer.Text) > 0 Then
-      Break;
-     Sleep(10);
-    Until GetTickCount64 >= Deadline;
-    Assert.IsTrue(Pos('LEGACY_READY', Session.Buffer.Text) > 0, 'Child must select legacy mouse encoding');
-    Assert.IsFalse(Session.Buffer.SGRMouse);
-    Frame.SurfaceMouseDown(Nil, mbRight, [ssAlt, ssCtrl], 5, 5);
-    Frame.SurfaceMouseUp(Nil, mbRight, [ssAlt, ssCtrl], 5, 5);
-    Expected := Expected + #27'[M' + Char(58) + '!!' + #27'[M' + Char(59) + '!!';
-    Frame.SetBounds(0, 0, CellWidth * 2020 + 32, 200);
-    Assert.IsTrue(Session.Buffer.Columns > 2015);
-    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 94 * CellWidth, 5);
-    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 94 * CellWidth, 5);
-    Expected := Expected + #27'[M' + Char(34) + Char(127) + '!' + #27'[M' + Char(35) + Char(127) + '!';
-    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 95 * CellWidth, 5); // Reject ambiguous non-ASCII classic coordinates.
-    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
-    Session.SendText(#1);
-    Deadline := GetTickCount64 + 5000;
-    Repeat
-     Session.Poll;
-     If Pos('UTF8_READY', Session.Buffer.Text) > 0 Then
-      Break;
-     Sleep(10);
-    Until GetTickCount64 >= Deadline;
-    Assert.IsTrue(Pos('UTF8_READY', Session.Buffer.Text) > 0);
-    Assert.IsTrue(Session.Buffer.Utf8Mouse);
-    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
-    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
-    // C1 coordinate characters are lost by ConPTY; suppress the entire report.
-    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 127 * CellWidth, 5);
-    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 127 * CellWidth, 5);
-    Expected := Expected + #27'[M' + Char(34) + Char(160) + '!' + #27'[M' + Char(35) + Char(160) + '!';
-    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 2014 * CellWidth, 5);
-    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 2014 * CellWidth, 5);
-    Expected := Expected + #27'[M' + Char(34) + Char(2047) + '!' + #27'[M' + Char(35) + Char(2047) + '!';
-    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 2015 * CellWidth, 5); // Outside the xterm 1005 range.
-    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 2015 * CellWidth, 5);
-    Session.SendText(#3);
-    Deadline := GetTickCount64 + 5000;
-    Repeat
-     Session.Poll;
-     If Pos('SGR_READY', Session.Buffer.Text) > 0 Then
-      Break;
-     Sleep(10);
-    Until GetTickCount64 >= Deadline;
-    Assert.IsTrue(Pos('SGR_READY', Session.Buffer.Text) > 0);
-    Assert.IsTrue(Session.Buffer.SGRMouse);
-    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
-    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
-    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 2015 * CellWidth, 5);
-    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 2015 * CellWidth, 5);
-    Expected := Expected + #27'[<2;96;1M'#27'[<2;96;1m'#27'[<2;2016;1M'#27'[<2;2016;1m';
-    Session.SendText(#2);
-    Deadline := GetTickCount64 + 5000;
-    Repeat
-     Session.Poll;
-     If Pos('ASCII_READY', Session.Buffer.Text) > 0 Then
-      Break;
-     Sleep(10);
-    Until GetTickCount64 >= Deadline;
-    Assert.IsTrue(Pos('ASCII_READY', Session.Buffer.Text) > 0);
-    Assert.IsFalse(Session.Buffer.Utf8Mouse);
-    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
-    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
-    Session.Buffer.FeedText(#27 + '[?1015h');
-    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 2015 * CellWidth, 5);
-    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 2015 * CellWidth, 5);
-    Expected := Expected + #27 + '[34;2016;1M' + #27 + '[35;2016;1M';
-    Frame.SurfaceMouseDown(Nil, mbRight, [ssAlt, ssCtrl], 5, 5);
-    Frame.SurfaceMouseUp(Nil, mbRight, [ssAlt, ssCtrl], 5, 5);
-    Expected := Expected + #27 + '[58;1;1M' + #27 + '[59;1;1M';
-    Session.Buffer.FeedText(#27 + '[?1006h');
-    Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 2015 * CellWidth, 5);
-    Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 2015 * CellWidth, 5);
-    Expected := Expected + #27 + '[<2;2016;1M' + #27 + '[<2;2016;1m';
-    Session.Buffer.FeedText(#27 + '[?1006l');
-    Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
-    Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
-    Expected := Expected + #27 + '[32;1;1M' + #27 + '[35;1;1M';
-    Session.Buffer.FeedText(#27 + '[?1015l');
-    Frame.SetBounds(0, 0, 720, 360);
-    Session.Buffer.FeedText(#27 + '[?1000l' + #27 + '[?1049h');
-    For i     := 1 To Max(1, (Session.Buffer.Rows + 9) Div 10) Do
-     Expected := Expected + #27 + '[A';
-    TTerminalFrameAccess(Frame).DoMouseWheel([], 120, Frame.surface.ClientToScreen(Point(5, 5)));
-    // Three partial messages form one notch; opposite partial deltas cancel.
-    TTerminalFrameAccess(Frame).DoMouseWheel([], 30, Frame.surface.ClientToScreen(Point(5, 5)));
-    TTerminalFrameAccess(Frame).DoMouseWheel([], -30, Frame.surface.ClientToScreen(Point(5, 5)));
-    TTerminalFrameAccess(Frame).DoMouseWheel([], 30, Frame.surface.ClientToScreen(Point(5, 5)));
-    TTerminalFrameAccess(Frame).DoMouseWheel([], 30, Frame.surface.ClientToScreen(Point(5, 5)));
-    TTerminalFrameAccess(Frame).DoMouseWheel([], 60, Frame.surface.ClientToScreen(Point(5, 5)));
-    TTerminalFrameAccess(Frame).DoMouseWheel([], 240, Frame.surface.ClientToScreen(Point(5, 5)));
-    For i     := 1 To 3 * Max(1, (Session.Buffer.Rows + 9) Div 10) Do
-     Expected := Expected + #27 + '[A';
-    // An unfinished normal-cursor notch must not leak into application mode.
-    TTerminalFrameAccess(Frame).DoMouseWheel([], 60, Frame.surface.ClientToScreen(Point(5, 5)));
-    Session.SendText(#5);
-    Deadline := GetTickCount64 + 5000;
-    Repeat
-     Session.Poll;
-     If Pos('CURSOR_APP_READY', Session.Buffer.Text) > 0 Then
-      Break;
-     Sleep(10);
-    Until GetTickCount64 >= Deadline;
-    Assert.IsTrue(Pos('CURSOR_APP_READY', Session.Buffer.Text) > 0);
-    Assert.IsTrue(Session.Buffer.ApplicationCursor);
-    For i     := 1 To Max(1, (Session.Buffer.Rows + 9) Div 10) Do
-     Expected := Expected + #27 + 'OB';
-    TTerminalFrameAccess(Frame).DoMouseWheel([], -120, Frame.surface.ClientToScreen(Point(5, 5)));
-    For i     := 1 To Max(1, (Session.Buffer.Rows + 9) Div 10) Do
-     Expected := Expected + #27 + '[1;7A';
-    TTerminalFrameAccess(Frame).DoMouseWheel([ssAlt, ssCtrl], 120, Frame.surface.ClientToScreen(Point(5, 5)));
-    Session.Buffer.FeedText(#27 + '[?1007l');
-    TTerminalFrameAccess(Frame).DoMouseWheel([], 120, Frame.surface.ClientToScreen(Point(5, 5)));
-    Session.Buffer.FeedText(#27 + '[?1007;1000;1006h');
-    TTerminalFrameAccess(Frame).DoMouseWheel([], 120, Frame.surface.ClientToScreen(Point(5, 5)));
-    Expected := Expected + #27 + '[<64;1;1M';
-    TTerminalFrameAccess(Frame).DoMouseWheel([], -30, Frame.surface.ClientToScreen(Point(5, 5)));
-    TTerminalFrameAccess(Frame).DoMouseWheel([], -90, Frame.surface.ClientToScreen(Point(5, 5)));
-    TTerminalFrameAccess(Frame).DoMouseWheel([], -240, Frame.surface.ClientToScreen(Point(5, 5)));
-    Expected := Expected + #27 + '[<65;1;1M' + #27 + '[<65;1;1M' + #27 + '[<65;1;1M';
-    TTerminalFrameAccess(Frame).DoMouseWheel([], 60, Frame.surface.ClientToScreen(Point(5, 5)));
-    Session.Buffer.FeedText(#27 + '[?1000;1006l');
-    TTerminalFrameAccess(Frame).DoMouseWheel([ssShift], 120, Frame.surface.ClientToScreen(Point(5, 5)));
-    TTerminalFrameAccess(Frame).DoMouseWheel([], 0, Frame.surface.ClientToScreen(Point(5, 5)));
-    Session.SendText(#6);
-    Deadline := GetTickCount64 + 5000;
-    Repeat
-     Session.Poll;
-     If Pos('CURSOR_NORMAL_READY', Session.Buffer.Text) > 0 Then
-      Break;
-     Sleep(10);
-    Until GetTickCount64 >= Deadline;
-    Assert.IsTrue(Pos('CURSOR_NORMAL_READY', Session.Buffer.Text) > 0);
-    Assert.IsFalse(Session.Buffer.ApplicationCursor);
-    Session.Buffer.FeedText(#27 + '[?1049l' + #27 + '[?1000h');
-    Session.Buffer.FeedText(#27 + '[?1003;1016h');
-    Frame.SurfaceMouseDown(Nil, mbRight, [], 4, 4);
-    Frame.SurfaceMouseMove(Nil, [ssRight], 5, 4);
-    For i := 1 To 20 Do
-     Frame.SurfaceMouseMove(Nil, [ssRight], 5, 4);
-    Frame.SurfaceMouseMove(Nil, [ssRight], 6, 4);
-    Frame.SurfaceMouseUp(Nil, mbRight, [], 6, 4);
-    Expected := Expected + #27 + '[<2;1;1M' + #27 + '[<34;2;1M' + #27 + '[<34;3;1M' + #27 + '[<2;3;1m';
-    Session.Buffer.FeedText(#27 + '[?1006h');
-    Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
-    Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
-    Expected := Expected + #27 + '[<0;2;2M' + #27 + '[<0;2;2m';
-    Session.Buffer.FeedText(#27 + '[?1016l');
-    Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
-    Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
-    Expected := Expected + #27 + '[<0;1;1M' + #27 + '[<0;1;1m';
-    Session.Buffer.FeedText(#27 + '[?1003;1006l');
-
-    Session.Buffer.FeedText(#27'[?9h' + #27'[?1000l');
-    Assert.AreEqual(9, Session.Buffer.MouseMode);
-    Frame.SurfaceMouseDown(Nil, mbRight, [ssAlt, ssCtrl], 5, 5);
-    Frame.SurfaceMouseMove(Nil, [ssRight], 5 + CellWidth, 5);
-    Frame.SurfaceMouseUp(Nil, mbRight, [ssAlt, ssCtrl], 5 + CellWidth, 5);
-    Expected := Expected + #27 + '[M' + Char(34) + '!!';
-    Session.Buffer.FeedText(#27 + '[?1006h');
-    Frame.SurfaceMouseDown(Nil, mbLeft, [ssAlt, ssCtrl], 5, 5);
-    Frame.SurfaceMouseUp(Nil, mbLeft, [ssAlt, ssCtrl], 5, 5);
-    Expected := Expected + #27 + '[<0;1;1M';
-    Session.Buffer.FeedText(#27 + '[?9;1006l');
-    Session.Buffer.Reset;
-    Session.Buffer.FeedText('history' + #13#10);
-    For i := 1 To Session.Buffer.Rows Do
-     Session.Buffer.FeedText('line' + #13#10);
-    Session.Buffer.FeedText(#27 + '[?1003;1006h');
-    Frame.RefreshTick(Nil);
-    HistoryBase := Session.Buffer.TotalLines - Session.Buffer.Rows;
-    Assert.IsTrue(HistoryBase > 0);
-    Frame.scroll.Position := HistoryBase - 1;
-    CellHeight            := Frame.surface.Canvas.TextHeight('Mg');
-    Frame.SurfaceMouseDown(Nil, mbRight, [], 5, 5);
-    Frame.SurfaceMouseUp(Nil, mbRight, [], 5, 5);
-    Frame.SurfaceMouseMove(Nil, [], 5, 5);
-    Frame.SurfaceMouseDown(Nil, mbRight, [], 5, 5 + CellHeight);
-    Frame.SurfaceMouseUp(Nil, mbRight, [], 5, 5 + CellHeight);
-    Expected := Expected + #27 + '[<2;1;1M' + #27 + '[<2;1;1m';
-    Frame.SurfaceMouseMove(Nil, [], 5, 5);
-    Frame.SurfaceMouseMove(Nil, [], 5, 5 + CellHeight);
-    Expected := Expected + #27 + '[<35;1;1M';
-    Session.Buffer.FeedText(#27 + '[?1016h');
-    Frame.SurfaceMouseDown(Nil, mbRight, [], 4, 4 + CellHeight);
-    Frame.SurfaceMouseUp(Nil, mbRight, [], 4, 4 + CellHeight);
-    Expected := Expected + #27 + '[<2;1;1M' + #27 + '[<2;1;1m';
-    Session.Buffer.FeedText(#27 + '[?1016l');
-    Session.Buffer.FeedText(#27 + '[?1003;1006l');
-    Frame.scroll.Position         := HistoryBase;
-    Settings.General.WordChars    := '-A-Za-z0-9_';
-    Settings.General.CopyOnSelect := False;
-    Session.Buffer.FeedText(#27'[2J'#27'[HPRIMARY_WORD rest');
-    Frame.RefreshTick(Nil);
-    Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
-    Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
-    Assert.AreEqual('', Frame.SelectedText);
-    Frame.SurfaceDblClick(Nil);
-    Frame.SurfaceMouseDown(Nil, mbLeft, [ssDouble], 5, 5);
-    Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
-    Assert.AreEqual('PRIMARY_WORD', Frame.SelectedText, 'Second mouse down must preserve double-click selection');
-    Frame.SurfaceMouseDown(Nil, mbMiddle, [], 5, 5);
-    Frame.SurfaceMouseUp(Nil, mbMiddle, [], 5, 5);
-    Expected := Expected + 'PRIMARY_WORD';
-    Assert.AreEqual('', Frame.SelectedText);
-    Session.Buffer.FeedText(#27'[?2004h' + #27'[?2004s' + #27'[?2004l' + #27'[?2004r');
-    Frame.SurfaceMouseDown(Nil, mbMiddle, [], 5, 5);
-    Frame.SurfaceMouseUp(Nil, mbMiddle, [], 5, 5);
-    Expected := Expected + #27'[200~PRIMARY_WORD'#27'[201~';
-    Peer     := TfraTerminal.Create(Nil);
-    Try
-     Peer.Parent := Main.tabHost;
-     Peer.Bind(Session, Settings);
-     Peer.HandleNeeded;
-     Peer.refreshTimer.Enabled := False;
-     Peer.SurfaceMouseDown(Nil, mbMiddle, [], 5, 5);
-     Peer.SurfaceMouseUp(Nil, mbMiddle, [], 5, 5);
-     Expected := Expected + #27'[200~PRIMARY_WORD'#27'[201~';
-    Finally
-     Peer.Free;
-    End;
-    Session.Buffer.FeedText(#27'[?66;1004;2004h' + #27'[20h' + #27'[!p');
-    Frame.Perform(WM_SETFOCUS, 0, 0); // Soft reset disabled focus reporting.
-    Frame.Perform(WM_KEYDOWN, VK_NUMPAD3, 0);
-    Frame.Perform(WM_CHAR, Ord('3'), 0);
-    Key := #13;
-    TTerminalFrameAccess(Frame).KeyPress(Key);
-    Frame.SurfaceMouseDown(Nil, mbMiddle, [], 5, 5);
-    Frame.SurfaceMouseUp(Nil, mbMiddle, [], 5, 5);
-    Expected := Expected + '3' + #13 + 'PRIMARY_WORD';
-    Session.SendText(#4);
-    ExpectedCodes := '';
-    For i         := 1 To Length(Expected) Do
-     Begin
-      If ExpectedCodes <> '' Then
-       ExpectedCodes := ExpectedCodes + ',';
-      ExpectedCodes  := ExpectedCodes + IntToStr(Ord(Expected[i]));
-     End;
-    Deadline := GetTickCount64 + 10000;
-    Repeat
-     Session.Poll;
-     If TFile.Exists(OutputName) Then
-      Break;
-     Sleep(10);
-    Until(GetTickCount64 >= Deadline) Or Session.Exited;
-    Assert.IsTrue(TFile.Exists(OutputName), 'Input probe must finish: ' + Session.Buffer.Text);
-    Assert.AreEqual(ExpectedCodes, TFile.ReadAllText(OutputName, TEncoding.UTF8));
-   Finally
-    Frame.Free;
-    Main.Free;
-    Session.Free;
-    Settings.Free;
-    If TFile.Exists(ScriptName) Then
-     TFile.Delete(ScriptName);
-    If TFile.Exists(OutputName) Then
-     TFile.Delete(OutputName);
-    If TFile.Exists(OutputName + '.tmp') Then
-     TFile.Delete(OutputName + '.tmp');
-   End;
-  End;
-
- Procedure TTerminalTests.BlinkSGRStateResetRestoreAndReflow;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(20, 5);
-   Try
-    Buffer.FeedText(#27'[5mA'#27'[25mB'#27'[6mC'#27'[0mD');
-    Assert.IsTrue(Buffer.Cell[0, 0].Blink);
-    Assert.IsFalse(Buffer.Cell[1, 0].Blink);
-    Assert.IsTrue(Buffer.Cell[2, 0].Blink);
-    Assert.IsFalse(Buffer.Cell[3, 0].Blink);
-    Buffer.FeedText(#27'[5m'#27'7'#27'[25m'#27'8E');
-    Assert.IsTrue(Buffer.Cell[4, 0].Blink);
-    Buffer.Resize(10, 5);
-    Assert.IsTrue(Buffer.Cell[0, 0].Blink);
-    Assert.IsTrue(Buffer.Cell[4, 0].Blink);
-    Assert.AreEqual('ABCDE', Buffer.LineText(0));
-    Buffer.FeedText(#27'cF');
-    Assert.IsFalse(Buffer.Cell[0, 0].Blink);
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.BlinkOnlyRasterizesAffectedVisibleRows;
-  Var
-   Settings     : TGuakeSettings;
-   Main         : TfrmMain;
-   Frame        : TfraTerminal;
-   Output       : TBitmap;
-   Visible      : TBitmap;
-   Width        : Integer;
-   Height       : Integer;
-   x            : Integer;
-   y            : Integer;
-   OpaquePixels : Integer;
-   Count        : UInt64;
-   Rows         : UInt64;
-  Begin
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Output   := TBitmap.Create;
-   Visible  := TBitmap.Create;
-   Try
-    Settings.General.DefaultShell         := 'cmd';
-    Settings.General.UseTrayicon          := False;
-    Settings.General.UsePopup             := False;
-    Settings.Keybindings.Global.ShowHide  := 'disabled';
-    Settings.Keybindings.Global.ShowFocus := 'disabled';
-    Main                                  := TfrmMain.Create(Nil);
-    Try
-     Main.Bind(Settings);
-     Main.StartTerminal;
-     Main.HandleNeeded;
-     Main.SetBounds( -30000, 0, 500, 200);
-     Main.Hide;
-     Frame := Main.ActiveTerminalFrame;
-     Frame.Bind(Frame.Session, Settings);
-     Frame.refreshTimer.Enabled := False;
-     Frame.Session.Buffer.Reset;
-     Frame.Session.Buffer.FeedText(#27'[?25l'#27'[38;2;255;255;255;5;4:2;58;2;255;0;0mM'#27'[25;24;59mS'#13#10'stable');
-     Frame.RenderAlpha(Output, 96);
-     Visible.Assign(Output);
-     Output.Canvas.Font.Assign(Frame.Font);
-     Width  := Output.Canvas.TextWidth('M');
-     Height := Output.Canvas.TextHeight('Mg');
-     Count  := Frame.AlphaRenderCount;
-     Rows   := Frame.RasterRowCount;
-     Assert.IsFalse(Frame.AdvanceTextBlink(499));
-     Frame.RenderAlpha(Output, 96);
-     Assert.AreEqual(Count, Frame.AlphaRenderCount);
-     Assert.IsTrue(Frame.AdvanceTextBlink(1));
-     Frame.RenderAlpha(Output, 96);
-     Assert.AreEqual(Rows + UInt64(1), Frame.RasterRowCount);
-     For y  := 4 To 4 + Height - 1 Do
-      For x := 4 To 4 + Width - 1 Do
-       Assert.AreEqual(96, Integer(PixelAt(Output, x, y).rgbReserved));
-     For y  := 4 To 4 + 2 * Height - 1 Do
-      For x := 4 + Width To 4 + 6 * Width - 1 Do
-       Assert.AreEqual(Cardinal(PixelAt(Visible, x, y).rgbRed), Cardinal(PixelAt(Output, x, y).rgbRed));
-     Assert.AreEqual(Visible.Width, Output.Width);
-     Assert.IsTrue(Frame.AdvanceTextBlink(500));
-     Frame.RenderAlpha(Output, 96);
-     OpaquePixels := 0;
-     For y        := 4 To 4 + Height - 1 Do
-      For x       := 4 To 4 + Width - 1 Do
-       If PixelAt(Output, x, y).rgbReserved = 255 Then
-        Inc(OpaquePixels);
-     Assert.IsTrue(OpaquePixels > 0);
-     Assert.IsTrue(Pos('MS', Frame.Session.Buffer.Text) > 0);
-     Frame.Session.Buffer.FeedText(#27'[H'#27'[5;48;2;12;34;56mM');
-     Frame.RenderAlpha(Output, 96);
-     Assert.IsTrue(Frame.AdvanceTextBlink(500));
-     Frame.RenderAlpha(Output, 96);
-     For y  := 4 To 4 + Height - 1 Do
-      For x := 4 To 4 + Width - 1 Do
-       Begin
-        Assert.AreEqual(255, Integer(PixelAt(Output, x, y).rgbReserved));
-        Assert.AreEqual(12, Integer(PixelAt(Output, x, y).rgbRed));
-        Assert.AreEqual(34, Integer(PixelAt(Output, x, y).rgbGreen));
-        Assert.AreEqual(56, Integer(PixelAt(Output, x, y).rgbBlue));
-       End;
-    Finally
-     Main.Free;
-    End;
-   Finally
-    Visible.Free;
-    Output.Free;
-    Settings.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.BlinkIgnoresConcealBlankCellsAndOffscreenHistory;
-  Var
-   Settings : TGuakeSettings;
-   Main     : TfrmMain;
-   Frame    : TfraTerminal;
-   Output   : TBitmap;
-   Count    : UInt64;
-   i        : Integer;
-  Begin
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Output   := TBitmap.Create;
-   Try
-    Settings.General.DefaultShell         := 'cmd';
-    Settings.General.UseTrayicon          := False;
-    Settings.General.UsePopup             := False;
-    Settings.Keybindings.Global.ShowHide  := 'disabled';
-    Settings.Keybindings.Global.ShowFocus := 'disabled';
-    Main                                  := TfrmMain.Create(Nil);
-    Try
-     Main.Bind(Settings);
-     Main.StartTerminal;
-     Main.HandleNeeded;
-     Main.SetBounds( -30000, 0, 500, 200);
-     Main.Hide;
-     Frame := Main.ActiveTerminalFrame;
-     Frame.Bind(Frame.Session, Settings);
-     Frame.refreshTimer.Enabled := False;
-     Frame.Session.Buffer.Reset;
-     Frame.Session.Buffer.FeedText(#27'[?25l'#27'[5;8mhidden'#27'[28m   '#27'[25m');
-     Frame.RenderAlpha(Output, 255);
-     Count := Frame.AlphaRenderCount;
-     For i := 1 To 4 Do
-      Begin
-       Assert.IsFalse(Frame.AdvanceTextBlink(500));
-       Frame.RenderAlpha(Output, 255);
-      End;
-     Assert.AreEqual(Count, Frame.AlphaRenderCount);
-     Frame.Session.Buffer.Reset;
-     Frame.Session.Buffer.FeedText(#27'[?25l'#27'[5mhistory'#27'[25m');
-     For i := 1 To Frame.Session.Buffer.Rows + 2 Do
-      Frame.Session.Buffer.FeedText(#13#10'plain');
-     Frame.RefreshTick(Nil);
-     Frame.scroll.Position := Frame.Session.Buffer.TotalLines - Frame.Session.Buffer.Rows;
-     Frame.RenderAlpha(Output, 255);
-     Count := Frame.AlphaRenderCount;
-     Assert.IsFalse(Frame.AdvanceTextBlink(500));
-     Frame.RenderAlpha(Output, 255);
-     Assert.AreEqual(Count, Frame.AlphaRenderCount);
-     Frame.scroll.Position := 0;
-     Frame.RenderAlpha(Output, 255);
-     Assert.IsTrue(Frame.AdvanceTextBlink(500));
-     Frame.RenderAlpha(Output, 255);
-     Frame.Session.Buffer.FeedText(#27'[?1049h'#27'[?25l'#27'[0mplain');
-     Frame.RenderAlpha(Output, 255);
-     Count := Frame.AlphaRenderCount;
-     Assert.IsFalse(Frame.AdvanceTextBlink(500));
-     Frame.RenderAlpha(Output, 255);
-     Assert.AreEqual(Count, Frame.AlphaRenderCount);
-    Finally
-     Main.Free;
-    End;
-   Finally
-    Output.Free;
-    Settings.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.ExtendedSGRStateAndCursorRestore;
-  Var
-   Buffer : TTerminalBuffer;
-   Cell   : TTerminalCell;
-   i      : Integer;
-  Begin
-   Buffer := TTerminalBuffer.Create(24, 5);
-   Try
-    Buffer.FeedText(#27'[1;2;8;9;53;4:3;58:2::17:34:51mA'#27'7');
-    Cell := Buffer.Cell[0, 0];
-    Assert.IsTrue(Cell.Bold And Cell.Faint And Cell.Conceal And Cell.Strike And Cell.Overline);
-    Assert.AreEqual(3, Integer(Cell.UnderlineStyle));
-    Assert.AreEqual($01332211, Cell.UnderlineColor);
-    Buffer.FeedText(#27'[22;28;29;55;24;59mB');
-    Cell := Buffer.Cell[1, 0];
-    Assert.IsFalse(Cell.Bold Or Cell.Faint Or Cell.Conceal Or Cell.Strike Or Cell.Overline Or Cell.Underline);
-    Assert.AreEqual( -1, Cell.UnderlineColor);
-    Buffer.FeedText(#27'8C');
-    Cell := Buffer.Cell[1, 0];
-    Assert.IsTrue(Cell.Faint And Cell.Conceal And Cell.Strike And Cell.Overline);
-    Assert.AreEqual(3, Integer(Cell.UnderlineStyle));
-    Buffer.Resize(12, 5);
-    Assert.IsTrue(Buffer.Cell[0, 0].Conceal);
-    Assert.IsTrue(Pos('AC', Buffer.Text) > 0);
-    Buffer.FeedText(#27'[0m'#13#10);
-    For i := 0 To 5 Do
-     Buffer.FeedText(#27'[4:' + IntToStr(i) + 'mX');
-    For i := 0 To 5 Do
-     Assert.AreEqual(i, Integer(Buffer.Cell[i, 1].UnderlineStyle));
-    Buffer.FeedText(#27'[4:99mY');
-    Assert.AreEqual(5, Integer(Buffer.Cell[6, 1].UnderlineStyle));
-    Buffer.FeedText(#27'[21mZ'#27'[0mR');
-    Assert.AreEqual(2, Integer(Buffer.Cell[7, 1].UnderlineStyle));
-    Assert.AreEqual( -1, Buffer.Cell[8, 1].UnderlineColor);
-    Assert.IsFalse(Buffer.Cell[8, 1].Underline);
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.SGRDecorationsRenderWithOpaqueCoverage;
-  Var
-   Settings : TGuakeSettings;
-   Main     : TfrmMain;
-   Frame    : TfraTerminal;
-   Output   : TBitmap;
-   Preview  : TPngImage;
-   Width    : Integer;
-   Height   : Integer;
-   i        : Integer;
-   x        : Integer;
-   y        : Integer;
-   RedCount : Integer;
-   Pixel    : TRGBQuad;
-  Begin
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Output   := TBitmap.Create;
-   Try
-    Settings.General.DefaultShell         := 'cmd';
-    Settings.General.UseTrayicon          := False;
-    Settings.General.UsePopup             := False;
-    Settings.Keybindings.Global.ShowHide  := 'disabled';
-    Settings.Keybindings.Global.ShowFocus := 'disabled';
-    Main                                  := TfrmMain.Create(Nil);
-    Try
-     Main.Bind(Settings);
-     Main.StartTerminal;
-     Main.HandleNeeded;
-     Main.SetBounds( -30000, 0, 500, 200);
-     Frame := Main.ActiveTerminalFrame;
-     Frame.Session.Buffer.Reset;
-     Frame.Session.Buffer.FeedText(#27'[?25l'#27'[38;2;255;255;255;58;2;255;0;0m');
-     For i := 1 To 5 Do
-      Frame.Session.Buffer.FeedText(#27'[4:' + IntToStr(i) + 'm ');
-     Frame.Session.Buffer.FeedText(#13#10#27'[4:0;59;53m '#27'[55;8mM'#27'[28;9m ');
-     Frame.RefreshTick(Nil);
-     Frame.RenderAlpha(Output, 96);
-     Output.Canvas.Font.Assign(Frame.Font);
-     Width  := Output.Canvas.TextWidth('M');
-     Height := Output.Canvas.TextHeight('Mg');
-     For i  := 0 To 4 Do
-      Begin
-       RedCount := 0;
-       For y    := 4 To 4 + Height - 1 Do
-        For x   := 4 + i * Width To 4 + (i + 1) * Width - 1 Do
-         Begin
-          Pixel := PixelAt(Output, x, y);
-          If (Pixel.rgbRed = 255) And (Pixel.rgbGreen = 0) And (Pixel.rgbBlue = 0) Then
-           Begin
-            Inc(RedCount);
-            Assert.AreEqual(255, Integer(Pixel.rgbReserved));
-           End;
-         End;
-       Assert.IsTrue(RedCount > 0, 'Every underline style must draw a visible red decoration');
-      End;
-     Pixel := PixelAt(Output, 4 + Width, 4 + Height - 4);
-     Assert.AreEqual(255, Integer(Pixel.rgbRed));
-     Pixel := PixelAt(Output, 4, 4 + Height + 1);
-     Assert.AreEqual(255, Integer(Pixel.rgbReserved));
-     For y  := 4 + Height To 4 + 2 * Height - 1 Do
-      For x := 4 + Width To 4 + 2 * Width - 1 Do
-       Assert.AreEqual(96, Integer(PixelAt(Output, x, y).rgbReserved));
-     RedCount := 0;
-     For y    := 4 + Height To 4 + 2 * Height - 1 Do
-      For x   := 4 + 2 * Width To 4 + 3 * Width - 1 Do
-       If PixelAt(Output, x, y).rgbReserved = 255 Then
-        Inc(RedCount);
-     Assert.IsTrue(RedCount > 0, 'Strikethrough must also decorate a space');
-     Preview := TPngImage.Create;
-     Try
-      Preview.Assign(Output);
-      Preview.SaveToFile(TPath.Combine(ExtractFilePath(ParamStr(0)), 'sgr-preview.png'));
-     Finally
-      Preview.Free;
-     End;
-    Finally
-     Main.Free;
-    End;
-   Finally
-    Output.Free;
-    Settings.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.FaintConcealAndIncrementalAttributeRefresh;
-  Var
-   Settings   : TGuakeSettings;
-   Main       : TfrmMain;
-   Frame      : TfraTerminal;
-   Output     : TBitmap;
-   Previous   : TBitmap;
-   Width      : Integer;
-   Height     : Integer;
-   x          : Integer;
-   y          : Integer;
-   NormalMax  : Integer;
-   FaintMax   : Integer;
-   RowsBefore : UInt64;
-   Pixel      : TRGBQuad;
-  Begin
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Output   := TBitmap.Create;
-   Previous := TBitmap.Create;
-   Try
-    Settings.General.DefaultShell         := 'cmd';
-    Settings.General.UseTrayicon          := False;
-    Settings.General.UsePopup             := False;
-    Settings.Keybindings.Global.ShowHide  := 'disabled';
-    Settings.Keybindings.Global.ShowFocus := 'disabled';
-    Main                                  := TfrmMain.Create(Nil);
-    Try
-     Main.Bind(Settings);
-     Main.StartTerminal;
-     Main.HandleNeeded;
-     Main.SetBounds( -30000, 0, 500, 200);
-     Frame := Main.ActiveTerminalFrame;
-     Frame.Session.Buffer.Reset;
-     Frame.Session.Buffer.FeedText(#27'[?25l'#27'[38;2;255;255;255;48;2;0;0;0mM'#13#10#27'[2mM');
-     Frame.RefreshTick(Nil);
-     Frame.RenderAlpha(Output, 96);
-     Output.Canvas.Font.Assign(Frame.Font);
-     Width     := Output.Canvas.TextWidth('M');
-     Height    := Output.Canvas.TextHeight('Mg');
-     NormalMax := 0;
-     FaintMax  := 0;
-     For y     := 4 To 4 + Height - 1 Do
-      For x    := 4 To 4 + Width - 1 Do
-       Begin
-        Pixel := PixelAt(Output, x, y);
-        If Pixel.rgbRed > NormalMax Then
-         NormalMax := Pixel.rgbRed;
-        Pixel      := PixelAt(Output, x, y + Height);
-        If Pixel.rgbRed > FaintMax Then
-         FaintMax := Pixel.rgbRed;
-       End;
-     Assert.IsTrue((FaintMax > 0) And (FaintMax < NormalMax));
-     Previous.Assign(Output);
-     RowsBefore := Frame.RasterRowCount;
-     Frame.Session.Buffer.FeedText(#27'[H'#27'[8mM');
-     Frame.RefreshTick(Nil);
-     Frame.RenderAlpha(Output, 96);
-     Assert.AreEqual(UInt64(1), Frame.RasterRowCount - RowsBefore);
-     For y  := 4 To 4 + Height - 1 Do
-      For x := 4 To 4 + Width - 1 Do
-       Begin
-        Pixel := PixelAt(Output, x, y);
-        Assert.AreEqual(0, Integer(Pixel.rgbRed));
-        Assert.AreEqual(255, Integer(Pixel.rgbReserved));
-        Assert.AreEqual(Cardinal(PixelAt(Previous, x, y + Height).rgbRed), Cardinal(PixelAt(Output, x, y + Height).rgbRed));
-       End;
-     Assert.IsTrue(Pos('M', Frame.Session.Buffer.Text) > 0);
-    Finally
-     Main.Free;
-    End;
-   Finally
-    Previous.Free;
-    Output.Free;
-    Settings.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.C0ControlsInsideFragmentedSequences;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(32, 6);
-   Try
-    Buffer.FeedText('abc'#27'[2'#7';'#13'5'#10'H');
-    Assert.AreEqual(4, Buffer.CursorX);
-    Assert.AreEqual(1, Buffer.CursorY);
-    Assert.AreEqual(UInt64(1), Buffer.BellCount);
-    Buffer.FeedText(#27'[6'#8#9'n');
-    Assert.AreEqual(#27'[2;9R', Buffer.TakeResponses);
-    Buffer.FeedText(#27'[31'#0#127'mX'#27#7'[32mG');
-    Assert.AreEqual(1, Buffer.Cell[8, 1].Foreground);
-    Assert.AreEqual(2, Buffer.Cell[9, 1].Foreground);
-    Assert.AreEqual(UInt64(2), Buffer.BellCount);
-    Buffer.FeedText(#27'('#7'0q');
-    Assert.AreEqual('─', Buffer.Cell[10, 1].Text);
-    Assert.AreEqual(UInt64(3), Buffer.BellCount);
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.OverlongCSIAndNumericOverflowAreDiscarded;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(30, 5);
-   Try
-    Buffer.FeedText(#27'[3;4H'#27'[31m');
-    Buffer.FeedText(#27'[' + StringOfChar(';', 300) + 'mX');
-    Assert.AreEqual(1, Buffer.Cell[3, 2].Foreground);
-    Buffer.FeedText(#27'[' + StringOfChar('9', 90) + 'HX');
-    Assert.AreEqual('XX', Copy(Buffer.LineText(2), 4, 2));
-    Buffer.FeedText(#27'[2'#24'Q'#27'[32'#26'R');
-    Assert.AreEqual('XXQR', Copy(Buffer.LineText(2), 4, 4));
-    Assert.AreEqual(1, Buffer.Cell[6, 2].Foreground);
-    Buffer.FeedText(#27'[0mZ');
-    Assert.AreEqual( -1, Buffer.Cell[7, 2].Foreground);
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.OverlongOSCDoesNotPublishTruncatedValues;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(40, 4);
-   Try
-    Buffer.FeedText(#27']2;original'#7);
-    Buffer.FeedText(#27']2;' + StringOfChar('x', 5000) + #7'A');
-    Assert.AreEqual('original', Buffer.Title);
-    Assert.AreEqual('A', Buffer.LineText(0));
-    Buffer.FeedText(#27']8;;https://example.org/' + StringOfChar('a', 5000) + #27'\B');
-    Assert.AreEqual('', Buffer.Cell[1, 0].Hyperlink);
-    Buffer.FeedText(#27']2;new'#13#10#0'title'#27'\');
-    Assert.AreEqual('newtitle', Buffer.Title);
-    Buffer.FeedText(#27']2;cancelled'#24'X');
-    Assert.AreEqual('newtitle', Buffer.Title);
-    Assert.AreEqual('ABX', Buffer.LineText(0));
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.EscapeRecoveryAndIntermediateConsumption;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(40, 4);
-   Try
-    Buffer.FeedText(#27'%GA'#27'#7B');
-    Assert.AreEqual('AB', Buffer.LineText(0));
-    Buffer.FeedText(#27']2;unfinished'#27'[31mC');
-    Assert.AreEqual('', Buffer.Title);
-    Assert.AreEqual(1, Buffer.Cell[2, 0].Foreground);
-    Buffer.FeedText(#27'Pignored'#27'[32mD'#27'Xignored'#27'\E');
-    Assert.AreEqual('ABCDE', Buffer.LineText(0));
-    Assert.AreEqual(2, Buffer.Cell[3, 0].Foreground);
-    Buffer.FeedText(#27'[12ąF');
-    Assert.AreEqual('ABCDEąF', Buffer.LineText(0));
-    Buffer.FeedText(#27'[31'#27'[34mG');
-    Assert.AreEqual(4, Buffer.Cell[7, 0].Foreground);
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.SGRColonAndSemicolonColors;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(30, 4);
-   Try
-    Buffer.FeedText(#27'[1;38:2::17:34:51;48:5:201mA');
-    Assert.AreEqual($01332211, Buffer.Cell[0, 0].Foreground);
-    Assert.AreEqual(201, Buffer.Cell[0, 0].Background);
-    Assert.IsTrue(Buffer.Cell[0, 0].Bold);
-    Buffer.FeedText(#27'[38:2:51:34:17;48;2;1;2;3mB');
-    Assert.AreEqual($01112233, Buffer.Cell[1, 0].Foreground);
-    Assert.AreEqual($01030201, Buffer.Cell[1, 0].Background);
-    Buffer.FeedText(#27'[38;5;123;4:1mC'#27'[4:0mD');
-    Assert.AreEqual(123, Buffer.Cell[2, 0].Foreground);
-    Assert.IsTrue(Buffer.Cell[2, 0].Underline);
-    Assert.IsFalse(Buffer.Cell[3, 0].Underline);
-    Buffer.FeedText(#27'[mE');
-    Assert.AreEqual( -1, Buffer.Cell[4, 0].Foreground);
-    Assert.AreEqual( -2, Buffer.Cell[4, 0].Background);
-    Assert.IsFalse(Buffer.Cell[4, 0].Bold);
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.SGRInvalidColorsDoNotBecomeAttributes;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(30, 4);
-   Try
-    Buffer.FeedText(#27'[31;44m'#27'[38:2::1:2mA');
-    Assert.AreEqual(1, Buffer.Cell[0, 0].Foreground);
-    Assert.IsFalse(Buffer.Cell[0, 0].Bold);
-    Buffer.FeedText(#27'[38:2:1:7:8:9;3mB');
-    Assert.AreEqual(1, Buffer.Cell[1, 0].Foreground);
-    Assert.IsTrue(Buffer.Cell[1, 0].Italic);
-    Buffer.FeedText(#27'[38;2;999;1;2;1mC');
-    Assert.AreEqual(1, Buffer.Cell[2, 0].Foreground);
-    Assert.IsTrue(Buffer.Cell[2, 0].Bold);
-    Assert.AreEqual(4, Buffer.Cell[2, 0].Background);
-    Buffer.FeedText(#27'[38;2;1mD');
-    Assert.AreEqual(1, Buffer.Cell[3, 0].Foreground);
-    Buffer.FeedText(#27'[38:5:999;22mE');
-    Assert.AreEqual(1, Buffer.Cell[4, 0].Foreground);
-    Assert.IsFalse(Buffer.Cell[4, 0].Bold);
-    Buffer.FeedText(#27'[999999999999999999999999mF');
-    Assert.AreEqual(1, Buffer.Cell[5, 0].Foreground);
-    Buffer.FeedText(#27'[58;2;0;1;0mG');
-    Assert.AreEqual(1, Buffer.Cell[6, 0].Foreground);
-    Assert.AreEqual(4, Buffer.Cell[6, 0].Background);
-    Assert.IsFalse(Buffer.Cell[6, 0].Bold);
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.ParserFragmentationProducesSameState;
-  Var
-   Whole : TTerminalBuffer;
-   Split : TTerminalBuffer;
-   Data  : TBytes;
-   i     : Integer;
-   j     : Integer;
-   x     : Integer;
-   y     : Integer;
-  Begin
-   Data  := TEncoding.UTF8.GetBytes('start'#27'[38:2::17:34:51mą'#27'[2'#7';4H'#27'(0lqk'#27'(B'#27']2;title'#27'\'#27'[6n');
-   Whole := TTerminalBuffer.Create(24, 5);
-   Try
-    Whole.Feed(Data);
-    Assert.AreEqual('title', Whole.Title);
-    For i := 0 To Length(Data) Do
-     Begin
-      Split := TTerminalBuffer.Create(24, 5);
+      Settings   := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      ScriptName := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName + '.ps1');
+      WindowFile := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
+      Main       := Nil;
+      Dialog     := Nil;
+      FillChar(Process, SizeOf(Process), 0);
+      PreviousWindow := GetForegroundWindow;
       Try
-       Split.Feed(Copy(Data, 0, i));
-       For j := i To High(Data) Do
-        Split.Feed(TBytes.Create(Data[j]));
-       Assert.AreEqual(Whole.Text, Split.Text);
-       Assert.AreEqual(Whole.CursorX, Split.CursorX);
-       Assert.AreEqual(Whole.CursorY, Split.CursorY);
-       Assert.AreEqual(Whole.Title, Split.Title);
-       Assert.AreEqual(Whole.BellCount, Split.BellCount);
-       Assert.AreEqual(#27'[2;7R', Split.TakeResponses);
-       For y  := 0 To Whole.Rows - 1 Do
-        For x := 0 To Whole.Columns - 1 Do
-         Assert.AreEqual(Whole.Cell[x, y].Foreground, Split.Cell[x, y].Foreground);
+        TFile.WriteAllText(ScriptName,
+        'Add-Type -TypeDefinition @'''#13#10 +
+        'using System; using System.IO; using System.Runtime.InteropServices;'#13#10 +
+        'public static class FocusProbe {'#13#10 +
+        '[DllImport("user32.dll")] static extern bool AllowSetForegroundWindow(uint pid);'#13#10 +
+        '[DllImport("user32.dll",CharSet=CharSet.Unicode)] static extern IntPtr CreateWindowEx(uint ex,string cls,string name,uint style,int x,int y,int w,int h,IntPtr p,IntPtr m,IntPtr i,IntPtr a);'#13#10 +
+        '[DllImport("user32.dll")] static extern int GetMessage(IntPtr msg,IntPtr wnd,uint a,uint b);'#13#10 +
+        '[DllImport("user32.dll")] static extern bool TranslateMessage(IntPtr msg);'#13#10 +
+        '[DllImport("user32.dll")] static extern IntPtr DispatchMessage(IntPtr msg);'#13#10 +
+        'public static void Run(string path,uint parent){var w=CreateWindowEx(0x80,"STATIC","Guake focus probe",0x90000000,-30000,0,100,30,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero);i' +
+        'f(w==IntPtr.Zero)throw new Exception("CreateWindowEx");File.WriteAllText(path+".tmp",w.ToInt64().ToString());File.Move(path+".tmp",path);new System.Threading.Thread(()=>{while(true' +
+        '){AllowSetForegroundWindow(parent);System.Threading.Thread.Sleep(10);}}){IsBackground=true}.Start();var m=Marshal.AllocHGlobal(64);try{while(GetMessage(m,IntPtr.Zero,0,0)>0){Transl' +
+        'ateMessage(m);DispatchMessage(m);}}finally{Marshal.FreeHGlobal(m);}}}'#13#10 +
+        '''@'#13#10 + '[FocusProbe]::Run($args[0],[uint32]$args[1])', TEncoding.UTF8);
+        Command := QuoteProcessArgument(TShellProfile.Resolve(gsPowerShell).Executable) +
+        ' -NoLogo -NoProfile -ExecutionPolicy Bypass -File ' + QuoteProcessArgument(ScriptName) + ' ' + QuoteProcessArgument(WindowFile) + ' ' + IntToStr(GetCurrentProcessId);
+        UniqueString(Command);
+        FillChar(Startup, SizeOf(Startup), 0);
+        Startup.cb := SizeOf(Startup);
+        Win32Check(CreateProcess(Nil, PChar(Command), Nil, Nil, False, CREATE_NO_WINDOW, Nil, Nil, Startup, Process));
+        Deadline := GetTickCount64 + 15000;
+        While Not TFile.Exists(WindowFile) And (GetTickCount64 < Deadline) Do
+          Sleep(10);
+        Assert.IsTrue(TFile.Exists(WindowFile), 'Native foreground helper must start');
+        WindowValue := '';
+        Deadline    := GetTickCount64 + 2000;
+        Repeat
+          Try
+            WindowValue := TFile.ReadAllText(WindowFile);
+          Except
+            On E : EFOpenError Do
+              Sleep(10);
+            On E : EInOutError Do
+              Sleep(10);
+          End;
+        Until(WindowValue <> '') Or (GetTickCount64 >= Deadline);
+        Assert.IsTrue(WindowValue <> '', 'Published foreground window handle must be readable');
+        OtherWindow := HWND(StrToInt64(WindowValue));
+        Assert.IsTrue(IsWindow(OtherWindow));
+        Settings.General.DefaultShell         := 'cmd';
+        Settings.General.UsePopup             := False;
+        Settings.General.UseTrayicon          := False;
+        Settings.General.DropDownAnimation    := False;
+        Settings.General.SaveTabsWhenChanged  := False;
+        Settings.Keybindings.Global.ShowHide  := 'disabled';
+        Settings.Keybindings.Global.ShowFocus := 'disabled';
+        Main                                  := TfrmMain.Create(Nil);
+        Main.Bind(Settings);
+        Main.StartTerminal;
+        Main.SetTerminalVisible(True);
+        Main.SetBounds( -30000, 100, 500, 180);
+        Pump(20);
+        ActivateOther;
+        Settings.General.WindowRefocus := True;
+        Main.ToggleVisibility;
+        Pump(20);
+        Assert.IsTrue(Main.Visible);
+        Assert.AreEqual(NativeUInt(Main.Handle), NativeUInt(GetAncestor(GetForegroundWindow, GA_ROOT)), 'Refocus must activate the terminal window');
+        Assert.IsTrue(Main.ActiveTerminalFrame.Focused, 'Refocus restores the active input pane');
+        Main.ToggleVisibility;
+        Assert.IsFalse(Main.Visible, 'A focused terminal still toggles off');
+        Main.SetTerminalVisible(True);
+        ActivateOther;
+        Settings.General.WindowRefocus := False;
+        Main.ToggleVisibility;
+        Assert.IsFalse(Main.Visible, 'Without refocus a visible unfocused terminal toggles off');
+        Main.SetTerminalVisible(True);
+        Settings.General.WindowLosefocus := True;
+        Settings.General.LazyLosefocus   := True;
+        ActivateOther;
+        Assert.IsTrue(Main.focusTimer.Enabled);
+        Assert.AreEqual(300, Main.focusTimer.Interval);
+        Assert.IsTrue(Main.Visible, 'Lazy hide must not hide immediately');
+        Main.SetTerminalVisible(True);
+        Pump(350);
+        Assert.IsTrue(Main.Visible, 'Returning focus cancels delayed hide');
+        Assert.IsFalse(Main.focusTimer.Enabled);
+        ActivateOther;
+        Pump(340);
+        Assert.IsFalse(Main.Visible, 'Persistent external focus hides after 300 ms');
+        Main.SetTerminalVisible(True);
+        Dialog := TfrmAbout.Create(Main);
+        Dialog.Show;
+        Pump(350);
+        Assert.IsTrue(Main.Visible, 'An owned dialog must not hide the terminal');
+        Main.ToggleVisibility;
+        Assert.IsTrue(Main.Visible, 'The global toggle must not hide behind an owned dialog');
+        Dialog.Free;
+        Dialog := Nil;
+        Main.SetTerminalVisible(True);
+        Settings.General.LazyLosefocus := False;
+        ActivateOther;
+        Pump(30);
+        Assert.IsFalse(Main.Visible, 'Non-lazy hide runs after the foreground transition');
+        Main.SetTerminalVisible(True);
+        Settings.General.LazyLosefocus := True;
+        ActivateOther;
+        Settings.General.WindowLosefocus := False;
+        Pump(340);
+        Assert.IsTrue(Main.Visible, 'Disabling hide-on-focus-loss cancels its effect');
+        Settings.General.WindowLosefocus := True;
+        Main.FormDeactivate(Nil);
+        Assert.IsTrue(Main.focusTimer.Enabled);
+        Main.StopTerminal;
+        Assert.IsFalse(Main.focusTimer.Enabled, 'Shutdown cancels deferred work');
       Finally
-       Split.Free;
+        Dialog.Free;
+        Main.Free;
+        Settings.Free;
+        If Process.hProcess <> 0 Then
+          Begin
+            TerminateProcess(Process.hProcess, 0);
+            WaitForSingleObject(Process.hProcess, 5000);
+            CloseHandle(Process.hProcess);
+          End;
+        If Process.hThread <> 0 Then
+          CloseHandle(Process.hThread);
+        If PreviousWindow <> 0 Then
+          SetForegroundWindow(PreviousWindow);
+        If TFile.Exists(ScriptName) Then
+          TFile.Delete(ScriptName);
+        If TFile.Exists(WindowFile) Then
+          TFile.Delete(WindowFile);
+        If TFile.Exists(WindowFile + '.tmp') Then
+          TFile.Delete(WindowFile + '.tmp');
       End;
-     End;
-   Finally
-    Whole.Free;
-   End;
-  End;
+    End;
 
- Procedure TTerminalTests.SCOCursorAliasesPreserveSingleShift;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(4, 4);
-   Try
-    Buffer.FeedText(#27'*0'#27'[31mABCD'#27'N'#27'[s');
-    Buffer.FeedText(#27'[H'#27'[0mxx'#27'8q');
-    Assert.AreEqual('─', Buffer.Cell[0, 1].Text);
-    Assert.AreEqual(1, Buffer.Cell[0, 1].Foreground);
-    Buffer.FeedText(#27'7'#27'[H'#27'[0m'#27'[uq');
-    Assert.AreEqual('q', Buffer.Cell[1, 1].Text);
-    Assert.AreEqual(1, Buffer.Cell[1, 1].Foreground);
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.DECGraphicsAndCharacterShifts;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(40, 4);
-   Try
-    Buffer.FeedText(#27'(0lqqk'#27'(Bq');
-    Assert.AreEqual('┌──┐q', Buffer.LineText(0));
-    Buffer.FeedText(#13#10#27')0'#14'x'#15'x');
-    Assert.AreEqual('│x', Buffer.LineText(1));
-    Buffer.FeedText(#27'*0'#27'+A'#27'N'#7'q' + 'q' + #27'O##');
-    Assert.AreEqual('│x─q£#', Buffer.LineText(1));
-    Buffer.FeedText(#27'nx'#27'o#'#15'q');
-    Assert.AreEqual('│x─q£#│£q', Buffer.LineText(1));
-    Buffer.FeedText(#27'(0' + 'ą😀' + #27'(B');
-    Assert.IsTrue(Pos('ą😀', Buffer.LineText(1)) > 0);
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.CharsetDesignationFragmentsAndCancellation;
-  Var
-   Buffer : TTerminalBuffer;
-   Value  : Byte;
-  Begin
-   Buffer := TTerminalBuffer.Create(40, 3);
-   Try
-    For Value In TEncoding.UTF8.GetBytes(#27')0'#14'lqk'#15'q') Do
-     Buffer.Feed(TBytes.Create(Value));
-    Assert.AreEqual('┌─┐q', Buffer.LineText(0));
-    Buffer.FeedText(#27'('#14'0x'#15'x');
-    Assert.AreEqual('┌─┐q││', Buffer.LineText(0));
-    Buffer.FeedText(#27'(%5q');
-    Assert.AreEqual('─', Buffer.Cell[6, 0].Text);
-    Buffer.FeedText(#27'('#24'q'#27')'#26'q');
-    Assert.AreEqual('┌─┐q││───', Buffer.LineText(0));
-    Buffer.FeedText(#27'cqq');
-    Assert.AreEqual('qq', Buffer.LineText(0));
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.DECCursorRestoresRenditionModesAndCharsets;
-  Var
-   Buffer : TTerminalBuffer;
-   Cell   : TTerminalCell;
-  Begin
-   Buffer := TTerminalBuffer.Create(12, 8);
-   Try
-    Buffer.FeedText(#27'[3;7r'#27'[?6h'#27'[2;3H'#27'[1;3;4;7;31;44m'#27')0'#14#27'[?7l'#27'7');
-    Buffer.FeedText(#15#27')B'#27'[0m'#27'[?6l'#27'[?7h'#27'[H'#27'8q'#27'[6n');
-    Cell := Buffer.Cell[2, 3];
-    Assert.AreEqual('─', Cell.Text);
-    Assert.AreEqual(1, Cell.Foreground);
-    Assert.AreEqual(4, Cell.Background);
-    Assert.IsTrue(Cell.Bold And Cell.Italic And Cell.Underline And Cell.Inverse);
-    Assert.AreEqual(#27'[2;4R', Buffer.TakeResponses);
-    Buffer.FeedText(#27'[1;12Hqq');
-    Assert.AreEqual(2, Buffer.CursorY);
-    Assert.AreEqual(11, Buffer.CursorX);
-    Assert.AreEqual('─', Buffer.Cell[11, 2].Text);
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.DECCursorPreservesPendingWrap;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(4, 3);
-   Try
-    Buffer.FeedText('ABCD'#27'7'#13'xx'#27'8Z');
-    Assert.AreEqual('xxCD', Buffer.LineText(0));
-    Assert.AreEqual('Z', Buffer.LineText(1));
-    Buffer.FeedText(#27'[?1048h'#27'[H'#27'[?1048lY');
-    Assert.AreEqual('ZY', Buffer.LineText(1));
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.DECCursorScreenIsolationAnd1048;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(20, 5);
-   Try
-    Buffer.FeedText(#27'[2;4H'#27'[31m'#27'[?1049h');
-    Buffer.FeedText(#27'[3;2H'#27'[32m'#27'7'#27'[H'#27'[0m'#27'8A');
-    Assert.AreEqual('A', Buffer.Cell[1, 2].Text);
-    Assert.AreEqual(2, Buffer.Cell[1, 2].Foreground);
-    Buffer.FeedText(#27'[?1049lP');
-    Assert.IsFalse(Buffer.AlternateScreen);
-    Assert.AreEqual('P', Buffer.Cell[3, 1].Text);
-    Assert.AreEqual(1, Buffer.Cell[3, 1].Foreground);
-    Buffer.FeedText(#27'[?1048h'#27'[H'#27'[0m'#27'[?1048lQ');
-    Assert.AreEqual('Q', Buffer.Cell[4, 1].Text);
-    Assert.AreEqual(1, Buffer.Cell[4, 1].Foreground);
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.DECCursorDefaultsAndResize;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(12, 8);
-   Try
-    Buffer.FeedText(#27'[1;31m'#27'(0'#27'[?6h'#27'[?7l'#27'8q');
-    Assert.AreEqual('q', Buffer.Cell[0, 0].Text);
-    Assert.AreEqual( -1, Buffer.Cell[0, 0].Foreground);
-    Assert.IsFalse(Buffer.Cell[0, 0].Bold);
-    Buffer.FeedText(#27'[8;12H'#27'7');
-    Buffer.Resize(4, 3);
-    Buffer.FeedText(#27'8');
-    Assert.AreEqual(3, Buffer.CursorX);
-    Assert.AreEqual(2, Buffer.CursorY);
-    Buffer.FeedText(#27'c'#27'[31m'#27'8R');
-    Assert.AreEqual('R', Buffer.Cell[0, 0].Text);
-    Assert.AreEqual( -1, Buffer.Cell[0, 0].Foreground);
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.UnsupportedCSIHasNoAliasedEffects;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(20, 4);
-   Try
-    Buffer.FeedText('abc'#27'[3;4H');
-    Buffer.FeedText(#27'[ A'#27'[?4J'#27'[>2J'#27'[1:2H');
-    Assert.AreEqual(3, Buffer.CursorX);
-    Assert.AreEqual(2, Buffer.CursorY);
-    Assert.AreEqual('abc', Buffer.LineText(0));
-    Buffer.FeedText(#27'[?3g'#13#9);
-    Assert.AreEqual(8, Buffer.CursorX);
-    Buffer.FeedText(#27'[3g'#27'[?5W'#13#9);
-    Assert.AreEqual(8, Buffer.CursorX);
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.OriginRelativeCursorReports;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(20, 8);
-   Try
-    Buffer.FeedText(#27'[3;7r'#27'[?6h'#27'[2;4H'#27'[6n'#27'[?6n');
-    Assert.AreEqual(#27'[2;4R'#27'[?2;4;1R', Buffer.TakeResponses);
-    Buffer.FeedText(#27'[?5n');
-    Assert.AreEqual('', Buffer.TakeResponses);
-    Buffer.FeedText(#27'[?6l'#27'[6n');
-    Assert.AreEqual(#27'[1;1R', Buffer.TakeResponses);
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.ProgrammableTabStops;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(24, 3);
-   Try
-    Buffer.FeedText(#9);
-    Assert.AreEqual(8, Buffer.CursorX);
-    Buffer.FeedText(#27'[3g'#13#9);
-    Assert.AreEqual(23, Buffer.CursorX);
-    Buffer.FeedText(#13#27'[5G'#27);
-    Buffer.FeedText('H'#13#9);
-    Assert.AreEqual(4, Buffer.CursorX);
-    Buffer.FeedText(#27'[12G'#27'H'#13#27'[2I');
-    Assert.AreEqual(11, Buffer.CursorX);
-    Buffer.FeedText(#27'[Z');
-    Assert.AreEqual(4, Buffer.CursorX);
-    Buffer.FeedText(#27'[g'#13#27'[I');
-    Assert.AreEqual(11, Buffer.CursorX);
-    Buffer.FeedText(#27'[999Z');
-    Assert.AreEqual(0, Buffer.CursorX);
-    Assert.AreEqual('', Trim(Buffer.Text));
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.TabStopsResizeAndReset;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(20, 3);
-   Try
-    Buffer.FeedText(#27'[3g'#27'[6G'#27'H');
-    Buffer.Resize(10, 3);
-    Buffer.FeedText(#13#9);
-    Assert.AreEqual(5, Buffer.CursorX);
-    Buffer.Resize(32, 3);
-    Buffer.FeedText(#13#27'[2I');
-    Assert.AreEqual(24, Buffer.CursorX);
-    Buffer.FeedText(#27'c'#9);
-    Assert.AreEqual(8, Buffer.CursorX);
-    Buffer.FeedText(#27'[2I');
-    Assert.AreEqual(24, Buffer.CursorX);
-    Buffer.FeedText(#27'[I');
-    Assert.AreEqual(31, Buffer.CursorX);
-    Buffer.FeedText(#27'[Z');
-    Assert.AreEqual(24, Buffer.CursorX);
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.UnchangedSplitPanesReuseComposition;
-  Var
-   Settings    : TGuakeSettings;
-   Main        : TfrmMain;
-   Bitmap      : TBitmap;
-   Frames      : TList<TfraTerminal>;
-   FirstCount  : UInt64;
-   SecondCount : UInt64;
-   RowsBefore  : UInt64;
-
-   Procedure Collect(Host : TWinControl);
+  Procedure TTerminalTests.LogicalLinesJoinSoftWrapsAndMapCells;
     Var
-     i : Integer;
+      Buffer : TTerminalBuffer;
+      Index  : Integer;
+      Text   : String;
     Begin
-     For i := 0 To Host.ControlCount - 1 Do
-      If Host.Controls[i] Is TfraTerminal Then
-       Frames.Add(TfraTerminal(Host.Controls[i]))
-      Else If Host.Controls[i] Is TWinControl Then
-       Collect(TWinControl(Host.Controls[i]));
+      Buffer := TTerminalBuffer.Create(10, 5);
+      Try
+        Buffer.FeedText('https://example.org/path');
+        Text := Buffer.LogicalLineText(3, 1, Index);
+        Assert.AreEqual('https://example.org/path', Text);
+        Assert.AreEqual(13, Index);
+        Assert.AreEqual(Text, TerminalLinkAt(Text, Index));
+        Buffer.FeedText(#13#10'next');
+        Assert.AreEqual('next', Buffer.LogicalLineText(1, 3, Index));
+        Assert.AreEqual(1, Index);
+        Buffer.FeedText(#27'c' + StringOfChar('a', 9) + #$4E2D + 'b');
+        Assert.AreEqual('', Buffer.LogicalLineText(9, 0, Index));
+        Assert.AreEqual( -1, Index);
+        Assert.AreEqual(StringOfChar('a', 9) + #$4E2D + 'b', Buffer.LogicalLineText(1, 1, Index));
+        Assert.AreEqual(9, Index, 'Continuation cell maps to the whole wide character');
+      Finally
+        Buffer.Free;
+      End;
     End;
 
-  Begin
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Frames   := TList<TfraTerminal>.Create;
-   Bitmap   := TBitmap.Create;
-   Try
-    Settings.General.DefaultShell         := 'cmd';
-    Settings.General.UseTrayicon          := False;
-    Settings.General.UsePopup             := False;
-    Settings.General.DropDownAnimation    := False;
-    Settings.Keybindings.Global.ShowHide  := 'disabled';
-    Settings.Keybindings.Global.ShowFocus := 'disabled';
-    Main                                  := TfrmMain.Create(Nil);
-    Try
-     Main.Bind(Settings);
-     Main.StartTerminal;
-     Main.Controller.Split(True);
-     Main.HandleNeeded;
-     Main.SetBounds( -30000, 0, 800, 400);
-     Collect(Main.terminalHost);
-     Assert.AreEqual(2, Frames.Count);
-     Frames[0].Session.Buffer.FeedText(#27'[?25l');
-     Frames[1].Session.Buffer.FeedText(#27'[?25l');
-     Frames[0].RefreshTick(Nil);
-     Frames[1].RefreshTick(Nil);
-     Main.RenderWindow(Bitmap);
-     FirstCount  := Frames[0].AlphaRenderCount;
-     SecondCount := Frames[1].AlphaRenderCount;
-     Main.RenderWindow(Bitmap);
-     Assert.AreEqual(FirstCount, Frames[0].AlphaRenderCount, 'Idle pane must reuse its pixels');
-     Assert.AreEqual(SecondCount, Frames[1].AlphaRenderCount);
-     RowsBefore := Frames[0].RasterRowCount;
-     Frames[0].Session.Buffer.FeedText('new output');
-     Frames[0].RefreshTick(Nil);
-     Main.RenderWindow(Bitmap);
-     Assert.AreEqual(FirstCount + UInt64(1), Frames[0].AlphaRenderCount);
-     Assert.AreEqual(SecondCount, Frames[1].AlphaRenderCount, 'Output in another pane must not rasterize this pane');
-     Assert.AreEqual(RowsBefore + UInt64(1), Frames[0].RasterRowCount, 'Typing must rasterize only the changed row');
-     Settings.Style.Background.Transparency := 50;
-     Main.RenderWindow(Bitmap);
-     Assert.AreEqual(SecondCount + UInt64(1), Frames[1].AlphaRenderCount, 'Opacity change invalidates cached alpha');
-     Frames[0].Session.Buffer.FeedText(StringOfChar('H', Frames[0].Session.Buffer.Columns * (Frames[0].Session.Buffer.Rows + 4)));
-     Frames[0].RefreshTick(Nil);
-     Frames[0].Session.Buffer.FeedText(#27'[?1049h' + #27'[?25l' + #27'[H' + #27'[41m ' + #27'[m');
-     Frames[0].RefreshTick(Nil);
-     Frames[0].RenderAlpha(Bitmap, 255);
-     Frames[0].Session.Buffer.FeedText(#27'[H' + #27'[42m ' + #27'[m');
-     Frames[0].RefreshTick(Nil);
-     Frames[0].RenderAlpha(Bitmap, 255);
-     Assert.IsTrue(PixelAt(Bitmap, 5, 5).rgbGreen > PixelAt(Bitmap, 5, 5).rgbRed,
-     'Incremental redraw must compare the alternate screen, not primary scrollback');
-    Finally
-     Main.Free;
-    End;
-   Finally
-    Bitmap.Free;
-    Frames.Free;
-    Settings.Free;
-   End;
-  End;
+  Procedure TTerminalTests.FocusNewLineAndQueryRepliesReachConPTY;
+    Var
+      SavedKeyboard : TKeyboardState;
+      CleanKeyboard : TKeyboardState;
+      Settings      : TGuakeSettings;
+      Main          : TfrmMain;
+      Frame         : TfraTerminal;
+      Peer          : TfraTerminal;
+      Session       : TTerminalSession;
+      Profile       : TShellProfile;
+      ScriptName    : String;
+      OutputName    : String;
+      Expected      : String;
+      ExpectedCodes : String;
+      Deadline      : UInt64;
+      Key           : Char;
+      i             : Integer;
+      CellWidth     : Integer;
+      CellHeight    : Integer;
+      HistoryBase   : Integer;
+    Begin
+      GetKeyboardState(SavedKeyboard);
+      FillChar(CleanKeyboard, SizeOf(CleanKeyboard), 0);
+      SetKeyboardState(CleanKeyboard);
+      Settings   := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      ScriptName := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName + '.ps1');
+      OutputName := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
+      Session    := Nil;
+      Main       := Nil;
+      Frame      := Nil;
+      Try
+        TFile.WriteAllText(ScriptName,
+        'Add-Type -TypeDefinition @'''#13#10 +
+        'using System; using System.IO; using System.Collections.Generic; using System.Runtime.InteropServices;'#13#10 +
+        'public static class Probe {'#13#10 +
+        '[DllImport("kernel32.dll")] static extern IntPtr GetStdHandle(int n);'#13#10 +
+        '[DllImport("kernel32.dll")] static extern bool SetConsoleMode(IntPtr h,uint m);'#13#10 +
+        'public static void Run(string path) {'#13#10 +
+        'Console.InputEncoding=new System.Text.UTF8Encoding(false);'#13#10 +
+        'if(!SetConsoleMode(GetStdHandle(-10),0x200)) throw new Exception("SetConsoleMode");'#13#10 +
+        'if(!SetConsoleMode(GetStdHandle(-11),7)) throw new Exception("Output mode"); Console.Write("\u001b[?1004h\u001b[?1003h\u001b[?1006h\u001b=PROBE_READY"); var data=new List<int>();'#13#10 +
+        'for(int i=0;i<4096;i++){int c=Console.Read();if(c<0)throw new Exception("EOF");'#13#10 +
+        'if(c==94){Console.Write("\u001b[?1006lLEGACY_READY");continue;}'#13#10 +
+        'if(c==1){Console.Write("\u001b[?1005hUTF8_READY");continue;}'#13#10 +
+        'if(c==2){Console.Write("\u001b[?1005l\u001b[?1006lASCII_READY");continue;}'#13#10 +
+        'if(c==3){Console.Write("\u001b[?1005l\u001b[?1006hSGR_READY");continue;}'#13#10 +
+        'if(c==5){Console.Write("\u001b[?1hCURSOR_APP_READY");continue;}'#13#10 +
+        'if(c==6){Console.Write("\u001b[?1lCURSOR_NORMAL_READY");continue;}'#13#10 +
+        'if(c==4){File.WriteAllText(path+".tmp",string.Join(",",data));File.Move(path+".tmp",path);return;}data.Add(c);}'#13#10 +
+        'throw new Exception("Input limit");}}'#13#10 +
+        '''@'#13#10 + '[Probe]::Run($args[0])', TEncoding.UTF8);
+        Profile                               := TShellProfile.Resolve(gsPowerShell);
+        Profile.Arguments                     := '-NoLogo -NoProfile -ExecutionPolicy Bypass -File ' + QuoteProcessArgument(ScriptName) + ' ' + QuoteProcessArgument(OutputName);
+        Session                               := TTerminalSession.Create(Profile, GetCurrentDir, Settings);
+        Settings.Keybindings.Global.ShowHide  := 'disabled';
+        Settings.Keybindings.Global.ShowFocus := 'disabled';
+        Settings.General.UseTrayicon          := False;
+        Settings.General.UsePopup             := False;
+        Main                                  := TfrmMain.Create(Nil);
+        Main.Bind(Settings);
+        Frame        := TfraTerminal.Create(Nil);
+        Frame.Parent := Main.tabHost;
+        Frame.Bind(Session, Settings);
+        Frame.HandleNeeded;
+        Frame.refreshTimer.Enabled := False;
+        Deadline                   := GetTickCount64 + 20000;
+        Repeat
+          Session.Poll;
+          If Pos('PROBE_READY', Session.Buffer.Text) > 0 Then
+            Break;
+          Sleep(10);
+        Until(GetTickCount64 >= Deadline) Or Session.Exited;
+        Assert.IsTrue(Pos('PROBE_READY', Session.Buffer.Text) > 0, 'Native input probe must be ready: ' + Session.Buffer.Text);
+        Assert.IsTrue(Session.Buffer.FocusReporting, 'Child focus request must reach the terminal model');
+        Assert.IsTrue(Session.Buffer.ApplicationKeypad, 'Child keypad request must reach the terminal model');
+        Session.Buffer.FeedText(#27'[?1004s' + #27'[?1004l' + #27'[?1003l');
+        Frame.Perform(WM_SETFOCUS, 0, 0);
+        Session.Buffer.FeedText(#27'[?1004r' + #27'[18t' + #27'[?1004$p' + #27'[=c');
+        Expected := Format(#27'[8;%d;%dt', [Session.Buffer.Rows, Session.Buffer.Columns]) + #27'[?1004;1$y' + #27 + 'P!|7E474B57' + #27 + Chr(92);
+        Session.Poll;
+        Frame.Perform(WM_SETFOCUS, 0, 0);
+        Frame.Perform(WM_KILLFOCUS, 0, 0);
+        Expected := Expected + #27'[I'#27'[O';
+        Session.Buffer.FeedText(#27 + '[?15n' + #27 + '[?25n' + #27 + '[?55n' + #27 + '[?56n');
+        Session.Poll;
+        Expected := Expected + #27 + '[?13n' + #27 + '[?21n' + #27 + '[?53n' + #27 + '[?57;0n';
+        Session.Buffer.FeedText(#27'[?1004l'#27'[20h');
+        Frame.Perform(WM_SETFOCUS, 0, 0);
+        SetKeyboardState(CleanKeyboard);
+        Key := #13;
+        TTerminalFrameAccess(Frame).KeyPress(Key);
+        Assert.AreEqual(#0, Key);
+        Session.Buffer.FeedText(#27'[20l');
+        SetKeyboardState(CleanKeyboard);
+        Key := #13;
+        TTerminalFrameAccess(Frame).KeyPress(Key);
+        Expected := Expected + #13#10#13;
+        Session.Buffer.FeedText(#27'[0m'#27'P$qm'#27'\');
+        Session.Poll;
+        Expected := Expected + #27'P1$r0m'#27'\';
+        Session.Buffer.FeedText(#27 + '[x' + #27 + '[1x');
+        Session.Poll;
+        Expected := Expected + #27 + '[2;1;1;120;120;1;0x' + #27 + '[3;1;1;120;120;1;0x';
+        Session.Buffer.FeedText(#27 + '[20t' + #27 + '[21t');
+        Session.Poll;
+        Expected := Expected + #27 + ']L' + #27 + Chr(92) + #27 + ']l' + #27 + Chr(92);
+        Session.Buffer.FeedText(#27 + 'P$qs' + #27 + Chr(92));
+        Session.Poll;
+        Expected := Expected + Format(#27 + 'P1$r1;%ds' + #27 + Chr(92), [Session.Buffer.Columns]);
+        Session.Buffer.FeedText(#27'[6 q'#27'P$q q'#27'\');
+        Session.Poll;
+        Expected := Expected + #27'P1$r6 q'#27'\';
+        Session.Buffer.FeedText(#27'[1' + #34'q' + #27'P$q' + #34'q' + #27 + Chr(92));
+        Session.Poll;
+        Expected := Expected + #27'P1$r1' + #34'q' + #27 + Chr(92);
+        Session.Buffer.FeedText(#27'[0' + #34'q');
+        SetKeyboardState(CleanKeyboard);
+        Frame.Perform(WM_KEYDOWN, VK_NUMPAD5, 0);
+        Frame.Perform(WM_KEYDOWN, Ord('A'), 0);
+        Frame.Perform(WM_CHAR, Ord('A'), 0);
+        Expected := Expected + #27 + 'OuA';
+        Frame.Perform(WM_KEYDOWN, VK_DIVIDE, $01000000);
+        Frame.Perform(WM_CHAR, Ord('/'), 0);
+        Frame.Perform(WM_KEYDOWN, VK_MULTIPLY, 0);
+        Frame.Perform(WM_CHAR, Ord('*'), 0);
+        Frame.Perform(WM_KEYDOWN, VK_SUBTRACT, 0);
+        Frame.Perform(WM_CHAR, Ord('-'), 0);
+        Frame.Perform(WM_KEYDOWN, VK_ADD, 0);
+        Frame.Perform(WM_CHAR, Ord('+'), 0);
+        Frame.Perform(WM_KEYDOWN, VK_DECIMAL, 0);
+        Frame.Perform(WM_CHAR, Ord(FormatSettings.DecimalSeparator), 0);
+        Expected := Expected + #27 + 'Oo' + #27 + 'Oj' + #27 + 'Om' + #27 + 'Ok' + #27 + 'On';
+        Frame.Perform(WM_KEYDOWN, VK_NUMPAD1, 0);
+        Frame.Perform(WM_CHAR, Ord('1'), 0);
+        Frame.Perform(WM_KEYDOWN, VK_RETURN, $01000000);
+        Frame.Perform(WM_CHAR, 13, 0);
+        Frame.Perform(WM_KEYDOWN, VK_LEFT, $01000000);
+        Frame.Perform(WM_KEYDOWN, VK_LEFT, 0);
+        Expected := Expected + #27'Oq'#27'OM'#27'[D'#27'Ot';
+        Session.Buffer.FeedText(#27'>' + #27'[?66s' + #27'[?66h' + #27'[?66r');
+        Frame.Perform(WM_KEYDOWN, VK_NUMPAD2, 0);
+        Frame.Perform(WM_CHAR, Ord('2'), 0);
+        Expected := Expected + '2';
+        SetKeyboardState(CleanKeyboard);
+        Frame.Perform(WM_KEYDOWN, VK_DIVIDE, $01000000);
+        Frame.Perform(WM_CHAR, Ord('/'), 0);
+        Frame.Perform(WM_KEYDOWN, VK_MULTIPLY, 0);
+        Frame.Perform(WM_CHAR, Ord('*'), 0);
+        Frame.Perform(WM_KEYDOWN, VK_SUBTRACT, 0);
+        Frame.Perform(WM_CHAR, Ord('-'), 0);
+        Frame.Perform(WM_KEYDOWN, VK_ADD, 0);
+        Frame.Perform(WM_CHAR, Ord('+'), 0);
+        Frame.Perform(WM_KEYDOWN, VK_DECIMAL, 0);
+        Frame.Perform(WM_CHAR, Ord(FormatSettings.DecimalSeparator), 0);
+        Frame.Perform(WM_KEYDOWN, VK_RETURN, $01000000);
+        Frame.Perform(WM_CHAR, 13, 0);
+        Expected := Expected + '/*-+' + FormatSettings.DecimalSeparator + #13;
 
- Procedure TTerminalTests.BatchedAsciiPreservesCellPixels;
-  Var
-   Settings      : TGuakeSettings;
-   Main          : TfrmMain;
-   Frame         : TfraTerminal;
-   Actual        : TBitmap;
-   Reference     : TBitmap;
-   Text          : TArray<String>;
-   Palette       : TArray<String>;
-   CellWidth     : Integer;
-   CellHeight    : Integer;
-   Row           : Integer;
-   Column        : Integer;
-   x             : Integer;
-   y             : Integer;
-   Bounds        : TRect;
-   ActualPixel   : PCardinal;
-   ExpectedPixel : PCardinal;
-  Begin
-   Settings  := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Actual    := TBitmap.Create;
-   Reference := TBitmap.Create;
-   Try
-    Settings.General.DefaultShell         := 'cmd';
-    Settings.General.UseTrayicon          := False;
-    Settings.General.UsePopup             := False;
-    Settings.Keybindings.Global.ShowHide  := 'disabled';
-    Settings.Keybindings.Global.ShowFocus := 'disabled';
-    Main                                  := TfrmMain.Create(Nil);
-    Try
-     Main.Bind(Settings);
-     Main.StartTerminal;
-     Main.HandleNeeded;
-     Main.SetBounds( -30000, 0, 500, 160);
-     Frame := Main.ActiveTerminalFrame;
-     Text  := TArray<String>.Create('ASCII Wi01 % [abc] /foo', 'More monospace text 1234567890');
-     Frame.Session.Buffer.FeedText(#27'[2J' + #27'[H' + Text[0] + #13#10 + Text[1] + #27'[?25l');
-     Frame.RefreshTick(Nil);
-     Frame.RenderAlpha(Actual, 255);
-     Reference.PixelFormat := pf32bit;
-     Reference.SetSize(Actual.Width, Actual.Height);
-     Palette                      := Settings.Style.Font.Palette.Split([':']);
-     Reference.Canvas.Brush.Color := ParseTerminalColor(Palette[17]);
-     Reference.Canvas.FillRect(Rect(0, 0, Reference.Width, Reference.Height));
-     Reference.Canvas.Font.Assign(Frame.Font);
-     CellWidth  := Reference.Canvas.TextWidth('M');
-     CellHeight := Reference.Canvas.TextHeight('Mg');
-     SetBkMode(Reference.Canvas.Handle, TRANSPARENT);
-     SetTextColor(Reference.Canvas.Handle, ParseTerminalColor(Palette[16]));
-     For Row     := 0 To High(Text) Do
-      For Column := 1 To Length(Text[Row]) Do
-       Begin
-        Bounds := Rect(4 + (Column - 1) * CellWidth, 4 + Row * CellHeight,
-        4 + Column * CellWidth, 4 + (Row + 1) * CellHeight);
-        ExtTextOut(Reference.Canvas.Handle, Bounds.Left, Bounds.Top, ETO_CLIPPED, @Bounds,
-        @Text[Row][Column], 1, Nil);
-       End;
-     For y := 0 To Reference.Height - 1 Do
-      Begin
-       ActualPixel   := Actual.ScanLine[y];
-       ExpectedPixel := Reference.ScanLine[y];
-       For x         := 0 To Reference.Width - 1 Do
-        Begin
-         If (ActualPixel^ And $FFFFFF) <> (ExpectedPixel^ And $FFFFFF) Then
-          Assert.Fail(Format('ASCII grid pixel differs at %d,%d', [x, y]));
-         Inc(ActualPixel);
-         Inc(ExpectedPixel);
+        Main.SetBounds( -30000, 0, 700, 200);
+        Main.Show;
+        CellWidth := Frame.surface.Canvas.TextWidth('M');
+        Session.Buffer.FeedText(#27'[?1002h'#27'[?1006h');
+        Frame.SurfaceMouseMove(Nil, [], 5, 5); // Mode 1002 must suppress hover.
+        Frame.SurfaceMouseDown(Nil, mbRight, [], 5, 5);
+        Frame.SurfaceMouseMove(Nil, [ssRight], 6, 5); // Still in the clicked cell.
+        Frame.SurfaceMouseMove(Nil, [ssRight], 5 + CellWidth, 5);
+        For i := 1 To 200 Do
+          Frame.SurfaceMouseMove(Nil, [ssRight], 6 + CellWidth, 5);
+        Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + CellWidth, 5);
+        Expected := Expected + #27'[<2;1;1M'#27'[<34;2;1M'#27'[<2;2;1m';
+        Frame.SurfaceMouseDown(Nil, mbMiddle, [], 5, 5);
+        Frame.SurfaceMouseMove(Nil, [ssMiddle, ssAlt, ssCtrl], 5 + CellWidth, 5);
+        Frame.SurfaceMouseUp(Nil, mbMiddle, [ssAlt, ssCtrl], 5 + CellWidth, 5);
+        Expected := Expected + #27'[<1;1;1M'#27'[<57;2;1M'#27'[<25;2;1m';
+        Frame.SurfaceMouseMove(Nil, [ssLeft], 5, 5);
+        Expected := Expected + #27'[<32;1;1M';
+        Session.Buffer.FeedText(#27'[?1003h');
+        Frame.SurfaceMouseMove(Nil, [], 5, 5);
+        Frame.SurfaceMouseMove(Nil, [ssCtrl], 5, 5); // Modifier-only changes are not cell motion.
+        Frame.SurfaceMouseMove(Nil, [ssCtrl], 5 + CellWidth, 5);
+        Frame.SurfaceMouseMove(Nil, [ssShift, ssRight], 5 + CellWidth, 5);
+        Frame.SurfaceMouseMove(Nil, [], 5 + CellWidth, 5); // Returning from local Shift resets the cache.
+        Expected := Expected + #27'[<35;1;1M'#27'[<51;2;1M'#27'[<35;2;1M';
+        Session.Buffer.FeedText(#27'[?1003l'#27'[?1003h');
+        Frame.SurfaceMouseMove(Nil, [], 5 + CellWidth, 5);
+        Expected := Expected + #27'[<35;2;1M';
+        Session.Buffer.FeedText('noise'#27'[6 q');
+        Frame.SurfaceMouseMove(Nil, [], 5 + CellWidth, 5); // Ordinary output does not reset protocol state.
+        Session.Buffer.Resize(Session.Buffer.Columns + 1, Session.Buffer.Rows);
+        Frame.SurfaceMouseMove(Nil, [], 5 + CellWidth, 5);
+        Expected := Expected + #27'[<35;2;1M';
+        Frame.Bind(Session, Settings);
+        Frame.refreshTimer.Enabled := False;
+        Frame.SurfaceMouseMove(Nil, [], 5 + CellWidth, 5);
+        Expected := Expected + #27'[<35;2;1M';
+        Session.Buffer.FeedText(#27'[?1000h' + #27'[?1003l');
+        Assert.AreEqual(1002, Session.Buffer.MouseMode, 'Disabling any-motion falls back to the enabled button-motion mode');
+        Frame.SurfaceMouseMove(Nil, [], 5, 5);
+        Frame.SurfaceMouseMove(Nil, [ssRight], 5, 5);
+        Expected := Expected + #27'[<34;1;1M';
+        Session.Buffer.FeedText(#27'[?1002l');
+        Assert.AreEqual(1000, Session.Buffer.MouseMode);
+        Frame.SurfaceMouseMove(Nil, [ssRight], 5, 5); // Mode 1000 never reports motion.
+        Session.SendText('^');
+        Deadline := GetTickCount64 + 5000;
+        Repeat
+          Session.Poll;
+          If Pos('LEGACY_READY', Session.Buffer.Text) > 0 Then
+            Break;
+          Sleep(10);
+        Until GetTickCount64 >= Deadline;
+        Assert.IsTrue(Pos('LEGACY_READY', Session.Buffer.Text) > 0, 'Child must select legacy mouse encoding');
+        Assert.IsFalse(Session.Buffer.SGRMouse);
+        Frame.SurfaceMouseDown(Nil, mbRight, [ssAlt, ssCtrl], 5, 5);
+        Frame.SurfaceMouseUp(Nil, mbRight, [ssAlt, ssCtrl], 5, 5);
+        Expected := Expected + #27'[M' + Char(58) + '!!' + #27'[M' + Char(59) + '!!';
+        Frame.SetBounds(0, 0, CellWidth * 2020 + 32, 200);
+        Assert.IsTrue(Session.Buffer.Columns > 2015);
+        Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 94 * CellWidth, 5);
+        Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 94 * CellWidth, 5);
+        Expected := Expected + #27'[M' + Char(34) + Char(127) + '!' + #27'[M' + Char(35) + Char(127) + '!';
+        Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 95 * CellWidth, 5); // Reject ambiguous non-ASCII classic coordinates.
+        Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
+        Session.SendText(#1);
+        Deadline := GetTickCount64 + 5000;
+        Repeat
+          Session.Poll;
+          If Pos('UTF8_READY', Session.Buffer.Text) > 0 Then
+            Break;
+          Sleep(10);
+        Until GetTickCount64 >= Deadline;
+        Assert.IsTrue(Pos('UTF8_READY', Session.Buffer.Text) > 0);
+        Assert.IsTrue(Session.Buffer.Utf8Mouse);
+        Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
+        Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
+        // C1 coordinate characters are lost by ConPTY; suppress the entire report.
+        Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 127 * CellWidth, 5);
+        Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 127 * CellWidth, 5);
+        Expected := Expected + #27'[M' + Char(34) + Char(160) + '!' + #27'[M' + Char(35) + Char(160) + '!';
+        Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 2014 * CellWidth, 5);
+        Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 2014 * CellWidth, 5);
+        Expected := Expected + #27'[M' + Char(34) + Char(2047) + '!' + #27'[M' + Char(35) + Char(2047) + '!';
+        Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 2015 * CellWidth, 5); // Outside the xterm 1005 range.
+        Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 2015 * CellWidth, 5);
+        Session.SendText(#3);
+        Deadline := GetTickCount64 + 5000;
+        Repeat
+          Session.Poll;
+          If Pos('SGR_READY', Session.Buffer.Text) > 0 Then
+            Break;
+          Sleep(10);
+        Until GetTickCount64 >= Deadline;
+        Assert.IsTrue(Pos('SGR_READY', Session.Buffer.Text) > 0);
+        Assert.IsTrue(Session.Buffer.SGRMouse);
+        Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
+        Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
+        Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 2015 * CellWidth, 5);
+        Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 2015 * CellWidth, 5);
+        Expected := Expected + #27'[<2;96;1M'#27'[<2;96;1m'#27'[<2;2016;1M'#27'[<2;2016;1m';
+        Session.SendText(#2);
+        Deadline := GetTickCount64 + 5000;
+        Repeat
+          Session.Poll;
+          If Pos('ASCII_READY', Session.Buffer.Text) > 0 Then
+            Break;
+          Sleep(10);
+        Until GetTickCount64 >= Deadline;
+        Assert.IsTrue(Pos('ASCII_READY', Session.Buffer.Text) > 0);
+        Assert.IsFalse(Session.Buffer.Utf8Mouse);
+        Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
+        Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 95 * CellWidth, 5);
+        Session.Buffer.FeedText(#27 + '[?1015h');
+        Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 2015 * CellWidth, 5);
+        Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 2015 * CellWidth, 5);
+        Expected := Expected + #27 + '[34;2016;1M' + #27 + '[35;2016;1M';
+        Frame.SurfaceMouseDown(Nil, mbRight, [ssAlt, ssCtrl], 5, 5);
+        Frame.SurfaceMouseUp(Nil, mbRight, [ssAlt, ssCtrl], 5, 5);
+        Expected := Expected + #27 + '[58;1;1M' + #27 + '[59;1;1M';
+        Session.Buffer.FeedText(#27 + '[?1006h');
+        Frame.SurfaceMouseDown(Nil, mbRight, [], 5 + 2015 * CellWidth, 5);
+        Frame.SurfaceMouseUp(Nil, mbRight, [], 5 + 2015 * CellWidth, 5);
+        Expected := Expected + #27 + '[<2;2016;1M' + #27 + '[<2;2016;1m';
+        Session.Buffer.FeedText(#27 + '[?1006l');
+        Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
+        Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
+        Expected := Expected + #27 + '[32;1;1M' + #27 + '[35;1;1M';
+        Session.Buffer.FeedText(#27 + '[?1015l');
+        Frame.SetBounds(0, 0, 720, 360);
+        Session.Buffer.FeedText(#27 + '[?1000l' + #27 + '[?1049h');
+        For i      := 1 To Max(1, (Session.Buffer.Rows + 9) Div 10) Do
+          Expected := Expected + #27 + '[A';
+        TTerminalFrameAccess(Frame).DoMouseWheel([], 120, Frame.surface.ClientToScreen(Point(5, 5)));
+        // Three partial messages form one notch; opposite partial deltas cancel.
+        TTerminalFrameAccess(Frame).DoMouseWheel([], 30, Frame.surface.ClientToScreen(Point(5, 5)));
+        TTerminalFrameAccess(Frame).DoMouseWheel([], -30, Frame.surface.ClientToScreen(Point(5, 5)));
+        TTerminalFrameAccess(Frame).DoMouseWheel([], 30, Frame.surface.ClientToScreen(Point(5, 5)));
+        TTerminalFrameAccess(Frame).DoMouseWheel([], 30, Frame.surface.ClientToScreen(Point(5, 5)));
+        TTerminalFrameAccess(Frame).DoMouseWheel([], 60, Frame.surface.ClientToScreen(Point(5, 5)));
+        TTerminalFrameAccess(Frame).DoMouseWheel([], 240, Frame.surface.ClientToScreen(Point(5, 5)));
+        For i      := 1 To 3 * Max(1, (Session.Buffer.Rows + 9) Div 10) Do
+          Expected := Expected + #27 + '[A';
+        // An unfinished normal-cursor notch must not leak into application mode.
+        TTerminalFrameAccess(Frame).DoMouseWheel([], 60, Frame.surface.ClientToScreen(Point(5, 5)));
+        Session.SendText(#5);
+        Deadline := GetTickCount64 + 5000;
+        Repeat
+          Session.Poll;
+          If Pos('CURSOR_APP_READY', Session.Buffer.Text) > 0 Then
+            Break;
+          Sleep(10);
+        Until GetTickCount64 >= Deadline;
+        Assert.IsTrue(Pos('CURSOR_APP_READY', Session.Buffer.Text) > 0);
+        Assert.IsTrue(Session.Buffer.ApplicationCursor);
+        For i      := 1 To Max(1, (Session.Buffer.Rows + 9) Div 10) Do
+          Expected := Expected + #27 + 'OB';
+        TTerminalFrameAccess(Frame).DoMouseWheel([], -120, Frame.surface.ClientToScreen(Point(5, 5)));
+        For i      := 1 To Max(1, (Session.Buffer.Rows + 9) Div 10) Do
+          Expected := Expected + #27 + '[1;7A';
+        TTerminalFrameAccess(Frame).DoMouseWheel([ssAlt, ssCtrl], 120, Frame.surface.ClientToScreen(Point(5, 5)));
+        Session.Buffer.FeedText(#27 + '[?1007l');
+        TTerminalFrameAccess(Frame).DoMouseWheel([], 120, Frame.surface.ClientToScreen(Point(5, 5)));
+        Session.Buffer.FeedText(#27 + '[?1007;1000;1006h');
+        TTerminalFrameAccess(Frame).DoMouseWheel([], 120, Frame.surface.ClientToScreen(Point(5, 5)));
+        Expected := Expected + #27 + '[<64;1;1M';
+        TTerminalFrameAccess(Frame).DoMouseWheel([], -30, Frame.surface.ClientToScreen(Point(5, 5)));
+        TTerminalFrameAccess(Frame).DoMouseWheel([], -90, Frame.surface.ClientToScreen(Point(5, 5)));
+        TTerminalFrameAccess(Frame).DoMouseWheel([], -240, Frame.surface.ClientToScreen(Point(5, 5)));
+        Expected := Expected + #27 + '[<65;1;1M' + #27 + '[<65;1;1M' + #27 + '[<65;1;1M';
+        TTerminalFrameAccess(Frame).DoMouseWheel([], 60, Frame.surface.ClientToScreen(Point(5, 5)));
+        Session.Buffer.FeedText(#27 + '[?1000;1006l');
+        TTerminalFrameAccess(Frame).DoMouseWheel([ssShift], 120, Frame.surface.ClientToScreen(Point(5, 5)));
+        TTerminalFrameAccess(Frame).DoMouseWheel([], 0, Frame.surface.ClientToScreen(Point(5, 5)));
+        Session.SendText(#6);
+        Deadline := GetTickCount64 + 5000;
+        Repeat
+          Session.Poll;
+          If Pos('CURSOR_NORMAL_READY', Session.Buffer.Text) > 0 Then
+            Break;
+          Sleep(10);
+        Until GetTickCount64 >= Deadline;
+        Assert.IsTrue(Pos('CURSOR_NORMAL_READY', Session.Buffer.Text) > 0);
+        Assert.IsFalse(Session.Buffer.ApplicationCursor);
+        Session.Buffer.FeedText(#27 + '[?1049l' + #27 + '[?1000h');
+        Session.Buffer.FeedText(#27 + '[?1003;1016h');
+        Frame.SurfaceMouseDown(Nil, mbRight, [], 4, 4);
+        Frame.SurfaceMouseMove(Nil, [ssRight], 5, 4);
+        For i := 1 To 20 Do
+          Frame.SurfaceMouseMove(Nil, [ssRight], 5, 4);
+        Frame.SurfaceMouseMove(Nil, [ssRight], 6, 4);
+        Frame.SurfaceMouseUp(Nil, mbRight, [], 6, 4);
+        Expected := Expected + #27 + '[<2;1;1M' + #27 + '[<34;2;1M' + #27 + '[<34;3;1M' + #27 + '[<2;3;1m';
+        Session.Buffer.FeedText(#27 + '[?1006h');
+        Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
+        Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
+        Expected := Expected + #27 + '[<0;2;2M' + #27 + '[<0;2;2m';
+        Session.Buffer.FeedText(#27 + '[?1016l');
+        Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
+        Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
+        Expected := Expected + #27 + '[<0;1;1M' + #27 + '[<0;1;1m';
+        Session.Buffer.FeedText(#27 + '[?1003;1006l');
+
+        Session.Buffer.FeedText(#27'[?9h' + #27'[?1000l');
+        Assert.AreEqual(9, Session.Buffer.MouseMode);
+        Frame.SurfaceMouseDown(Nil, mbRight, [ssAlt, ssCtrl], 5, 5);
+        Frame.SurfaceMouseMove(Nil, [ssRight], 5 + CellWidth, 5);
+        Frame.SurfaceMouseUp(Nil, mbRight, [ssAlt, ssCtrl], 5 + CellWidth, 5);
+        Expected := Expected + #27 + '[M' + Char(34) + '!!';
+        Session.Buffer.FeedText(#27 + '[?1006h');
+        Frame.SurfaceMouseDown(Nil, mbLeft, [ssAlt, ssCtrl], 5, 5);
+        Frame.SurfaceMouseUp(Nil, mbLeft, [ssAlt, ssCtrl], 5, 5);
+        Expected := Expected + #27 + '[<0;1;1M';
+        Session.Buffer.FeedText(#27 + '[?9;1006l');
+        Session.Buffer.Reset;
+        Session.Buffer.FeedText('history' + #13#10);
+        For i := 1 To Session.Buffer.Rows Do
+          Session.Buffer.FeedText('line' + #13#10);
+        Session.Buffer.FeedText(#27 + '[?1003;1006h');
+        Frame.RefreshTick(Nil);
+        HistoryBase := Session.Buffer.TotalLines - Session.Buffer.Rows;
+        Assert.IsTrue(HistoryBase > 0);
+        Frame.scroll.Position := HistoryBase - 1;
+        CellHeight            := Frame.surface.Canvas.TextHeight('Mg');
+        Frame.SurfaceMouseDown(Nil, mbRight, [], 5, 5);
+        Frame.SurfaceMouseUp(Nil, mbRight, [], 5, 5);
+        Frame.SurfaceMouseMove(Nil, [], 5, 5);
+        Frame.SurfaceMouseDown(Nil, mbRight, [], 5, 5 + CellHeight);
+        Frame.SurfaceMouseUp(Nil, mbRight, [], 5, 5 + CellHeight);
+        Expected := Expected + #27 + '[<2;1;1M' + #27 + '[<2;1;1m';
+        Frame.SurfaceMouseMove(Nil, [], 5, 5);
+        Frame.SurfaceMouseMove(Nil, [], 5, 5 + CellHeight);
+        Expected := Expected + #27 + '[<35;1;1M';
+        Session.Buffer.FeedText(#27 + '[?1016h');
+        Frame.SurfaceMouseDown(Nil, mbRight, [], 4, 4 + CellHeight);
+        Frame.SurfaceMouseUp(Nil, mbRight, [], 4, 4 + CellHeight);
+        Expected := Expected + #27 + '[<2;1;1M' + #27 + '[<2;1;1m';
+        Session.Buffer.FeedText(#27 + '[?1016l');
+        Session.Buffer.FeedText(#27 + '[?1003;1006l');
+        Frame.scroll.Position         := HistoryBase;
+        Settings.General.WordChars    := '-A-Za-z0-9_';
+        Settings.General.CopyOnSelect := False;
+        Session.Buffer.FeedText(#27'[2J'#27'[HPRIMARY_WORD rest');
+        Frame.RefreshTick(Nil);
+        Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
+        Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
+        Assert.AreEqual('', Frame.SelectedText);
+        Frame.SurfaceDblClick(Nil);
+        Frame.SurfaceMouseDown(Nil, mbLeft, [ssDouble], 5, 5);
+        Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
+        Assert.AreEqual('PRIMARY_WORD', Frame.SelectedText, 'Second mouse down must preserve double-click selection');
+        Frame.SurfaceMouseDown(Nil, mbMiddle, [], 5, 5);
+        Frame.SurfaceMouseUp(Nil, mbMiddle, [], 5, 5);
+        Expected := Expected + 'PRIMARY_WORD';
+        Assert.AreEqual('', Frame.SelectedText);
+        Session.Buffer.FeedText(#27'[?2004h' + #27'[?2004s' + #27'[?2004l' + #27'[?2004r');
+        Frame.SurfaceMouseDown(Nil, mbMiddle, [], 5, 5);
+        Frame.SurfaceMouseUp(Nil, mbMiddle, [], 5, 5);
+        Expected := Expected + #27'[200~PRIMARY_WORD'#27'[201~';
+        Peer     := TfraTerminal.Create(Nil);
+        Try
+          Peer.Parent := Main.tabHost;
+          Peer.Bind(Session, Settings);
+          Peer.HandleNeeded;
+          Peer.refreshTimer.Enabled := False;
+          Peer.SurfaceMouseDown(Nil, mbMiddle, [], 5, 5);
+          Peer.SurfaceMouseUp(Nil, mbMiddle, [], 5, 5);
+          Expected := Expected + #27'[200~PRIMARY_WORD'#27'[201~';
+        Finally
+          Peer.Free;
         End;
+        Session.Buffer.FeedText(#27'[?66;1004;2004h' + #27'[20h' + #27'[!p');
+        Frame.Perform(WM_SETFOCUS, 0, 0); // Soft reset disabled focus reporting.
+        SetKeyboardState(CleanKeyboard);
+        Frame.Perform(WM_KEYDOWN, VK_NUMPAD3, 0);
+        Frame.Perform(WM_CHAR, Ord('3'), 0);
+        SetKeyboardState(CleanKeyboard);
+        Key := #13;
+        TTerminalFrameAccess(Frame).KeyPress(Key);
+        Frame.SurfaceMouseDown(Nil, mbMiddle, [], 5, 5);
+        Frame.SurfaceMouseUp(Nil, mbMiddle, [], 5, 5);
+        Expected := Expected + '3' + #13 + 'PRIMARY_WORD';
+        Session.SendText(#4);
+        ExpectedCodes := '';
+        For i         := 1 To Length(Expected) Do
+          Begin
+            If ExpectedCodes <> '' Then
+              ExpectedCodes := ExpectedCodes + ',';
+            ExpectedCodes   := ExpectedCodes + IntToStr(Ord(Expected[i]));
+          End;
+        Deadline := GetTickCount64 + 10000;
+        Repeat
+          Session.Poll;
+          If TFile.Exists(OutputName) Then
+            Break;
+          Sleep(10);
+        Until(GetTickCount64 >= Deadline) Or Session.Exited;
+        Assert.IsTrue(TFile.Exists(OutputName), 'Input probe must finish: ' + Session.Buffer.Text);
+        Assert.AreEqual(ExpectedCodes, TFile.ReadAllText(OutputName, TEncoding.UTF8));
+      Finally
+        SetKeyboardState(SavedKeyboard);
+        Frame.Free;
+        Main.Free;
+        Session.Free;
+        Settings.Free;
+        If TFile.Exists(ScriptName) Then
+          TFile.Delete(ScriptName);
+        If TFile.Exists(OutputName) Then
+          TFile.Delete(OutputName);
+        If TFile.Exists(OutputName + '.tmp') Then
+          TFile.Delete(OutputName + '.tmp');
       End;
+    End;
 
-     Frame.Session.Buffer.FeedText(#27'[1;1H' + #27'[2K');
-     Frame.RefreshTick(Nil);
-     Frame.RenderAlpha(Actual, 255);
-     Reference.Canvas.Brush.Color := ParseTerminalColor(Palette[17]);
-     Reference.Canvas.FillRect(Rect(0, 4, Reference.Width, 4 + CellHeight));
-     For y := 0 To Reference.Height - 1 Do
-      Begin
-       ActualPixel   := Actual.ScanLine[y];
-       ExpectedPixel := Reference.ScanLine[y];
-       For x         := 0 To Reference.Width - 1 Do
-        Begin
-         If (ActualPixel^ And $FFFFFF) <> (ExpectedPixel^ And $FFFFFF) Then
-          Assert.Fail(Format('Incremental erase changed another row or left stale pixels at %d,%d', [x, y]));
-         Inc(ActualPixel);
-         Inc(ExpectedPixel);
+  Procedure TTerminalTests.BlinkSGRStateResetRestoreAndReflow;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(20, 5);
+      Try
+        Buffer.FeedText(#27'[5mA'#27'[25mB'#27'[6mC'#27'[0mD');
+        Assert.IsTrue(Buffer.Cell[0, 0].Blink);
+        Assert.IsFalse(Buffer.Cell[1, 0].Blink);
+        Assert.IsTrue(Buffer.Cell[2, 0].Blink);
+        Assert.IsFalse(Buffer.Cell[3, 0].Blink);
+        Buffer.FeedText(#27'[5m'#27'7'#27'[25m'#27'8E');
+        Assert.IsTrue(Buffer.Cell[4, 0].Blink);
+        Buffer.Resize(10, 5);
+        Assert.IsTrue(Buffer.Cell[0, 0].Blink);
+        Assert.IsTrue(Buffer.Cell[4, 0].Blink);
+        Assert.AreEqual('ABCDE', Buffer.LineText(0));
+        Buffer.FeedText(#27'cF');
+        Assert.IsFalse(Buffer.Cell[0, 0].Blink);
+      Finally
+        Buffer.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.BlinkOnlyRasterizesAffectedVisibleRows;
+    Var
+      Settings     : TGuakeSettings;
+      Main         : TfrmMain;
+      Frame        : TfraTerminal;
+      Output       : TBitmap;
+      Visible      : TBitmap;
+      Width        : Integer;
+      Height       : Integer;
+      x            : Integer;
+      y            : Integer;
+      OpaquePixels : Integer;
+      Count        : UInt64;
+      Rows         : UInt64;
+    Begin
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Output   := TBitmap.Create;
+      Visible  := TBitmap.Create;
+      Try
+        Settings.General.DefaultShell         := 'cmd';
+        Settings.General.UseTrayicon          := False;
+        Settings.General.UsePopup             := False;
+        Settings.Keybindings.Global.ShowHide  := 'disabled';
+        Settings.Keybindings.Global.ShowFocus := 'disabled';
+        Main                                  := TfrmMain.Create(Nil);
+        Try
+          Main.Bind(Settings);
+          Main.StartTerminal;
+          Main.HandleNeeded;
+          Main.SetBounds( -30000, 0, 500, 200);
+          Main.Hide;
+          Frame := Main.ActiveTerminalFrame;
+          Frame.Bind(Frame.Session, Settings);
+          Frame.refreshTimer.Enabled := False;
+          Frame.Session.Buffer.Reset;
+          Frame.Session.Buffer.FeedText(#27'[?25l'#27'[38;2;255;255;255;5;4:2;58;2;255;0;0mM'#27'[25;24;59mS'#13#10'stable');
+          Frame.RenderAlpha(Output, 96);
+          Visible.Assign(Output);
+          Output.Canvas.Font.Assign(Frame.Font);
+          Width  := Output.Canvas.TextWidth('M');
+          Height := Output.Canvas.TextHeight('Mg');
+          Count  := Frame.AlphaRenderCount;
+          Rows   := Frame.RasterRowCount;
+          Assert.IsFalse(Frame.AdvanceTextBlink(499));
+          Frame.RenderAlpha(Output, 96);
+          Assert.AreEqual(Count, Frame.AlphaRenderCount);
+          Assert.IsTrue(Frame.AdvanceTextBlink(1));
+          Frame.RenderAlpha(Output, 96);
+          Assert.AreEqual(Rows + UInt64(1), Frame.RasterRowCount);
+          For y   := 4 To 4 + Height - 1 Do
+            For x := 4 To 4 + Width - 1 Do
+              Assert.AreEqual(96, Integer(PixelAt(Output, x, y).rgbReserved));
+          For y   := 4 To 4 + 2 * Height - 1 Do
+            For x := 4 + Width To 4 + 6 * Width - 1 Do
+              Assert.AreEqual(Cardinal(PixelAt(Visible, x, y).rgbRed), Cardinal(PixelAt(Output, x, y).rgbRed));
+          Assert.AreEqual(Visible.Width, Output.Width);
+          Assert.IsTrue(Frame.AdvanceTextBlink(500));
+          Frame.RenderAlpha(Output, 96);
+          OpaquePixels := 0;
+          For y        := 4 To 4 + Height - 1 Do
+            For x      := 4 To 4 + Width - 1 Do
+              If PixelAt(Output, x, y).rgbReserved = 255 Then
+                Inc(OpaquePixels);
+          Assert.IsTrue(OpaquePixels > 0);
+          Assert.IsTrue(Pos('MS', Frame.Session.Buffer.Text) > 0);
+          Frame.Session.Buffer.FeedText(#27'[H'#27'[5;48;2;12;34;56mM');
+          Frame.RenderAlpha(Output, 96);
+          Assert.IsTrue(Frame.AdvanceTextBlink(500));
+          Frame.RenderAlpha(Output, 96);
+          For y   := 4 To 4 + Height - 1 Do
+            For x := 4 To 4 + Width - 1 Do
+              Begin
+                Assert.AreEqual(255, Integer(PixelAt(Output, x, y).rgbReserved));
+                Assert.AreEqual(12, Integer(PixelAt(Output, x, y).rgbRed));
+                Assert.AreEqual(34, Integer(PixelAt(Output, x, y).rgbGreen));
+                Assert.AreEqual(56, Integer(PixelAt(Output, x, y).rgbBlue));
+              End;
+        Finally
+          Main.Free;
         End;
+      Finally
+        Visible.Free;
+        Output.Free;
+        Settings.Free;
       End;
-     Assert.AreEqual(Reference.Width, Actual.Width);
-    Finally
-     Main.Free;
     End;
-   Finally
-    Reference.Free;
-    Actual.Free;
-    Settings.Free;
-   End;
-  End;
 
- Procedure TTerminalTests.TerminalCompositionLatency;
-  Var
-   Settings : TGuakeSettings;
-   Main     : TfrmMain;
-   Frame    : TfraTerminal;
-   Bitmap   : TBitmap;
-   Watch    : TStopwatch;
-   i        : Integer;
-   Sparse   : Double;
-   Dense    : Double;
-   Line     : String;
-  Begin
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Bitmap   := TBitmap.Create;
-   Try
-    Settings.General.DefaultShell          := 'cmd';
-    Settings.General.UseTrayicon           := False;
-    Settings.General.UsePopup              := False;
-    Settings.General.DropDownAnimation     := False;
-    Settings.Keybindings.Global.ShowHide   := 'disabled';
-    Settings.Keybindings.Global.ShowFocus  := 'disabled';
-    Settings.Style.Background.Transparency := 85;
-    Main                                   := TfrmMain.Create(Nil);
-    Try
-     Main.Bind(Settings);
-     Main.StartTerminal;
-     Main.HandleNeeded;
-     Main.SetBounds( -30000, 0, 1920, 1080);
-     Frame := Main.ActiveTerminalFrame;
-     Frame.Session.Buffer.FeedText(#27'[2J' + #27'[H' + 'prompt> ');
-     Frame.RefreshTick(Nil);
-     Main.RenderWindow(Bitmap);
-     Watch := TStopwatch.StartNew;
-     For i := 1 To 5 Do
-      Begin
-       Frame.Session.Buffer.FeedText('x');
-       Frame.RefreshTick(Nil);
-       Main.RenderWindow(Bitmap);
-      End;
-     Sparse := Watch.Elapsed.TotalMilliseconds / 5;
-     Line   := StringOfChar('A', Frame.Session.Buffer.Columns - 1) + #13#10;
-     For i  := 1 To Frame.Session.Buffer.Rows - 2 Do
-      Frame.Session.Buffer.FeedText(Line);
-     Frame.RefreshTick(Nil);
-     Main.RenderWindow(Bitmap);
-     Watch := TStopwatch.StartNew;
-     For i := 1 To 5 Do
-      Begin
-       Frame.Session.Buffer.FeedText('x');
-       Frame.RefreshTick(Nil);
-       Main.RenderWindow(Bitmap);
-      End;
-     Dense := Watch.Elapsed.TotalMilliseconds / 5;
-     TFile.WriteAllText(TPath.Combine(ExtractFilePath(ParamStr(0)), 'composition-latency.txt'),
-     Format('1920x1080; sparse=%.3f ms; dense=%.3f ms', [Sparse, Dense], TFormatSettings.Invariant));
-     Assert.AreEqual(1920, Bitmap.Width);
-     Assert.AreEqual(1080, Bitmap.Height);
-    Finally
-     Main.Free;
-    End;
-   Finally
-    Bitmap.Free;
-    Settings.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.TabColorsScopesAndSessionRestore;
-  Var
-   Settings   : TGuakeSettings;
-   Controller : TTerminalController;
-   Restored   : TTerminalController;
-   First      : TTerminalSession;
-   State      : String;
-   Before     : String;
-   Options    : TGuakeLaunchOptions;
-  Begin
-   Assert.AreEqual(Integer(RGB($AA, $BB, $CC)), ParseTerminalColor('abc'));
-   Assert.AreEqual(Integer(RGB(255, 0, 128)), ParseTerminalColor('#ffff00008080'));
-   Assert.WillRaise(Procedure Begin ParseTerminalColor('not-a-color'); End, EArgumentException);
-   Options := ParseGuakeArguments(TArray<String>.Create('--bgcolor', '123456', '--fgcolor-current', 'abc', '--reset-colors-current'));
-   Assert.AreEqual(3, Integer(Length(Options.Commands)));
-   Assert.IsTrue(Pos('bgcolor', Options.Commands[0]) > 0);
-   Assert.IsTrue(Pos('current', Options.Commands[1]) > 0);
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Try
-    Settings.General.DefaultShell := 'cmd';
-    Controller                    := TTerminalController.Create(Settings);
-    Restored                      := TTerminalController.Create(Settings);
-    Try
-     Controller.NewTab;
-     First := Controller.ActiveSession;
-     Controller.Split(True);
-     Controller.SetColor(True, clRed);
-     Assert.AreEqual(Integer(clRed), First.CustomForeground);
-     Assert.AreEqual(Integer(clRed), Controller.ActiveSession.CustomForeground);
-     Controller.SetColor(False, clBlue, tcsTerminal);
-     Assert.AreEqual( -1, First.CustomBackground);
-     Assert.AreEqual(Integer(clBlue), Controller.ActiveSession.CustomBackground);
-     Controller.NewTab;
-     Assert.AreEqual( -1, Controller.ActiveSession.CustomForeground);
-     Controller.SelectTab(0);
-     State := Controller.SessionState;
-     Restored.RestoreState(State);
-     Assert.AreEqual(2, Restored.Count);
-     Assert.AreEqual(Integer(clBlue), Restored.ActiveSession.CustomBackground);
-     Assert.AreEqual(Integer(clRed), Restored.ActiveTab.Root.First.Session.CustomForeground);
-     Restored.ResetColors(tcsTerminal);
-     Assert.AreEqual( -1, Restored.ActiveSession.CustomForeground);
-     Assert.AreEqual(Integer(clRed), Restored.ActiveTab.Root.First.Session.CustomForeground);
-     Restored.ResetColors(tcsTab);
-     Assert.AreEqual( -1, Restored.ActiveTab.Root.First.Session.CustomForeground);
-     Restored.SetColor(True, clGreen, tcsAll);
-     Restored.ResetColors;
-     Assert.AreEqual( -1, Restored.Tabs[1].Active.Session.CustomForeground);
-     Before := Restored.SessionState;
-     Assert.WillRaise(Procedure Begin Restored.RestoreState(StringReplace(Before,
-     '"custom-foreground":-1', '"custom-foreground":16777216', [rfReplaceAll])); End, EArgumentOutOfRangeException);
-     Assert.AreEqual(Before, Restored.SessionState, 'Invalid colors must not replace live sessions');
-    Finally
-     Restored.Free;
-     Controller.Free;
-    End;
-   Finally
-    Settings.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.TabColorsRenderAndDeferredClose;
-  Var
-   Settings : TGuakeSettings;
-   Main     : TfrmMain;
-   Output   : TBitmap;
-   Preview  : TPngImage;
-   Pixel    : TRGBQuad;
-   Bounds   : TRect;
-   FirstId  : String;
-   Origin   : TPoint;
-   x        : Integer;
-   y        : Integer;
-   Dark     : Integer;
-  Begin
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Output   := TBitmap.Create;
-   Try
-    Settings.General.DefaultShell         := 'cmd';
-    Settings.General.UseTrayicon          := False;
-    Settings.General.UsePopup             := False;
-    Settings.General.DropDownAnimation    := False;
-    Settings.General.TabCloseButtons      := True;
-    Settings.General.DisplayTabActivity   := True;
-    Settings.General.PromptOnCloseTab     := 0;
-    Settings.Keybindings.Global.ShowHide  := 'disabled';
-    Settings.Keybindings.Global.ShowFocus := 'disabled';
-    Main                                  := TfrmMain.Create(Nil);
-    Try
-     Main.Bind(Settings);
-     Main.StartTerminal;
-     Main.Show;
-     Main.SetBounds( -30000, 0, 1000, 300);
-     FirstId := Main.Controller.ActiveTab.Id;
-     Main.ExecuteIPCCommand('{"action":"bgcolor","color":"123456"}');
-     Main.ActiveTerminalFrame.RenderAlpha(Output, 255);
-     Pixel := PixelAt(Output, 1, 1);
-     Assert.AreEqual(18, Integer(Pixel.rgbRed));
-     Assert.AreEqual(52, Integer(Pixel.rgbGreen));
-     Assert.AreEqual(86, Integer(Pixel.rgbBlue));
-     Main.TabMenuPopup(Nil);
-     Assert.IsTrue(Main.miRestoreTabColors.Enabled);
-     Main.miRestoreTabColors.Click;
-     Assert.AreEqual( -1, Main.Controller.ActiveSession.CustomBackground);
-     Main.Controller.NewTab;
-     Main.Controller.SelectTab(0);
-     Main.Controller.Tabs[1].HasActivity := True;
-     Main.ApplySettings;
-     Assert.IsTrue(Main.tabBar.OwnerDraw);
-     Main.RenderWindow(Output);
-     Bounds := Main.TabCloseRect(1);
-     Origin := Main.ScreenToClient(Main.tabBar.ClientToScreen(Point(0, 0)));
-     Dark   := 0;
-     For y  := (Bounds.Top + Bounds.Bottom) Div 2 - 3 To(Bounds.Top + Bounds.Bottom) Div 2 + 3 Do
-      For x := (Bounds.Left + Bounds.Right) Div 2 - 3 To(Bounds.Left + Bounds.Right) Div 2 + 3 Do
-       Begin
-        Pixel := PixelAt(Output, Origin.x + x, Origin.y + y);
-        If (Pixel.rgbRed < 100) And (Pixel.rgbGreen < 100) And (Pixel.rgbBlue < 100) Then
-         Inc(Dark);
-       End;
-     Assert.IsTrue(Dark >= 4, 'The close icon must be present in the layered-window bitmap');
-     Assert.IsTrue(Main.tabBar.Tabs[1] <> '', 'Tab caption must not be empty');
-     Bounds       := Main.tabBar.TabRect(1);
-     Bounds.Right := Main.TabCloseRect(1).Left - 2;
-     InflateRect(Bounds, -6, -4);
-     Dark   := 0;
-     For y  := Bounds.Top To Bounds.Bottom - 1 Do
-      For x := Bounds.Left To Bounds.Right - 1 Do
-       Begin
-        Pixel := PixelAt(Output, Origin.x + x, Origin.y + y);
-        If (Pixel.rgbRed < 100) And (Pixel.rgbGreen < 100) And (Pixel.rgbBlue < 100) Then
-         Inc(Dark);
-       End;
-     Assert.IsTrue(Dark >= 3, Format('Caption [%s], text bounds %d,%d..%d,%d, dark %d', [Main.tabBar.Tabs[1], Bounds.Left, Bounds.Top, Bounds.Right, Bounds.Bottom, Dark]));
-     Preview := TPngImage.Create;
-     Try
-      Preview.Assign(Output);
-      Preview.SaveToFile(TPath.Combine(ExtractFilePath(ParamStr(0)), 'tabs-preview.png'));
-     Finally
-      Preview.Free;
-     End;
-     Bounds := Main.TabCloseRect(1);
-     Main.TabMouseDown(Main.tabBar, mbLeft, [], (Bounds.Left + Bounds.Right) Div 2, (Bounds.Top + Bounds.Bottom) Div 2);
-     Assert.AreEqual(2, Main.Controller.Count, 'Close is deferred until after the native mouse notification');
-     Main.Perform(WM_APP + 44, 0, 0);
-     Assert.AreEqual(1, Main.Controller.Count);
-     Assert.AreEqual(FirstId, Main.Controller.ActiveTab.Id);
-     Settings.General.TabCloseButtons := False;
-     Main.ApplySettings;
-     Bounds := Main.TabCloseRect(0);
-     Main.TabMouseDown(Main.tabBar, mbLeft, [], (Bounds.Left + Bounds.Right) Div 2, (Bounds.Top + Bounds.Bottom) Div 2);
-     Main.Perform(WM_APP + 44, 0, 0);
-     Assert.AreEqual(1, Main.Controller.Count, 'Disabled close button cannot close a tab');
-    Finally
-     Main.Free;
-    End;
-   Finally
-    Output.Free;
-    Settings.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.TabActivityHonorsGraceAndSelection;
-  Var
-   Settings   : TGuakeSettings;
-   Controller : TTerminalController;
-   First      : TTerminalTab;
-   Deadline   : UInt64;
-
-   Procedure WaitForOutput(Const Marker : String);
+  Procedure TTerminalTests.BlinkIgnoresConcealBlankCellsAndOffscreenHistory;
+    Var
+      Settings : TGuakeSettings;
+      Main     : TfrmMain;
+      Frame    : TfraTerminal;
+      Output   : TBitmap;
+      Count    : UInt64;
+      i        : Integer;
     Begin
-     Deadline := GetTickCount64 + 5000;
-     Repeat
-      Controller.Poll;
-      If Pos(Marker, First.Root.Session.Buffer.Text) > 0 Then
-       Exit;
-      Sleep(10);
-     Until GetTickCount64 >= Deadline;
-     Assert.Fail('Background shell did not produce output');
-    End;
-
-  Begin
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Try
-    Settings.General.DefaultShell              := 'cmd';
-    Settings.General.DisplayTabActivity        := True;
-    Settings.General.TabActivityNewTabGrace    := 60;
-    Settings.General.TabActivityFocusLossGrace := 60;
-    Controller                                 := TTerminalController.Create(Settings);
-    Try
-     First := Controller.NewTab;
-     Controller.NewTab;
-     Assert.IsTrue(First.ActivityIgnoreUntil > GetTickCount64 + 50000);
-     First.Root.Session.SendText('echo ACTIVITY_IGNORED' + #13);
-     WaitForOutput('ACTIVITY_IGNORED');
-     Assert.IsFalse(First.HasActivity);
-     First.ActivityIgnoreUntil := 0;
-     First.Root.Session.SendText('echo ACTIVITY_MARKED' + #13);
-     WaitForOutput('ACTIVITY_MARKED');
-     Assert.IsTrue(First.HasActivity);
-     Controller.SelectTab(0);
-     Assert.IsFalse(First.HasActivity, 'Selecting a tab acknowledges its activity');
-     Controller.SelectTab(1);
-     Assert.IsTrue(First.ActivityIgnoreUntil > GetTickCount64 + 50000);
-     First.HasActivity                   := True;
-     Settings.General.DisplayTabActivity := False;
-     Controller.Poll;
-     Assert.IsFalse(First.HasActivity, 'Disabling activity clears existing highlights');
-    Finally
-     Controller.Free;
-    End;
-   Finally
-    Settings.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.QuickOpenDiagnosticsAndShellQuoting;
-  Var
-   Directory : String;
-   FileName  : String;
-   Text      : String;
-   Posix     : String;
-   Command   : String;
-   Target    : TQuickOpenTarget;
-  Begin
-   Directory := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
-   TDirectory.CreateDirectory(Directory);
-   FileName := TPath.Combine(Directory, 'zażółć test.py');
-   Try
-    TFile.WriteAllText(FileName, '# header' + #10 + 'class Tests:' + #10 + '    def test_value(self): pass' + #10, TEncoding.UTF8);
-    Text := '  File "' + FileName + '", line 27, in main';
-    Assert.IsTrue(FindQuickOpenTarget(Text, 10, Directory, '', Target), 'Python traceback');
-    Assert.AreEqual(FileName, Target.FileName);
-    Assert.AreEqual(27, Target.LineNumber);
-    Text := '"' + FileName + '":17:4: error';
-    Assert.IsTrue(FindQuickOpenTarget(Text, 3, Directory, '', Target), 'Quoted GCC diagnostic');
-    Assert.AreEqual(17, Target.LineNumber);
-    Assert.AreEqual(4, Target.ColumnNumber);
-    Text := FileName + ':32:9: error';
-    Assert.IsTrue(FindQuickOpenTarget(Text, 3, Directory, '', Target), 'Unquoted GCC path with spaces');
-    Assert.AreEqual(32, Target.LineNumber);
-    Assert.AreEqual(9, Target.ColumnNumber);
-    Assert.AreEqual('https://example.org/a', TerminalLinkAt('https://example.org/a', 0));
-    Assert.AreEqual('https://example.org/a', TerminalLinkAt('https://example.org/a', 20));
-    Text := FileName + '(31,8): error';
-    Assert.IsTrue(FindQuickOpenTarget(Text, 3, Directory, '', Target), 'Delphi/MSVC diagnostic');
-    Assert.AreEqual(31, Target.LineNumber);
-    Assert.AreEqual(8, Target.ColumnNumber);
-    Assert.IsTrue(FindQuickOpenTarget('"zażółć test.py"', -1, Directory, '', Target), 'Relative quoted path');
-    Assert.AreEqual(FileName, Target.FileName);
-    TFile.Copy(FileName, TPath.Combine(Directory, 'test.py'));
-    Assert.IsTrue(FindQuickOpenTarget('test.py::Tests::test_value', 2, Directory, '', Target), 'Pytest function');
-    Assert.AreEqual(3, Target.LineNumber);
-    Posix := StringReplace(FileName, '\', '/', [rfReplaceAll]);
-    Posix := '/' + LowerCase(Posix[1]) + Copy(Posix, 3, MaxInt);
-    Assert.IsTrue(FindQuickOpenTarget('"' + Posix + '"', -1, Directory, '', Target), 'Git drive path');
-    Assert.AreEqual(FileName, Target.FileName);
-    TDirectory.CreateDirectory(TPath.Combine(Directory, 'usr\include'));
-    TFile.WriteAllText(TPath.Combine(Directory, 'usr\include\test.h'), 'test');
-    Assert.IsTrue(FindQuickOpenTarget('/usr/include/test.h:9', 5, Directory, Directory, Target), 'Git SDK path');
-    Assert.AreEqual(9, Target.LineNumber);
-    Assert.IsFalse(FindQuickOpenTarget('missing.py:23', 2, Directory, '', Target), 'Missing file');
-    Assert.IsFalse(FindQuickOpenTarget('prefix "' + FileName + '":17 suffix', 0, Directory, '', Target), 'Click outside the file');
-    Assert.IsFalse(FindQuickOpenTarget(StringOfChar('x', 8193), 0, Directory, '', Target), 'Oversized diagnostic');
-    Target.FileName     := 'C:\folder with spaces\O''Brien $x.py';
-    Target.LineNumber   := 17;
-    Target.ColumnNumber := 4;
-    Assert.AreEqual('editor "C:\folder with spaces\O''Brien $x.py":17:4',
-    QuickOpenCommand('editor %(file_path)s:%(line_number)s:%(column_number)s', Target, gsCmd));
-    Assert.AreEqual('editor "C:\folder with spaces\O''Brien $x.py"',
-    QuickOpenCommand('editor "%(file_path)s"', Target, gsCmd));
-    Command := QuickOpenCommand('editor %(file_path)s', Target, gsPowerShell);
-    Assert.IsTrue(Pos('O''''Brien', Command) > 0, 'PowerShell apostrophe');
-    Command := QuickOpenCommand('editor "%(file_path)s"', Target, gsPowerShell);
-    Assert.IsTrue(Pos('`$x', Command) > 0, 'PowerShell expansion');
-    Command := QuickOpenCommand('editor %(file_path)s', Target, gsBash);
-    Assert.IsTrue(Pos('/c/folder with spaces/', Command) > 0, 'POSIX drive mapping');
-    Assert.IsTrue(Pos(#39'"'#39'"'#39, Command) > 0, 'POSIX apostrophe');
-    Command := QuickOpenCommand('editor "%(file_path)s"', Target, gsZsh);
-    Assert.IsTrue(Pos('\$x', Command) > 0, 'Zsh expansion');
-   Finally
-    TDirectory.Delete(Directory, True);
-   End;
-  End;
-
- Procedure TTerminalTests.QuickOpenCtrlClickAndContextMenu;
-  Var
-   Settings  : TGuakeSettings;
-   Main      : TfrmMain;
-   Frame     : TfraTerminal;
-   Directory : String;
-   FileName  : String;
-   FlagFile  : String;
-   Text      : String;
-   Deadline  : UInt64;
-
-   Procedure WaitForEditor;
-    Begin
-     Deadline := GetTickCount64 + 5000;
-     While Not TFile.Exists(FlagFile) And (GetTickCount64 < Deadline) Do
-      Begin
-       Main.PollTerminal(Nil);
-       Sleep(10);
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Output   := TBitmap.Create;
+      Try
+        Settings.General.DefaultShell         := 'cmd';
+        Settings.General.UseTrayicon          := False;
+        Settings.General.UsePopup             := False;
+        Settings.Keybindings.Global.ShowHide  := 'disabled';
+        Settings.Keybindings.Global.ShowFocus := 'disabled';
+        Main                                  := TfrmMain.Create(Nil);
+        Try
+          Main.Bind(Settings);
+          Main.StartTerminal;
+          Main.HandleNeeded;
+          Main.SetBounds( -30000, 0, 500, 200);
+          Main.Hide;
+          Frame := Main.ActiveTerminalFrame;
+          Frame.Bind(Frame.Session, Settings);
+          Frame.refreshTimer.Enabled := False;
+          Frame.Session.Buffer.Reset;
+          Frame.Session.Buffer.FeedText(#27'[?25l'#27'[5;8mhidden'#27'[28m   '#27'[25m');
+          Frame.RenderAlpha(Output, 255);
+          Count := Frame.AlphaRenderCount;
+          For i := 1 To 4 Do
+            Begin
+              Assert.IsFalse(Frame.AdvanceTextBlink(500));
+              Frame.RenderAlpha(Output, 255);
+            End;
+          Assert.AreEqual(Count, Frame.AlphaRenderCount);
+          Frame.Session.Buffer.Reset;
+          Frame.Session.Buffer.FeedText(#27'[?25l'#27'[5mhistory'#27'[25m');
+          For i := 1 To Frame.Session.Buffer.Rows + 2 Do
+            Frame.Session.Buffer.FeedText(#13#10'plain');
+          Frame.RefreshTick(Nil);
+          Frame.scroll.Position := Frame.Session.Buffer.TotalLines - Frame.Session.Buffer.Rows;
+          Frame.RenderAlpha(Output, 255);
+          Count := Frame.AlphaRenderCount;
+          Assert.IsFalse(Frame.AdvanceTextBlink(500));
+          Frame.RenderAlpha(Output, 255);
+          Assert.AreEqual(Count, Frame.AlphaRenderCount);
+          Frame.scroll.Position := 0;
+          Frame.RenderAlpha(Output, 255);
+          Assert.IsTrue(Frame.AdvanceTextBlink(500));
+          Frame.RenderAlpha(Output, 255);
+          Frame.Session.Buffer.FeedText(#27'[?1049h'#27'[?25l'#27'[0mplain');
+          Frame.RenderAlpha(Output, 255);
+          Count := Frame.AlphaRenderCount;
+          Assert.IsFalse(Frame.AdvanceTextBlink(500));
+          Frame.RenderAlpha(Output, 255);
+          Assert.AreEqual(Count, Frame.AlphaRenderCount);
+        Finally
+          Main.Free;
+        End;
+      Finally
+        Output.Free;
+        Settings.Free;
       End;
-     Assert.IsTrue(TFile.Exists(FlagFile), 'Editor command was not executed');
-     Assert.AreEqual('QUICK_OPEN_17_4', Trim(TFile.ReadAllText(FlagFile)));
     End;
 
-   Procedure PutDiagnostic;
+  Procedure TTerminalTests.ExtendedSGRStateAndCursorRestore;
+    Var
+      Buffer : TTerminalBuffer;
+      Cell   : TTerminalCell;
+      i      : Integer;
     Begin
-     Frame.Session.Buffer.FeedText(#27'[2J' + #27'[H' + Text);
-     Frame.RefreshTick(Nil);
+      Buffer := TTerminalBuffer.Create(24, 5);
+      Try
+        Buffer.FeedText(#27'[1;2;8;9;53;4:3;58:2::17:34:51mA'#27'7');
+        Cell := Buffer.Cell[0, 0];
+        Assert.IsTrue(Cell.Bold And Cell.Faint And Cell.Conceal And Cell.Strike And Cell.Overline);
+        Assert.AreEqual(3, Integer(Cell.UnderlineStyle));
+        Assert.AreEqual($01332211, Cell.UnderlineColor);
+        Buffer.FeedText(#27'[22;28;29;55;24;59mB');
+        Cell := Buffer.Cell[1, 0];
+        Assert.IsFalse(Cell.Bold Or Cell.Faint Or Cell.Conceal Or Cell.Strike Or Cell.Overline Or Cell.Underline);
+        Assert.AreEqual( -1, Cell.UnderlineColor);
+        Buffer.FeedText(#27'8C');
+        Cell := Buffer.Cell[1, 0];
+        Assert.IsTrue(Cell.Faint And Cell.Conceal And Cell.Strike And Cell.Overline);
+        Assert.AreEqual(3, Integer(Cell.UnderlineStyle));
+        Buffer.Resize(12, 5);
+        Assert.IsTrue(Buffer.Cell[0, 0].Conceal);
+        Assert.IsTrue(Pos('AC', Buffer.Text) > 0);
+        Buffer.FeedText(#27'[0m'#13#10);
+        For i := 0 To 5 Do
+          Buffer.FeedText(#27'[4:' + IntToStr(i) + 'mX');
+        For i := 0 To 5 Do
+          Assert.AreEqual(i, Integer(Buffer.Cell[i, 1].UnderlineStyle));
+        Buffer.FeedText(#27'[4:99mY');
+        Assert.AreEqual(5, Integer(Buffer.Cell[6, 1].UnderlineStyle));
+        Buffer.FeedText(#27'[21mZ'#27'[0mR');
+        Assert.AreEqual(2, Integer(Buffer.Cell[7, 1].UnderlineStyle));
+        Assert.AreEqual( -1, Buffer.Cell[8, 1].UnderlineColor);
+        Assert.IsFalse(Buffer.Cell[8, 1].Underline);
+      Finally
+        Buffer.Free;
+      End;
     End;
 
-  Begin
-   Directory := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
-   TDirectory.CreateDirectory(Directory);
-   FileName := TPath.Combine(Directory, 'test.pas');
-   FlagFile := TPath.Combine(Directory, 'opened.txt');
-   Settings := TGuakeSettings.Create(TPath.Combine(Directory, 'settings.ini'));
-   Try
-    TFile.WriteAllText(FileName, 'test');
-    Settings.General.DefaultShell               := 'cmd';
-    Settings.General.UseTrayicon                := False;
-    Settings.General.UsePopup                   := False;
-    Settings.General.DropDownAnimation          := False;
-    Settings.Keybindings.Global.ShowHide        := 'disabled';
-    Settings.Keybindings.Global.ShowFocus       := 'disabled';
-    Settings.General.QuickOpenEnable            := True;
-    Settings.General.QuickOpenInCurrentTerminal := True;
-    Settings.General.QuickOpenCommandLine       := 'echo QUICK_OPEN_%(line_number)s_%(column_number)s>"' + FlagFile + '"';
-    Main                                        := TfrmMain.Create(Nil);
-    Try
-     Main.Bind(Settings);
-     Main.StartTerminal;
-     Main.Show;
-     Main.SetBounds( -30000, 0, 1200, 300);
-     Frame := Main.ActiveTerminalFrame;
-     Text  := '"' + FileName + '":17:4';
-     PutDiagnostic;
-     Frame.SurfaceMouseDown(Nil, mbLeft, [ssCtrl], 6, 5);
-     Frame.SurfaceMouseUp(Nil, mbLeft, [ssCtrl], 6, 5);
-     Assert.AreEqual('', Frame.SelectedText);
-     WaitForEditor;
-     TFile.Delete(FlagFile);
-     Settings.General.QuickOpenInCurrentTerminal := False;
-     PutDiagnostic;
-     Assert.IsTrue(Pos(Text, Frame.Session.Buffer.Text) > 0, 'Diagnostic must be available for selection');
-     Frame.HighlightText(Pos(Text, Frame.Session.Buffer.Text), Length(Text));
-     Assert.AreEqual(Text, Frame.SelectedText, 'Select the entire diagnostic including its column');
-     Main.TerminalMenuPopup(Nil);
-     Assert.IsTrue(Main.miQuickOpen.Enabled, 'Selected diagnostic enables Quick Open: ' + Frame.SelectedText);
-     Main.miQuickOpen.Click;
-     WaitForEditor;
-     TFile.Delete(FlagFile);
-     Settings.General.QuickOpenEnable := False;
-     Main.TerminalMenuPopup(Nil);
-     Assert.IsFalse(Main.miQuickOpen.Enabled);
-     Frame.SurfaceMouseDown(Nil, mbLeft, [ssCtrl], 6, 5);
-     Frame.SurfaceMouseUp(Nil, mbLeft, [ssCtrl], 6, 5);
-     Assert.IsFalse(TFile.Exists(FlagFile));
-    Finally
-     Main.Free;
+  Procedure TTerminalTests.SGRDecorationsRenderWithOpaqueCoverage;
+    Var
+      Settings : TGuakeSettings;
+      Main     : TfrmMain;
+      Frame    : TfraTerminal;
+      Output   : TBitmap;
+      Preview  : TPngImage;
+      Width    : Integer;
+      Height   : Integer;
+      i        : Integer;
+      x        : Integer;
+      y        : Integer;
+      RedCount : Integer;
+      Pixel    : TRGBQuad;
+    Begin
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Output   := TBitmap.Create;
+      Try
+        Settings.General.DefaultShell         := 'cmd';
+        Settings.General.UseTrayicon          := False;
+        Settings.General.UsePopup             := False;
+        Settings.Keybindings.Global.ShowHide  := 'disabled';
+        Settings.Keybindings.Global.ShowFocus := 'disabled';
+        Main                                  := TfrmMain.Create(Nil);
+        Try
+          Main.Bind(Settings);
+          Main.StartTerminal;
+          Main.HandleNeeded;
+          Main.SetBounds( -30000, 0, 500, 200);
+          Frame := Main.ActiveTerminalFrame;
+          Frame.Session.Buffer.Reset;
+          Frame.Session.Buffer.FeedText(#27'[?25l'#27'[38;2;255;255;255;58;2;255;0;0m');
+          For i := 1 To 5 Do
+            Frame.Session.Buffer.FeedText(#27'[4:' + IntToStr(i) + 'm ');
+          Frame.Session.Buffer.FeedText(#13#10#27'[4:0;59;53m '#27'[55;8mM'#27'[28;9m ');
+          Frame.RefreshTick(Nil);
+          Frame.RenderAlpha(Output, 96);
+          Output.Canvas.Font.Assign(Frame.Font);
+          Width  := Output.Canvas.TextWidth('M');
+          Height := Output.Canvas.TextHeight('Mg');
+          For i  := 0 To 4 Do
+            Begin
+              RedCount := 0;
+              For y    := 4 To 4 + Height - 1 Do
+                For x  := 4 + i * Width To 4 + (i + 1) * Width - 1 Do
+                  Begin
+                    Pixel := PixelAt(Output, x, y);
+                    If (Pixel.rgbRed = 255) And (Pixel.rgbGreen = 0) And (Pixel.rgbBlue = 0) Then
+                      Begin
+                        Inc(RedCount);
+                        Assert.AreEqual(255, Integer(Pixel.rgbReserved));
+                      End;
+                  End;
+              Assert.IsTrue(RedCount > 0, 'Every underline style must draw a visible red decoration');
+            End;
+          Pixel := PixelAt(Output, 4 + Width, 4 + Height - 4);
+          Assert.AreEqual(255, Integer(Pixel.rgbRed));
+          Pixel := PixelAt(Output, 4, 4 + Height + 1);
+          Assert.AreEqual(255, Integer(Pixel.rgbReserved));
+          For y   := 4 + Height To 4 + 2 * Height - 1 Do
+            For x := 4 + Width To 4 + 2 * Width - 1 Do
+              Assert.AreEqual(96, Integer(PixelAt(Output, x, y).rgbReserved));
+          RedCount := 0;
+          For y    := 4 + Height To 4 + 2 * Height - 1 Do
+            For x  := 4 + 2 * Width To 4 + 3 * Width - 1 Do
+              If PixelAt(Output, x, y).rgbReserved = 255 Then
+                Inc(RedCount);
+          Assert.IsTrue(RedCount > 0, 'Strikethrough must also decorate a space');
+          Preview := TPngImage.Create;
+          Try
+            Preview.Assign(Output);
+            Preview.SaveToFile(TPath.Combine(ExtractFilePath(ParamStr(0)), 'sgr-preview.png'));
+          Finally
+            Preview.Free;
+          End;
+        Finally
+          Main.Free;
+        End;
+      Finally
+        Output.Free;
+        Settings.Free;
+      End;
     End;
-   Finally
-    Settings.Free;
-    TDirectory.Delete(Directory, True);
-   End;
-  End;
 
- Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad;
-  Var
-   Pixel : PRGBQuad;
-  Begin
-   Pixel := Bitmap.ScanLine[y];
-   Inc(Pixel, x);
-   Result := Pixel^;
-  End;
-
- Procedure TTerminalTests.PerPixelAlphaComposition;
-  Var
-   Color      : TBitmap;
-   Background : TBitmap;
-   Mask       : TBitmap;
-   Output     : TBitmap;
-   Pixel      : TRGBQuad;
-  Begin
-   Color      := TBitmap.Create;
-   Background := TBitmap.Create;
-   Mask       := TBitmap.Create;
-   Output     := TBitmap.Create;
-   Try
-    Color.PixelFormat      := pf32bit;
-    Background.PixelFormat := pf32bit;
-    Mask.PixelFormat       := pf32bit;
-    Color.SetSize(3, 1);
-    Background.SetSize(3, 1);
-    Mask.SetSize(3, 1);
-    Background.Canvas.Brush.Color := RGB(40, 80, 120);
-    Background.Canvas.FillRect(Rect(0, 0, 3, 1));
-    Color.Assign(Background);
-    Color.Canvas.Pixels[1, 0] := RGB(200, 100, 60);
-    Color.Canvas.Pixels[2, 0] := RGB(120, 90, 90);
-    Mask.Canvas.Pixels[0, 0]  := clBlack;
-    Mask.Canvas.Pixels[1, 0]  := clWhite;
-    Mask.Canvas.Pixels[2, 0]  := RGB(128, 128, 128);
-    ComposeTerminalAlpha(Color, Background, Mask, Output, 128);
-    Pixel := PixelAt(Output, 0, 0);
-    Assert.AreEqual(128, Integer(Pixel.rgbReserved));
-    Assert.AreEqual(20, Integer(Pixel.rgbRed));
-    Assert.AreEqual(40, Integer(Pixel.rgbGreen));
-    Assert.AreEqual(60, Integer(Pixel.rgbBlue));
-    Pixel := PixelAt(Output, 1, 0);
-    Assert.AreEqual(255, Integer(Pixel.rgbReserved));
-    Assert.AreEqual(200, Integer(Pixel.rgbRed));
-    Pixel := PixelAt(Output, 2, 0);
-    Assert.AreEqual(192, Integer(Pixel.rgbReserved));
-    Assert.AreEqual(110, Integer(Pixel.rgbRed));
-    ComposeTerminalAlpha(Color, Background, Mask, Output, 0);
-    Assert.AreEqual(0, Integer(PixelAt(Output, 0, 0).rgbReserved));
-    Assert.AreEqual(255, Integer(PixelAt(Output, 1, 0).rgbReserved));
-    ComposeTerminalAlpha(Color, Background, Mask, Output, 255);
-    Assert.AreEqual(255, Integer(PixelAt(Output, 0, 0).rgbReserved));
-    Assert.AreEqual(40, Integer(PixelAt(Output, 0, 0).rgbRed));
-   Finally
-    Output.Free;
-    Mask.Free;
-    Background.Free;
-    Color.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.TerminalBackgroundAlphaAndWindowControls;
-  Var
-   Settings     : TGuakeSettings;
-   Main         : TfrmMain;
-   Frame        : TfraTerminal;
-   Output       : TBitmap;
-   Preview      : TPngImage;
-   Point        : TPoint;
-   x            : Integer;
-   y            : Integer;
-   OpaquePixels : Integer;
-  Begin
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Output   := TBitmap.Create;
-   Try
-    Settings.General.DefaultShell          := 'cmd';
-    Settings.General.UseTrayicon           := False;
-    Settings.General.UsePopup              := False;
-    Settings.General.DropDownAnimation     := False;
-    Settings.Keybindings.Global.ShowHide   := 'disabled';
-    Settings.Keybindings.Global.ShowFocus  := 'disabled';
-    Settings.Style.Background.Transparency := 40;
-    Main                                   := TfrmMain.Create(Nil);
-    Try
-     Main.Bind(Settings);
-     Main.StartTerminal;
-     Main.Show;
-     Main.SetBounds( -30000, 0, 700, 200);
-     Main.PollTerminal(Nil);
-     Frame := Main.ActiveTerminalFrame;
-     Frame.Session.Buffer.FeedText(#27'[2J' + #27'[H' + #27'[?25l' + 'M' + #27'[41m '#27'[0m');
-     Frame.RefreshTick(Nil);
-     Frame.RenderAlpha(Output, 102);
-     Assert.AreEqual(102, Integer(PixelAt(Output, 1, 1).rgbReserved), 'Background opacity');
-     OpaquePixels := 0;
-     For y        := 4 To 18 Do
-      For x       := 4 To 10 Do
-       If PixelAt(Output, x, y).rgbReserved = 255 Then
-        Inc(OpaquePixels);
-     Assert.IsTrue(OpaquePixels > 0, 'Foreground glyph must remain opaque');
-     Assert.AreEqual(255, Integer(PixelAt(Output, 12, 5).rgbReserved), 'Explicit SGR background');
-     Main.RenderWindow(Output);
-     Point := Main.ScreenToClient(Frame.surface.ClientToScreen(System.Types.Point(1, 1)));
-     Assert.AreEqual(102, Integer(PixelAt(Output, Point.x, Point.y).rgbReserved));
-     Point := Main.ScreenToClient(Main.tabHost.ClientToScreen(System.Types.Point(2, 2)));
-     Assert.AreEqual(255, Integer(PixelAt(Output, Point.x, Point.y).rgbReserved), 'Tab bar opacity');
-     Assert.IsTrue(Main.tabHost.Visible);
-     Assert.IsTrue((Point.x >= 0) And (Point.y >= 0) And (Point.x < Output.Width) And (Point.y < Output.Height));
-     Assert.IsTrue(Integer(PixelAt(Output, Point.x, Point.y).rgbRed) + PixelAt(Output, Point.x, Point.y).rgbGreen + PixelAt(Output, Point.x, Point.y).rgbBlue > 0, 'Native tab control must be painted, not a black rectangle');
-     Preview := TPngImage.Create;
-     Try
-      Preview.Assign(Output);
-      Preview.SaveToFile(TPath.Combine(ExtractFilePath(ParamStr(0)), 'terminal-alpha-preview.png'));
-     Finally
-      Preview.Free;
-     End;
-     Main.SetFullScreen(True);
-     Main.PollTerminal(Nil);
-     Main.SetFullScreen(False);
-     Main.PollTerminal(Nil);
-     Main.RenderWindow(Output);
-     Point := Main.ScreenToClient(Frame.surface.ClientToScreen(System.Types.Point(1, 1)));
-     Assert.AreEqual(102, Integer(PixelAt(Output, Point.x, Point.y).rgbReserved), 'Fullscreen must not multiply opacity');
-     Settings.Style.Background.Transparency := 100;
-     Main.ApplySettings;
-     Assert.IsTrue((GetWindowLongPtr(Main.Handle, GWL_EXSTYLE) And WS_EX_LAYERED) = 0);
-     Settings.Style.Background.Transparency := 0;
-     Main.ApplySettings;
-     Main.PollTerminal(Nil);
-     Main.RenderWindow(Output);
-     Point := Main.ScreenToClient(Frame.surface.ClientToScreen(System.Types.Point(1, 1)));
-     Assert.AreEqual(1, Integer(PixelAt(Output, Point.x, Point.y).rgbReserved), 'Transparent background retains mouse hit testing');
-    Finally
-     Main.Free;
+  Procedure TTerminalTests.FaintConcealAndIncrementalAttributeRefresh;
+    Var
+      Settings   : TGuakeSettings;
+      Main       : TfrmMain;
+      Frame      : TfraTerminal;
+      Output     : TBitmap;
+      Previous   : TBitmap;
+      Width      : Integer;
+      Height     : Integer;
+      x          : Integer;
+      y          : Integer;
+      NormalMax  : Integer;
+      FaintMax   : Integer;
+      RowsBefore : UInt64;
+      Pixel      : TRGBQuad;
+    Begin
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Output   := TBitmap.Create;
+      Previous := TBitmap.Create;
+      Try
+        Settings.General.DefaultShell         := 'cmd';
+        Settings.General.UseTrayicon          := False;
+        Settings.General.UsePopup             := False;
+        Settings.Keybindings.Global.ShowHide  := 'disabled';
+        Settings.Keybindings.Global.ShowFocus := 'disabled';
+        Main                                  := TfrmMain.Create(Nil);
+        Try
+          Main.Bind(Settings);
+          Main.StartTerminal;
+          Main.HandleNeeded;
+          Main.SetBounds( -30000, 0, 500, 200);
+          Frame := Main.ActiveTerminalFrame;
+          Frame.Session.Buffer.Reset;
+          Frame.Session.Buffer.FeedText(#27'[?25l'#27'[38;2;255;255;255;48;2;0;0;0mM'#13#10#27'[2mM');
+          Frame.RefreshTick(Nil);
+          Frame.RenderAlpha(Output, 96);
+          Output.Canvas.Font.Assign(Frame.Font);
+          Width     := Output.Canvas.TextWidth('M');
+          Height    := Output.Canvas.TextHeight('Mg');
+          NormalMax := 0;
+          FaintMax  := 0;
+          For y     := 4 To 4 + Height - 1 Do
+            For x   := 4 To 4 + Width - 1 Do
+              Begin
+                Pixel := PixelAt(Output, x, y);
+                If Pixel.rgbRed > NormalMax Then
+                  NormalMax := Pixel.rgbRed;
+                Pixel       := PixelAt(Output, x, y + Height);
+                If Pixel.rgbRed > FaintMax Then
+                  FaintMax := Pixel.rgbRed;
+              End;
+          Assert.IsTrue((FaintMax > 0) And (FaintMax < NormalMax));
+          Previous.Assign(Output);
+          RowsBefore := Frame.RasterRowCount;
+          Frame.Session.Buffer.FeedText(#27'[H'#27'[8mM');
+          Frame.RefreshTick(Nil);
+          Frame.RenderAlpha(Output, 96);
+          Assert.AreEqual(UInt64(1), Frame.RasterRowCount - RowsBefore);
+          For y   := 4 To 4 + Height - 1 Do
+            For x := 4 To 4 + Width - 1 Do
+              Begin
+                Pixel := PixelAt(Output, x, y);
+                Assert.AreEqual(0, Integer(Pixel.rgbRed));
+                Assert.AreEqual(255, Integer(Pixel.rgbReserved));
+                Assert.AreEqual(Cardinal(PixelAt(Previous, x, y + Height).rgbRed), Cardinal(PixelAt(Output, x, y + Height).rgbRed));
+              End;
+          Assert.IsTrue(Pos('M', Frame.Session.Buffer.Text) > 0);
+        Finally
+          Main.Free;
+        End;
+      Finally
+        Previous.Free;
+        Output.Free;
+        Settings.Free;
+      End;
     End;
-   Finally
-    Output.Free;
-    Settings.Free;
-   End;
-  End;
 
- Procedure TTerminalTests.AnimatedGifDisposalAndFiniteLoop;
-  Var
-   Image     : TGIFImage;
-   Bitmap    : TBitmap;
-   Frame     : TGIFFrame;
-   Animation : TAnimatedBackground;
-  Begin
-   Image  := TGIFImage.Create;
-   Bitmap := TBitmap.Create;
-   Try
-    Bitmap.SetSize(2, 2);
-    Bitmap.Canvas.Brush.Color := clRed;
-    Bitmap.Canvas.FillRect(Rect(0, 0, 2, 2));
-    Frame                                           := Image.Add(Bitmap);
-    TGIFGraphicControlExtension.Create(Frame).Delay := 2;
-    Bitmap.Canvas.Brush.Color                       := clBlue;
-    Bitmap.Canvas.FillRect(Rect(0, 0, 2, 2));
-    Frame := Image.Add(Bitmap);
-    With TGIFGraphicControlExtension.Create(Frame) Do
-     Begin
-      Delay    := 2;
-      Disposal := dmPrevious;
-     End;
-    Bitmap.SetSize(1, 1);
-    Bitmap.Canvas.Pixels[0, 0]                      := clLime;
-    Frame                                           := Image.Add(Bitmap);
-    Frame.Left                                      := 1;
-    Frame.Top                                       := 1;
-    TGIFGraphicControlExtension.Create(Frame).Delay := 2;
-    Animation                                       := TAnimatedBackground.Create(Image, clBlack);
-    Try
-     Assert.AreEqual(Integer(clRed), Integer(Animation.Bitmap.Canvas.Pixels[0, 0]));
-     Assert.IsTrue(Animation.Advance(20));
-     Assert.AreEqual(Integer(clBlue), Integer(Animation.Bitmap.Canvas.Pixels[0, 0]));
-     Assert.IsTrue(Animation.Advance(20));
-     Assert.AreEqual(Integer(clRed), Integer(Animation.Bitmap.Canvas.Pixels[0, 0]), 'Previous frame disposal');
-     Assert.AreEqual(Integer(clLime), Integer(Animation.Bitmap.Canvas.Pixels[1, 1]), 'Partial frame offset');
-     Assert.IsFalse(Animation.Advance(20), 'GIF without loop extension plays once');
-     Assert.IsFalse(Animation.Advance(1000));
-     Assert.AreEqual(Integer(clLime), Integer(Animation.Bitmap.Canvas.Pixels[1, 1]));
-    Finally
-     Animation.Free;
+  Procedure TTerminalTests.C0ControlsInsideFragmentedSequences;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(32, 6);
+      Try
+        Buffer.FeedText('abc'#27'[2'#7';'#13'5'#10'H');
+        Assert.AreEqual(4, Buffer.CursorX);
+        Assert.AreEqual(1, Buffer.CursorY);
+        Assert.AreEqual(UInt64(1), Buffer.BellCount);
+        Buffer.FeedText(#27'[6'#8#9'n');
+        Assert.AreEqual(#27'[2;9R', Buffer.TakeResponses);
+        Buffer.FeedText(#27'[31'#0#127'mX'#27#7'[32mG');
+        Assert.AreEqual(1, Buffer.Cell[8, 1].Foreground);
+        Assert.AreEqual(2, Buffer.Cell[9, 1].Foreground);
+        Assert.AreEqual(UInt64(2), Buffer.BellCount);
+        Buffer.FeedText(#27'('#7'0q');
+        Assert.AreEqual('─', Buffer.Cell[10, 1].Text);
+        Assert.AreEqual(UInt64(3), Buffer.BellCount);
+      Finally
+        Buffer.Free;
+      End;
     End;
-    TGIFAppExtNSLoop.Create(Image.Images[0]).Loops := 1;
-    Animation                                      := TAnimatedBackground.Create(Image, clBlack);
-    Try
-     Assert.IsTrue(Animation.Advance(20));
-     Assert.IsTrue(Animation.Advance(20));
-     Assert.IsTrue(Animation.Advance(20), 'One repetition includes a second full playback');
-     Assert.AreEqual(Integer(clRed), Integer(Animation.Bitmap.Canvas.Pixels[0, 0]));
-     Assert.IsTrue(Animation.Advance(20));
-     Assert.IsTrue(Animation.Advance(20));
-     Assert.IsFalse(Animation.Advance(20));
-    Finally
-     Animation.Free;
-    End;
-   Finally
-    Bitmap.Free;
-    Image.Free;
-   End;
-  End;
 
- Procedure TTerminalTests.AnimatedGifBackgroundDelaysAndRemoval;
-  Var
-   Image    : TGIFImage;
-   Bitmap   : TBitmap;
-   Output   : TBitmap;
-   Frame    : TGIFFrame;
-   View     : TfraTerminal;
-   Main     : TfrmMain;
-   Settings : TGuakeSettings;
-   FileName : String;
-  Begin
-   FileName := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName + '.gif');
-   Image    := TGIFImage.Create;
-   Bitmap   := TBitmap.Create;
-   Output   := TBitmap.Create;
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Try
-    Bitmap.SetSize(2, 2);
-    Bitmap.Canvas.Brush.Color := clRed;
-    Bitmap.Canvas.FillRect(Rect(0, 0, 2, 2));
-    Frame                                           := Image.Add(Bitmap);
-    TGIFGraphicControlExtension.Create(Frame).Delay := 2;
-    TGIFAppExtNSLoop.Create(Frame).Loops            := 0;
-    Bitmap.Canvas.Brush.Color                       := clBlue;
-    Bitmap.Canvas.FillRect(Rect(0, 0, 2, 2));
-    Frame                                           := Image.Add(Bitmap);
-    TGIFGraphicControlExtension.Create(Frame).Delay := 8;
-    Image.SaveToFile(FileName);
-    Settings.General.BackgroundImageFile       := FileName;
-    Settings.General.BackgroundImageLayoutMode := 3;
-    Main                                       := TfrmMain.Create(Nil);
-    Try
-     View        := TfraTerminal.Create(Main);
-     View.Parent := Main;
-     View.Bind(Nil, Settings);
-     Output.SetSize(10, 10);
-     View.DrawBackground(Output.Canvas, Rect(0, 0, 10, 10));
-     Assert.AreEqual(Integer(clRed), Integer(Output.Canvas.Pixels[5, 5]));
-     Assert.IsFalse(View.AdvanceBackground(19));
-     Assert.IsTrue(View.AdvanceBackground(1));
-     View.DrawBackground(Output.Canvas, Rect(0, 0, 10, 10));
-     Assert.AreEqual(Integer(clBlue), Integer(Output.Canvas.Pixels[5, 5]));
-     Assert.IsFalse(View.AdvanceBackground(79));
-     Assert.IsTrue(View.AdvanceBackground(1));
-     View.DrawBackground(Output.Canvas, Rect(0, 0, 10, 10));
-     Assert.AreEqual(Integer(clRed), Integer(Output.Canvas.Pixels[5, 5]));
-     Settings.General.BackgroundImageFile := '';
-     View.ApplySettings;
-     Assert.IsFalse(View.AdvanceBackground(100));
-     View.DrawBackground(Output.Canvas, Rect(0, 0, 10, 10));
-     Assert.AreEqual(Integer(clBlack), Integer(Output.Canvas.Pixels[5, 5]));
-    Finally
-     Main.Free;
+  Procedure TTerminalTests.OverlongCSIAndNumericOverflowAreDiscarded;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(30, 5);
+      Try
+        Buffer.FeedText(#27'[3;4H'#27'[31m');
+        Buffer.FeedText(#27'[' + StringOfChar(';', 300) + 'mX');
+        Assert.AreEqual(1, Buffer.Cell[3, 2].Foreground);
+        Buffer.FeedText(#27'[' + StringOfChar('9', 90) + 'HX');
+        Assert.AreEqual('XX', Copy(Buffer.LineText(2), 4, 2));
+        Buffer.FeedText(#27'[2'#24'Q'#27'[32'#26'R');
+        Assert.AreEqual('XXQR', Copy(Buffer.LineText(2), 4, 4));
+        Assert.AreEqual(1, Buffer.Cell[6, 2].Foreground);
+        Buffer.FeedText(#27'[0mZ');
+        Assert.AreEqual( -1, Buffer.Cell[7, 2].Foreground);
+      Finally
+        Buffer.Free;
+      End;
     End;
-   Finally
-    Settings.Free;
-    Output.Free;
-    Bitmap.Free;
-    Image.Free;
-    TFile.Delete(FileName);
-   End;
-  End;
 
- Procedure TTerminalTests.IncrementalUnicodeAndCSI;
-  Var
-   Buffer : TTerminalBuffer;
-   Bytes  : TBytes;
-   One    : TBytes;
-   b      : Byte;
-  Begin
-   Buffer := TTerminalBuffer.Create(80, 5);
-   Try
-    Bytes := TEncoding.UTF8.GetBytes('Zażółć 日本語 😀' + #27'[31mR' + #27'[0m');
-    SetLength(One, 1);
-    For b In Bytes Do
-     Begin
-      One[0] := b;
-      Buffer.Feed(One);
-     End;
-    Assert.IsTrue(Pos('Zażółć 日本語 😀R', Buffer.Text) > 0, Buffer.Text);
-    Assert.AreEqual(1, Buffer.Cell[16, 0].Foreground);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.OverlongOSCDoesNotPublishTruncatedValues;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(40, 4);
+      Try
+        Buffer.FeedText(#27']2;original'#7);
+        Buffer.FeedText(#27']2;' + StringOfChar('x', 5000) + #7'A');
+        Assert.AreEqual('original', Buffer.Title);
+        Assert.AreEqual('A', Buffer.LineText(0));
+        Buffer.FeedText(#27']8;;https://example.org/' + StringOfChar('a', 5000) + #27'\B');
+        Assert.AreEqual('', Buffer.Cell[1, 0].Hyperlink);
+        Buffer.FeedText(#27']2;new'#13#10#0'title'#27'\');
+        Assert.AreEqual('newtitle', Buffer.Title);
+        Buffer.FeedText(#27']2;cancelled'#24'X');
+        Assert.AreEqual('newtitle', Buffer.Title);
+        Assert.AreEqual('ABX', Buffer.LineText(0));
+      Finally
+        Buffer.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.EscapeRecoveryAndIntermediateConsumption;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(40, 4);
+      Try
+        Buffer.FeedText(#27'%GA'#27'#7B');
+        Assert.AreEqual('AB', Buffer.LineText(0));
+        Buffer.FeedText(#27']2;unfinished'#27'[31mC');
+        Assert.AreEqual('', Buffer.Title);
+        Assert.AreEqual(1, Buffer.Cell[2, 0].Foreground);
+        Buffer.FeedText(#27'Pignored'#27'[32mD'#27'Xignored'#27'\E');
+        Assert.AreEqual('ABCDE', Buffer.LineText(0));
+        Assert.AreEqual(2, Buffer.Cell[3, 0].Foreground);
+        Buffer.FeedText(#27'[12ąF');
+        Assert.AreEqual('ABCDEąF', Buffer.LineText(0));
+        Buffer.FeedText(#27'[31'#27'[34mG');
+        Assert.AreEqual(4, Buffer.Cell[7, 0].Foreground);
+      Finally
+        Buffer.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.SGRColonAndSemicolonColors;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(30, 4);
+      Try
+        Buffer.FeedText(#27'[1;38:2::17:34:51;48:5:201mA');
+        Assert.AreEqual($01332211, Buffer.Cell[0, 0].Foreground);
+        Assert.AreEqual(201, Buffer.Cell[0, 0].Background);
+        Assert.IsTrue(Buffer.Cell[0, 0].Bold);
+        Buffer.FeedText(#27'[38:2:51:34:17;48;2;1;2;3mB');
+        Assert.AreEqual($01112233, Buffer.Cell[1, 0].Foreground);
+        Assert.AreEqual($01030201, Buffer.Cell[1, 0].Background);
+        Buffer.FeedText(#27'[38;5;123;4:1mC'#27'[4:0mD');
+        Assert.AreEqual(123, Buffer.Cell[2, 0].Foreground);
+        Assert.IsTrue(Buffer.Cell[2, 0].Underline);
+        Assert.IsFalse(Buffer.Cell[3, 0].Underline);
+        Buffer.FeedText(#27'[mE');
+        Assert.AreEqual( -1, Buffer.Cell[4, 0].Foreground);
+        Assert.AreEqual( -2, Buffer.Cell[4, 0].Background);
+        Assert.IsFalse(Buffer.Cell[4, 0].Bold);
+      Finally
+        Buffer.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.SGRInvalidColorsDoNotBecomeAttributes;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(30, 4);
+      Try
+        Buffer.FeedText(#27'[31;44m'#27'[38:2::1:2mA');
+        Assert.AreEqual(1, Buffer.Cell[0, 0].Foreground);
+        Assert.IsFalse(Buffer.Cell[0, 0].Bold);
+        Buffer.FeedText(#27'[38:2:1:7:8:9;3mB');
+        Assert.AreEqual(1, Buffer.Cell[1, 0].Foreground);
+        Assert.IsTrue(Buffer.Cell[1, 0].Italic);
+        Buffer.FeedText(#27'[38;2;999;1;2;1mC');
+        Assert.AreEqual(1, Buffer.Cell[2, 0].Foreground);
+        Assert.IsTrue(Buffer.Cell[2, 0].Bold);
+        Assert.AreEqual(4, Buffer.Cell[2, 0].Background);
+        Buffer.FeedText(#27'[38;2;1mD');
+        Assert.AreEqual(1, Buffer.Cell[3, 0].Foreground);
+        Buffer.FeedText(#27'[38:5:999;22mE');
+        Assert.AreEqual(1, Buffer.Cell[4, 0].Foreground);
+        Assert.IsFalse(Buffer.Cell[4, 0].Bold);
+        Buffer.FeedText(#27'[999999999999999999999999mF');
+        Assert.AreEqual(1, Buffer.Cell[5, 0].Foreground);
+        Buffer.FeedText(#27'[58;2;0;1;0mG');
+        Assert.AreEqual(1, Buffer.Cell[6, 0].Foreground);
+        Assert.AreEqual(4, Buffer.Cell[6, 0].Background);
+        Assert.IsFalse(Buffer.Cell[6, 0].Bold);
+      Finally
+        Buffer.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.ParserFragmentationProducesSameState;
+    Var
+      Whole : TTerminalBuffer;
+      Split : TTerminalBuffer;
+      Data  : TBytes;
+      i     : Integer;
+      j     : Integer;
+      x     : Integer;
+      y     : Integer;
+    Begin
+      Data  := TEncoding.UTF8.GetBytes('start'#27'[38:2::17:34:51mą'#27'[2'#7';4H'#27'(0lqk'#27'(B'#27']2;title'#27'\'#27'[6n');
+      Whole := TTerminalBuffer.Create(24, 5);
+      Try
+        Whole.Feed(Data);
+        Assert.AreEqual('title', Whole.Title);
+        For i := 0 To Length(Data) Do
+          Begin
+            Split := TTerminalBuffer.Create(24, 5);
+            Try
+              Split.Feed(Copy(Data, 0, i));
+              For j := i To High(Data) Do
+                Split.Feed(TBytes.Create(Data[j]));
+              Assert.AreEqual(Whole.Text, Split.Text);
+              Assert.AreEqual(Whole.CursorX, Split.CursorX);
+              Assert.AreEqual(Whole.CursorY, Split.CursorY);
+              Assert.AreEqual(Whole.Title, Split.Title);
+              Assert.AreEqual(Whole.BellCount, Split.BellCount);
+              Assert.AreEqual(#27'[2;7R', Split.TakeResponses);
+              For y   := 0 To Whole.Rows - 1 Do
+                For x := 0 To Whole.Columns - 1 Do
+                  Assert.AreEqual(Whole.Cell[x, y].Foreground, Split.Cell[x, y].Foreground);
+            Finally
+              Split.Free;
+            End;
+          End;
+      Finally
+        Whole.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.SCOCursorAliasesPreserveSingleShift;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(4, 4);
+      Try
+        Buffer.FeedText(#27'*0'#27'[31mABCD'#27'N'#27'[s');
+        Buffer.FeedText(#27'[H'#27'[0mxx'#27'8q');
+        Assert.AreEqual('─', Buffer.Cell[0, 1].Text);
+        Assert.AreEqual(1, Buffer.Cell[0, 1].Foreground);
+        Buffer.FeedText(#27'7'#27'[H'#27'[0m'#27'[uq');
+        Assert.AreEqual('q', Buffer.Cell[1, 1].Text);
+        Assert.AreEqual(1, Buffer.Cell[1, 1].Foreground);
+      Finally
+        Buffer.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.DECGraphicsAndCharacterShifts;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(40, 4);
+      Try
+        Buffer.FeedText(#27'(0lqqk'#27'(Bq');
+        Assert.AreEqual('┌──┐q', Buffer.LineText(0));
+        Buffer.FeedText(#13#10#27')0'#14'x'#15'x');
+        Assert.AreEqual('│x', Buffer.LineText(1));
+        Buffer.FeedText(#27'*0'#27'+A'#27'N'#7'q' + 'q' + #27'O##');
+        Assert.AreEqual('│x─q£#', Buffer.LineText(1));
+        Buffer.FeedText(#27'nx'#27'o#'#15'q');
+        Assert.AreEqual('│x─q£#│£q', Buffer.LineText(1));
+        Buffer.FeedText(#27'(0' + 'ą😀' + #27'(B');
+        Assert.IsTrue(Pos('ą😀', Buffer.LineText(1)) > 0);
+      Finally
+        Buffer.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.CharsetDesignationFragmentsAndCancellation;
+    Var
+      Buffer : TTerminalBuffer;
+      Value  : Byte;
+    Begin
+      Buffer := TTerminalBuffer.Create(40, 3);
+      Try
+        For Value In TEncoding.UTF8.GetBytes(#27')0'#14'lqk'#15'q') Do
+          Buffer.Feed(TBytes.Create(Value));
+        Assert.AreEqual('┌─┐q', Buffer.LineText(0));
+        Buffer.FeedText(#27'('#14'0x'#15'x');
+        Assert.AreEqual('┌─┐q││', Buffer.LineText(0));
+        Buffer.FeedText(#27'(%5q');
+        Assert.AreEqual('─', Buffer.Cell[6, 0].Text);
+        Buffer.FeedText(#27'('#24'q'#27')'#26'q');
+        Assert.AreEqual('┌─┐q││───', Buffer.LineText(0));
+        Buffer.FeedText(#27'cqq');
+        Assert.AreEqual('qq', Buffer.LineText(0));
+      Finally
+        Buffer.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.DECCursorRestoresRenditionModesAndCharsets;
+    Var
+      Buffer : TTerminalBuffer;
+      Cell   : TTerminalCell;
+    Begin
+      Buffer := TTerminalBuffer.Create(12, 8);
+      Try
+        Buffer.FeedText(#27'[3;7r'#27'[?6h'#27'[2;3H'#27'[1;3;4;7;31;44m'#27')0'#14#27'[?7l'#27'7');
+        Buffer.FeedText(#15#27')B'#27'[0m'#27'[?6l'#27'[?7h'#27'[H'#27'8q'#27'[6n');
+        Cell := Buffer.Cell[2, 3];
+        Assert.AreEqual('─', Cell.Text);
+        Assert.AreEqual(1, Cell.Foreground);
+        Assert.AreEqual(4, Cell.Background);
+        Assert.IsTrue(Cell.Bold And Cell.Italic And Cell.Underline And Cell.Inverse);
+        Assert.AreEqual(#27'[2;4R', Buffer.TakeResponses);
+        Buffer.FeedText(#27'[1;12Hqq');
+        Assert.AreEqual(2, Buffer.CursorY);
+        Assert.AreEqual(11, Buffer.CursorX);
+        Assert.AreEqual('─', Buffer.Cell[11, 2].Text);
+      Finally
+        Buffer.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.DECCursorPreservesPendingWrap;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(4, 3);
+      Try
+        Buffer.FeedText('ABCD'#27'7'#13'xx'#27'8Z');
+        Assert.AreEqual('xxCD', Buffer.LineText(0));
+        Assert.AreEqual('Z', Buffer.LineText(1));
+        Buffer.FeedText(#27'[?1048h'#27'[H'#27'[?1048lY');
+        Assert.AreEqual('ZY', Buffer.LineText(1));
+      Finally
+        Buffer.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.DECCursorScreenIsolationAnd1048;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(20, 5);
+      Try
+        Buffer.FeedText(#27'[2;4H'#27'[31m'#27'[?1049h');
+        Buffer.FeedText(#27'[3;2H'#27'[32m'#27'7'#27'[H'#27'[0m'#27'8A');
+        Assert.AreEqual('A', Buffer.Cell[1, 2].Text);
+        Assert.AreEqual(2, Buffer.Cell[1, 2].Foreground);
+        Buffer.FeedText(#27'[?1049lP');
+        Assert.IsFalse(Buffer.AlternateScreen);
+        Assert.AreEqual('P', Buffer.Cell[3, 1].Text);
+        Assert.AreEqual(1, Buffer.Cell[3, 1].Foreground);
+        Buffer.FeedText(#27'[?1048h'#27'[H'#27'[0m'#27'[?1048lQ');
+        Assert.AreEqual('Q', Buffer.Cell[4, 1].Text);
+        Assert.AreEqual(1, Buffer.Cell[4, 1].Foreground);
+      Finally
+        Buffer.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.DECCursorDefaultsAndResize;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(12, 8);
+      Try
+        Buffer.FeedText(#27'[1;31m'#27'(0'#27'[?6h'#27'[?7l'#27'8q');
+        Assert.AreEqual('q', Buffer.Cell[0, 0].Text);
+        Assert.AreEqual( -1, Buffer.Cell[0, 0].Foreground);
+        Assert.IsFalse(Buffer.Cell[0, 0].Bold);
+        Buffer.FeedText(#27'[8;12H'#27'7');
+        Buffer.Resize(4, 3);
+        Buffer.FeedText(#27'8');
+        Assert.AreEqual(3, Buffer.CursorX);
+        Assert.AreEqual(2, Buffer.CursorY);
+        Buffer.FeedText(#27'c'#27'[31m'#27'8R');
+        Assert.AreEqual('R', Buffer.Cell[0, 0].Text);
+        Assert.AreEqual( -1, Buffer.Cell[0, 0].Foreground);
+      Finally
+        Buffer.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.UnsupportedCSIHasNoAliasedEffects;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(20, 4);
+      Try
+        Buffer.FeedText('abc'#27'[3;4H');
+        Buffer.FeedText(#27'[ A'#27'[?4J'#27'[>2J'#27'[1:2H');
+        Assert.AreEqual(3, Buffer.CursorX);
+        Assert.AreEqual(2, Buffer.CursorY);
+        Assert.AreEqual('abc', Buffer.LineText(0));
+        Buffer.FeedText(#27'[?3g'#13#9);
+        Assert.AreEqual(8, Buffer.CursorX);
+        Buffer.FeedText(#27'[3g'#27'[?5W'#13#9);
+        Assert.AreEqual(8, Buffer.CursorX);
+      Finally
+        Buffer.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.OriginRelativeCursorReports;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(20, 8);
+      Try
+        Buffer.FeedText(#27'[3;7r'#27'[?6h'#27'[2;4H'#27'[6n'#27'[?6n');
+        Assert.AreEqual(#27'[2;4R'#27'[?2;4;1R', Buffer.TakeResponses);
+        Buffer.FeedText(#27'[?5n');
+        Assert.AreEqual('', Buffer.TakeResponses);
+        Buffer.FeedText(#27'[?6l'#27'[6n');
+        Assert.AreEqual(#27'[1;1R', Buffer.TakeResponses);
+      Finally
+        Buffer.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.ProgrammableTabStops;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(24, 3);
+      Try
+        Buffer.FeedText(#9);
+        Assert.AreEqual(8, Buffer.CursorX);
+        Buffer.FeedText(#27'[3g'#13#9);
+        Assert.AreEqual(23, Buffer.CursorX);
+        Buffer.FeedText(#13#27'[5G'#27);
+        Buffer.FeedText('H'#13#9);
+        Assert.AreEqual(4, Buffer.CursorX);
+        Buffer.FeedText(#27'[12G'#27'H'#13#27'[2I');
+        Assert.AreEqual(11, Buffer.CursorX);
+        Buffer.FeedText(#27'[Z');
+        Assert.AreEqual(4, Buffer.CursorX);
+        Buffer.FeedText(#27'[g'#13#27'[I');
+        Assert.AreEqual(11, Buffer.CursorX);
+        Buffer.FeedText(#27'[999Z');
+        Assert.AreEqual(0, Buffer.CursorX);
+        Assert.AreEqual('', Trim(Buffer.Text));
+      Finally
+        Buffer.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.TabStopsResizeAndReset;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(20, 3);
+      Try
+        Buffer.FeedText(#27'[3g'#27'[6G'#27'H');
+        Buffer.Resize(10, 3);
+        Buffer.FeedText(#13#9);
+        Assert.AreEqual(5, Buffer.CursorX);
+        Buffer.Resize(32, 3);
+        Buffer.FeedText(#13#27'[2I');
+        Assert.AreEqual(24, Buffer.CursorX);
+        Buffer.FeedText(#27'c'#9);
+        Assert.AreEqual(8, Buffer.CursorX);
+        Buffer.FeedText(#27'[2I');
+        Assert.AreEqual(24, Buffer.CursorX);
+        Buffer.FeedText(#27'[I');
+        Assert.AreEqual(31, Buffer.CursorX);
+        Buffer.FeedText(#27'[Z');
+        Assert.AreEqual(24, Buffer.CursorX);
+      Finally
+        Buffer.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.UnchangedSplitPanesReuseComposition;
+    Var
+      Settings    : TGuakeSettings;
+      Main        : TfrmMain;
+      Bitmap      : TBitmap;
+      Frames      : TList<TfraTerminal>;
+      FirstCount  : UInt64;
+      SecondCount : UInt64;
+      RowsBefore  : UInt64;
+
+      Procedure Collect(Host : TWinControl);
+        Var
+          i : Integer;
+        Begin
+          For i := 0 To Host.ControlCount - 1 Do
+            If Host.Controls[i] Is TfraTerminal Then
+              Frames.Add(TfraTerminal(Host.Controls[i]))
+            Else If Host.Controls[i] Is TWinControl Then
+              Collect(TWinControl(Host.Controls[i]));
+        End;
+
+    Begin
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Frames   := TList<TfraTerminal>.Create;
+      Bitmap   := TBitmap.Create;
+      Try
+        Settings.General.DefaultShell         := 'cmd';
+        Settings.General.UseTrayicon          := False;
+        Settings.General.UsePopup             := False;
+        Settings.General.DropDownAnimation    := False;
+        Settings.Keybindings.Global.ShowHide  := 'disabled';
+        Settings.Keybindings.Global.ShowFocus := 'disabled';
+        Main                                  := TfrmMain.Create(Nil);
+        Try
+          Main.Bind(Settings);
+          Main.StartTerminal;
+          Main.Controller.Split(True);
+          Main.HandleNeeded;
+          Main.SetBounds( -30000, 0, 800, 400);
+          Collect(Main.terminalHost);
+          Assert.AreEqual(2, Frames.Count);
+          Frames[0].Session.Buffer.FeedText(#27'[?25l');
+          Frames[1].Session.Buffer.FeedText(#27'[?25l');
+          Frames[0].RefreshTick(Nil);
+          Frames[1].RefreshTick(Nil);
+          Main.RenderWindow(Bitmap);
+          FirstCount  := Frames[0].AlphaRenderCount;
+          SecondCount := Frames[1].AlphaRenderCount;
+          Main.RenderWindow(Bitmap);
+          Assert.AreEqual(FirstCount, Frames[0].AlphaRenderCount, 'Idle pane must reuse its pixels');
+          Assert.AreEqual(SecondCount, Frames[1].AlphaRenderCount);
+          RowsBefore := Frames[0].RasterRowCount;
+          Frames[0].Session.Buffer.FeedText('new output');
+          Frames[0].RefreshTick(Nil);
+          Main.RenderWindow(Bitmap);
+          Assert.AreEqual(FirstCount + UInt64(1), Frames[0].AlphaRenderCount);
+          Assert.AreEqual(SecondCount, Frames[1].AlphaRenderCount, 'Output in another pane must not rasterize this pane');
+          Assert.AreEqual(RowsBefore + UInt64(1), Frames[0].RasterRowCount, 'Typing must rasterize only the changed row');
+          Settings.Style.Background.Transparency := 50;
+          Main.RenderWindow(Bitmap);
+          Assert.AreEqual(SecondCount + UInt64(1), Frames[1].AlphaRenderCount, 'Opacity change invalidates cached alpha');
+          Frames[0].Session.Buffer.FeedText(StringOfChar('H', Frames[0].Session.Buffer.Columns * (Frames[0].Session.Buffer.Rows + 4)));
+          Frames[0].RefreshTick(Nil);
+          Frames[0].Session.Buffer.FeedText(#27'[?1049h' + #27'[?25l' + #27'[H' + #27'[41m ' + #27'[m');
+          Frames[0].RefreshTick(Nil);
+          Frames[0].RenderAlpha(Bitmap, 255);
+          Frames[0].Session.Buffer.FeedText(#27'[H' + #27'[42m ' + #27'[m');
+          Frames[0].RefreshTick(Nil);
+          Frames[0].RenderAlpha(Bitmap, 255);
+          Assert.IsTrue(PixelAt(Bitmap, 5, 5).rgbGreen > PixelAt(Bitmap, 5, 5).rgbRed,
+          'Incremental redraw must compare the alternate screen, not primary scrollback');
+        Finally
+          Main.Free;
+        End;
+      Finally
+        Bitmap.Free;
+        Frames.Free;
+        Settings.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.BatchedAsciiPreservesCellPixels;
+    Var
+      Settings      : TGuakeSettings;
+      Main          : TfrmMain;
+      Frame         : TfraTerminal;
+      Actual        : TBitmap;
+      Reference     : TBitmap;
+      Text          : TArray<String>;
+      Palette       : TArray<String>;
+      CellWidth     : Integer;
+      CellHeight    : Integer;
+      Row           : Integer;
+      Column        : Integer;
+      x             : Integer;
+      y             : Integer;
+      Bounds        : TRect;
+      ActualPixel   : PCardinal;
+      ExpectedPixel : PCardinal;
+    Begin
+      Settings  := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Actual    := TBitmap.Create;
+      Reference := TBitmap.Create;
+      Try
+        Settings.General.DefaultShell         := 'cmd';
+        Settings.General.UseTrayicon          := False;
+        Settings.General.UsePopup             := False;
+        Settings.Keybindings.Global.ShowHide  := 'disabled';
+        Settings.Keybindings.Global.ShowFocus := 'disabled';
+        Main                                  := TfrmMain.Create(Nil);
+        Try
+          Main.Bind(Settings);
+          Main.StartTerminal;
+          Main.HandleNeeded;
+          Main.SetBounds( -30000, 0, 500, 160);
+          Frame := Main.ActiveTerminalFrame;
+          Text  := TArray<String>.Create('ASCII Wi01 % [abc] /foo', 'More monospace text 1234567890');
+          Frame.Session.Buffer.FeedText(#27'[2J' + #27'[H' + Text[0] + #13#10 + Text[1] + #27'[?25l');
+          Frame.RefreshTick(Nil);
+          Frame.RenderAlpha(Actual, 255);
+          Reference.PixelFormat := pf32bit;
+          Reference.SetSize(Actual.Width, Actual.Height);
+          Palette                      := Settings.Style.Font.Palette.Split([':']);
+          Reference.Canvas.Brush.Color := ParseTerminalColor(Palette[17]);
+          Reference.Canvas.FillRect(Rect(0, 0, Reference.Width, Reference.Height));
+          Reference.Canvas.Font.Assign(Frame.Font);
+          CellWidth  := Reference.Canvas.TextWidth('M');
+          CellHeight := Reference.Canvas.TextHeight('Mg');
+          SetBkMode(Reference.Canvas.Handle, TRANSPARENT);
+          SetTextColor(Reference.Canvas.Handle, ParseTerminalColor(Palette[16]));
+          For Row      := 0 To High(Text) Do
+            For Column := 1 To Length(Text[Row]) Do
+              Begin
+                Bounds := Rect(4 + (Column - 1) * CellWidth, 4 + Row * CellHeight,
+                4 + Column * CellWidth, 4 + (Row + 1) * CellHeight);
+                ExtTextOut(Reference.Canvas.Handle, Bounds.Left, Bounds.Top, ETO_CLIPPED, @Bounds,
+                @Text[Row][Column], 1, Nil);
+              End;
+          For y := 0 To Reference.Height - 1 Do
+            Begin
+              ActualPixel   := Actual.ScanLine[y];
+              ExpectedPixel := Reference.ScanLine[y];
+              For x         := 0 To Reference.Width - 1 Do
+                Begin
+                  If (ActualPixel^ And $FFFFFF) <> (ExpectedPixel^ And $FFFFFF) Then
+                    Assert.Fail(Format('ASCII grid pixel differs at %d,%d', [x, y]));
+                  Inc(ActualPixel);
+                  Inc(ExpectedPixel);
+                End;
+            End;
+
+          Frame.Session.Buffer.FeedText(#27'[1;1H' + #27'[2K');
+          Frame.RefreshTick(Nil);
+          Frame.RenderAlpha(Actual, 255);
+          Reference.Canvas.Brush.Color := ParseTerminalColor(Palette[17]);
+          Reference.Canvas.FillRect(Rect(0, 4, Reference.Width, 4 + CellHeight));
+          For y := 0 To Reference.Height - 1 Do
+            Begin
+              ActualPixel   := Actual.ScanLine[y];
+              ExpectedPixel := Reference.ScanLine[y];
+              For x         := 0 To Reference.Width - 1 Do
+                Begin
+                  If (ActualPixel^ And $FFFFFF) <> (ExpectedPixel^ And $FFFFFF) Then
+                    Assert.Fail(Format('Incremental erase changed another row or left stale pixels at %d,%d', [x, y]));
+                  Inc(ActualPixel);
+                  Inc(ExpectedPixel);
+                End;
+            End;
+          Assert.AreEqual(Reference.Width, Actual.Width);
+        Finally
+          Main.Free;
+        End;
+      Finally
+        Reference.Free;
+        Actual.Free;
+        Settings.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.TerminalCompositionLatency;
+    Var
+      Settings : TGuakeSettings;
+      Main     : TfrmMain;
+      Frame    : TfraTerminal;
+      Bitmap   : TBitmap;
+      Watch    : TStopwatch;
+      i        : Integer;
+      Sparse   : Double;
+      Dense    : Double;
+      Line     : String;
+    Begin
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Bitmap   := TBitmap.Create;
+      Try
+        Settings.General.DefaultShell          := 'cmd';
+        Settings.General.UseTrayicon           := False;
+        Settings.General.UsePopup              := False;
+        Settings.General.DropDownAnimation     := False;
+        Settings.Keybindings.Global.ShowHide   := 'disabled';
+        Settings.Keybindings.Global.ShowFocus  := 'disabled';
+        Settings.Style.Background.Transparency := 85;
+        Main                                   := TfrmMain.Create(Nil);
+        Try
+          Main.Bind(Settings);
+          Main.StartTerminal;
+          Main.HandleNeeded;
+          Main.SetBounds( -30000, 0, 1920, 1080);
+          Frame := Main.ActiveTerminalFrame;
+          Frame.Session.Buffer.FeedText(#27'[2J' + #27'[H' + 'prompt> ');
+          Frame.RefreshTick(Nil);
+          Main.RenderWindow(Bitmap);
+          Watch := TStopwatch.StartNew;
+          For i := 1 To 5 Do
+            Begin
+              Frame.Session.Buffer.FeedText('x');
+              Frame.RefreshTick(Nil);
+              Main.RenderWindow(Bitmap);
+            End;
+          Sparse := Watch.Elapsed.TotalMilliseconds / 5;
+          Line   := StringOfChar('A', Frame.Session.Buffer.Columns - 1) + #13#10;
+          For i  := 1 To Frame.Session.Buffer.Rows - 2 Do
+            Frame.Session.Buffer.FeedText(Line);
+          Frame.RefreshTick(Nil);
+          Main.RenderWindow(Bitmap);
+          Watch := TStopwatch.StartNew;
+          For i := 1 To 5 Do
+            Begin
+              Frame.Session.Buffer.FeedText('x');
+              Frame.RefreshTick(Nil);
+              Main.RenderWindow(Bitmap);
+            End;
+          Dense := Watch.Elapsed.TotalMilliseconds / 5;
+          TFile.WriteAllText(TPath.Combine(ExtractFilePath(ParamStr(0)), 'composition-latency.txt'),
+          Format('1920x1080; sparse=%.3f ms; dense=%.3f ms', [Sparse, Dense], TFormatSettings.Invariant));
+          Assert.AreEqual(1920, Bitmap.Width);
+          Assert.AreEqual(1080, Bitmap.Height);
+        Finally
+          Main.Free;
+        End;
+      Finally
+        Bitmap.Free;
+        Settings.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.TabColorsScopesAndSessionRestore;
+    Var
+      Settings   : TGuakeSettings;
+      Controller : TTerminalController;
+      Restored   : TTerminalController;
+      First      : TTerminalSession;
+      State      : String;
+      Before     : String;
+      Options    : TGuakeLaunchOptions;
+    Begin
+      Assert.AreEqual(Integer(RGB($AA, $BB, $CC)), ParseTerminalColor('abc'));
+      Assert.AreEqual(Integer(RGB(255, 0, 128)), ParseTerminalColor('#ffff00008080'));
+      Assert.WillRaise(Procedure Begin ParseTerminalColor('not-a-color'); End, EArgumentException);
+      Options := ParseGuakeArguments(TArray<String>.Create('--bgcolor', '123456', '--fgcolor-current', 'abc', '--reset-colors-current'));
+      Assert.AreEqual(3, Integer(Length(Options.Commands)));
+      Assert.IsTrue(Pos('bgcolor', Options.Commands[0]) > 0);
+      Assert.IsTrue(Pos('current', Options.Commands[1]) > 0);
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Try
+        Settings.General.DefaultShell := 'cmd';
+        Controller                    := TTerminalController.Create(Settings);
+        Restored                      := TTerminalController.Create(Settings);
+        Try
+          Controller.NewTab;
+          First := Controller.ActiveSession;
+          Controller.Split(True);
+          Controller.SetColor(True, clRed);
+          Assert.AreEqual(Integer(clRed), First.CustomForeground);
+          Assert.AreEqual(Integer(clRed), Controller.ActiveSession.CustomForeground);
+          Controller.SetColor(False, clBlue, tcsTerminal);
+          Assert.AreEqual( -1, First.CustomBackground);
+          Assert.AreEqual(Integer(clBlue), Controller.ActiveSession.CustomBackground);
+          Controller.NewTab;
+          Assert.AreEqual( -1, Controller.ActiveSession.CustomForeground);
+          Controller.SelectTab(0);
+          State := Controller.SessionState;
+          Restored.RestoreState(State);
+          Assert.AreEqual(2, Restored.Count);
+          Assert.AreEqual(Integer(clBlue), Restored.ActiveSession.CustomBackground);
+          Assert.AreEqual(Integer(clRed), Restored.ActiveTab.Root.First.Session.CustomForeground);
+          Restored.ResetColors(tcsTerminal);
+          Assert.AreEqual( -1, Restored.ActiveSession.CustomForeground);
+          Assert.AreEqual(Integer(clRed), Restored.ActiveTab.Root.First.Session.CustomForeground);
+          Restored.ResetColors(tcsTab);
+          Assert.AreEqual( -1, Restored.ActiveTab.Root.First.Session.CustomForeground);
+          Restored.SetColor(True, clGreen, tcsAll);
+          Restored.ResetColors;
+          Assert.AreEqual( -1, Restored.Tabs[1].Active.Session.CustomForeground);
+          Before := Restored.SessionState;
+          Assert.WillRaise(Procedure Begin Restored.RestoreState(StringReplace(Before,
+          '"custom-foreground":-1', '"custom-foreground":16777216', [rfReplaceAll])); End, EArgumentOutOfRangeException);
+          Assert.AreEqual(Before, Restored.SessionState, 'Invalid colors must not replace live sessions');
+        Finally
+          Restored.Free;
+          Controller.Free;
+        End;
+      Finally
+        Settings.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.TabColorsRenderAndDeferredClose;
+    Var
+      Settings : TGuakeSettings;
+      Main     : TfrmMain;
+      Output   : TBitmap;
+      Preview  : TPngImage;
+      Pixel    : TRGBQuad;
+      Bounds   : TRect;
+      FirstId  : String;
+      Origin   : TPoint;
+      x        : Integer;
+      y        : Integer;
+      Dark     : Integer;
+    Begin
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Output   := TBitmap.Create;
+      Try
+        Settings.General.DefaultShell         := 'cmd';
+        Settings.General.UseTrayicon          := False;
+        Settings.General.UsePopup             := False;
+        Settings.General.DropDownAnimation    := False;
+        Settings.General.TabCloseButtons      := True;
+        Settings.General.DisplayTabActivity   := True;
+        Settings.General.PromptOnCloseTab     := 0;
+        Settings.Keybindings.Global.ShowHide  := 'disabled';
+        Settings.Keybindings.Global.ShowFocus := 'disabled';
+        Main                                  := TfrmMain.Create(Nil);
+        Try
+          Main.Bind(Settings);
+          Main.StartTerminal;
+          Main.Show;
+          Main.SetBounds( -30000, 0, 1000, 300);
+          FirstId := Main.Controller.ActiveTab.Id;
+          Main.ExecuteIPCCommand('{"action":"bgcolor","color":"123456"}');
+          Main.ActiveTerminalFrame.RenderAlpha(Output, 255);
+          Pixel := PixelAt(Output, 1, 1);
+          Assert.AreEqual(18, Integer(Pixel.rgbRed));
+          Assert.AreEqual(52, Integer(Pixel.rgbGreen));
+          Assert.AreEqual(86, Integer(Pixel.rgbBlue));
+          Main.TabMenuPopup(Nil);
+          Assert.IsTrue(Main.miRestoreTabColors.Enabled);
+          Main.miRestoreTabColors.Click;
+          Assert.AreEqual( -1, Main.Controller.ActiveSession.CustomBackground);
+          Main.Controller.NewTab;
+          Main.Controller.SelectTab(0);
+          Main.Controller.Tabs[1].HasActivity := True;
+          Main.ApplySettings;
+          Assert.IsTrue(Main.tabBar.OwnerDraw);
+          Main.RenderWindow(Output);
+          Bounds  := Main.TabCloseRect(1);
+          Origin  := Main.ScreenToClient(Main.tabBar.ClientToScreen(Point(0, 0)));
+          Dark    := 0;
+          For y   := (Bounds.Top + Bounds.Bottom) Div 2 - 3 To(Bounds.Top + Bounds.Bottom) Div 2 + 3 Do
+            For x := (Bounds.Left + Bounds.Right) Div 2 - 3 To(Bounds.Left + Bounds.Right) Div 2 + 3 Do
+              Begin
+                Pixel := PixelAt(Output, Origin.x + x, Origin.y + y);
+                If (Pixel.rgbRed < 100) And (Pixel.rgbGreen < 100) And (Pixel.rgbBlue < 100) Then
+                  Inc(Dark);
+              End;
+          Assert.IsTrue(Dark >= 4, 'The close icon must be present in the layered-window bitmap');
+          Assert.IsTrue(Main.tabBar.Tabs[1] <> '', 'Tab caption must not be empty');
+          Bounds       := Main.tabBar.TabRect(1);
+          Bounds.Right := Main.TabCloseRect(1).Left - 2;
+          InflateRect(Bounds, -6, -4);
+          Dark    := 0;
+          For y   := Bounds.Top To Bounds.Bottom - 1 Do
+            For x := Bounds.Left To Bounds.Right - 1 Do
+              Begin
+                Pixel := PixelAt(Output, Origin.x + x, Origin.y + y);
+                If (Pixel.rgbRed < 100) And (Pixel.rgbGreen < 100) And (Pixel.rgbBlue < 100) Then
+                  Inc(Dark);
+              End;
+          Assert.IsTrue(Dark >= 3, Format('Caption [%s], text bounds %d,%d..%d,%d, dark %d', [Main.tabBar.Tabs[1], Bounds.Left, Bounds.Top, Bounds.Right, Bounds.Bottom, Dark]));
+          Preview := TPngImage.Create;
+          Try
+            Preview.Assign(Output);
+            Preview.SaveToFile(TPath.Combine(ExtractFilePath(ParamStr(0)), 'tabs-preview.png'));
+          Finally
+            Preview.Free;
+          End;
+          Bounds := Main.TabCloseRect(1);
+          Main.TabMouseDown(Main.tabBar, mbLeft, [], (Bounds.Left + Bounds.Right) Div 2, (Bounds.Top + Bounds.Bottom) Div 2);
+          Assert.AreEqual(2, Main.Controller.Count, 'Close is deferred until after the native mouse notification');
+          Main.Perform(WM_APP + 44, 0, 0);
+          Assert.AreEqual(1, Main.Controller.Count);
+          Assert.AreEqual(FirstId, Main.Controller.ActiveTab.Id);
+          Settings.General.TabCloseButtons := False;
+          Main.ApplySettings;
+          Bounds := Main.TabCloseRect(0);
+          Main.TabMouseDown(Main.tabBar, mbLeft, [], (Bounds.Left + Bounds.Right) Div 2, (Bounds.Top + Bounds.Bottom) Div 2);
+          Main.Perform(WM_APP + 44, 0, 0);
+          Assert.AreEqual(1, Main.Controller.Count, 'Disabled close button cannot close a tab');
+        Finally
+          Main.Free;
+        End;
+      Finally
+        Output.Free;
+        Settings.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.TabActivityHonorsGraceAndSelection;
+    Var
+      Settings   : TGuakeSettings;
+      Controller : TTerminalController;
+      First      : TTerminalTab;
+      Deadline   : UInt64;
+
+      Procedure WaitForOutput(Const Marker : String);
+        Begin
+          Deadline := GetTickCount64 + 5000;
+          Repeat
+            Controller.Poll;
+            If Pos(Marker, First.Root.Session.Buffer.Text) > 0 Then
+              Exit;
+            Sleep(10);
+          Until GetTickCount64 >= Deadline;
+          Assert.Fail('Background shell did not produce output');
+        End;
+
+    Begin
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Try
+        Settings.General.DefaultShell              := 'cmd';
+        Settings.General.DisplayTabActivity        := True;
+        Settings.General.TabActivityNewTabGrace    := 60;
+        Settings.General.TabActivityFocusLossGrace := 60;
+        Controller                                 := TTerminalController.Create(Settings);
+        Try
+          First := Controller.NewTab;
+          Controller.NewTab;
+          Assert.IsTrue(First.ActivityIgnoreUntil > GetTickCount64 + 50000);
+          First.Root.Session.SendText('echo ACTIVITY_IGNORED' + #13);
+          WaitForOutput('ACTIVITY_IGNORED');
+          Assert.IsFalse(First.HasActivity);
+          First.ActivityIgnoreUntil := 0;
+          First.Root.Session.SendText('echo ACTIVITY_MARKED' + #13);
+          WaitForOutput('ACTIVITY_MARKED');
+          Assert.IsTrue(First.HasActivity);
+          Controller.SelectTab(0);
+          Assert.IsFalse(First.HasActivity, 'Selecting a tab acknowledges its activity');
+          Controller.SelectTab(1);
+          Assert.IsTrue(First.ActivityIgnoreUntil > GetTickCount64 + 50000);
+          First.HasActivity                   := True;
+          Settings.General.DisplayTabActivity := False;
+          Controller.Poll;
+          Assert.IsFalse(First.HasActivity, 'Disabling activity clears existing highlights');
+        Finally
+          Controller.Free;
+        End;
+      Finally
+        Settings.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.QuickOpenDiagnosticsAndShellQuoting;
+    Var
+      Directory : String;
+      FileName  : String;
+      Text      : String;
+      Posix     : String;
+      Command   : String;
+      Target    : TQuickOpenTarget;
+    Begin
+      Directory := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
+      TDirectory.CreateDirectory(Directory);
+      FileName := TPath.Combine(Directory, 'zażółć test.py');
+      Try
+        TFile.WriteAllText(FileName, '# header' + #10 + 'class Tests:' + #10 + '    def test_value(self): pass' + #10, TEncoding.UTF8);
+        Text := '  File "' + FileName + '", line 27, in main';
+        Assert.IsTrue(FindQuickOpenTarget(Text, 10, Directory, '', Target), 'Python traceback');
+        Assert.AreEqual(FileName, Target.FileName);
+        Assert.AreEqual(27, Target.LineNumber);
+        Text := '"' + FileName + '":17:4: error';
+        Assert.IsTrue(FindQuickOpenTarget(Text, 3, Directory, '', Target), 'Quoted GCC diagnostic');
+        Assert.AreEqual(17, Target.LineNumber);
+        Assert.AreEqual(4, Target.ColumnNumber);
+        Text := FileName + ':32:9: error';
+        Assert.IsTrue(FindQuickOpenTarget(Text, 3, Directory, '', Target), 'Unquoted GCC path with spaces');
+        Assert.AreEqual(32, Target.LineNumber);
+        Assert.AreEqual(9, Target.ColumnNumber);
+        Assert.AreEqual('https://example.org/a', TerminalLinkAt('https://example.org/a', 0));
+        Assert.AreEqual('https://example.org/a', TerminalLinkAt('https://example.org/a', 20));
+        Text := FileName + '(31,8): error';
+        Assert.IsTrue(FindQuickOpenTarget(Text, 3, Directory, '', Target), 'Delphi/MSVC diagnostic');
+        Assert.AreEqual(31, Target.LineNumber);
+        Assert.AreEqual(8, Target.ColumnNumber);
+        Assert.IsTrue(FindQuickOpenTarget('"zażółć test.py"', -1, Directory, '', Target), 'Relative quoted path');
+        Assert.AreEqual(FileName, Target.FileName);
+        TFile.Copy(FileName, TPath.Combine(Directory, 'test.py'));
+        Assert.IsTrue(FindQuickOpenTarget('test.py::Tests::test_value', 2, Directory, '', Target), 'Pytest function');
+        Assert.AreEqual(3, Target.LineNumber);
+        Posix := StringReplace(FileName, '\', '/', [rfReplaceAll]);
+        Posix := '/' + LowerCase(Posix[1]) + Copy(Posix, 3, MaxInt);
+        Assert.IsTrue(FindQuickOpenTarget('"' + Posix + '"', -1, Directory, '', Target), 'Git drive path');
+        Assert.AreEqual(FileName, Target.FileName);
+        TDirectory.CreateDirectory(TPath.Combine(Directory, 'usr\include'));
+        TFile.WriteAllText(TPath.Combine(Directory, 'usr\include\test.h'), 'test');
+        Assert.IsTrue(FindQuickOpenTarget('/usr/include/test.h:9', 5, Directory, Directory, Target), 'Git SDK path');
+        Assert.AreEqual(9, Target.LineNumber);
+        Assert.IsFalse(FindQuickOpenTarget('missing.py:23', 2, Directory, '', Target), 'Missing file');
+        Assert.IsFalse(FindQuickOpenTarget('prefix "' + FileName + '":17 suffix', 0, Directory, '', Target), 'Click outside the file');
+        Assert.IsFalse(FindQuickOpenTarget(StringOfChar('x', 8193), 0, Directory, '', Target), 'Oversized diagnostic');
+        Target.FileName     := 'C:\folder with spaces\O''Brien $x.py';
+        Target.LineNumber   := 17;
+        Target.ColumnNumber := 4;
+        Assert.AreEqual('editor "C:\folder with spaces\O''Brien $x.py":17:4',
+        QuickOpenCommand('editor %(file_path)s:%(line_number)s:%(column_number)s', Target, gsCmd));
+        Assert.AreEqual('editor "C:\folder with spaces\O''Brien $x.py"',
+        QuickOpenCommand('editor "%(file_path)s"', Target, gsCmd));
+        Command := QuickOpenCommand('editor %(file_path)s', Target, gsPowerShell);
+        Assert.IsTrue(Pos('O''''Brien', Command) > 0, 'PowerShell apostrophe');
+        Command := QuickOpenCommand('editor "%(file_path)s"', Target, gsPowerShell);
+        Assert.IsTrue(Pos('`$x', Command) > 0, 'PowerShell expansion');
+        Command := QuickOpenCommand('editor %(file_path)s', Target, gsBash);
+        Assert.IsTrue(Pos('/c/folder with spaces/', Command) > 0, 'POSIX drive mapping');
+        Assert.IsTrue(Pos(#39'"'#39'"'#39, Command) > 0, 'POSIX apostrophe');
+        Command := QuickOpenCommand('editor "%(file_path)s"', Target, gsZsh);
+        Assert.IsTrue(Pos('\$x', Command) > 0, 'Zsh expansion');
+      Finally
+        TDirectory.Delete(Directory, True);
+      End;
+    End;
+
+  Procedure TTerminalTests.QuickOpenCtrlClickAndContextMenu;
+    Var
+      Settings  : TGuakeSettings;
+      Main      : TfrmMain;
+      Frame     : TfraTerminal;
+      Directory : String;
+      FileName  : String;
+      FlagFile  : String;
+      Text      : String;
+      Deadline  : UInt64;
+
+      Procedure WaitForEditor;
+        Begin
+          Deadline := GetTickCount64 + 5000;
+          While Not TFile.Exists(FlagFile) And (GetTickCount64 < Deadline) Do
+            Begin
+              Main.PollTerminal(Nil);
+              Sleep(10);
+            End;
+          Assert.IsTrue(TFile.Exists(FlagFile), 'Editor command was not executed');
+          Assert.AreEqual('QUICK_OPEN_17_4', Trim(TFile.ReadAllText(FlagFile)));
+        End;
+
+      Procedure PutDiagnostic;
+        Begin
+          Frame.Session.Buffer.FeedText(#27'[2J' + #27'[H' + Text);
+          Frame.RefreshTick(Nil);
+        End;
+
+    Begin
+      Directory := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
+      TDirectory.CreateDirectory(Directory);
+      FileName := TPath.Combine(Directory, 'test.pas');
+      FlagFile := TPath.Combine(Directory, 'opened.txt');
+      Settings := TGuakeSettings.Create(TPath.Combine(Directory, 'settings.ini'));
+      Try
+        TFile.WriteAllText(FileName, 'test');
+        Settings.General.DefaultShell               := 'cmd';
+        Settings.General.UseTrayicon                := False;
+        Settings.General.UsePopup                   := False;
+        Settings.General.DropDownAnimation          := False;
+        Settings.Keybindings.Global.ShowHide        := 'disabled';
+        Settings.Keybindings.Global.ShowFocus       := 'disabled';
+        Settings.General.QuickOpenEnable            := True;
+        Settings.General.QuickOpenInCurrentTerminal := True;
+        Settings.General.QuickOpenCommandLine       := 'echo QUICK_OPEN_%(line_number)s_%(column_number)s>"' + FlagFile + '"';
+        Main                                        := TfrmMain.Create(Nil);
+        Try
+          Main.Bind(Settings);
+          Main.StartTerminal;
+          Main.Show;
+          Main.SetBounds( -30000, 0, 1200, 300);
+          Frame := Main.ActiveTerminalFrame;
+          Text  := '"' + FileName + '":17:4';
+          PutDiagnostic;
+          Frame.SurfaceMouseDown(Nil, mbLeft, [ssCtrl], 6, 5);
+          Frame.SurfaceMouseUp(Nil, mbLeft, [ssCtrl], 6, 5);
+          Assert.AreEqual('', Frame.SelectedText);
+          WaitForEditor;
+          TFile.Delete(FlagFile);
+          Settings.General.QuickOpenInCurrentTerminal := False;
+          PutDiagnostic;
+          Assert.IsTrue(Pos(Text, Frame.Session.Buffer.Text) > 0, 'Diagnostic must be available for selection');
+          Frame.HighlightText(Pos(Text, Frame.Session.Buffer.Text), Length(Text));
+          Assert.AreEqual(Text, Frame.SelectedText, 'Select the entire diagnostic including its column');
+          Main.TerminalMenuPopup(Nil);
+          Assert.IsTrue(Main.miQuickOpen.Enabled, 'Selected diagnostic enables Quick Open: ' + Frame.SelectedText);
+          Main.miQuickOpen.Click;
+          WaitForEditor;
+          TFile.Delete(FlagFile);
+          Settings.General.QuickOpenEnable := False;
+          Main.TerminalMenuPopup(Nil);
+          Assert.IsFalse(Main.miQuickOpen.Enabled);
+          Frame.SurfaceMouseDown(Nil, mbLeft, [ssCtrl], 6, 5);
+          Frame.SurfaceMouseUp(Nil, mbLeft, [ssCtrl], 6, 5);
+          Assert.IsFalse(TFile.Exists(FlagFile));
+        Finally
+          Main.Free;
+        End;
+      Finally
+        Settings.Free;
+        TDirectory.Delete(Directory, True);
+      End;
+    End;
+
+  Function PixelAt(Bitmap : TBitmap; x, y : Integer) : TRGBQuad;
+    Var
+      Pixel : PRGBQuad;
+    Begin
+      Pixel := Bitmap.ScanLine[y];
+      Inc(Pixel, x);
+      Result := Pixel^;
+    End;
+
+  Procedure TTerminalTests.PerPixelAlphaComposition;
+    Var
+      Color      : TBitmap;
+      Background : TBitmap;
+      Mask       : TBitmap;
+      Output     : TBitmap;
+      Pixel      : TRGBQuad;
+    Begin
+      Color      := TBitmap.Create;
+      Background := TBitmap.Create;
+      Mask       := TBitmap.Create;
+      Output     := TBitmap.Create;
+      Try
+        Color.PixelFormat      := pf32bit;
+        Background.PixelFormat := pf32bit;
+        Mask.PixelFormat       := pf32bit;
+        Color.SetSize(3, 1);
+        Background.SetSize(3, 1);
+        Mask.SetSize(3, 1);
+        Background.Canvas.Brush.Color := RGB(40, 80, 120);
+        Background.Canvas.FillRect(Rect(0, 0, 3, 1));
+        Color.Assign(Background);
+        Color.Canvas.Pixels[1, 0] := RGB(200, 100, 60);
+        Color.Canvas.Pixels[2, 0] := RGB(120, 90, 90);
+        Mask.Canvas.Pixels[0, 0]  := clBlack;
+        Mask.Canvas.Pixels[1, 0]  := clWhite;
+        Mask.Canvas.Pixels[2, 0]  := RGB(128, 128, 128);
+        ComposeTerminalAlpha(Color, Background, Mask, Output, 128);
+        Pixel := PixelAt(Output, 0, 0);
+        Assert.AreEqual(128, Integer(Pixel.rgbReserved));
+        Assert.AreEqual(20, Integer(Pixel.rgbRed));
+        Assert.AreEqual(40, Integer(Pixel.rgbGreen));
+        Assert.AreEqual(60, Integer(Pixel.rgbBlue));
+        Pixel := PixelAt(Output, 1, 0);
+        Assert.AreEqual(255, Integer(Pixel.rgbReserved));
+        Assert.AreEqual(200, Integer(Pixel.rgbRed));
+        Pixel := PixelAt(Output, 2, 0);
+        Assert.AreEqual(192, Integer(Pixel.rgbReserved));
+        Assert.AreEqual(110, Integer(Pixel.rgbRed));
+        ComposeTerminalAlpha(Color, Background, Mask, Output, 0);
+        Assert.AreEqual(0, Integer(PixelAt(Output, 0, 0).rgbReserved));
+        Assert.AreEqual(255, Integer(PixelAt(Output, 1, 0).rgbReserved));
+        ComposeTerminalAlpha(Color, Background, Mask, Output, 255);
+        Assert.AreEqual(255, Integer(PixelAt(Output, 0, 0).rgbReserved));
+        Assert.AreEqual(40, Integer(PixelAt(Output, 0, 0).rgbRed));
+      Finally
+        Output.Free;
+        Mask.Free;
+        Background.Free;
+        Color.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.TerminalBackgroundAlphaAndWindowControls;
+    Var
+      Settings     : TGuakeSettings;
+      Main         : TfrmMain;
+      Frame        : TfraTerminal;
+      Output       : TBitmap;
+      Preview      : TPngImage;
+      Point        : TPoint;
+      x            : Integer;
+      y            : Integer;
+      OpaquePixels : Integer;
+    Begin
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Output   := TBitmap.Create;
+      Try
+        Settings.General.DefaultShell          := 'cmd';
+        Settings.General.UseTrayicon           := False;
+        Settings.General.UsePopup              := False;
+        Settings.General.DropDownAnimation     := False;
+        Settings.Keybindings.Global.ShowHide   := 'disabled';
+        Settings.Keybindings.Global.ShowFocus  := 'disabled';
+        Settings.Style.Background.Transparency := 40;
+        Main                                   := TfrmMain.Create(Nil);
+        Try
+          Main.Bind(Settings);
+          Main.StartTerminal;
+          Main.Show;
+          Main.SetBounds( -30000, 0, 700, 200);
+          Main.PollTerminal(Nil);
+          Frame := Main.ActiveTerminalFrame;
+          Frame.Session.Buffer.FeedText(#27'[2J' + #27'[H' + #27'[?25l' + 'M' + #27'[41m '#27'[0m');
+          Frame.RefreshTick(Nil);
+          Frame.RenderAlpha(Output, 102);
+          Assert.AreEqual(102, Integer(PixelAt(Output, 1, 1).rgbReserved), 'Background opacity');
+          OpaquePixels := 0;
+          For y        := 4 To 18 Do
+            For x      := 4 To 10 Do
+              If PixelAt(Output, x, y).rgbReserved = 255 Then
+                Inc(OpaquePixels);
+          Assert.IsTrue(OpaquePixels > 0, 'Foreground glyph must remain opaque');
+          Assert.AreEqual(255, Integer(PixelAt(Output, 12, 5).rgbReserved), 'Explicit SGR background');
+          Main.RenderWindow(Output);
+          Point := Main.ScreenToClient(Frame.surface.ClientToScreen(System.Types.Point(1, 1)));
+          Assert.AreEqual(102, Integer(PixelAt(Output, Point.x, Point.y).rgbReserved));
+          Point := Main.ScreenToClient(Main.tabHost.ClientToScreen(System.Types.Point(2, 2)));
+          Assert.AreEqual(255, Integer(PixelAt(Output, Point.x, Point.y).rgbReserved), 'Tab bar opacity');
+          Assert.IsTrue(Main.tabHost.Visible);
+          Assert.IsTrue((Point.x >= 0) And (Point.y >= 0) And (Point.x < Output.Width) And (Point.y < Output.Height));
+          Assert.IsTrue(Integer(PixelAt(Output, Point.x, Point.y).rgbRed) + PixelAt(Output, Point.x, Point.y).rgbGreen + PixelAt(Output, Point.x, Point.y).rgbBlue > 0, 'Native tab control must be painted, not a black rectangle');
+          Preview := TPngImage.Create;
+          Try
+            Preview.Assign(Output);
+            Preview.SaveToFile(TPath.Combine(ExtractFilePath(ParamStr(0)), 'terminal-alpha-preview.png'));
+          Finally
+            Preview.Free;
+          End;
+          Main.SetFullScreen(True);
+          Main.PollTerminal(Nil);
+          Main.SetFullScreen(False);
+          Main.PollTerminal(Nil);
+          Main.RenderWindow(Output);
+          Point := Main.ScreenToClient(Frame.surface.ClientToScreen(System.Types.Point(1, 1)));
+          Assert.AreEqual(102, Integer(PixelAt(Output, Point.x, Point.y).rgbReserved), 'Fullscreen must not multiply opacity');
+          Settings.Style.Background.Transparency := 100;
+          Main.ApplySettings;
+          Assert.IsTrue((GetWindowLongPtr(Main.Handle, GWL_EXSTYLE) And WS_EX_LAYERED) = 0);
+          Settings.Style.Background.Transparency := 0;
+          Main.ApplySettings;
+          Main.PollTerminal(Nil);
+          Main.RenderWindow(Output);
+          Point := Main.ScreenToClient(Frame.surface.ClientToScreen(System.Types.Point(1, 1)));
+          Assert.AreEqual(1, Integer(PixelAt(Output, Point.x, Point.y).rgbReserved), 'Transparent background retains mouse hit testing');
+        Finally
+          Main.Free;
+        End;
+      Finally
+        Output.Free;
+        Settings.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.AnimatedGifDisposalAndFiniteLoop;
+    Var
+      Image     : TGIFImage;
+      Bitmap    : TBitmap;
+      Frame     : TGIFFrame;
+      Animation : TAnimatedBackground;
+    Begin
+      Image  := TGIFImage.Create;
+      Bitmap := TBitmap.Create;
+      Try
+        Bitmap.SetSize(2, 2);
+        Bitmap.Canvas.Brush.Color := clRed;
+        Bitmap.Canvas.FillRect(Rect(0, 0, 2, 2));
+        Frame                                           := Image.Add(Bitmap);
+        TGIFGraphicControlExtension.Create(Frame).Delay := 2;
+        Bitmap.Canvas.Brush.Color                       := clBlue;
+        Bitmap.Canvas.FillRect(Rect(0, 0, 2, 2));
+        Frame := Image.Add(Bitmap);
+        With TGIFGraphicControlExtension.Create(Frame) Do
+          Begin
+            Delay    := 2;
+            Disposal := dmPrevious;
+          End;
+        Bitmap.SetSize(1, 1);
+        Bitmap.Canvas.Pixels[0, 0]                      := clLime;
+        Frame                                           := Image.Add(Bitmap);
+        Frame.Left                                      := 1;
+        Frame.Top                                       := 1;
+        TGIFGraphicControlExtension.Create(Frame).Delay := 2;
+        Animation                                       := TAnimatedBackground.Create(Image, clBlack);
+        Try
+          Assert.AreEqual(Integer(clRed), Integer(Animation.Bitmap.Canvas.Pixels[0, 0]));
+          Assert.IsTrue(Animation.Advance(20));
+          Assert.AreEqual(Integer(clBlue), Integer(Animation.Bitmap.Canvas.Pixels[0, 0]));
+          Assert.IsTrue(Animation.Advance(20));
+          Assert.AreEqual(Integer(clRed), Integer(Animation.Bitmap.Canvas.Pixels[0, 0]), 'Previous frame disposal');
+          Assert.AreEqual(Integer(clLime), Integer(Animation.Bitmap.Canvas.Pixels[1, 1]), 'Partial frame offset');
+          Assert.IsFalse(Animation.Advance(20), 'GIF without loop extension plays once');
+          Assert.IsFalse(Animation.Advance(1000));
+          Assert.AreEqual(Integer(clLime), Integer(Animation.Bitmap.Canvas.Pixels[1, 1]));
+        Finally
+          Animation.Free;
+        End;
+        TGIFAppExtNSLoop.Create(Image.Images[0]).Loops := 1;
+        Animation                                      := TAnimatedBackground.Create(Image, clBlack);
+        Try
+          Assert.IsTrue(Animation.Advance(20));
+          Assert.IsTrue(Animation.Advance(20));
+          Assert.IsTrue(Animation.Advance(20), 'One repetition includes a second full playback');
+          Assert.AreEqual(Integer(clRed), Integer(Animation.Bitmap.Canvas.Pixels[0, 0]));
+          Assert.IsTrue(Animation.Advance(20));
+          Assert.IsTrue(Animation.Advance(20));
+          Assert.IsFalse(Animation.Advance(20));
+        Finally
+          Animation.Free;
+        End;
+      Finally
+        Bitmap.Free;
+        Image.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.AnimatedGifBackgroundDelaysAndRemoval;
+    Var
+      Image    : TGIFImage;
+      Bitmap   : TBitmap;
+      Output   : TBitmap;
+      Frame    : TGIFFrame;
+      View     : TfraTerminal;
+      Main     : TfrmMain;
+      Settings : TGuakeSettings;
+      FileName : String;
+    Begin
+      FileName := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName + '.gif');
+      Image    := TGIFImage.Create;
+      Bitmap   := TBitmap.Create;
+      Output   := TBitmap.Create;
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Try
+        Bitmap.SetSize(2, 2);
+        Bitmap.Canvas.Brush.Color := clRed;
+        Bitmap.Canvas.FillRect(Rect(0, 0, 2, 2));
+        Frame                                           := Image.Add(Bitmap);
+        TGIFGraphicControlExtension.Create(Frame).Delay := 2;
+        TGIFAppExtNSLoop.Create(Frame).Loops            := 0;
+        Bitmap.Canvas.Brush.Color                       := clBlue;
+        Bitmap.Canvas.FillRect(Rect(0, 0, 2, 2));
+        Frame                                           := Image.Add(Bitmap);
+        TGIFGraphicControlExtension.Create(Frame).Delay := 8;
+        Image.SaveToFile(FileName);
+        Settings.General.BackgroundImageFile       := FileName;
+        Settings.General.BackgroundImageLayoutMode := 3;
+        Main                                       := TfrmMain.Create(Nil);
+        Try
+          View        := TfraTerminal.Create(Main);
+          View.Parent := Main;
+          View.Bind(Nil, Settings);
+          Output.SetSize(10, 10);
+          View.DrawBackground(Output.Canvas, Rect(0, 0, 10, 10));
+          Assert.AreEqual(Integer(clRed), Integer(Output.Canvas.Pixels[5, 5]));
+          Assert.IsFalse(View.AdvanceBackground(19));
+          Assert.IsTrue(View.AdvanceBackground(1));
+          View.DrawBackground(Output.Canvas, Rect(0, 0, 10, 10));
+          Assert.AreEqual(Integer(clBlue), Integer(Output.Canvas.Pixels[5, 5]));
+          Assert.IsFalse(View.AdvanceBackground(79));
+          Assert.IsTrue(View.AdvanceBackground(1));
+          View.DrawBackground(Output.Canvas, Rect(0, 0, 10, 10));
+          Assert.AreEqual(Integer(clRed), Integer(Output.Canvas.Pixels[5, 5]));
+          Settings.General.BackgroundImageFile := '';
+          View.ApplySettings;
+          Assert.IsFalse(View.AdvanceBackground(100));
+          View.DrawBackground(Output.Canvas, Rect(0, 0, 10, 10));
+          Assert.AreEqual(Integer(clBlack), Integer(Output.Canvas.Pixels[5, 5]));
+        Finally
+          Main.Free;
+        End;
+      Finally
+        Settings.Free;
+        Output.Free;
+        Bitmap.Free;
+        Image.Free;
+        TFile.Delete(FileName);
+      End;
+    End;
+
+  Procedure TTerminalTests.IncrementalUnicodeAndCSI;
+    Var
+      Buffer : TTerminalBuffer;
+      Bytes  : TBytes;
+      One    : TBytes;
+      b      : Byte;
+    Begin
+      Buffer := TTerminalBuffer.Create(80, 5);
+      Try
+        Bytes := TEncoding.UTF8.GetBytes('Zażółć 日本語 😀' + #27'[31mR' + #27'[0m');
+        SetLength(One, 1);
+        For b In Bytes Do
+          Begin
+            One[0] := b;
+            Buffer.Feed(One);
+          End;
+        Assert.IsTrue(Pos('Zażółć 日本語 😀R', Buffer.Text) > 0, Buffer.Text);
+        Assert.AreEqual(1, Buffer.Cell[16, 0].Foreground);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Returning from either legacy alternate mode preserves a full primary row.</summary>
 
- Procedure TTerminalTests.PrimaryPendingWrapSurvivesAlternateScreen;
-  Var
-   Buffer : TTerminalBuffer;
-   Mode   : Integer;
-  Begin
-   For Mode In TArray<Integer>.Create(47, 1047, 1049) Do
+  Procedure TTerminalTests.PrimaryPendingWrapSurvivesAlternateScreen;
+    Var
+      Buffer : TTerminalBuffer;
+      Mode   : Integer;
     Begin
-     Buffer := TTerminalBuffer.Create(5, 3);
-     Try
-      Buffer.FeedText('ABCDE' + #27 + '[?' + IntToStr(Mode) + 'h');
-      Buffer.FeedText('ALT' + #27 + '[?' + IntToStr(Mode) + 'l' + 'F');
-      Assert.AreEqual('ABCDE', Buffer.LineText(0));
-      Assert.AreEqual('F', Buffer.LineText(1));
-      Assert.AreEqual(1, Buffer.CursorX);
-      Assert.AreEqual(1, Buffer.CursorY);
-     Finally
-      Buffer.Free;
-     End;
+      For Mode In TArray<Integer>.Create(47, 1047, 1049) Do
+        Begin
+          Buffer := TTerminalBuffer.Create(5, 3);
+          Try
+            Buffer.FeedText('ABCDE' + #27 + '[?' + IntToStr(Mode) + 'h');
+            Buffer.FeedText('ALT' + #27 + '[?' + IntToStr(Mode) + 'l' + 'F');
+            Assert.AreEqual('ABCDE', Buffer.LineText(0));
+            Assert.AreEqual('F', Buffer.LineText(1));
+            Assert.AreEqual(1, Buffer.CursorX);
+            Assert.AreEqual(1, Buffer.CursorY);
+          Finally
+            Buffer.Free;
+          End;
+        End;
     End;
-  End;
 
 /// <summary>Reflow of the hidden primary screen maps a pending cursor to the new width.</summary>
 
- Procedure TTerminalTests.PrimaryPendingWrapReflowsWhileAlternate;
-  Var
-   Buffer : TTerminalBuffer;
-   Mode   : Integer;
-  Begin
-   For Mode In TArray<Integer>.Create(47, 1047) Do
+  Procedure TTerminalTests.PrimaryPendingWrapReflowsWhileAlternate;
+    Var
+      Buffer : TTerminalBuffer;
+      Mode   : Integer;
     Begin
-     Buffer := TTerminalBuffer.Create(6, 4);
-     Try
-      Buffer.FeedText('ABCDEF' + #27 + '[?' + IntToStr(Mode) + 'h');
-      Buffer.Resize(3, 4);
-      Buffer.FeedText(#27 + '[?' + IntToStr(Mode) + 'l' + 'G');
-      Assert.AreEqual('ABC', Buffer.LineText(0));
-      Assert.AreEqual('DEF', Buffer.LineText(1));
-      Assert.AreEqual('G', Buffer.LineText(2));
-      Assert.AreEqual(1, Buffer.CursorX);
-      Assert.AreEqual(2, Buffer.CursorY);
-     Finally
-      Buffer.Free;
-     End;
+      For Mode In TArray<Integer>.Create(47, 1047) Do
+        Begin
+          Buffer := TTerminalBuffer.Create(6, 4);
+          Try
+            Buffer.FeedText('ABCDEF' + #27 + '[?' + IntToStr(Mode) + 'h');
+            Buffer.Resize(3, 4);
+            Buffer.FeedText(#27 + '[?' + IntToStr(Mode) + 'l' + 'G');
+            Assert.AreEqual('ABC', Buffer.LineText(0));
+            Assert.AreEqual('DEF', Buffer.LineText(1));
+            Assert.AreEqual('G', Buffer.LineText(2));
+            Assert.AreEqual(1, Buffer.CursorX);
+            Assert.AreEqual(2, Buffer.CursorY);
+          Finally
+            Buffer.Free;
+          End;
+        End;
     End;
-  End;
 
 /// <summary>Both DECRC and 1049 return to the mapped saved position, including deferred wrap.</summary>
 
- Procedure TTerminalTests.SavedPrimaryCursorReflowsAcrossScreens;
-  Var
-   Buffer    : TTerminalBuffer;
-   Alternate : Boolean;
-  Begin
-   For Alternate := False To True Do
+  Procedure TTerminalTests.SavedPrimaryCursorReflowsAcrossScreens;
+    Var
+      Buffer    : TTerminalBuffer;
+      Alternate : Boolean;
     Begin
-     Buffer := TTerminalBuffer.Create(6, 5);
-     Try
-      Buffer.FeedText('ABCDEF');
-      If Alternate Then
-       Buffer.FeedText(#27 + '[?1049h')
-      Else
-       Buffer.FeedText(#27 + '7' + #27 + '[1;1H');
-      Buffer.Resize(3, 5);
-      If Alternate Then
-       Buffer.FeedText(#27 + '[?1049l')
-      Else
-       Buffer.FeedText(#27 + '8');
-      Buffer.FeedText('G');
-      Assert.AreEqual('ABC', Buffer.LineText(0));
-      Assert.AreEqual('DEF', Buffer.LineText(1));
-      Assert.AreEqual('G', Buffer.LineText(2));
-      Assert.AreEqual(1, Buffer.CursorX);
-      Assert.AreEqual(2, Buffer.CursorY);
-     Finally
-      Buffer.Free;
-     End;
+      For Alternate := False To True Do
+        Begin
+          Buffer := TTerminalBuffer.Create(6, 5);
+          Try
+            Buffer.FeedText('ABCDEF');
+            If Alternate Then
+              Buffer.FeedText(#27 + '[?1049h')
+            Else
+              Buffer.FeedText(#27 + '7' + #27 + '[1;1H');
+            Buffer.Resize(3, 5);
+            If Alternate Then
+              Buffer.FeedText(#27 + '[?1049l')
+            Else
+              Buffer.FeedText(#27 + '8');
+            Buffer.FeedText('G');
+            Assert.AreEqual('ABC', Buffer.LineText(0));
+            Assert.AreEqual('DEF', Buffer.LineText(1));
+            Assert.AreEqual('G', Buffer.LineText(2));
+            Assert.AreEqual(1, Buffer.CursorX);
+            Assert.AreEqual(2, Buffer.CursorY);
+          Finally
+            Buffer.Free;
+          End;
+        End;
     End;
-  End;
 
 /// <summary>Reflow maps only coordinates and preserves saved rendition and character sets.</summary>
 
- Procedure TTerminalTests.SavedPrimaryCursorKeepsAttributesAfterReflow;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(6, 5);
-   Try
-    Buffer.FeedText('ABCD' + #27 + '[31m' + #27 + '(0' + #27 + '7');
-    Buffer.FeedText(#27 + '[0m' + #27 + '(B' + #27 + '[1;1H');
-    Buffer.Resize(3, 5);
-    Buffer.FeedText(#27 + '8' + 'q');
-    Assert.AreEqual('ABC', Buffer.LineText(0));
-    Assert.AreEqual(1, Buffer.Cell[1, 1].Foreground);
-    Assert.AreEqual(WideChar($2500), Buffer.Cell[1, 1].Text[1]);
-    Assert.AreEqual(2, Buffer.CursorX);
-    Assert.AreEqual(1, Buffer.CursorY);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.SavedPrimaryCursorKeepsAttributesAfterReflow;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(6, 5);
+      Try
+        Buffer.FeedText('ABCD' + #27 + '[31m' + #27 + '(0' + #27 + '7');
+        Buffer.FeedText(#27 + '[0m' + #27 + '(B' + #27 + '[1;1H');
+        Buffer.Resize(3, 5);
+        Buffer.FeedText(#27 + '8' + 'q');
+        Assert.AreEqual('ABC', Buffer.LineText(0));
+        Assert.AreEqual(1, Buffer.Cell[1, 1].Foreground);
+        Assert.AreEqual(WideChar($2500), Buffer.Cell[1, 1].Text[1]);
+        Assert.AreEqual(2, Buffer.CursorX);
+        Assert.AreEqual(1, Buffer.CursorY);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Clipping CJK or emoji removes the partial cell, including one-column grids.</summary>
 
- Procedure TTerminalTests.AlternateResizeClearsCutWideCharacters;
-  Var
-   Buffer : TTerminalBuffer;
-   Width  : Integer;
-   Glyph  : String;
-  Begin
-   For Glyph In TArray<String>.Create(WideChar($754C), #$D83D#$DC4D) Do
-    For Width := 1 To 4 Do
-     Begin
-      Buffer := TTerminalBuffer.Create(8, 4);
-      Try
-       Buffer.FeedText('PRIMARY' + #27 + '[?1049h' + StringOfChar('a', Width - 1) + Glyph + 'Z');
-       Buffer.Resize(Width, 4);
-       Assert.AreEqual(StringOfChar('a', Width - 1), Buffer.LineText(0));
-       Assert.IsFalse(Buffer.Cell[Width - 1, 0].Continuation);
-       Buffer.Resize(8, 4);
-       Assert.AreEqual(StringOfChar('a', Width - 1), Buffer.LineText(0));
-       Buffer.FeedText(#27 + '[?1049l');
-       Assert.AreEqual('PRIMARY', Buffer.Text);
-      Finally
-       Buffer.Free;
-      End;
-     End;
-  End;
+  Procedure TTerminalTests.AlternateResizeClearsCutWideCharacters;
+    Var
+      Buffer : TTerminalBuffer;
+      Width  : Integer;
+      Glyph  : String;
+    Begin
+      For Glyph In TArray<String>.Create(WideChar($754C), #$D83D#$DC4D) Do
+        For Width := 1 To 4 Do
+          Begin
+            Buffer := TTerminalBuffer.Create(8, 4);
+            Try
+              Buffer.FeedText('PRIMARY' + #27 + '[?1049h' + StringOfChar('a', Width - 1) + Glyph + 'Z');
+              Buffer.Resize(Width, 4);
+              Assert.AreEqual(StringOfChar('a', Width - 1), Buffer.LineText(0));
+              Assert.IsFalse(Buffer.Cell[Width - 1, 0].Continuation);
+              Buffer.Resize(8, 4);
+              Assert.AreEqual(StringOfChar('a', Width - 1), Buffer.LineText(0));
+              Buffer.FeedText(#27 + '[?1049l');
+              Assert.AreEqual('PRIMARY', Buffer.Text);
+            Finally
+              Buffer.Free;
+            End;
+          End;
+    End;
 
 /// <summary>A glyph fully inside the edge keeps both cells and its attributes.</summary>
 
- Procedure TTerminalTests.AlternateResizePreservesCompleteWideCharacters;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 4);
-   Try
-    Buffer.FeedText(#27 + '[?1049h' + 'A' + #27 + '[31m' + WideChar($754C) + 'Z');
-    Buffer.Resize(3, 4);
-    Assert.AreEqual('A' + WideChar($754C), Buffer.LineText(0));
-    Assert.IsTrue(Buffer.Cell[2, 0].Continuation);
-    Assert.AreEqual(1, Buffer.Cell[1, 0].Foreground);
-    Buffer.Resize(8, 4);
-    Assert.AreEqual('A' + WideChar($754C), Buffer.LineText(0));
-    Assert.IsTrue(Buffer.Cell[2, 0].Continuation);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.AlternateResizePreservesCompleteWideCharacters;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 4);
+      Try
+        Buffer.FeedText(#27 + '[?1049h' + 'A' + #27 + '[31m' + WideChar($754C) + 'Z');
+        Buffer.Resize(3, 4);
+        Assert.AreEqual('A' + WideChar($754C), Buffer.LineText(0));
+        Assert.IsTrue(Buffer.Cell[2, 0].Continuation);
+        Assert.AreEqual(1, Buffer.Cell[1, 0].Foreground);
+        Buffer.Resize(8, 4);
+        Assert.AreEqual('A' + WideChar($754C), Buffer.LineText(0));
+        Assert.IsTrue(Buffer.Cell[2, 0].Continuation);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>A clipped saved position cannot resurrect after a later expansion.</summary>
 
- Procedure TTerminalTests.AlternateSavedCursorStaysInsideResizedGrid;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 5);
-   Try
-    Buffer.FeedText(#27 + '[?1049h' + #27 + '[4;7H' + #27 + '[31m' + #27 + '7');
-    Buffer.FeedText(#27 + '[0m' + #27 + '[1;1H');
-    Buffer.Resize(3, 2);
-    Buffer.Resize(8, 5);
-    Buffer.FeedText(#27 + '8');
-    Assert.AreEqual(2, Buffer.CursorX);
-    Assert.AreEqual(1, Buffer.CursorY);
-    Buffer.FeedText('X');
-    Assert.AreEqual('X', Buffer.Cell[2, 1].Text);
-    Assert.AreEqual(1, Buffer.Cell[2, 1].Foreground);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.AlternateSavedCursorStaysInsideResizedGrid;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 5);
+      Try
+        Buffer.FeedText(#27 + '[?1049h' + #27 + '[4;7H' + #27 + '[31m' + #27 + '7');
+        Buffer.FeedText(#27 + '[0m' + #27 + '[1;1H');
+        Buffer.Resize(3, 2);
+        Buffer.Resize(8, 5);
+        Buffer.FeedText(#27 + '8');
+        Assert.AreEqual(2, Buffer.CursorX);
+        Assert.AreEqual(1, Buffer.CursorY);
+        Buffer.FeedText('X');
+        Assert.AreEqual('X', Buffer.Cell[2, 1].Text);
+        Assert.AreEqual(1, Buffer.Cell[2, 1].Foreground);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Clipping cancels obsolete deferred wrap; a height-only resize retains it.</summary>
 
- Procedure TTerminalTests.AlternateSavedWrapTracksTheGridEdge;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(6, 4);
-   Try
-    Buffer.FeedText(#27 + '[?1049h' + 'ABCDEF' + #27 + '7');
-    Buffer.Resize(3, 4);
-    Buffer.FeedText(#27 + '8' + 'X');
-    Assert.AreEqual('ABX', Buffer.LineText(0));
-    Assert.AreEqual(0, Buffer.CursorY);
-    Buffer.Reset;
-    Buffer.FeedText(#27 + '[?1049h' + 'ABC' + #27 + '7');
-    Buffer.Resize(3, 5);
-    Buffer.FeedText(#27 + '8' + 'Y');
-    Assert.AreEqual('ABC', Buffer.LineText(0));
-    Assert.AreEqual('Y', Buffer.LineText(1));
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.AlternateSavedWrapTracksTheGridEdge;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(6, 4);
+      Try
+        Buffer.FeedText(#27 + '[?1049h' + 'ABCDEF' + #27 + '7');
+        Buffer.Resize(3, 4);
+        Buffer.FeedText(#27 + '8' + 'X');
+        Assert.AreEqual('ABX', Buffer.LineText(0));
+        Assert.AreEqual(0, Buffer.CursorY);
+        Buffer.Reset;
+        Buffer.FeedText(#27 + '[?1049h' + 'ABC' + #27 + '7');
+        Buffer.Resize(3, 5);
+        Buffer.FeedText(#27 + '8' + 'Y');
+        Assert.AreEqual('ABC', Buffer.LineText(0));
+        Assert.AreEqual('Y', Buffer.LineText(1));
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>ED above separates old history from cleared cells, including wide-wrap padding.</summary>
 
- Procedure TTerminalTests.EraseAboveBreaksHistoryParagraph;
-  Var
-   Buffer   : TTerminalBuffer;
-   Width    : Integer;
-   Index    : Integer;
-   Sequence : String;
-   Before   : String;
-   Ch       : Char;
-  Begin
-   For Width In TArray<Integer>.Create(3, 4) Do
+  Procedure TTerminalTests.EraseAboveBreaksHistoryParagraph;
+    Var
+      Buffer   : TTerminalBuffer;
+      Width    : Integer;
+      Index    : Integer;
+      Sequence : String;
+      Before   : String;
+      Ch       : Char;
     Begin
-     Buffer := TTerminalBuffer.Create(Width, 2);
-     Try
-      If Width = 3 Then
-       Buffer.FeedText('AB' + WideChar($754C) + 'CD')
-      Else
-       Buffer.FeedText('ABCDEFGHI');
-      Assert.AreEqual(3, Buffer.TotalLines);
-      Assert.IsTrue(Buffer.Cell[Width - 1, 0].SoftWrapped);
-      Before := Buffer.LineText(0);
-      Buffer.FeedText(#27 + '[1;1H');
-      Sequence := #27 + '[1J';
-      For Ch In Sequence Do
-       Buffer.FeedText(Ch);
-      Assert.IsFalse(Buffer.Cell[Width - 1, 0].SoftWrapped);
-      Assert.IsFalse(Buffer.Cell[Width - 1, 0].WrapPadding);
-      Assert.AreEqual(0, Buffer.CursorX);
-      Assert.AreEqual(0, Buffer.CursorY);
-      Buffer.FeedText('X');
-      Assert.AreEqual(Before, Buffer.LogicalLineText(0, 0, Index));
-      Assert.IsTrue(Pos(Before + sLineBreak, Buffer.Text) = 1);
-      Buffer.Resize(8, 3);
-      Assert.AreEqual(Before, Buffer.LineText(0));
-      Assert.IsTrue(Pos('X', Buffer.LineText(1)) = 1);
-     Finally
-      Buffer.Free;
-     End;
+      For Width In TArray<Integer>.Create(3, 4) Do
+        Begin
+          Buffer := TTerminalBuffer.Create(Width, 2);
+          Try
+            If Width = 3 Then
+              Buffer.FeedText('AB' + WideChar($754C) + 'CD')
+            Else
+              Buffer.FeedText('ABCDEFGHI');
+            Assert.AreEqual(3, Buffer.TotalLines);
+            Assert.IsTrue(Buffer.Cell[Width - 1, 0].SoftWrapped);
+            Before := Buffer.LineText(0);
+            Buffer.FeedText(#27 + '[1;1H');
+            Sequence := #27 + '[1J';
+            For Ch In Sequence Do
+              Buffer.FeedText(Ch);
+            Assert.IsFalse(Buffer.Cell[Width - 1, 0].SoftWrapped);
+            Assert.IsFalse(Buffer.Cell[Width - 1, 0].WrapPadding);
+            Assert.AreEqual(0, Buffer.CursorX);
+            Assert.AreEqual(0, Buffer.CursorY);
+            Buffer.FeedText('X');
+            Assert.AreEqual(Before, Buffer.LogicalLineText(0, 0, Index));
+            Assert.IsTrue(Pos(Before + sLineBreak, Buffer.Text) = 1);
+            Buffer.Resize(8, 3);
+            Assert.AreEqual(Before, Buffer.LineText(0));
+            Assert.IsTrue(Pos('X', Buffer.LineText(1)) = 1);
+          Finally
+            Buffer.Free;
+          End;
+        End;
     End;
-  End;
 
 /// <summary>ED above in the alternate buffer cannot break the hidden primary paragraph.</summary>
 
- Procedure TTerminalTests.EraseAboveAlternateKeepsPrimaryHistory;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(4, 2);
-   Try
-    Buffer.FeedText('ABCDEFGHI' + #27 + '[?1049h' + 'ALT' + #27 + '[1J' + #27 + '[?1049l');
-    Assert.IsTrue(Buffer.Cell[3, 0].SoftWrapped);
-    Assert.AreEqual('ABCDEFGHI', Buffer.Text);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.EraseAboveAlternateKeepsPrimaryHistory;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(4, 2);
+      Try
+        Buffer.FeedText('ABCDEFGHI' + #27 + '[?1049h' + 'ALT' + #27 + '[1J' + #27 + '[?1049l');
+        Assert.IsTrue(Buffer.Cell[3, 0].SoftWrapped);
+        Assert.AreEqual('ABCDEFGHI', Buffer.Text);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>VTE EL 0 preserves full ASCII and wide rows and their deferred wrap.</summary>
 
- Procedure TTerminalTests.EraseToEndPreservesPendingWrap;
-  Var
-   Buffer   : TTerminalBuffer;
-   Content  : String;
-   Sequence : String;
-   Ch       : Char;
-  Begin
-   For Content In TArray<String>.Create('ABCD', 'AB' + WideChar($754C)) Do
-    For Sequence In TArray<String>.Create(#27 + '[K', #27 + '[0K') Do
-     Begin
-      Buffer := TTerminalBuffer.Create(4, 3);
-      Try
-       Buffer.FeedText(Content + #27 + '[31;44m');
-       For Ch In Sequence Do
-        Buffer.FeedText(Ch);
-       Assert.AreEqual(Content, Buffer.LineText(0));
-       Assert.AreEqual( -2, Buffer.Cell[3, 0].Background);
-       Assert.AreEqual(3, Buffer.CursorX);
-       Assert.AreEqual(0, Buffer.CursorY);
-       Buffer.FeedText('X');
-       Assert.AreEqual(Content, Buffer.LineText(0));
-       Assert.AreEqual('X', Buffer.LineText(1));
-       Assert.AreEqual(1, Buffer.Cell[0, 1].Foreground);
-       Assert.AreEqual(4, Buffer.Cell[0, 1].Background);
-       Assert.AreEqual(Content + 'X', Buffer.Text);
-      Finally
-       Buffer.Free;
-      End;
-     End;
-  End;
+  Procedure TTerminalTests.EraseToEndPreservesPendingWrap;
+    Var
+      Buffer   : TTerminalBuffer;
+      Content  : String;
+      Sequence : String;
+      Ch       : Char;
+    Begin
+      For Content In TArray<String>.Create('ABCD', 'AB' + WideChar($754C)) Do
+        For Sequence In TArray<String>.Create(#27 + '[K', #27 + '[0K') Do
+          Begin
+            Buffer := TTerminalBuffer.Create(4, 3);
+            Try
+              Buffer.FeedText(Content + #27 + '[31;44m');
+              For Ch In Sequence Do
+                Buffer.FeedText(Ch);
+              Assert.AreEqual(Content, Buffer.LineText(0));
+              Assert.AreEqual( -2, Buffer.Cell[3, 0].Background);
+              Assert.AreEqual(3, Buffer.CursorX);
+              Assert.AreEqual(0, Buffer.CursorY);
+              Buffer.FeedText('X');
+              Assert.AreEqual(Content, Buffer.LineText(0));
+              Assert.AreEqual('X', Buffer.LineText(1));
+              Assert.AreEqual(1, Buffer.Cell[0, 1].Foreground);
+              Assert.AreEqual(4, Buffer.Cell[0, 1].Background);
+              Assert.AreEqual(Content + 'X', Buffer.Text);
+            Finally
+              Buffer.Free;
+            End;
+          End;
+    End;
 
 /// <summary>Other EL variants and explicit cursor movement retain ordinary edge erasure.</summary>
 
- Procedure TTerminalTests.OtherLineErasesCancelPendingWrap;
-  Var
-   Buffer   : TTerminalBuffer;
-   Sequence : String;
-  Begin
-   For Sequence In TArray<String>.Create(#27 + '[1K', #27 + '[2K', #27 + '[?0K', #27 + '[4G' + #27 + '[K') Do
+  Procedure TTerminalTests.OtherLineErasesCancelPendingWrap;
+    Var
+      Buffer   : TTerminalBuffer;
+      Sequence : String;
     Begin
-     Buffer := TTerminalBuffer.Create(4, 3);
-     Try
-      Buffer.FeedText('ABCD' + Sequence + 'X');
-      Assert.AreEqual('X', Buffer.Cell[3, 0].Text);
-      Assert.AreEqual(0, Buffer.CursorY);
-      Assert.AreEqual('', Buffer.LineText(1));
-     Finally
-      Buffer.Free;
-     End;
+      For Sequence In TArray<String>.Create(#27 + '[1K', #27 + '[2K', #27 + '[?0K', #27 + '[4G' + #27 + '[K') Do
+        Begin
+          Buffer := TTerminalBuffer.Create(4, 3);
+          Try
+            Buffer.FeedText('ABCD' + Sequence + 'X');
+            Assert.AreEqual('X', Buffer.Cell[3, 0].Text);
+            Assert.AreEqual(0, Buffer.CursorY);
+            Assert.AreEqual('', Buffer.LineText(1));
+          Finally
+            Buffer.Free;
+          End;
+        End;
     End;
-  End;
 
 /// <summary>ECH at the right edge leaves the paragraph joined for copying and reflow.</summary>
 
- Procedure TTerminalTests.EraseCharactersPreservesLogicalWrap;
-  Var
-   Buffer   : TTerminalBuffer;
-   Content  : String;
-   Expected : String;
-   Sequence : String;
-   Ch       : Char;
-  Begin
-   For Content In TArray<String>.Create('ABCD', 'AB' + WideChar($754C)) Do
-    For Sequence In TArray<String>.Create(#27 + '[X', #27 + '[0X', #27 + '[999X') Do
-     Begin
-      Buffer := TTerminalBuffer.Create(4, 3);
-      Try
-       Buffer.FeedText(Content + 'EFGH' + #27 + '[1;4H' + #27 + '[44m');
-       For Ch In Sequence Do
-        Buffer.FeedText(Ch);
-       If Content = 'ABCD' Then
-        Expected := 'ABC EFGH'
-       Else
-        Expected := 'AB  EFGH';
-       Assert.IsTrue(Buffer.Cell[3, 0].SoftWrapped);
-       Assert.IsFalse(Buffer.Cell[3, 0].Continuation);
-       Assert.AreEqual(4, Buffer.Cell[3, 0].Background);
-       Assert.AreEqual(3, Buffer.CursorX);
-       Assert.AreEqual(0, Buffer.CursorY);
-       Assert.AreEqual(Expected, Buffer.Text);
-       Buffer.Resize(8, 3);
-       Assert.AreEqual(Expected, Buffer.Text);
-      Finally
-       Buffer.Free;
-      End;
-     End;
-  End;
+  Procedure TTerminalTests.EraseCharactersPreservesLogicalWrap;
+    Var
+      Buffer   : TTerminalBuffer;
+      Content  : String;
+      Expected : String;
+      Sequence : String;
+      Ch       : Char;
+    Begin
+      For Content In TArray<String>.Create('ABCD', 'AB' + WideChar($754C)) Do
+        For Sequence In TArray<String>.Create(#27 + '[X', #27 + '[0X', #27 + '[999X') Do
+          Begin
+            Buffer := TTerminalBuffer.Create(4, 3);
+            Try
+              Buffer.FeedText(Content + 'EFGH' + #27 + '[1;4H' + #27 + '[44m');
+              For Ch In Sequence Do
+                Buffer.FeedText(Ch);
+              If Content = 'ABCD' Then
+                Expected := 'ABC EFGH'
+              Else
+                Expected := 'AB  EFGH';
+              Assert.IsTrue(Buffer.Cell[3, 0].SoftWrapped);
+              Assert.IsFalse(Buffer.Cell[3, 0].Continuation);
+              Assert.AreEqual(4, Buffer.Cell[3, 0].Background);
+              Assert.AreEqual(3, Buffer.CursorX);
+              Assert.AreEqual(0, Buffer.CursorY);
+              Assert.AreEqual(Expected, Buffer.Text);
+              Buffer.Resize(8, 3);
+              Assert.AreEqual(Expected, Buffer.Text);
+            Finally
+              Buffer.Free;
+            End;
+          End;
+    End;
 
 /// <summary>Erasing padding creates a real blank without splitting the logical line.</summary>
 
- Procedure TTerminalTests.EraseCharactersReplacesWideWrapPadding;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(3, 3);
-   Try
-    Buffer.FeedText('AB' + WideChar($754C) + 'CD');
-    Assert.IsTrue(Buffer.Cell[2, 0].WrapPadding);
-    Buffer.FeedText(#27 + '[1;3H' + #27 + '[X');
-    Assert.IsTrue(Buffer.Cell[2, 0].SoftWrapped);
-    Assert.IsFalse(Buffer.Cell[2, 0].WrapPadding);
-    Assert.AreEqual('AB ' + WideChar($754C) + 'CD', Buffer.Text);
-    Buffer.Resize(10, 3);
-    Assert.AreEqual('AB ' + WideChar($754C) + 'CD', Buffer.Text);
-    Buffer.Reset;
-    Buffer.Resize(3, 3);
-    Buffer.FeedText('ABC' + #27 + '[X' + 'Z');
-    Assert.AreEqual('ABZ', Buffer.LineText(0));
-    Assert.AreEqual(0, Buffer.CursorY);
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.AlternateScreenRestoresPrimary;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(20, 4);
-   Try
-    Buffer.FeedText('primary' + #27'[?1049halternate');
-    Assert.IsTrue(Buffer.AlternateScreen);
-    Assert.IsTrue(Pos('alternate', Buffer.Text) > 0);
-    Buffer.Resize(30, 6);
-    Buffer.FeedText(#27'[?1049l');
-    Assert.IsFalse(Buffer.AlternateScreen);
-    Assert.AreEqual('primary', Buffer.LineText(0));
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.ColorsCursorAndDeviceResponses;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(40, 10);
-   Try
-    Buffer.FeedText(#27'[3;4H' + #27'[1;38;2;17;34;51;48;5;201mX' + #27'[6n' + #27'[?2004h');
-    Assert.AreEqual($01332211, Buffer.Cell[3, 2].Foreground);
-    Assert.AreEqual(201, Buffer.Cell[3, 2].Background);
-    Assert.IsTrue(Buffer.Cell[3, 2].Bold);
-    Assert.AreEqual(#27'[3;5R', Buffer.TakeResponses);
-    Assert.IsTrue(Buffer.BracketedPaste);
-    Buffer.FeedText(#27']2;Session title' + #27'\');
-    Assert.AreEqual('Session title', Buffer.Title);
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.ScrollbackAndMargins;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(10, 3, 2);
-   Try
-    Buffer.FeedText('one'#13#10'two'#13#10'tre'#13#10'for');
-    Assert.AreEqual(4, Buffer.TotalLines);
-    Assert.AreEqual('one', Buffer.LineText(0));
-    Buffer.FeedText(#27'[2;3r' + #27'[3;1H' + #13#10'five');
-    Assert.AreEqual('one', Buffer.LineText(0));
-    Assert.AreEqual('two', Buffer.LineText(1));
-    Buffer.FeedText(#27'[3J');
-    Assert.AreEqual(3, Buffer.TotalLines);
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.WideAndCombiningCells;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(10, 2);
-   Try
-    Buffer.FeedText('界e' + Char($0301) + 'X');
-    Assert.IsTrue(Buffer.Cell[1, 0].Continuation);
-    Assert.AreEqual('e' + Char($0301), Buffer.Cell[2, 0].Text);
-    Assert.AreEqual(4, Buffer.CursorX);
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.ResizePreservesContent;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(10, 3);
-   Try
-    Buffer.FeedText('test');
-    Buffer.Resize(20, 5);
-    Assert.AreEqual('test', Buffer.LineText(0));
-    Buffer.FeedText(#27'[2J');
-    Assert.AreEqual('', Buffer.Text);
-   Finally
-    Buffer.Free;
-   End;
-  End;
-
- Procedure TTerminalTests.CmdEnvironmentDirectoryAndExitCode;
-  Var
-   Session  : TConPtySession;
-   Profile  : TShellProfile;
-   Buffer   : TTerminalBuffer;
-   Env      : TStringList;
-   Deadline : UInt64;
-  Begin
-   Assert.IsTrue(TConPtySession.Supported);
-   Profile := TShellProfile.Resolve(gsCmd);
-   Env     := TStringList.Create;
-   Buffer  := TTerminalBuffer.Create(120, 30);
-   Try
-    Env.Values['GUAKE_CONPTY_TEST'] := 'native-conpty-ok';
-    Session                         := TConPtySession.Create(Profile.Executable, '/D /Q /C "echo %GUAKE_CONPTY_TEST% & cd & exit /b 37"', GetCurrentDir, 120, 30, Env);
-    Try
-     Assert.IsTrue(WaitForText(Session, Buffer, 'native-conpty-ok'), Buffer.Text);
-     Deadline := GetTickCount64 + 5000;
-     While Session.Running And (GetTickCount64 < Deadline) Do
-      Sleep(10);
-     Assert.IsFalse(Session.Running);
-     Assert.AreEqual(37, Integer(Session.ExitCode));
-     Session.CompleteOutput;
-     Buffer.Feed(Session.ReadAvailable);
-     Assert.IsTrue(Pos(GetCurrentDir, Buffer.Text) > 0, Buffer.Text);
-    Finally
-     Session.Free;
+  Procedure TTerminalTests.EraseCharactersReplacesWideWrapPadding;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(3, 3);
+      Try
+        Buffer.FeedText('AB' + WideChar($754C) + 'CD');
+        Assert.IsTrue(Buffer.Cell[2, 0].WrapPadding);
+        Buffer.FeedText(#27 + '[1;3H' + #27 + '[X');
+        Assert.IsTrue(Buffer.Cell[2, 0].SoftWrapped);
+        Assert.IsFalse(Buffer.Cell[2, 0].WrapPadding);
+        Assert.AreEqual('AB ' + WideChar($754C) + 'CD', Buffer.Text);
+        Buffer.Resize(10, 3);
+        Assert.AreEqual('AB ' + WideChar($754C) + 'CD', Buffer.Text);
+        Buffer.Reset;
+        Buffer.Resize(3, 3);
+        Buffer.FeedText('ABC' + #27 + '[X' + 'Z');
+        Assert.AreEqual('ABZ', Buffer.LineText(0));
+        Assert.AreEqual(0, Buffer.CursorY);
+      Finally
+        Buffer.Free;
+      End;
     End;
-   Finally
-    Buffer.Free;
-    Env.Free;
-   End;
-  End;
 
- Procedure TestInteractive(Kind : TGuakeShell; Const Command : String);
-  Var
-   Profile : TShellProfile;
-   Session : TConPtySession;
-   Buffer  : TTerminalBuffer;
-  Begin
-   Profile := TShellProfile.Resolve(Kind);
-   Assert.IsTrue(Profile.Available, Profile.Executable);
-   Case Kind Of
-    gsBash       : Profile.Arguments := '--noprofile --norc -i';
-    gsZsh        : Profile.Arguments := '--nomintty -d -f -i';
-    gsPowerShell : Profile.Arguments := '-NoLogo -NoProfile -NoExit -Command "Set-PSReadLineOption -HistorySaveStyle SaveNothing"';
-   End;
-   Buffer := TTerminalBuffer.Create(120, 30, 2000);
-   Try
-    Session := TConPtySession.Create(Profile.Executable, Profile.Arguments, GetCurrentDir, 120, 30);
-    Try
-     // Wait until PSReadLine has initialized before sending the command.
-     If Kind = gsPowerShell Then
-      Assert.IsTrue(WaitForText(Session, Buffer, 'PS ' + GetCurrentDir + '>', 60000), Buffer.Text);
-     Session.SendText(Command + #13);
-     Assert.IsTrue(WaitForText(Session, Buffer, 'CONPTY-' + 'READY'), Buffer.Text);
-     Session.Resize(100, 25);
-     Session.SendText('exit' + #13);
-    Finally
-     Session.Free;
+  Procedure TTerminalTests.AlternateScreenRestoresPrimary;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(20, 4);
+      Try
+        Buffer.FeedText('primary' + #27'[?1049halternate');
+        Assert.IsTrue(Buffer.AlternateScreen);
+        Assert.IsTrue(Pos('alternate', Buffer.Text) > 0);
+        Buffer.Resize(30, 6);
+        Buffer.FeedText(#27'[?1049l');
+        Assert.IsFalse(Buffer.AlternateScreen);
+        Assert.AreEqual('primary', Buffer.LineText(0));
+      Finally
+        Buffer.Free;
+      End;
     End;
-   Finally
-    Buffer.Free;
-   End;
-  End;
 
- Procedure TTerminalTests.InteractivePowerShell;
-  Begin
-   TestInteractive(gsPowerShell, 'Write-Output (''CONPTY-'' + ''READY'')');
-  End;
-
- Procedure TTerminalTests.InteractiveBash;
-  Begin
-   TestInteractive(gsBash, 'printf "CONPTY-%s\n" READY');
-  End;
-
- Procedure TTerminalTests.InteractiveZsh;
-  Begin
-   TestInteractive(gsZsh, 'printf "CONPTY-%s\n" READY');
-  End;
-
- Procedure TTerminalTests.ShutdownWithUndrainedOutput;
-  Var
-   Profile : TShellProfile;
-   Session : TConPtySession;
-   Started : UInt64;
-  Begin
-   Profile := TShellProfile.Resolve(gsCmd);
-   Session := TConPtySession.Create(Profile.Executable, '/D /Q /C "for /L %i in (1,1,50000) do @echo terminal-output-%i"', GetCurrentDir, 80, 24);
-   Sleep(100);
-   Started := GetTickCount64;
-   Session.Free;
-   Assert.IsTrue(GetTickCount64 - Started < 5000, 'ConPTY teardown must drain pending output');
-  End;
-
- Procedure TTerminalTests.FailedStartDoesNotLeakHandles;
-  Var
-   Before : Cardinal;
-   After  : Cardinal;
-   i      : Integer;
-  Begin
-   // Initialize lazy exception symbol infrastructure before measuring repeated failed starts.
-   Assert.WillRaise(Procedure Var Session : TConPtySession; Begin Session := TConPtySession.Create('C:\missing-guake-shell.exe', '', '', 80, 24); Session.Free; End, EFileNotFoundException);
-   GetProcessHandleCount(GetCurrentProcess, Before);
-   For i                                                                   := 1 To 10 Do
-    Assert.WillRaise(Procedure Var Session : TConPtySession; Begin Session := TConPtySession.Create('C:\missing-guake-shell.exe', '', '', 80, 24); Session.Free; End, EFileNotFoundException);
-   GetProcessHandleCount(GetCurrentProcess, After);
-   Assert.IsTrue(After <= Before + 2, Format('Handles before=%d after=%d', [Before, After]));
-  End;
-
- Procedure TTerminalTests.ControllerTabsSplitsAndFailure;
-  Var
-   Settings   : TGuakeSettings;
-   Controller : TTerminalController;
-   FirstId    : String;
-  Begin
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Try
-    Settings.General.DefaultShell := 'cmd';
-    Controller                    := TTerminalController.Create(Settings);
-    Try
-     Controller.NewTab;
-     FirstId := Controller.ActiveTab.Id;
-     Controller.Split(True);
-     Assert.AreEqual(2, Integer(Length(Controller.Sessions())));
-     Controller.CloseTerminal;
-     Assert.AreEqual(1, Integer(Length(Controller.Sessions())));
-     Controller.NewTab;
-     Assert.AreEqual(2, Controller.Count);
-     Controller.MoveTab(0, 1);
-     Assert.AreEqual(FirstId, Controller.Tabs[1].Id);
-     Try
-      Controller.NewTab('', 'C:\missing-guake-shell.exe');
-      Assert.Fail('Missing shell was accepted');
-     Except
-      On E : EFileNotFoundException Do
-       Assert.AreEqual(2, Controller.Count);
-     End;
-     Assert.AreEqual(2, Controller.Count);
-     Controller.CloseTab(0);
-     Controller.CloseTab(0);
-     Assert.AreEqual(0, Controller.Count);
-    Finally
-     Controller.Free;
+  Procedure TTerminalTests.ColorsCursorAndDeviceResponses;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(40, 10);
+      Try
+        Buffer.FeedText(#27'[3;4H' + #27'[1;38;2;17;34;51;48;5;201mX' + #27'[6n' + #27'[?2004h');
+        Assert.AreEqual($01332211, Buffer.Cell[3, 2].Foreground);
+        Assert.AreEqual(201, Buffer.Cell[3, 2].Background);
+        Assert.IsTrue(Buffer.Cell[3, 2].Bold);
+        Assert.AreEqual(#27'[3;5R', Buffer.TakeResponses);
+        Assert.IsTrue(Buffer.BracketedPaste);
+        Buffer.FeedText(#27']2;Session title' + #27'\');
+        Assert.AreEqual('Session title', Buffer.Title);
+      Finally
+        Buffer.Free;
+      End;
     End;
-   Finally
-    Settings.Free;
-   End;
-  End;
 
- Procedure TTerminalTests.WindowsAccelerators;
-  Var
-   Key       : Word;
-   Modifiers : Cardinal;
-  Begin
-   Assert.IsTrue(ParseAccelerator('`', Key, Modifiers));
-   Assert.AreEqual(Integer(VK_OEM_3), Integer(Key));
-   Assert.AreEqual(0, Integer(Modifiers));
-   Assert.IsTrue(ParseAccelerator('~', Key, Modifiers));
-   Assert.AreEqual(Integer(VK_OEM_3), Integer(Key));
-   Assert.AreEqual(Integer(MOD_SHIFT), Integer(Modifiers));
-   Assert.IsTrue(MatchAccelerator('<Control>grave', VK_OEM_3, [ssCtrl]));
-   Assert.IsTrue(MatchAccelerator('<Alt>asciitilde', VK_OEM_3, [ssAlt, ssShift]));
-   Assert.IsTrue(ParseAccelerator('<Control><Shift>t', Key, Modifiers));
-   Assert.AreEqual(Ord('T'), Integer(Key));
-   Assert.AreEqual(Integer(MOD_CONTROL Or MOD_SHIFT), Integer(Modifiers));
-   Assert.IsFalse(ParseAccelerator('disabled', Key, Modifiers));
-   Assert.IsTrue(MatchAccelerator('<Control>Page_Down', VK_NEXT, [ssCtrl]));
-  End;
+  Procedure TTerminalTests.ScrollbackAndMargins;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(10, 3, 2);
+      Try
+        Buffer.FeedText('one'#13#10'two'#13#10'tre'#13#10'for');
+        Assert.AreEqual(4, Buffer.TotalLines);
+        Assert.AreEqual('one', Buffer.LineText(0));
+        Buffer.FeedText(#27'[2;3r' + #27'[3;1H' + #13#10'five');
+        Assert.AreEqual('one', Buffer.LineText(0));
+        Assert.AreEqual('two', Buffer.LineText(1));
+        Buffer.FeedText(#27'[3J');
+        Assert.AreEqual(3, Buffer.TotalLines);
+      Finally
+        Buffer.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.WideAndCombiningCells;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(10, 2);
+      Try
+        Buffer.FeedText('界e' + Char($0301) + 'X');
+        Assert.IsTrue(Buffer.Cell[1, 0].Continuation);
+        Assert.AreEqual('e' + Char($0301), Buffer.Cell[2, 0].Text);
+        Assert.AreEqual(4, Buffer.CursorX);
+      Finally
+        Buffer.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.ResizePreservesContent;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(10, 3);
+      Try
+        Buffer.FeedText('test');
+        Buffer.Resize(20, 5);
+        Assert.AreEqual('test', Buffer.LineText(0));
+        Buffer.FeedText(#27'[2J');
+        Assert.AreEqual('', Buffer.Text);
+      Finally
+        Buffer.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.CmdEnvironmentDirectoryAndExitCode;
+    Var
+      Session  : TConPtySession;
+      Profile  : TShellProfile;
+      Buffer   : TTerminalBuffer;
+      Env      : TStringList;
+      Deadline : UInt64;
+    Begin
+      Assert.IsTrue(TConPtySession.Supported);
+      Profile := TShellProfile.Resolve(gsCmd);
+      Env     := TStringList.Create;
+      Buffer  := TTerminalBuffer.Create(120, 30);
+      Try
+        Env.Values['GUAKE_CONPTY_TEST'] := 'native-conpty-ok';
+        Session                         := TConPtySession.Create(Profile.Executable, '/D /Q /C "echo %GUAKE_CONPTY_TEST% & cd & exit /b 37"', GetCurrentDir, 120, 30, Env);
+        Try
+          Assert.IsTrue(WaitForText(Session, Buffer, 'native-conpty-ok'), Buffer.Text);
+          Deadline := GetTickCount64 + 5000;
+          While Session.Running And (GetTickCount64 < Deadline) Do
+            Sleep(10);
+          Assert.IsFalse(Session.Running);
+          Assert.AreEqual(37, Integer(Session.ExitCode));
+          Session.CompleteOutput;
+          Buffer.Feed(Session.ReadAvailable);
+          Assert.IsTrue(Pos(GetCurrentDir, Buffer.Text) > 0, Buffer.Text);
+        Finally
+          Session.Free;
+        End;
+      Finally
+        Buffer.Free;
+        Env.Free;
+      End;
+    End;
+
+  Procedure TestInteractive(Kind : TGuakeShell; Const Command : String);
+    Var
+      Profile : TShellProfile;
+      Session : TConPtySession;
+      Buffer  : TTerminalBuffer;
+    Begin
+      Profile := TShellProfile.Resolve(Kind);
+      Assert.IsTrue(Profile.Available, Profile.Executable);
+      Case Kind Of
+        gsBash       : Profile.Arguments := '--noprofile --norc -i';
+        gsZsh        : Profile.Arguments := '--nomintty -d -f -i';
+        gsPowerShell : Profile.Arguments := '-NoLogo -NoProfile -NoExit -Command "Set-PSReadLineOption -HistorySaveStyle SaveNothing"';
+      End;
+      Buffer := TTerminalBuffer.Create(120, 30, 2000);
+      Try
+        Session := TConPtySession.Create(Profile.Executable, Profile.Arguments, GetCurrentDir, 120, 30);
+        Try
+          // Wait until PSReadLine has initialized before sending the command.
+          If Kind = gsPowerShell Then
+            Assert.IsTrue(WaitForText(Session, Buffer, 'PS ' + GetCurrentDir + '>', 60000), Buffer.Text);
+          Session.SendText(Command + #13);
+          Assert.IsTrue(WaitForText(Session, Buffer, 'CONPTY-' + 'READY'), Buffer.Text);
+          Session.Resize(100, 25);
+          Session.SendText('exit' + #13);
+        Finally
+          Session.Free;
+        End;
+      Finally
+        Buffer.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.InteractivePowerShell;
+    Begin
+      TestInteractive(gsPowerShell, 'Write-Output (''CONPTY-'' + ''READY'')');
+    End;
+
+  Procedure TTerminalTests.InteractiveBash;
+    Begin
+      TestInteractive(gsBash, 'printf "CONPTY-%s\n" READY');
+    End;
+
+  Procedure TTerminalTests.InteractiveZsh;
+    Begin
+      TestInteractive(gsZsh, 'printf "CONPTY-%s\n" READY');
+    End;
+
+  Procedure TTerminalTests.ShutdownWithUndrainedOutput;
+    Var
+      Profile : TShellProfile;
+      Session : TConPtySession;
+      Started : UInt64;
+    Begin
+      Profile := TShellProfile.Resolve(gsCmd);
+      Session := TConPtySession.Create(Profile.Executable, '/D /Q /C "for /L %i in (1,1,50000) do @echo terminal-output-%i"', GetCurrentDir, 80, 24);
+      Sleep(100);
+      Started := GetTickCount64;
+      Session.Free;
+      Assert.IsTrue(GetTickCount64 - Started < 5000, 'ConPTY teardown must drain pending output');
+    End;
+
+  Procedure TTerminalTests.FailedStartDoesNotLeakHandles;
+    Var
+      Before : Cardinal;
+      After  : Cardinal;
+      i      : Integer;
+    Begin
+      // Initialize lazy exception symbol infrastructure before measuring repeated failed starts.
+      Assert.WillRaise(Procedure Var Session : TConPtySession; Begin Session := TConPtySession.Create('C:\missing-guake-shell.exe', '', '', 80, 24); Session.Free; End, EFileNotFoundException);
+      GetProcessHandleCount(GetCurrentProcess, Before);
+      For i                                                                    := 1 To 10 Do
+        Assert.WillRaise(Procedure Var Session : TConPtySession; Begin Session := TConPtySession.Create('C:\missing-guake-shell.exe', '', '', 80, 24); Session.Free; End, EFileNotFoundException);
+      GetProcessHandleCount(GetCurrentProcess, After);
+      Assert.IsTrue(After <= Before + 2, Format('Handles before=%d after=%d', [Before, After]));
+    End;
+
+  Procedure TTerminalTests.ControllerTabsSplitsAndFailure;
+    Var
+      Settings   : TGuakeSettings;
+      Controller : TTerminalController;
+      FirstId    : String;
+    Begin
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Try
+        Settings.General.DefaultShell := 'cmd';
+        Controller                    := TTerminalController.Create(Settings);
+        Try
+          Controller.NewTab;
+          FirstId := Controller.ActiveTab.Id;
+          Controller.Split(True);
+          Assert.AreEqual(2, Integer(Length(Controller.Sessions())));
+          Controller.CloseTerminal;
+          Assert.AreEqual(1, Integer(Length(Controller.Sessions())));
+          Controller.NewTab;
+          Assert.AreEqual(2, Controller.Count);
+          Controller.MoveTab(0, 1);
+          Assert.AreEqual(FirstId, Controller.Tabs[1].Id);
+          Try
+            Controller.NewTab('', 'C:\missing-guake-shell.exe');
+            Assert.Fail('Missing shell was accepted');
+          Except
+            On E : EFileNotFoundException Do
+              Assert.AreEqual(2, Controller.Count);
+          End;
+          Assert.AreEqual(2, Controller.Count);
+          Controller.CloseTab(0);
+          Controller.CloseTab(0);
+          Assert.AreEqual(0, Controller.Count);
+        Finally
+          Controller.Free;
+        End;
+      Finally
+        Settings.Free;
+      End;
+    End;
+
+  Procedure TTerminalTests.WindowsAccelerators;
+    Var
+      Key       : Word;
+      Modifiers : Cardinal;
+    Begin
+      Assert.IsTrue(ParseAccelerator('`', Key, Modifiers));
+      Assert.AreEqual(Integer(VK_OEM_3), Integer(Key));
+      Assert.AreEqual(0, Integer(Modifiers));
+      Assert.IsTrue(ParseAccelerator('~', Key, Modifiers));
+      Assert.AreEqual(Integer(VK_OEM_3), Integer(Key));
+      Assert.AreEqual(Integer(MOD_SHIFT), Integer(Modifiers));
+      Assert.IsTrue(MatchAccelerator('<Control>grave', VK_OEM_3, [ssCtrl]));
+      Assert.IsTrue(MatchAccelerator('<Alt>asciitilde', VK_OEM_3, [ssAlt, ssShift]));
+      Assert.IsTrue(ParseAccelerator('<Control><Shift>t', Key, Modifiers));
+      Assert.AreEqual(Ord('T'), Integer(Key));
+      Assert.AreEqual(Integer(MOD_CONTROL Or MOD_SHIFT), Integer(Modifiers));
+      Assert.IsFalse(ParseAccelerator('disabled', Key, Modifiers));
+      Assert.IsTrue(MatchAccelerator('<Control>Page_Down', VK_NEXT, [ssCtrl]));
+    End;
 
 /// <summary>Loads DFM-backed terminal views and verifies their lifecycle with real CMD sessions.</summary>
 
- Procedure TTerminalTests.MainWindowCreatesTerminalAndSplitFrames;
-  Var
-   Settings : TGuakeSettings;
-   Main     : TfrmMain;
-  Begin
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Try
-    Settings.General.DefaultShell         := 'cmd';
-    Settings.General.UseTrayicon          := False;
-    Settings.General.UsePopup             := False;
-    Settings.Keybindings.Global.ShowHide  := 'disabled';
-    Settings.Keybindings.Global.ShowFocus := 'disabled';
-    Main                                  := TfrmMain.Create(Nil);
-    Try
-     Assert.IsTrue(Assigned(TTabControlAccess(Main.tabBar).OnDblClick));
-     Main.Bind(Settings);
-     Main.StartTerminal;
-     Assert.AreEqual(1, Main.Controller.Count);
-     Assert.AreEqual(1, Main.terminalHost.ControlCount);
-     Main.Controller.Split(True);
-     Assert.AreEqual(2, Integer(Length(Main.Controller.Sessions())));
-     Assert.AreEqual(1, Main.terminalHost.ControlCount);
-     Main.Controller.CloseTerminal;
-     Assert.AreEqual(1, Integer(Length(Main.Controller.Sessions())));
-     Main.StopTerminal;
-     Main.StopTerminal;
-     Assert.AreEqual(0, Main.terminalHost.ControlCount);
-    Finally
-     Main.Free;
+  Procedure TTerminalTests.MainWindowCreatesTerminalAndSplitFrames;
+    Var
+      Settings : TGuakeSettings;
+      Main     : TfrmMain;
+    Begin
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Try
+        Settings.General.DefaultShell         := 'cmd';
+        Settings.General.UseTrayicon          := False;
+        Settings.General.UsePopup             := False;
+        Settings.Keybindings.Global.ShowHide  := 'disabled';
+        Settings.Keybindings.Global.ShowFocus := 'disabled';
+        Main                                  := TfrmMain.Create(Nil);
+        Try
+          Assert.IsTrue(Assigned(TTabControlAccess(Main.tabBar).OnDblClick));
+          Main.Bind(Settings);
+          Main.StartTerminal;
+          Assert.AreEqual(1, Main.Controller.Count);
+          Assert.AreEqual(1, Main.terminalHost.ControlCount);
+          Main.Controller.Split(True);
+          Assert.AreEqual(2, Integer(Length(Main.Controller.Sessions())));
+          Assert.AreEqual(1, Main.terminalHost.ControlCount);
+          Main.Controller.CloseTerminal;
+          Assert.AreEqual(1, Integer(Length(Main.Controller.Sessions())));
+          Main.StopTerminal;
+          Main.StopTerminal;
+          Assert.AreEqual(0, Main.terminalHost.ControlCount);
+        Finally
+          Main.Free;
+        End;
+      Finally
+        Settings.Free;
+      End;
     End;
-   Finally
-    Settings.Free;
-   End;
-  End;
 
 /// <summary>Reserves an actual Windows hotkey, checks partial registration and retries after releasing the conflict.</summary>
 
- Procedure TTerminalTests.OccupiedGlobalShortcutDoesNotStopTerminal;
-  Const
-   OccupiedId = $B110;
-   ProbeId    = $B111;
-   Modifiers  = MOD_CONTROL Or MOD_ALT Or MOD_SHIFT;
-  Var
-   Settings : TGuakeSettings;
-   Main     : TfrmMain;
-  Begin
-   Assert.IsTrue(RegisterHotKey(0, OccupiedId, Modifiers, VK_F24), 'Cannot reserve the test hotkey');
-   Try
-    Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-    Try
-     Settings.General.DefaultShell         := 'cmd';
-     Settings.General.UseTrayicon          := False;
-     Settings.General.UsePopup             := False;
-     Settings.Keybindings.Global.ShowHide  := '<Control><Alt><Shift>F24';
-     Settings.Keybindings.Global.ShowFocus := '<Control><Alt><Shift>F23';
-     Main                                  := TfrmMain.Create(Nil);
-     Try
-      Main.Bind(Settings);
-      Main.StartTerminal;
-      Assert.AreEqual(1, Main.Controller.Count);
-      Assert.IsTrue(Main.pollTimer.Enabled);
-      Assert.IsTrue(Pos('1409', Main.HotkeyErrors) > 0, Main.HotkeyErrors);
-      Assert.IsTrue(Pos('F24', Main.trayIcon.Hint) > 0, Main.trayIcon.Hint);
-      Assert.IsFalse(RegisterHotKey(0, ProbeId, Modifiers, VK_F23), 'The other shortcut was not registered');
-      Main.StopTerminal;
-      UnregisterHotKey(0, OccupiedId);
-      Main.StartTerminal;
-      Assert.AreEqual('', Main.HotkeyErrors);
-      Assert.AreEqual('Guake Terminal', Main.trayIcon.Hint);
-      Main.StopTerminal;
-      Assert.IsTrue(RegisterHotKey(0, ProbeId, Modifiers, VK_F24), 'Shortcut was not released');
-     Finally
-      UnregisterHotKey(0, ProbeId);
-      Main.Free;
-     End;
-    Finally
-     Settings.Free;
+  Procedure TTerminalTests.OccupiedGlobalShortcutDoesNotStopTerminal;
+    Const
+      OccupiedId = $B110;
+      ProbeId    = $B111;
+      Modifiers  = MOD_CONTROL Or MOD_ALT Or MOD_SHIFT;
+    Var
+      Settings : TGuakeSettings;
+      Main     : TfrmMain;
+    Begin
+      Assert.IsTrue(RegisterHotKey(0, OccupiedId, Modifiers, VK_F24), 'Cannot reserve the test hotkey');
+      Try
+        Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+        Try
+          Settings.General.DefaultShell         := 'cmd';
+          Settings.General.UseTrayicon          := False;
+          Settings.General.UsePopup             := False;
+          Settings.Keybindings.Global.ShowHide  := '<Control><Alt><Shift>F24';
+          Settings.Keybindings.Global.ShowFocus := '<Control><Alt><Shift>F23';
+          Main                                  := TfrmMain.Create(Nil);
+          Try
+            Main.Bind(Settings);
+            Main.StartTerminal;
+            Assert.AreEqual(1, Main.Controller.Count);
+            Assert.IsTrue(Main.pollTimer.Enabled);
+            Assert.IsTrue(Pos('1409', Main.HotkeyErrors) > 0, Main.HotkeyErrors);
+            Assert.IsTrue(Pos('F24', Main.trayIcon.Hint) > 0, Main.trayIcon.Hint);
+            Assert.IsFalse(RegisterHotKey(0, ProbeId, Modifiers, VK_F23), 'The other shortcut was not registered');
+            Main.StopTerminal;
+            UnregisterHotKey(0, OccupiedId);
+            Main.StartTerminal;
+            Assert.AreEqual('', Main.HotkeyErrors);
+            Assert.AreEqual('Guake Terminal', Main.trayIcon.Hint);
+            Main.StopTerminal;
+            Assert.IsTrue(RegisterHotKey(0, ProbeId, Modifiers, VK_F24), 'Shortcut was not released');
+          Finally
+            UnregisterHotKey(0, ProbeId);
+            Main.Free;
+          End;
+        Finally
+          Settings.Free;
+        End;
+      Finally
+        UnregisterHotKey(0, OccupiedId);
+      End;
     End;
-   Finally
-    UnregisterHotKey(0, OccupiedId);
-   End;
-  End;
 
 /// <summary>SGR with no arguments and explicit default colors must end the colored prompt.</summary>
 
- Procedure TTerminalTests.DefaultColorsAfterPromptReset;
-  Var
-   Buffer : TTerminalBuffer;
-  Begin
-   Buffer := TTerminalBuffer.Create(40, 3);
-   Try
-    Buffer.FeedText(#27'[32mGREEN' + #27'[m% white');
-    Assert.AreEqual(2, Buffer.Cell[0, 0].Foreground);
-    Assert.AreEqual( -1, Buffer.Cell[5, 0].Foreground);
-    Assert.AreEqual( -2, Buffer.Cell[5, 0].Background);
-    Buffer.FeedText(#27'[32;41mX' + #27'[39;49mY');
-    Assert.AreEqual( -1, Buffer.Cell[13, 0].Foreground);
-    Assert.AreEqual( -2, Buffer.Cell[13, 0].Background);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.DefaultColorsAfterPromptReset;
+    Var
+      Buffer : TTerminalBuffer;
+    Begin
+      Buffer := TTerminalBuffer.Create(40, 3);
+      Try
+        Buffer.FeedText(#27'[32mGREEN' + #27'[m% white');
+        Assert.AreEqual(2, Buffer.Cell[0, 0].Foreground);
+        Assert.AreEqual( -1, Buffer.Cell[5, 0].Foreground);
+        Assert.AreEqual( -2, Buffer.Cell[5, 0].Background);
+        Buffer.FeedText(#27'[32;41mX' + #27'[39;49mY');
+        Assert.AreEqual( -1, Buffer.Cell[13, 0].Foreground);
+        Assert.AreEqual( -2, Buffer.Cell[13, 0].Background);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Unix shells receive terminal capabilities even when the parent process uses TERM=dumb.</summary>
 
- Procedure TTerminalTests.ZshUsesTerminalCapabilities;
-  Var
-   Settings : TGuakeSettings;
-   Profile  : TShellProfile;
-   Session  : TTerminalSession;
-   Deadline : UInt64;
-   x        : Integer;
-   y        : Integer;
-   Fore     : Integer;
-   Back     : Integer;
-  Begin
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Try
-    Profile           := TShellProfile.Resolve(gsZsh);
-    Profile.Arguments := '--nomintty -d -f -c ' + QuoteProcessArgument('printf "%s:%s " "$TERM" "$COLORTERM"; print -n -P ''%F{green}USER%f %% WHITE''');
-    Session           := TTerminalSession.Create(Profile, GetCurrentDir, Settings);
-    Try
-     Deadline := GetTickCount64 + 15000;
-     Repeat
-      Session.Poll;
-      If Session.Exited Then
-       Break;
-      Sleep(10);
-     Until GetTickCount64 >= Deadline;
-     Assert.IsTrue(Session.Exited);
-     Assert.IsTrue(Pos('xterm-256color:truecolor', Session.Buffer.Text) > 0, Session.Buffer.Text);
-     Assert.IsTrue(Pos('% WHITE', Session.Buffer.Text) > 0, Session.Buffer.Text);
-     For y  := 0 To Session.Buffer.TotalLines - 1 Do
-      For x := 0 To Session.Buffer.Columns - 1 Do
-       If (Session.Buffer.Cell[x, y].Text = '%') Or (Session.Buffer.Cell[x, y].Text = 'W') Then
-        Begin
-         Fore := Session.Buffer.Cell[x, y].Foreground;
-         Back := Session.Buffer.Cell[x, y].Background;
-         Assert.IsTrue((Fore = -1) Or (Fore = 7) Or (Fore = 15), 'Prompt reset did not restore white text');
-         Assert.IsTrue((Back = -2) Or (Back = 0), 'Prompt reset did not restore black background');
-        End;
+  Procedure TTerminalTests.ZshUsesTerminalCapabilities;
+    Var
+      Settings : TGuakeSettings;
+      Profile  : TShellProfile;
+      Session  : TTerminalSession;
+      Deadline : UInt64;
+      x        : Integer;
+      y        : Integer;
+      Fore     : Integer;
+      Back     : Integer;
+    Begin
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Try
+        Profile           := TShellProfile.Resolve(gsZsh);
+        Profile.Arguments := '--nomintty -d -f -c ' + QuoteProcessArgument('printf "%s:%s " "$TERM" "$COLORTERM"; print -n -P ''%F{green}USER%f %% WHITE''');
+        Session           := TTerminalSession.Create(Profile, GetCurrentDir, Settings);
+        Try
+          Deadline := GetTickCount64 + 15000;
+          Repeat
+            Session.Poll;
+            If Session.Exited Then
+              Break;
+            Sleep(10);
+          Until GetTickCount64 >= Deadline;
+          Assert.IsTrue(Session.Exited);
+          Assert.IsTrue(Pos('xterm-256color:truecolor', Session.Buffer.Text) > 0, Session.Buffer.Text);
+          Assert.IsTrue(Pos('% WHITE', Session.Buffer.Text) > 0, Session.Buffer.Text);
+          For y   := 0 To Session.Buffer.TotalLines - 1 Do
+            For x := 0 To Session.Buffer.Columns - 1 Do
+              If (Session.Buffer.Cell[x, y].Text = '%') Or (Session.Buffer.Cell[x, y].Text = 'W') Then
+                Begin
+                  Fore := Session.Buffer.Cell[x, y].Foreground;
+                  Back := Session.Buffer.Cell[x, y].Background;
+                  Assert.IsTrue((Fore = -1) Or (Fore = 7) Or (Fore = 15), 'Prompt reset did not restore white text');
+                  Assert.IsTrue((Back = -2) Or (Back = 0), 'Prompt reset did not restore black background');
+                End;
 
-    Finally
-     Session.Free;
+        Finally
+          Session.Free;
+        End;
+      Finally
+        Settings.Free;
+      End;
     End;
-   Finally
-    Settings.Free;
-   End;
-  End;
 
 /// <summary>Idle refreshes do not invalidate the view; exports an offscreen terminal and tab-strip preview.</summary>
 
- Procedure TTerminalTests.IdleTerminalDoesNotRepaint;
-  Var
-   Settings : TGuakeSettings;
-   Main     : TfrmMain;
-   Frame    : TfraTerminal;
-   Bitmap   : TBitmap;
-   Image    : TPngImage;
-   Output   : String;
-  Begin
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Try
-    Settings.General.DefaultShell         := 'cmd';
-    Settings.General.UseTrayicon          := False;
-    Settings.General.UsePopup             := False;
-    Settings.General.WindowTabbar         := True;
-    Settings.General.HideTabsIfOneTab     := False;
-    Settings.Keybindings.Global.ShowHide  := 'disabled';
-    Settings.Keybindings.Global.ShowFocus := 'disabled';
-    Settings.Style.CursorBlinkMode        := 2;
-    Main                                  := TfrmMain.Create(Nil);
-    Try
-     Main.Bind(Settings);
-     Main.StartTerminal;
-     Main.SetBounds(0, 0, 1000, 500);
-     Main.tabHost.HandleNeeded;
-     Main.tabBar.HandleNeeded;
-     Frame := Main.ActiveTerminalFrame;
-     Frame.HandleNeeded;
-     Frame.Session.Buffer.FeedText(#27'[2J' + #27'[H' + #27'[32mUSER' + #27'[m % white on black');
-     Frame.RefreshTick(Nil);
-     ValidateRect(Frame.Handle, Nil);
-     Frame.RefreshTick(Nil);
-     Assert.IsFalse(GetUpdateRect(Frame.Handle, Nil, False), 'Idle timer invalidated the terminal');
-     Assert.AreEqual(Integer(clBtnFace), Integer(Main.tabHost.Color));
-     Bitmap := TBitmap.Create;
-     Image  := TPngImage.Create;
-     Try
-      Bitmap.PixelFormat := pf24bit;
-      Bitmap.SetSize(Main.Width, Main.Height);
-      Main.PaintTo(Bitmap.Canvas.Handle, 0, 0);
-      Assert.IsTrue(Main.tabHost.Visible);
-      // Hidden native child windows need an explicit paint in an offscreen preview.
-      Main.tabHost.PaintTo(Bitmap.Canvas.Handle, Main.tabHost.Left, Main.tabHost.Top);
-      Image.Assign(Bitmap);
-      Output := TPath.Combine(ExtractFilePath(ParamStr(0)), 'terminal-preview.png');
-      Image.SaveToFile(Output);
-     Finally
-      Image.Free;
-      Bitmap.Free;
-     End;
-    Finally
-     Main.Free;
+  Procedure TTerminalTests.IdleTerminalDoesNotRepaint;
+    Var
+      Settings : TGuakeSettings;
+      Main     : TfrmMain;
+      Frame    : TfraTerminal;
+      Bitmap   : TBitmap;
+      Image    : TPngImage;
+      Output   : String;
+    Begin
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Try
+        Settings.General.DefaultShell         := 'cmd';
+        Settings.General.UseTrayicon          := False;
+        Settings.General.UsePopup             := False;
+        Settings.General.WindowTabbar         := True;
+        Settings.General.HideTabsIfOneTab     := False;
+        Settings.Keybindings.Global.ShowHide  := 'disabled';
+        Settings.Keybindings.Global.ShowFocus := 'disabled';
+        Settings.Style.CursorBlinkMode        := 2;
+        Main                                  := TfrmMain.Create(Nil);
+        Try
+          Main.Bind(Settings);
+          Main.StartTerminal;
+          Main.SetBounds(0, 0, 1000, 500);
+          Main.tabHost.HandleNeeded;
+          Main.tabBar.HandleNeeded;
+          Frame := Main.ActiveTerminalFrame;
+          Frame.HandleNeeded;
+          Frame.Session.Buffer.FeedText(#27'[2J' + #27'[H' + #27'[32mUSER' + #27'[m % white on black');
+          Frame.RefreshTick(Nil);
+          ValidateRect(Frame.Handle, Nil);
+          Frame.RefreshTick(Nil);
+          Assert.IsFalse(GetUpdateRect(Frame.Handle, Nil, False), 'Idle timer invalidated the terminal');
+          Assert.AreEqual(Integer(clBtnFace), Integer(Main.tabHost.Color));
+          Bitmap := TBitmap.Create;
+          Image  := TPngImage.Create;
+          Try
+            Bitmap.PixelFormat := pf24bit;
+            Bitmap.SetSize(Main.Width, Main.Height);
+            Main.PaintTo(Bitmap.Canvas.Handle, 0, 0);
+            Assert.IsTrue(Main.tabHost.Visible);
+            // Hidden native child windows need an explicit paint in an offscreen preview.
+            Main.tabHost.PaintTo(Bitmap.Canvas.Handle, Main.tabHost.Left, Main.tabHost.Top);
+            Image.Assign(Bitmap);
+            Output := TPath.Combine(ExtractFilePath(ParamStr(0)), 'terminal-preview.png');
+            Image.SaveToFile(Output);
+          Finally
+            Image.Free;
+            Bitmap.Free;
+          End;
+        Finally
+          Main.Free;
+        End;
+      Finally
+        Settings.Free;
+      End;
     End;
-   Finally
-    Settings.Free;
-   End;
-  End;
 
 /// <summary>Chooses tabs by stable identity and checks the source terminal and tab context menus.</summary>
 
- Procedure TTerminalTests.ReferenceMenusAndTabChooser;
-  Var
-   Settings : TGuakeSettings;
-   Main     : TfrmMain;
-   Handled  : Boolean;
-   Msg      : TMsg;
-  Begin
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Try
-    Settings.General.DefaultShell         := 'cmd';
-    Settings.General.UseTrayicon          := False;
-    Settings.General.UsePopup             := False;
-    Settings.Keybindings.Global.ShowHide  := 'disabled';
-    Settings.Keybindings.Global.ShowFocus := 'disabled';
-    Main                                  := TfrmMain.Create(Nil);
-    Try
-     Main.Bind(Settings);
-     Main.StartTerminal;
-     Assert.IsTrue(Main.tabHost.PopupMenu = Main.tabMenu);
-     Assert.IsTrue(Main.tabBar.PopupMenu = Main.tabMenu);
-     Assert.IsTrue(Main.btnAddTab.PopupMenu = Main.shellMenu);
-     Assert.AreEqual(4, Main.shellMenu.Items.Count);
-     Assert.AreEqual(Integer(tsFlatButtons), Integer(Main.tabBar.Style));
+  Procedure TTerminalTests.ReferenceMenusAndTabChooser;
+    Var
+      Settings : TGuakeSettings;
+      Main     : TfrmMain;
+      Handled  : Boolean;
+      Msg      : TMsg;
+    Begin
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Try
+        Settings.General.DefaultShell         := 'cmd';
+        Settings.General.UseTrayicon          := False;
+        Settings.General.UsePopup             := False;
+        Settings.Keybindings.Global.ShowHide  := 'disabled';
+        Settings.Keybindings.Global.ShowFocus := 'disabled';
+        Main                                  := TfrmMain.Create(Nil);
+        Try
+          Main.Bind(Settings);
+          Main.StartTerminal;
+          Assert.IsTrue(Main.tabHost.PopupMenu = Main.tabMenu);
+          Assert.IsTrue(Main.tabBar.PopupMenu = Main.tabMenu);
+          Assert.IsTrue(Main.btnAddTab.PopupMenu = Main.shellMenu);
+          Assert.AreEqual(4, Main.shellMenu.Items.Count);
+          Assert.AreEqual(Integer(tsFlatButtons), Integer(Main.tabBar.Style));
 
-     Assert.IsTrue(Main.btnAddTab.Enabled);
-     Assert.IsFalse(Main.btnAddTab.Glyph.Empty);
-     Assert.IsTrue(Main.btnTabList.Enabled);
-     Assert.IsTrue(Main.miTrayNewTab.Enabled);
-     Settings.General.DefaultShell := 'powershell';
-     Main.miPopupCmd.Click;
-     Assert.AreEqual(Integer(gsCmd), Integer(Main.Controller.ActiveSession.Profile.Kind));
-     Main.Controller.CloseTab(Main.Controller.ActiveIndex);
-     Settings.General.DefaultShell  := 'cmd';
-     Main.Controller.ActiveTab.Name := 'one';
-     Main.AddTabClick(Nil);
-     Main.Controller.ActiveTab.Name := 'two';
-     Main.TabListPopup(Nil);
-     Assert.AreEqual(2, Main.tabListMenu.Items.Count);
-     Assert.IsTrue(Main.tabListMenu.Items[1].Checked);
-     Main.tabListMenu.Items[0].Click;
-     Assert.AreEqual(0, Main.Controller.ActiveIndex);
-     Main.TerminalMenuPopup(Nil);
-     Assert.IsTrue(Main.miSaveTerminal.Parent = Main.terminalMenu.Items);
-     Assert.AreEqual(5, Main.tabMenu.Items.Count);
-     Assert.IsTrue(Main.miResetTerminal.Enabled);
-     Assert.AreEqual(4, Main.miNewShellTab.Count);
-     Main.miNewCmd.Click;
-     Assert.AreEqual(3, Main.Controller.Count);
-     Assert.AreEqual(Integer(gsCmd), Integer(Main.Controller.ActiveSession.Profile.Kind));
-     Settings.Keybindings.Local.NewTabCmd := '<Control><Alt>F23';
-     Handled                              := False;
-     Main.ActiveTerminalFrame.OnShortcut(Main.ActiveTerminalFrame, VK_F23, [ssCtrl, ssAlt], Handled);
-     Assert.IsTrue(Handled);
-     Assert.IsTrue(PeekMessage(Msg, Main.Handle, WM_APP, $BFFF, PM_REMOVE));
-     DispatchMessage(Msg);
-     Assert.AreEqual(4, Main.Controller.Count);
-     Assert.AreEqual(Integer(gsCmd), Integer(Main.Controller.ActiveSession.Profile.Kind));
-     Assert.IsFalse(Main.miQuickOpen.Enabled);
-     Assert.IsTrue(Main.miSaveTabs.Enabled);
-    Finally
-     Main.Free;
+          Assert.IsTrue(Main.btnAddTab.Enabled);
+          Assert.IsFalse(Main.btnAddTab.Glyph.Empty);
+          Assert.IsTrue(Main.btnTabList.Enabled);
+          Assert.IsTrue(Main.miTrayNewTab.Enabled);
+          Settings.General.DefaultShell := 'powershell';
+          Main.miPopupCmd.Click;
+          Assert.AreEqual(Integer(gsCmd), Integer(Main.Controller.ActiveSession.Profile.Kind));
+          Main.Controller.CloseTab(Main.Controller.ActiveIndex);
+          Settings.General.DefaultShell  := 'cmd';
+          Main.Controller.ActiveTab.Name := 'one';
+          Main.AddTabClick(Nil);
+          Main.Controller.ActiveTab.Name := 'two';
+          Main.TabListPopup(Nil);
+          Assert.AreEqual(2, Main.tabListMenu.Items.Count);
+          Assert.IsTrue(Main.tabListMenu.Items[1].Checked);
+          Main.tabListMenu.Items[0].Click;
+          Assert.AreEqual(0, Main.Controller.ActiveIndex);
+          Main.TerminalMenuPopup(Nil);
+          Assert.IsTrue(Main.miSaveTerminal.Parent = Main.terminalMenu.Items);
+          Assert.AreEqual(5, Main.tabMenu.Items.Count);
+          Assert.IsTrue(Main.miResetTerminal.Enabled);
+          Assert.AreEqual(4, Main.miNewShellTab.Count);
+          Main.miNewCmd.Click;
+          Assert.AreEqual(3, Main.Controller.Count);
+          Assert.AreEqual(Integer(gsCmd), Integer(Main.Controller.ActiveSession.Profile.Kind));
+          Settings.Keybindings.Local.NewTabCmd := '<Control><Alt>F23';
+          Handled                              := False;
+          Main.ActiveTerminalFrame.OnShortcut(Main.ActiveTerminalFrame, VK_F23, [ssCtrl, ssAlt], Handled);
+          Assert.IsTrue(Handled);
+          Assert.IsTrue(PeekMessage(Msg, Main.Handle, WM_APP, $BFFF, PM_REMOVE));
+          DispatchMessage(Msg);
+          Assert.AreEqual(4, Main.Controller.Count);
+          Assert.AreEqual(Integer(gsCmd), Integer(Main.Controller.ActiveSession.Profile.Kind));
+          Assert.IsFalse(Main.miQuickOpen.Enabled);
+          Assert.IsTrue(Main.miSaveTabs.Enabled);
+        Finally
+          Main.Free;
+        End;
+      Finally
+        Settings.Free;
+      End;
     End;
-   Finally
-    Settings.Free;
-   End;
-  End;
 
 /// <summary>Renders a known two-color image in every layout and verifies removal and failure fallback.</summary>
 
- Procedure TTerminalTests.BackgroundImageLayoutsAndRemoval;
-  Var
-   Settings : TGuakeSettings;
-   Main     : TfrmMain;
-   Frame    : TfraTerminal;
-   Source   : TBitmap;
-   Target   : TBitmap;
-   FileName : String;
-   Mode     : Integer;
-  Begin
-   FileName := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName + '.bmp');
-   Source   := TBitmap.Create;
-   Target   := TBitmap.Create;
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Try
-    Source.PixelFormat := pf24bit;
-    Source.SetSize(2, 1);
-    Source.Canvas.Pixels[0, 0] := clRed;
-    Source.Canvas.Pixels[1, 0] := clBlue;
-    Source.SaveToFile(FileName);
-    Target.PixelFormat := pf24bit;
-    Target.SetSize(10, 10);
-    Settings.General.BackgroundImageFile := FileName;
-    Main                                 := TfrmMain.Create(Nil);
-    Try
-     Frame        := TfraTerminal.Create(Main.terminalHost);
-     Frame.Parent := Main.terminalHost;
-     For Mode     := 0 To 3 Do
-      Begin
-       Settings.General.BackgroundImageLayoutMode := Mode;
-       Frame.Bind(Nil, Settings);
-       Frame.DrawBackground(Target.Canvas, Rect(0, 0, 10, 10));
-       Case Mode Of
-        0 :
-         Begin
-          Assert.AreEqual(Integer(clRed), Integer(Target.Canvas.Pixels[0, 0]));
-          Assert.AreEqual(Integer(clRed), Integer(Target.Canvas.Pixels[0, 3]));
-         End;
-        1 :
-         Begin
-          Assert.AreEqual(Integer(clRed), Integer(Target.Canvas.Pixels[0, 8]));
-          Assert.AreEqual(Integer(clBlue), Integer(Target.Canvas.Pixels[1, 8]));
-         End;
-        2 :
-         Begin
-          Assert.AreEqual(Integer(clBlack), Integer(Target.Canvas.Pixels[0, 0]));
-          Assert.AreEqual(Integer(clRed), Integer(Target.Canvas.Pixels[4, 4]));
-          Assert.AreEqual(Integer(clBlue), Integer(Target.Canvas.Pixels[5, 4]));
-         End;
-        3 :
-         Begin
-          Assert.AreEqual(Integer(clRed), Integer(Target.Canvas.Pixels[0, 0]));
-          Assert.AreEqual(Integer(clBlue), Integer(Target.Canvas.Pixels[9, 9]));
-         End;
-       End;
+  Procedure TTerminalTests.BackgroundImageLayoutsAndRemoval;
+    Var
+      Settings : TGuakeSettings;
+      Main     : TfrmMain;
+      Frame    : TfraTerminal;
+      Source   : TBitmap;
+      Target   : TBitmap;
+      FileName : String;
+      Mode     : Integer;
+    Begin
+      FileName := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName + '.bmp');
+      Source   := TBitmap.Create;
+      Target   := TBitmap.Create;
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Try
+        Source.PixelFormat := pf24bit;
+        Source.SetSize(2, 1);
+        Source.Canvas.Pixels[0, 0] := clRed;
+        Source.Canvas.Pixels[1, 0] := clBlue;
+        Source.SaveToFile(FileName);
+        Target.PixelFormat := pf24bit;
+        Target.SetSize(10, 10);
+        Settings.General.BackgroundImageFile := FileName;
+        Main                                 := TfrmMain.Create(Nil);
+        Try
+          Frame        := TfraTerminal.Create(Main.terminalHost);
+          Frame.Parent := Main.terminalHost;
+          For Mode     := 0 To 3 Do
+            Begin
+              Settings.General.BackgroundImageLayoutMode := Mode;
+              Frame.Bind(Nil, Settings);
+              Frame.DrawBackground(Target.Canvas, Rect(0, 0, 10, 10));
+              Case Mode Of
+                0 :
+                  Begin
+                    Assert.AreEqual(Integer(clRed), Integer(Target.Canvas.Pixels[0, 0]));
+                    Assert.AreEqual(Integer(clRed), Integer(Target.Canvas.Pixels[0, 3]));
+                  End;
+                1 :
+                  Begin
+                    Assert.AreEqual(Integer(clRed), Integer(Target.Canvas.Pixels[0, 8]));
+                    Assert.AreEqual(Integer(clBlue), Integer(Target.Canvas.Pixels[1, 8]));
+                  End;
+                2 :
+                  Begin
+                    Assert.AreEqual(Integer(clBlack), Integer(Target.Canvas.Pixels[0, 0]));
+                    Assert.AreEqual(Integer(clRed), Integer(Target.Canvas.Pixels[4, 4]));
+                    Assert.AreEqual(Integer(clBlue), Integer(Target.Canvas.Pixels[5, 4]));
+                  End;
+                3 :
+                  Begin
+                    Assert.AreEqual(Integer(clRed), Integer(Target.Canvas.Pixels[0, 0]));
+                    Assert.AreEqual(Integer(clBlue), Integer(Target.Canvas.Pixels[9, 9]));
+                  End;
+              End;
+            End;
+          Settings.General.BackgroundImageFile := '';
+          Frame.ApplySettings;
+          Frame.DrawBackground(Target.Canvas, Rect(0, 0, 10, 10));
+          Assert.AreEqual(Integer(clBlack), Integer(Target.Canvas.Pixels[4, 4]));
+          Settings.General.BackgroundImageFile := FileName + '.missing';
+          Frame.ApplySettings;
+          Frame.DrawBackground(Target.Canvas, Rect(0, 0, 10, 10));
+          Assert.AreEqual(Integer(clBlack), Integer(Target.Canvas.Pixels[4, 4]));
+        Finally
+          Main.Free;
+        End;
+      Finally
+        Settings.Free;
+        Target.Free;
+        Source.Free;
+        TFile.Delete(FileName);
       End;
-     Settings.General.BackgroundImageFile := '';
-     Frame.ApplySettings;
-     Frame.DrawBackground(Target.Canvas, Rect(0, 0, 10, 10));
-     Assert.AreEqual(Integer(clBlack), Integer(Target.Canvas.Pixels[4, 4]));
-     Settings.General.BackgroundImageFile := FileName + '.missing';
-     Frame.ApplySettings;
-     Frame.DrawBackground(Target.Canvas, Rect(0, 0, 10, 10));
-     Assert.AreEqual(Integer(clBlack), Integer(Target.Canvas.Pixels[4, 4]));
-    Finally
-     Main.Free;
     End;
-   Finally
-    Settings.Free;
-    Target.Free;
-    Source.Free;
-    TFile.Delete(FileName);
-   End;
-  End;
 
 /// <summary>Exercises shrinking below a previous scrollbar page, fullscreen cycles and click versus drag.</summary>
 
- Procedure TTerminalTests.FullscreenScrollOpacityAndMouseSelection;
-  Var
-   Settings : TGuakeSettings;
-   Main     : TfrmMain;
-   Frame    : TfraTerminal;
-   i        : Integer;
-  Begin
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Try
-    Settings.General.DefaultShell          := 'cmd';
-    Settings.General.UseTrayicon           := False;
-    Settings.General.UsePopup              := False;
-    Settings.Keybindings.Global.ShowHide   := 'disabled';
-    Settings.Keybindings.Global.ShowFocus  := 'disabled';
-    Settings.Style.Background.Transparency := 73;
-    Main                                   := TfrmMain.Create(Nil);
-    Try
-     Main.Bind(Settings);
-     Main.HandleNeeded;
-     Main.StartTerminal;
-     Frame := Main.ActiveTerminalFrame;
-     Frame.HandleNeeded;
-     For i := 1 To 15 Do
-      Begin
-       Main.SetFullScreen(True);
-       Frame.RefreshTick(Nil);
-       Main.SetFullScreen(False);
-       Main.SetBounds(0, 0, 700, 120);
-       Frame.FrameResize(Nil);
-       Frame.RefreshTick(Nil);
-       Assert.IsTrue(Frame.scroll.PageSize <= Frame.scroll.Max);
-       Assert.IsTrue((GetWindowLongPtr(Main.Handle, GWL_EXSTYLE) And WS_EX_LAYERED) <> 0);
-       Assert.IsFalse(Main.AlphaBlend, 'Constant window alpha would also fade the text');
-      End;
-     Settings.General.WindowOntop := Not Settings.General.WindowOntop;
-     Main.ApplySettings;
-     Assert.IsTrue((GetWindowLongPtr(Main.Handle, GWL_EXSTYLE) And WS_EX_LAYERED) <> 0);
-     Main.Show;
-     Main.SetBounds( -30000, 0, 700, 120);
-     Frame.Session.Buffer.FeedText(#27'[2J' + #27'[H' + 'selection');
-     Frame.RefreshTick(Nil);
-     Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
-     Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
-     Assert.AreEqual('', Frame.SelectedText);
-     Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
-     Frame.SurfaceMouseMove(Nil, [ssLeft], 6, 5);
-     Assert.AreEqual('', Frame.SelectedText);
-     Frame.SurfaceMouseMove(Nil, [ssLeft], 45, 5);
-     Frame.SurfaceMouseUp(Nil, mbLeft, [], 45, 5);
-     Assert.IsTrue(Length(Frame.SelectedText) > 1, Frame.SelectedText);
-     Frame.Session.Buffer.FeedText(#27'[2J'#27'[Ha+b');
-     Settings.General.WordChars := '-A-Za-z0-9';
-     Frame.RefreshTick(Nil);
-     Frame.SurfaceMouseDown(Nil, mbLeft, [ssDouble], 5, 5);
-     Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
-     Assert.AreEqual('a', Frame.SelectedText);
-     Settings.General.WordChars := '-A-Za-z0-9+';
-     Frame.SurfaceMouseDown(Nil, mbLeft, [ssDouble], 5, 5);
-     Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
-     Assert.AreEqual('a+b', Frame.SelectedText);
-     Frame.Session.Buffer.FeedText(#27'[?1003h'#27'[?1006h');
-     Frame.SurfaceMouseMove(Nil, [], 5, 5);
-     Assert.AreEqual('a+b', Frame.SelectedText, 'Application mouse input must not clear local selection');
-     Settings.General.ScrollKeystroke := True;
-     For i                            := 1 To 30 Do
-      Frame.Session.Buffer.FeedText(#13#10'line');
-     Frame.RefreshTick(Nil);
-     Frame.scroll.Position := 0;
-     Frame.SurfaceMouseMove(Nil, [], 45, 5);
-     Assert.AreEqual(0, Frame.scroll.Position, 'Mouse tracking is not a keyboard scroll-to-bottom action');
+  Procedure TTerminalTests.FullscreenScrollOpacityAndMouseSelection;
+    Var
+      Settings : TGuakeSettings;
+      Main     : TfrmMain;
+      Frame    : TfraTerminal;
+      i        : Integer;
+    Begin
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Try
+        Settings.General.DefaultShell          := 'cmd';
+        Settings.General.UseTrayicon           := False;
+        Settings.General.UsePopup              := False;
+        Settings.Keybindings.Global.ShowHide   := 'disabled';
+        Settings.Keybindings.Global.ShowFocus  := 'disabled';
+        Settings.Style.Background.Transparency := 73;
+        Main                                   := TfrmMain.Create(Nil);
+        Try
+          Main.Bind(Settings);
+          Main.HandleNeeded;
+          Main.StartTerminal;
+          Frame := Main.ActiveTerminalFrame;
+          Frame.HandleNeeded;
+          For i := 1 To 15 Do
+            Begin
+              Main.SetFullScreen(True);
+              Frame.RefreshTick(Nil);
+              Main.SetFullScreen(False);
+              Main.SetBounds(0, 0, 700, 120);
+              Frame.FrameResize(Nil);
+              Frame.RefreshTick(Nil);
+              Assert.IsTrue(Frame.scroll.PageSize <= Frame.scroll.Max);
+              Assert.IsTrue((GetWindowLongPtr(Main.Handle, GWL_EXSTYLE) And WS_EX_LAYERED) <> 0);
+              Assert.IsFalse(Main.AlphaBlend, 'Constant window alpha would also fade the text');
+            End;
+          Settings.General.WindowOntop := Not Settings.General.WindowOntop;
+          Main.ApplySettings;
+          Assert.IsTrue((GetWindowLongPtr(Main.Handle, GWL_EXSTYLE) And WS_EX_LAYERED) <> 0);
+          Main.Show;
+          Main.SetBounds( -30000, 0, 700, 120);
+          Frame.Session.Buffer.FeedText(#27'[2J' + #27'[H' + 'selection');
+          Frame.RefreshTick(Nil);
+          Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
+          Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
+          Assert.AreEqual('', Frame.SelectedText);
+          Frame.SurfaceMouseDown(Nil, mbLeft, [], 5, 5);
+          Frame.SurfaceMouseMove(Nil, [ssLeft], 6, 5);
+          Assert.AreEqual('', Frame.SelectedText);
+          Frame.SurfaceMouseMove(Nil, [ssLeft], 45, 5);
+          Frame.SurfaceMouseUp(Nil, mbLeft, [], 45, 5);
+          Assert.IsTrue(Length(Frame.SelectedText) > 1, Frame.SelectedText);
+          Frame.Session.Buffer.FeedText(#27'[2J'#27'[Ha+b');
+          Settings.General.WordChars := '-A-Za-z0-9';
+          Frame.RefreshTick(Nil);
+          Frame.SurfaceMouseDown(Nil, mbLeft, [ssDouble], 5, 5);
+          Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
+          Assert.AreEqual('a', Frame.SelectedText);
+          Settings.General.WordChars := '-A-Za-z0-9+';
+          Frame.SurfaceMouseDown(Nil, mbLeft, [ssDouble], 5, 5);
+          Frame.SurfaceMouseUp(Nil, mbLeft, [], 5, 5);
+          Assert.AreEqual('a+b', Frame.SelectedText);
+          Frame.Session.Buffer.FeedText(#27'[?1003h'#27'[?1006h');
+          Frame.SurfaceMouseMove(Nil, [], 5, 5);
+          Assert.AreEqual('a+b', Frame.SelectedText, 'Application mouse input must not clear local selection');
+          Settings.General.ScrollKeystroke := True;
+          For i                            := 1 To 30 Do
+            Frame.Session.Buffer.FeedText(#13#10'line');
+          Frame.RefreshTick(Nil);
+          Frame.scroll.Position := 0;
+          Frame.SurfaceMouseMove(Nil, [], 45, 5);
+          Assert.AreEqual(0, Frame.scroll.Position, 'Mouse tracking is not a keyboard scroll-to-bottom action');
 
-    Finally
-     Main.Free;
+        Finally
+          Main.Free;
+        End;
+      Finally
+        Settings.Free;
+      End;
     End;
-   Finally
-    Settings.Free;
-   End;
-  End;
 
 /// <summary>Runs the packaged launcher under ConPTY, verifies Git environment and child exit code propagation.</summary>
 
- Procedure TTerminalTests.GitZshEnvironmentAndExitStatus;
-  Var
-   Profile  : TShellProfile;
-   Session  : TConPtySession;
-   Buffer   : TTerminalBuffer;
-   Deadline : UInt64;
-  Begin
-   Profile := TShellProfile.Resolve(gsZsh);
-   Assert.IsTrue(SameText(ExtractFileName(Profile.Executable), 'git-zsh.exe'));
-   Buffer := TTerminalBuffer.Create(120, 30);
-   Try
-    Session := TConPtySession.Create(Profile.Executable,
-    '--nomintty --git-sdk-root "C:\git-sdk-64" -d -f -c ' + QuoteProcessArgument(
-    'printf "SDK=%s TERM=%s HOME=%s\n" "$MSYSTEM" "$TERM" "$HOME"; command -v git; exit 37'), GetCurrentDir, 120, 30);
-    Try
-     Deadline := GetTickCount64 + 15000;
-     Repeat
-      Buffer.Feed(Session.ReadAvailable);
-      If Not Session.Running Then
-       Break;
-      Sleep(10);
-     Until GetTickCount64 >= Deadline;
-     Assert.IsFalse(Session.Running);
-     Session.CompleteOutput;
-     Buffer.Feed(Session.ReadAvailable);
-     Assert.IsTrue(Pos('SDK=MINGW64 TERM=xterm-256color HOME=', Buffer.Text) > 0, Buffer.Text);
-     Assert.IsTrue(Pos('/git', Buffer.Text) > 0, Buffer.Text);
-     Assert.AreEqual(Cardinal(37), Session.ExitCode);
-    Finally
-     Session.Free;
+  Procedure TTerminalTests.GitZshEnvironmentAndExitStatus;
+    Var
+      Profile  : TShellProfile;
+      Session  : TConPtySession;
+      Buffer   : TTerminalBuffer;
+      Deadline : UInt64;
+    Begin
+      Profile := TShellProfile.Resolve(gsZsh);
+      Assert.IsTrue(SameText(ExtractFileName(Profile.Executable), 'git-zsh.exe'));
+      Buffer := TTerminalBuffer.Create(120, 30);
+      Try
+        Session := TConPtySession.Create(Profile.Executable,
+        '--nomintty --git-sdk-root "C:\git-sdk-64" -d -f -c ' + QuoteProcessArgument(
+        'printf "SDK=%s TERM=%s HOME=%s\n" "$MSYSTEM" "$TERM" "$HOME"; command -v git; exit 37'), GetCurrentDir, 120, 30);
+        Try
+          Deadline := GetTickCount64 + 15000;
+          Repeat
+            Buffer.Feed(Session.ReadAvailable);
+            If Not Session.Running Then
+              Break;
+            Sleep(10);
+          Until GetTickCount64 >= Deadline;
+          Assert.IsFalse(Session.Running);
+          Session.CompleteOutput;
+          Buffer.Feed(Session.ReadAvailable);
+          Assert.IsTrue(Pos('SDK=MINGW64 TERM=xterm-256color HOME=', Buffer.Text) > 0, Buffer.Text);
+          Assert.IsTrue(Pos('/git', Buffer.Text) > 0, Buffer.Text);
+          Assert.AreEqual(Cardinal(37), Session.ExitCode);
+        Finally
+          Session.Free;
+        End;
+      Finally
+        Buffer.Free;
+      End;
     End;
-   Finally
-    Buffer.Free;
-   End;
-  End;
 
 /// <summary>Exercises both screen edges, reversing, immediate mode and persistent animation settings.</summary>
 
- Procedure TTerminalTests.DropDownAnimationReversesAndKeepsTerminalSize;
-  Var
-   Settings : TGuakeSettings;
-   Main     : TfrmMain;
-   Edge     : Integer;
-   Rows     : Integer;
-   Bounds   : TRect;
-  Begin
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Try
-    Settings.General.DefaultShell              := 'cmd';
-    Settings.General.UseTrayicon               := False;
-    Settings.General.UsePopup                  := False;
-    Settings.Keybindings.Global.ShowHide       := 'disabled';
-    Settings.Keybindings.Global.ShowFocus      := 'disabled';
-    Settings.General.DropDownAnimation         := True;
-    Settings.General.DropDownAnimationDuration := 40;
-    Settings.Save;
-    Settings.Reload;
-    Assert.IsTrue(Settings.General.DropDownAnimation);
-    Assert.AreEqual(40, Settings.General.DropDownAnimationDuration);
-    Main := TfrmMain.Create(Nil);
-    Try
-     Main.Bind(Settings);
-     Main.StartTerminal;
-     For Edge := 0 To 1 Do
-      Begin
-       Settings.General.WindowValignment := Edge;
-       Main.ApplySettings;
-       Bounds := Main.BoundsRect;
-       Rows   := Main.ActiveTerminalFrame.Session.Buffer.Rows;
-       Main.SetTerminalVisible(True);
-       Sleep(15);
-       Main.AnimationTick(Nil);
-       Assert.AreEqual(Rows, Main.ActiveTerminalFrame.Session.Buffer.Rows);
-       Main.miTrayToggle.Click;
-       Sleep(60);
-       Main.AnimationTick(Nil);
-       Assert.IsFalse(Main.Visible, 'Terminal still visible after hiding');
-       Assert.IsFalse(Main.animationTimer.Enabled);
-       Assert.AreEqual(Bounds.Top, Main.Top);
-       Main.SetTerminalVisible(True);
-       Sleep(60);
-       Main.AnimationTick(Nil);
-       Assert.IsTrue(Main.Visible, 'Terminal not visible after showing');
-       Assert.IsTrue((GetWindowLongPtr(Main.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'Main lost TOOLWINDOW');
-       Assert.IsTrue((GetWindowLongPtr(Main.Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = 0);
-       If Vcl.Forms.Application.Handle <> 0 Then
-        Begin
-         Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = 0, 'VCL proxy gained APPWINDOW');
-         Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'VCL proxy lost TOOLWINDOW');
-         // VCL dialog creation attempts to remove TOOLWINDOW from its owner. The proxy guard must reject it.
-         SetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE,
-         (GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And Not WS_EX_TOOLWINDOW) Or WS_EX_APPWINDOW);
-         Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'VCL proxy lost TOOLWINDOW');
-         Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = 0, 'VCL proxy gained APPWINDOW');
+  Procedure TTerminalTests.DropDownAnimationReversesAndKeepsTerminalSize;
+    Var
+      Settings : TGuakeSettings;
+      Main     : TfrmMain;
+      Edge     : Integer;
+      Rows     : Integer;
+      Bounds   : TRect;
+    Begin
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Try
+        Settings.General.DefaultShell              := 'cmd';
+        Settings.General.UseTrayicon               := False;
+        Settings.General.UsePopup                  := False;
+        Settings.Keybindings.Global.ShowHide       := 'disabled';
+        Settings.Keybindings.Global.ShowFocus      := 'disabled';
+        Settings.General.DropDownAnimation         := True;
+        Settings.General.DropDownAnimationDuration := 40;
+        Settings.Save;
+        Settings.Reload;
+        Assert.IsTrue(Settings.General.DropDownAnimation);
+        Assert.AreEqual(40, Settings.General.DropDownAnimationDuration);
+        Main := TfrmMain.Create(Nil);
+        Try
+          Main.Bind(Settings);
+          Main.StartTerminal;
+          For Edge := 0 To 1 Do
+            Begin
+              Settings.General.WindowValignment := Edge;
+              Main.ApplySettings;
+              Bounds := Main.BoundsRect;
+              Rows   := Main.ActiveTerminalFrame.Session.Buffer.Rows;
+              Main.SetTerminalVisible(True);
+              Sleep(15);
+              Main.AnimationTick(Nil);
+              Assert.AreEqual(Rows, Main.ActiveTerminalFrame.Session.Buffer.Rows);
+              Main.miTrayToggle.Click;
+              Sleep(60);
+              Main.AnimationTick(Nil);
+              Assert.IsFalse(Main.Visible, 'Terminal still visible after hiding');
+              Assert.IsFalse(Main.animationTimer.Enabled);
+              Assert.AreEqual(Bounds.Top, Main.Top);
+              Main.SetTerminalVisible(True);
+              Sleep(60);
+              Main.AnimationTick(Nil);
+              Assert.IsTrue(Main.Visible, 'Terminal not visible after showing');
+              Assert.IsTrue((GetWindowLongPtr(Main.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'Main lost TOOLWINDOW');
+              Assert.IsTrue((GetWindowLongPtr(Main.Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = 0);
+              If Vcl.Forms.Application.Handle <> 0 Then
+                Begin
+                  Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = 0, 'VCL proxy gained APPWINDOW');
+                  Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'VCL proxy lost TOOLWINDOW');
+                  // VCL dialog creation attempts to remove TOOLWINDOW from its owner. The proxy guard must reject it.
+                  SetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE,
+                  (GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And Not WS_EX_TOOLWINDOW) Or WS_EX_APPWINDOW);
+                  Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'VCL proxy lost TOOLWINDOW');
+                  Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = 0, 'VCL proxy gained APPWINDOW');
+                End;
+              Assert.AreEqual(Bounds.Top, Main.Top);
+              Main.SetTerminalVisible(False);
+              Sleep(60);
+              Main.AnimationTick(Nil);
+            End;
+          Settings.General.DropDownAnimation := False;
+          Main.SetTerminalVisible(True);
+          Assert.IsTrue(Main.Visible, 'Terminal not visible after showing');
+          Assert.IsTrue((GetWindowLongPtr(Main.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'Main lost TOOLWINDOW');
+          Assert.IsTrue((GetWindowLongPtr(Main.Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = 0);
+          If Vcl.Forms.Application.Handle <> 0 Then
+            Begin
+              Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = 0, 'VCL proxy gained APPWINDOW');
+              Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'VCL proxy lost TOOLWINDOW');
+              // VCL dialog creation attempts to remove TOOLWINDOW from its owner. The proxy guard must reject it.
+              SetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE,
+              (GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And Not WS_EX_TOOLWINDOW) Or WS_EX_APPWINDOW);
+              Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'VCL proxy lost TOOLWINDOW');
+              Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = 0, 'VCL proxy gained APPWINDOW');
+            End;
+          Assert.IsFalse(Main.animationTimer.Enabled);
+          Main.SetTerminalVisible(False);
+          Assert.IsFalse(Main.Visible, 'Terminal still visible after hiding');
+        Finally
+          Main.Free;
         End;
-       Assert.AreEqual(Bounds.Top, Main.Top);
-       Main.SetTerminalVisible(False);
-       Sleep(60);
-       Main.AnimationTick(Nil);
+      Finally
+        Settings.Free;
       End;
-     Settings.General.DropDownAnimation := False;
-     Main.SetTerminalVisible(True);
-     Assert.IsTrue(Main.Visible, 'Terminal not visible after showing');
-     Assert.IsTrue((GetWindowLongPtr(Main.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'Main lost TOOLWINDOW');
-     Assert.IsTrue((GetWindowLongPtr(Main.Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = 0);
-     If Vcl.Forms.Application.Handle <> 0 Then
-      Begin
-       Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = 0, 'VCL proxy gained APPWINDOW');
-       Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'VCL proxy lost TOOLWINDOW');
-       // VCL dialog creation attempts to remove TOOLWINDOW from its owner. The proxy guard must reject it.
-       SetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE,
-       (GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And Not WS_EX_TOOLWINDOW) Or WS_EX_APPWINDOW);
-       Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'VCL proxy lost TOOLWINDOW');
-       Assert.IsTrue((GetWindowLongPtr(Vcl.Forms.Application.Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = 0, 'VCL proxy gained APPWINDOW');
-      End;
-     Assert.IsFalse(Main.animationTimer.Enabled);
-     Main.SetTerminalVisible(False);
-     Assert.IsFalse(Main.Visible, 'Terminal still visible after hiding');
-    Finally
-     Main.Free;
     End;
-   Finally
-    Settings.Free;
-   End;
-  End;
 
 /// <summary>Verifies URL boundaries, search encoding, OSC 8 across feeds and directional navigation of nested splits.</summary>
 
- Procedure TTerminalTests.HyperlinksSearchAndDirectionalPanes;
-  Var
-   Buffer     : TTerminalBuffer;
-   Settings   : TGuakeSettings;
-   Controller : TTerminalController;
-   LeftPane   : TTerminalSession;
-   RightPane  : TTerminalSession;
-   BottomPane : TTerminalSession;
-   URI        : String;
-  Begin
-   Assert.AreEqual('https://example.org/a', TerminalLinkAt('go https://example.org/a). end', 12));
-   Assert.AreEqual('', TerminalLinkAt('go https://example.org/a). end', 26));
-   Assert.AreEqual('', NormalizeTerminalLink('javascript:alert(1)'));
-   URI := WebSearchAddress('a & b/ż', 5, 'https://example.org/?q=%s');
-   Assert.IsTrue(Pos('a+%26+b%2F', URI) > 0, URI);
-   Buffer := TTerminalBuffer.Create(80, 5);
-   Try
-    Buffer.FeedText(#27']8;id=one;https://example.org/' + #27);
-    Buffer.FeedText('\' + 'click' + #27'[31m' + 'x' + #27']8;;' + #7 + 'plain');
-    Assert.AreEqual('https://example.org/', Buffer.Cell[0, 0].Hyperlink);
-    Assert.AreEqual('https://example.org/', Buffer.Cell[5, 0].Hyperlink);
-    Assert.AreEqual('', Buffer.Cell[6, 0].Hyperlink);
-   Finally
-    Buffer.Free;
-   End;
-   Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
-   Try
-    Settings.General.DefaultShell := 'cmd';
-    Controller                    := TTerminalController.Create(Settings);
-    Try
-     Controller.NewTab;
-     LeftPane := Controller.ActiveSession;
-     Controller.Split(True);
-     RightPane := Controller.ActiveSession;
-     Controller.Split(False);
-     BottomPane := Controller.ActiveSession;
-     Assert.IsTrue(Controller.FocusDirection(0, -1));
-     Assert.AreSame(RightPane, Controller.ActiveSession);
-     Assert.IsTrue(Controller.FocusDirection( -1, 0));
-     Assert.AreSame(LeftPane, Controller.ActiveSession);
-     Assert.IsFalse(Controller.FocusDirection( -1, 0));
-     Controller.FocusSession(BottomPane);
-     Assert.IsTrue(Controller.MoveSplit(1, 0));
-     Assert.AreEqual(55, Controller.ActiveTab.Root.Ratio);
-     Assert.IsTrue(Controller.MoveSplit(0, -1));
-     Assert.AreEqual(45, Controller.ActiveTab.Root.Second.Ratio);
-    Finally
-     Controller.Free;
+  Procedure TTerminalTests.HyperlinksSearchAndDirectionalPanes;
+    Var
+      Buffer     : TTerminalBuffer;
+      Settings   : TGuakeSettings;
+      Controller : TTerminalController;
+      LeftPane   : TTerminalSession;
+      RightPane  : TTerminalSession;
+      BottomPane : TTerminalSession;
+      URI        : String;
+    Begin
+      Assert.AreEqual('https://example.org/a', TerminalLinkAt('go https://example.org/a). end', 12));
+      Assert.AreEqual('', TerminalLinkAt('go https://example.org/a). end', 26));
+      Assert.AreEqual('', NormalizeTerminalLink('javascript:alert(1)'));
+      URI := WebSearchAddress('a & b/ż', 5, 'https://example.org/?q=%s');
+      Assert.IsTrue(Pos('a+%26+b%2F', URI) > 0, URI);
+      Buffer := TTerminalBuffer.Create(80, 5);
+      Try
+        Buffer.FeedText(#27']8;id=one;https://example.org/' + #27);
+        Buffer.FeedText('\' + 'click' + #27'[31m' + 'x' + #27']8;;' + #7 + 'plain');
+        Assert.AreEqual('https://example.org/', Buffer.Cell[0, 0].Hyperlink);
+        Assert.AreEqual('https://example.org/', Buffer.Cell[5, 0].Hyperlink);
+        Assert.AreEqual('', Buffer.Cell[6, 0].Hyperlink);
+      Finally
+        Buffer.Free;
+      End;
+      Settings := TGuakeSettings.Create(TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName));
+      Try
+        Settings.General.DefaultShell := 'cmd';
+        Controller                    := TTerminalController.Create(Settings);
+        Try
+          Controller.NewTab;
+          LeftPane := Controller.ActiveSession;
+          Controller.Split(True);
+          RightPane := Controller.ActiveSession;
+          Controller.Split(False);
+          BottomPane := Controller.ActiveSession;
+          Assert.IsTrue(Controller.FocusDirection(0, -1));
+          Assert.AreSame(RightPane, Controller.ActiveSession);
+          Assert.IsTrue(Controller.FocusDirection( -1, 0));
+          Assert.AreSame(LeftPane, Controller.ActiveSession);
+          Assert.IsFalse(Controller.FocusDirection( -1, 0));
+          Controller.FocusSession(BottomPane);
+          Assert.IsTrue(Controller.MoveSplit(1, 0));
+          Assert.AreEqual(55, Controller.ActiveTab.Root.Ratio);
+          Assert.IsTrue(Controller.MoveSplit(0, -1));
+          Assert.AreEqual(45, Controller.ActiveTab.Root.Second.Ratio);
+        Finally
+          Controller.Free;
+        End;
+      Finally
+        Settings.Free;
+      End;
     End;
-   Finally
-    Settings.Free;
-   End;
-  End;
 
 /// <summary>Restores mixed split trees, custom titles, active panes and disk files; malformed input keeps live sessions.</summary>
 
- Procedure TTerminalTests.SessionTreeRoundTripAndFailedRestore;
-  Var
-   Settings   : TGuakeSettings;
-   Controller : TTerminalController;
-   State      : String;
-   Path       : String;
-   ActiveId   : String;
-   Original   : TTerminalSession;
-  Begin
-   Path     := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName + '.json');
-   Settings := TGuakeSettings.Create(Path + '.ini');
-   Try
-    Settings.General.DefaultShell := 'cmd';
-    Controller                    := TTerminalController.Create(Settings);
-    Try
-     Controller.NewTab;
-     Controller.ActiveTab.Name := 'Pierwsza';
-     Controller.Split(True);
-     Controller.MoveSplit(1, 0);
-     Controller.Split(False);
-     Controller.MoveSplit(0, -1);
-     ActiveId                             := Controller.ActiveSession.Id;
-     Controller.ActiveSession.CustomTitle := 'Panel żółty';
-     Controller.NewTab;
-     Controller.ActiveTab.Name := 'Druga';
-     Controller.SelectTab(0);
-     Controller.SaveSession(Path);
-     State := Controller.SessionState;
-     Controller.CloseTab(0);
-     Controller.LoadSession(Path);
-     Assert.AreEqual(2, Controller.Count);
-     Assert.AreEqual(Integer(tnVertical), Integer(Controller.ActiveTab.Root.Kind));
-     Assert.AreEqual(55, Controller.ActiveTab.Root.Ratio);
-     Assert.AreEqual(Integer(tnHorizontal), Integer(Controller.ActiveTab.Root.Second.Kind));
-     Assert.AreEqual(45, Controller.ActiveTab.Root.Second.Ratio);
-     Assert.AreEqual(ActiveId, Controller.ActiveSession.Id);
-     Assert.AreEqual('Panel żółty', Controller.ActiveSession.CustomTitle);
-     Assert.AreEqual(State, Controller.SessionState);
-     Original := Controller.ActiveSession;
-     Assert.WillRaise(Procedure Begin Controller.RestoreState('{"version":99,"tabs":[]}'); End, EArgumentException);
-     Assert.AreSame(Original, Controller.ActiveSession);
-     Assert.AreEqual(2, Controller.Count);
-    Finally
-     Controller.Free;
+  Procedure TTerminalTests.SessionTreeRoundTripAndFailedRestore;
+    Var
+      Settings   : TGuakeSettings;
+      Controller : TTerminalController;
+      State      : String;
+      Path       : String;
+      ActiveId   : String;
+      Original   : TTerminalSession;
+    Begin
+      Path     := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName + '.json');
+      Settings := TGuakeSettings.Create(Path + '.ini');
+      Try
+        Settings.General.DefaultShell := 'cmd';
+        Controller                    := TTerminalController.Create(Settings);
+        Try
+          Controller.NewTab;
+          Controller.ActiveTab.Name := 'Pierwsza';
+          Controller.Split(True);
+          Controller.MoveSplit(1, 0);
+          Controller.Split(False);
+          Controller.MoveSplit(0, -1);
+          ActiveId                             := Controller.ActiveSession.Id;
+          Controller.ActiveSession.CustomTitle := 'Panel żółty';
+          Controller.NewTab;
+          Controller.ActiveTab.Name := 'Druga';
+          Controller.SelectTab(0);
+          Controller.SaveSession(Path);
+          State := Controller.SessionState;
+          Controller.CloseTab(0);
+          Controller.LoadSession(Path);
+          Assert.AreEqual(2, Controller.Count);
+          Assert.AreEqual(Integer(tnVertical), Integer(Controller.ActiveTab.Root.Kind));
+          Assert.AreEqual(55, Controller.ActiveTab.Root.Ratio);
+          Assert.AreEqual(Integer(tnHorizontal), Integer(Controller.ActiveTab.Root.Second.Kind));
+          Assert.AreEqual(45, Controller.ActiveTab.Root.Second.Ratio);
+          Assert.AreEqual(ActiveId, Controller.ActiveSession.Id);
+          Assert.AreEqual('Panel żółty', Controller.ActiveSession.CustomTitle);
+          Assert.AreEqual(State, Controller.SessionState);
+          Original := Controller.ActiveSession;
+          Assert.WillRaise(Procedure Begin Controller.RestoreState('{"version":99,"tabs":[]}'); End, EArgumentException);
+          Assert.AreSame(Original, Controller.ActiveSession);
+          Assert.AreEqual(2, Controller.Count);
+        Finally
+          Controller.Free;
+        End;
+      Finally
+        Settings.Free;
+        If TFile.Exists(Path) Then
+          TFile.Delete(Path);
+      End;
     End;
-   Finally
-    Settings.Free;
-    If TFile.Exists(Path) Then
-     TFile.Delete(Path);
-   End;
-  End;
 
 /// <summary>Feeds ZWJ families, flags, keycaps, skin tones and combining marks one UTF-8 byte at a time.</summary>
 
- Procedure TTerminalTests.ExtendedGraphemesAcrossByteFragments;
-  Var
-   Buffer : TTerminalBuffer;
-   Bytes  : TBytes;
-   One    : TBytes;
-   b      : Byte;
-  Begin
-   Assert.IsTrue(UnicodeBreakEngineAvailable, 'Windows ICU character break engine is required for this scenario');
-   Buffer := TTerminalBuffer.Create(40, 4);
-   Try
-    Bytes := TEncoding.UTF8.GetBytes('👨‍👩‍👧‍👦🇵🇱1️⃣👍🏽áX');
-    SetLength(One, 1);
-    For b In Bytes Do
-     Begin
-      One[0] := b;
-      Buffer.Feed(One);
-     End;
-    Assert.AreEqual('👨‍👩‍👧‍👦', Buffer.Cell[0, 0].Text);
-    Assert.AreEqual('🇵🇱', Buffer.Cell[2, 0].Text);
-    Assert.AreEqual('1️⃣', Buffer.Cell[4, 0].Text);
-    Assert.AreEqual('👍🏽', Buffer.Cell[6, 0].Text);
-    Assert.AreEqual('á', Buffer.Cell[8, 0].Text);
-    Assert.AreEqual('X', Buffer.Cell[9, 0].Text);
-    Assert.IsTrue(Buffer.Cell[1, 0].Continuation);
-    Buffer.Resize(6, 4);
-    Buffer.Resize(40, 4);
-    Assert.AreEqual('👨‍👩‍👧‍👦🇵🇱1️⃣👍🏽áX', Buffer.Text);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.ExtendedGraphemesAcrossByteFragments;
+    Var
+      Buffer : TTerminalBuffer;
+      Bytes  : TBytes;
+      One    : TBytes;
+      b      : Byte;
+    Begin
+      Assert.IsTrue(UnicodeBreakEngineAvailable, 'Windows ICU character break engine is required for this scenario');
+      Buffer := TTerminalBuffer.Create(40, 4);
+      Try
+        Bytes := TEncoding.UTF8.GetBytes('👨‍👩‍👧‍👦🇵🇱1️⃣👍🏽áX');
+        SetLength(One, 1);
+        For b In Bytes Do
+          Begin
+            One[0] := b;
+            Buffer.Feed(One);
+          End;
+        Assert.AreEqual('👨‍👩‍👧‍👦', Buffer.Cell[0, 0].Text);
+        Assert.AreEqual('🇵🇱', Buffer.Cell[2, 0].Text);
+        Assert.AreEqual('1️⃣', Buffer.Cell[4, 0].Text);
+        Assert.AreEqual('👍🏽', Buffer.Cell[6, 0].Text);
+        Assert.AreEqual('á', Buffer.Cell[8, 0].Text);
+        Assert.AreEqual('X', Buffer.Cell[9, 0].Text);
+        Assert.IsTrue(Buffer.Cell[1, 0].Continuation);
+        Buffer.Resize(6, 4);
+        Buffer.Resize(40, 4);
+        Assert.AreEqual('👨‍👩‍👧‍👦🇵🇱1️⃣👍🏽áX', Buffer.Text);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Resizes repeatedly across wide-character boundaries without losing soft lines, hard newlines, styles or the prompt cursor.</summary>
 
- Procedure TTerminalTests.ReflowPreservesHistoryStylesAndCursor;
-  Var
-   Buffer : TTerminalBuffer;
-   Before : String;
-   i      : Integer;
-   x      : Integer;
-   y      : Integer;
-   Found  : Boolean;
-  Begin
-   Buffer := TTerminalBuffer.Create(8, 3, 100);
-   Try
-    Buffer.FeedText('1234567界Z' + #13#10 + #27'[31m' + 'abc 👨‍👩‍👧‍👦 é END' + #27'[0m' + #13#10 + 'tail');
-    Before := Buffer.Text;
-    Assert.IsTrue(Pos('1234567界Z', Before) > 0, Before);
-    For i := 1 To 4 Do
-     Begin
-      Buffer.Resize(5, 4);
-      Assert.AreEqual(Before, Buffer.Text);
-      Buffer.Resize(14, 3);
-      Assert.AreEqual(Before, Buffer.Text);
-     End;
-    Found  := False;
-    For y  := 0 To Buffer.TotalLines - 1 Do
-     For x := 0 To Buffer.Columns - 1 Do
-      If Buffer.Cell[x, y].Text = 'a' Then
-       If Buffer.Cell[x, y].Foreground = 1 Then
-        Found := True;
-    Assert.IsTrue(Found, 'SGR attribute lost during reflow');
-    Buffer.FeedText('!');
-    Assert.AreEqual(Before + '!', Buffer.Text);
-    Buffer.FeedText(#27'[?1049h' + 'alternate');
-    Buffer.Resize(9, 4);
-    Buffer.FeedText(#27'[?1049l');
-    Assert.AreEqual(Before + '!', Buffer.Text);
-   Finally
-    Buffer.Free;
-   End;
-  End;
+  Procedure TTerminalTests.ReflowPreservesHistoryStylesAndCursor;
+    Var
+      Buffer : TTerminalBuffer;
+      Before : String;
+      i      : Integer;
+      x      : Integer;
+      y      : Integer;
+      Found  : Boolean;
+    Begin
+      Buffer := TTerminalBuffer.Create(8, 3, 100);
+      Try
+        Buffer.FeedText('1234567界Z' + #13#10 + #27'[31m' + 'abc 👨‍👩‍👧‍👦 é END' + #27'[0m' + #13#10 + 'tail');
+        Before := Buffer.Text;
+        Assert.IsTrue(Pos('1234567界Z', Before) > 0, Before);
+        For i := 1 To 4 Do
+          Begin
+            Buffer.Resize(5, 4);
+            Assert.AreEqual(Before, Buffer.Text);
+            Buffer.Resize(14, 3);
+            Assert.AreEqual(Before, Buffer.Text);
+          End;
+        Found   := False;
+        For y   := 0 To Buffer.TotalLines - 1 Do
+          For x := 0 To Buffer.Columns - 1 Do
+            If Buffer.Cell[x, y].Text = 'a' Then
+              If Buffer.Cell[x, y].Foreground = 1 Then
+                Found := True;
+        Assert.IsTrue(Found, 'SGR attribute lost during reflow');
+        Buffer.FeedText('!');
+        Assert.AreEqual(Before + '!', Buffer.Text);
+        Buffer.FeedText(#27'[?1049h' + 'alternate');
+        Buffer.Resize(9, 4);
+        Buffer.FeedText(#27'[?1049l');
+        Assert.AreEqual(Before + '!', Buffer.Text);
+      Finally
+        Buffer.Free;
+      End;
+    End;
 
 /// <summary>Exercises project title scalars and UTF-8, then executes a nested JSON menu command only on click.</summary>
 
- Procedure TTerminalTests.ProjectYamlAndCustomCommandMenu;
-  Var
-   Directory  : String;
-   FileName   : String;
-   OutputName : String;
-   Settings   : TGuakeSettings;
-   Main       : TfrmMain;
-   Commands   : TObjectList<TCustomCommand>;
-   Deadline   : UInt64;
-   JSON       : TJSONArray;
-   Items      : TJSONArray;
-   Args       : TJSONArray;
-   Group      : TJSONObject;
-   Command    : TJSONObject;
-  Begin
-   Assert.AreEqual('Projekt żółty', ProjectTitleFromYaml('title: Projekt żółty # uwaga'));
-   Assert.AreEqual('Żółty # 1', ProjectTitleFromYaml('title: "Żółty # 1"'));
-   Assert.AreEqual('d' + #39 + 'Artagnan', ProjectTitleFromYaml('title: ' + #39 + 'd' + #39#39 + 'Artagnan' + #39));
-   Assert.AreEqual('pierwsza druga', ProjectTitleFromYaml('title: >-' + #10 + '  pierwsza' + #10 + '  druga'));
-   Assert.AreEqual('', ProjectTitleFromYaml('title: !run command'));
-   Directory := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
-   ForceDirectories(Directory);
-   Settings := TGuakeSettings.Create(TPath.Combine(Directory, 'guake.ini'));
-   Try
-    TFile.WriteAllText(TPath.Combine(Directory, '.guake.yml'), 'title: Projekt lokalny', TEncoding.UTF8);
-    Assert.AreEqual('Projekt lokalny', ReadProjectTitle(Directory));
-    FileName   := TPath.Combine(Directory, 'commands.json');
-    OutputName := TPath.Combine(Directory, 'from-menu.txt');
-    JSON       := TJSONArray.Create;
-    Try
-     Group := TJSONObject.Create;
-     JSON.AddElement(Group);
-     Group.AddPair('type', 'menu');
-     Group.AddPair('description', 'Grupa');
-     Items := TJSONArray.Create;
-     Group.AddPair('items', Items);
-     Command := TJSONObject.Create;
-     Items.AddElement(Command);
-     Command.AddPair('description', 'Zapisz');
-     Args := TJSONArray.Create;
-     Command.AddPair('cmd', Args);
-     Args.AddElement(TJSONString.Create('echo'));
-     Args.AddElement(TJSONString.Create('from-menu>' + QuoteProcessArgument(OutputName)));
-     TFile.WriteAllText(FileName, JSON.ToJSON, TEncoding.UTF8);
-    Finally
-     JSON.Free;
+  Procedure TTerminalTests.ProjectYamlAndCustomCommandMenu;
+    Var
+      Directory  : String;
+      FileName   : String;
+      OutputName : String;
+      Settings   : TGuakeSettings;
+      Main       : TfrmMain;
+      Commands   : TObjectList<TCustomCommand>;
+      Deadline   : UInt64;
+      JSON       : TJSONArray;
+      Items      : TJSONArray;
+      Args       : TJSONArray;
+      Group      : TJSONObject;
+      Command    : TJSONObject;
+    Begin
+      Assert.AreEqual('Projekt żółty', ProjectTitleFromYaml('title: Projekt żółty # uwaga'));
+      Assert.AreEqual('Żółty # 1', ProjectTitleFromYaml('title: "Żółty # 1"'));
+      Assert.AreEqual('d' + #39 + 'Artagnan', ProjectTitleFromYaml('title: ' + #39 + 'd' + #39#39 + 'Artagnan' + #39));
+      Assert.AreEqual('pierwsza druga', ProjectTitleFromYaml('title: >-' + #10 + '  pierwsza' + #10 + '  druga'));
+      Assert.AreEqual('', ProjectTitleFromYaml('title: !run command'));
+      Directory := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
+      ForceDirectories(Directory);
+      Settings := TGuakeSettings.Create(TPath.Combine(Directory, 'guake.ini'));
+      Try
+        TFile.WriteAllText(TPath.Combine(Directory, '.guake.yml'), 'title: Projekt lokalny', TEncoding.UTF8);
+        Assert.AreEqual('Projekt lokalny', ReadProjectTitle(Directory));
+        FileName   := TPath.Combine(Directory, 'commands.json');
+        OutputName := TPath.Combine(Directory, 'from-menu.txt');
+        JSON       := TJSONArray.Create;
+        Try
+          Group := TJSONObject.Create;
+          JSON.AddElement(Group);
+          Group.AddPair('type', 'menu');
+          Group.AddPair('description', 'Grupa');
+          Items := TJSONArray.Create;
+          Group.AddPair('items', Items);
+          Command := TJSONObject.Create;
+          Items.AddElement(Command);
+          Command.AddPair('description', 'Zapisz');
+          Args := TJSONArray.Create;
+          Command.AddPair('cmd', Args);
+          Args.AddElement(TJSONString.Create('echo'));
+          Args.AddElement(TJSONString.Create('from-menu>' + QuoteProcessArgument(OutputName)));
+          TFile.WriteAllText(FileName, JSON.ToJSON, TEncoding.UTF8);
+        Finally
+          JSON.Free;
+        End;
+        Commands := ReadCustomCommands(FileName);
+        Try
+          Assert.AreEqual(1, Commands.Count);
+          Assert.IsTrue(Commands[0].IsMenu);
+          Assert.AreEqual('Zapisz', Commands[0].Children[0].Description);
+        Finally
+          Commands.Free;
+        End;
+        Settings.General.DefaultShell         := 'cmd';
+        Settings.General.UseTrayicon          := False;
+        Settings.General.UsePopup             := False;
+        Settings.General.LoadGuakeYml         := True;
+        Settings.General.CustomCommandFile    := FileName;
+        Settings.Keybindings.Global.ShowHide  := 'disabled';
+        Settings.Keybindings.Global.ShowFocus := 'disabled';
+        Main                                  := TfrmMain.Create(Nil);
+        Try
+          Main.Bind(Settings);
+          Main.StartTerminal;
+          Main.Controller.NewTab(Directory, 'cmd');
+          Assert.AreEqual('Projekt lokalny', Main.Controller.ActiveSession.Title);
+          Main.TerminalMenuPopup(Nil);
+          Assert.IsTrue(Main.miCustomCommands.Visible);
+          Assert.AreEqual(1, Main.miCustomCommands.Count);
+          Assert.IsFalse(TFile.Exists(OutputName));
+          Main.miCustomCommands.Items[0].Items[0].Click;
+          Deadline := GetTickCount64 + 15000;
+          Repeat
+            Main.PollTerminal(Nil);
+            If TFile.Exists(OutputName) Then
+              Break;
+            Sleep(10);
+          Until GetTickCount64 >= Deadline;
+          Assert.IsTrue(TFile.Exists(OutputName));
+          Assert.AreEqual('from-menu', Trim(TFile.ReadAllText(OutputName)));
+        Finally
+          Main.Free;
+        End;
+      Finally
+        Settings.Free;
+        TDirectory.Delete(Directory, True);
+      End;
     End;
-    Commands := ReadCustomCommands(FileName);
-    Try
-     Assert.AreEqual(1, Commands.Count);
-     Assert.IsTrue(Commands[0].IsMenu);
-     Assert.AreEqual('Zapisz', Commands[0].Children[0].Description);
-    Finally
-     Commands.Free;
-    End;
-    Settings.General.DefaultShell         := 'cmd';
-    Settings.General.UseTrayicon          := False;
-    Settings.General.UsePopup             := False;
-    Settings.General.LoadGuakeYml         := True;
-    Settings.General.CustomCommandFile    := FileName;
-    Settings.Keybindings.Global.ShowHide  := 'disabled';
-    Settings.Keybindings.Global.ShowFocus := 'disabled';
-    Main                                  := TfrmMain.Create(Nil);
-    Try
-     Main.Bind(Settings);
-     Main.StartTerminal;
-     Main.Controller.NewTab(Directory, 'cmd');
-     Assert.AreEqual('Projekt lokalny', Main.Controller.ActiveSession.Title);
-     Main.TerminalMenuPopup(Nil);
-     Assert.IsTrue(Main.miCustomCommands.Visible);
-     Assert.AreEqual(1, Main.miCustomCommands.Count);
-     Assert.IsFalse(TFile.Exists(OutputName));
-     Main.miCustomCommands.Items[0].Items[0].Click;
-     Deadline := GetTickCount64 + 15000;
-     Repeat
-      Main.PollTerminal(Nil);
-      If TFile.Exists(OutputName) Then
-       Break;
-      Sleep(10);
-     Until GetTickCount64 >= Deadline;
-     Assert.IsTrue(TFile.Exists(OutputName));
-     Assert.AreEqual('from-menu', Trim(TFile.ReadAllText(OutputName)));
-    Finally
-     Main.Free;
-    End;
-   Finally
-    Settings.Free;
-    TDirectory.Delete(Directory, True);
-   End;
-  End;
 
- Procedure TTerminalTests.CaptureNotification(Sender : TObject; Const Title, Body : String);
-  Begin
-   fNotices.Add(Title + ': ' + Body);
-  End;
+  Procedure TTerminalTests.CaptureNotification(Sender : TObject; Const Title, Body : String);
+    Begin
+      fNotices.Add(Title + ': ' + Body);
+    End;
 
 /// <summary>Verifies the application startup path, enabled menus, periodic saves and user-facing notifications without displaying OS popups in tests.</summary>
 
- Procedure TTerminalTests.StartupRestoreAutosaveAndNotifications;
-  Var
-   Directory   : String;
-   Saved       : String;
-   SessionFile : String;
-   Settings    : TGuakeSettings;
-   Main        : TfrmMain;
-  Begin
-   Directory := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
-   ForceDirectories(Directory);
-   Settings := TGuakeSettings.Create(TPath.Combine(Directory, 'guake.ini'));
-   fNotices := TStringList.Create;
-   Try
-    Settings.General.DefaultShell         := 'cmd';
-    Settings.General.UseTrayicon          := False;
-    Settings.General.UsePopup             := True;
-    Settings.General.RestoreTabsStartup   := True;
-    Settings.General.SaveTabsWhenChanged  := True;
-    Settings.General.RestoreTabsNotify    := True;
-    Settings.Keybindings.Global.ShowHide  := '<Control><Alt>F24';
-    Settings.Keybindings.Global.ShowFocus := 'disabled';
-    Main                                  := TfrmMain.Create(Nil);
-    Try
-     Main.OnNotification := CaptureNotification;
-     Main.Bind(Settings);
-     Main.StartTerminal;
-     Assert.IsTrue(Pos('F24', fNotices.Text) > 0, fNotices.Text);
-     Assert.IsTrue(Main.miSaveTabs.Enabled);
-     Assert.IsTrue(Main.sessionTimer.Enabled);
-     Main.Controller.NewTab;
-     Main.Controller.ActiveTab.Name := 'Zapisana';
-     Main.Controller.Split(True);
-     Main.SessionSaveTick(Nil);
-     Assert.IsTrue(Main.miRestoreTabs.Enabled);
-     SessionFile := ChangeFileExt(Settings.FileName, '.session.json');
-     Assert.IsTrue(TFile.Exists(SessionFile));
-     Saved := Main.Controller.SessionState;
-    Finally
-     Main.Free;
+  Procedure TTerminalTests.StartupRestoreAutosaveAndNotifications;
+    Var
+      Directory   : String;
+      Saved       : String;
+      SessionFile : String;
+      Settings    : TGuakeSettings;
+      Main        : TfrmMain;
+    Begin
+      Directory := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
+      ForceDirectories(Directory);
+      Settings := TGuakeSettings.Create(TPath.Combine(Directory, 'guake.ini'));
+      fNotices := TStringList.Create;
+      Try
+        Settings.General.DefaultShell         := 'cmd';
+        Settings.General.UseTrayicon          := False;
+        Settings.General.UsePopup             := True;
+        Settings.General.RestoreTabsStartup   := True;
+        Settings.General.SaveTabsWhenChanged  := True;
+        Settings.General.RestoreTabsNotify    := True;
+        Settings.Keybindings.Global.ShowHide  := '<Control><Alt>F24';
+        Settings.Keybindings.Global.ShowFocus := 'disabled';
+        Main                                  := TfrmMain.Create(Nil);
+        Try
+          Main.OnNotification := CaptureNotification;
+          Main.Bind(Settings);
+          Main.StartTerminal;
+          Assert.IsTrue(Pos('F24', fNotices.Text) > 0, fNotices.Text);
+          Assert.IsTrue(Main.miSaveTabs.Enabled);
+          Assert.IsTrue(Main.sessionTimer.Enabled);
+          Main.Controller.NewTab;
+          Main.Controller.ActiveTab.Name := 'Zapisana';
+          Main.Controller.Split(True);
+          Main.SessionSaveTick(Nil);
+          Assert.IsTrue(Main.miRestoreTabs.Enabled);
+          SessionFile := ChangeFileExt(Settings.FileName, '.session.json');
+          Assert.IsTrue(TFile.Exists(SessionFile));
+          Saved := Main.Controller.SessionState;
+        Finally
+          Main.Free;
+        End;
+        fNotices.Clear;
+        Main := TfrmMain.Create(Nil);
+        Try
+          Main.OnNotification := CaptureNotification;
+          Main.Bind(Settings);
+          Main.StartTerminal;
+          Assert.AreEqual(2, Main.Controller.Count);
+          Assert.AreEqual(Saved, Main.Controller.SessionState);
+          Assert.IsTrue(Main.miRestoreTabs.Enabled);
+          Main.RestoreTabsClick(Nil);
+          Assert.IsTrue(Pos('restored', fNotices.Text) > 0, fNotices.Text);
+          Settings.General.UsePopup := False;
+          fNotices.Clear;
+          Main.RestoreTabsClick(Nil);
+          Assert.AreEqual(0, fNotices.Count);
+        Finally
+          Main.Free;
+        End;
+        Settings.General.UsePopup := True;
+        fNotices.Clear;
+        TFile.WriteAllText(SessionFile, '{broken', TEncoding.UTF8);
+        Main := TfrmMain.Create(Nil);
+        Try
+          Main.OnNotification := CaptureNotification;
+          Main.Bind(Settings);
+          Main.StartTerminal;
+          Assert.AreEqual(1, Main.Controller.Count);
+          Assert.IsTrue(Pos('preserved', fNotices.Text) > 0, fNotices.Text);
+          Assert.IsFalse(Main.sessionTimer.Enabled);
+        Finally
+          Main.Free;
+        End;
+        Assert.AreEqual('{broken', TFile.ReadAllText(SessionFile, TEncoding.UTF8));
+      Finally
+        fNotices.Free;
+        fNotices := Nil;
+        Settings.Free;
+        TDirectory.Delete(Directory, True);
+      End;
     End;
-    fNotices.Clear;
-    Main := TfrmMain.Create(Nil);
-    Try
-     Main.OnNotification := CaptureNotification;
-     Main.Bind(Settings);
-     Main.StartTerminal;
-     Assert.AreEqual(2, Main.Controller.Count);
-     Assert.AreEqual(Saved, Main.Controller.SessionState);
-     Assert.IsTrue(Main.miRestoreTabs.Enabled);
-     Main.RestoreTabsClick(Nil);
-     Assert.IsTrue(Pos('restored', fNotices.Text) > 0, fNotices.Text);
-     Settings.General.UsePopup := False;
-     fNotices.Clear;
-     Main.RestoreTabsClick(Nil);
-     Assert.AreEqual(0, fNotices.Count);
-    Finally
-     Main.Free;
-    End;
-    Settings.General.UsePopup := True;
-    fNotices.Clear;
-    TFile.WriteAllText(SessionFile, '{broken', TEncoding.UTF8);
-    Main := TfrmMain.Create(Nil);
-    Try
-     Main.OnNotification := CaptureNotification;
-     Main.Bind(Settings);
-     Main.StartTerminal;
-     Assert.AreEqual(1, Main.Controller.Count);
-     Assert.IsTrue(Pos('preserved', fNotices.Text) > 0, fNotices.Text);
-     Assert.IsFalse(Main.sessionTimer.Enabled);
-    Finally
-     Main.Free;
-    End;
-    Assert.AreEqual('{broken', TFile.ReadAllText(SessionFile, TEncoding.UTF8));
-   Finally
-    fNotices.Free;
-    fNotices := Nil;
-    Settings.Free;
-    TDirectory.Delete(Directory, True);
-   End;
-  End;
 
 /// <summary>Exercises a hidden native hook, isolated HKCU startup registration and non-repeating bell consumption.</summary>
 
- Procedure TTerminalTests.NativeHooksAutostartAndBell;
-  Var
-   Directory    : String;
-   OutputName   : String;
-   RegistryPath : String;
-   Deadline     : UInt64;
-   Registry     : TRegistry;
-   Settings     : TGuakeSettings;
-   Controller   : TTerminalController;
-  Begin
-   Directory := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
-   ForceDirectories(Directory);
-   OutputName   := TPath.Combine(Directory, 'hook.txt');
-   RegistryPath := 'SoftwareGuakeGuakeTests' + TPath.GetRandomFileName;
-   Registry     := TRegistry.Create(KEY_READ Or KEY_WRITE);
-   Settings     := TGuakeSettings.Create(TPath.Combine(Directory, 'guake.ini'));
-   Try
-    Assert.AreEqual(Cardinal(0), StartConfiguredCommand('', Directory));
-    Assert.IsTrue(StartConfiguredCommand('echo hook-data>' + QuoteProcessArgument(OutputName), Directory) > 0);
-    Deadline := GetTickCount64 + 5000;
-    While Not TFile.Exists(OutputName) And (GetTickCount64 < Deadline) Do
-     Sleep(10);
-    Assert.AreEqual('hook-data', Trim(TFile.ReadAllText(OutputName)));
-    ConfigureAutoStart(True, ParamStr(0), RegistryPath);
-    Registry.RootKey := HKEY_CURRENT_USER;
-    Assert.IsTrue(Registry.OpenKeyReadOnly(RegistryPath));
-    Assert.AreEqual(QuoteProcessArgument(ExpandFileName(ParamStr(0))) + ' --hidden', Registry.ReadString('Guake'));
-    Registry.CloseKey;
-    ConfigureAutoStart(False, ParamStr(0), RegistryPath);
-    Assert.IsTrue(Registry.OpenKeyReadOnly(RegistryPath));
-    Assert.IsFalse(Registry.ValueExists('Guake'));
-    Registry.CloseKey;
-    Settings.General.DefaultShell := 'cmd';
-    Controller                    := TTerminalController.Create(Settings);
-    Try
-     Controller.NewTab;
-     Controller.ActiveSession.Buffer.FeedText(#7#7);
-     Assert.IsTrue(Controller.ActiveSession.TakeBell);
-     Assert.IsFalse(Controller.ActiveSession.TakeBell);
-    Finally
-     Controller.Free;
+  Procedure TTerminalTests.NativeHooksAutostartAndBell;
+    Var
+      Directory    : String;
+      OutputName   : String;
+      RegistryPath : String;
+      Deadline     : UInt64;
+      Registry     : TRegistry;
+      Settings     : TGuakeSettings;
+      Controller   : TTerminalController;
+    Begin
+      Directory := TPath.Combine(TPath.GetTempPath, TPath.GetRandomFileName);
+      ForceDirectories(Directory);
+      OutputName   := TPath.Combine(Directory, 'hook.txt');
+      RegistryPath := 'SoftwareGuakeGuakeTests' + TPath.GetRandomFileName;
+      Registry     := TRegistry.Create(KEY_READ Or KEY_WRITE);
+      Settings     := TGuakeSettings.Create(TPath.Combine(Directory, 'guake.ini'));
+      Try
+        Assert.AreEqual(Cardinal(0), StartConfiguredCommand('', Directory));
+        Assert.IsTrue(StartConfiguredCommand('echo hook-data>' + QuoteProcessArgument(OutputName), Directory) > 0);
+        Deadline := GetTickCount64 + 5000;
+        While Not TFile.Exists(OutputName) And (GetTickCount64 < Deadline) Do
+          Sleep(10);
+        Assert.AreEqual('hook-data', Trim(TFile.ReadAllText(OutputName)));
+        ConfigureAutoStart(True, ParamStr(0), RegistryPath);
+        Registry.RootKey := HKEY_CURRENT_USER;
+        Assert.IsTrue(Registry.OpenKeyReadOnly(RegistryPath));
+        Assert.AreEqual(QuoteProcessArgument(ExpandFileName(ParamStr(0))) + ' --hidden', Registry.ReadString('Guake'));
+        Registry.CloseKey;
+        ConfigureAutoStart(False, ParamStr(0), RegistryPath);
+        Assert.IsTrue(Registry.OpenKeyReadOnly(RegistryPath));
+        Assert.IsFalse(Registry.ValueExists('Guake'));
+        Registry.CloseKey;
+        Settings.General.DefaultShell := 'cmd';
+        Controller                    := TTerminalController.Create(Settings);
+        Try
+          Controller.NewTab;
+          Controller.ActiveSession.Buffer.FeedText(#7#7);
+          Assert.IsTrue(Controller.ActiveSession.TakeBell);
+          Assert.IsFalse(Controller.ActiveSession.TakeBell);
+        Finally
+          Controller.Free;
+        End;
+      Finally
+        Registry.CloseKey;
+        Registry.DeleteKey(RegistryPath);
+        Registry.Free;
+        Settings.Free;
+        TDirectory.Delete(Directory, True);
+      End;
     End;
-   Finally
-    Registry.CloseKey;
-    Registry.DeleteKey(RegistryPath);
-    Registry.Free;
-    Settings.Free;
-    TDirectory.Delete(Directory, True);
-   End;
-  End;
 
 /// <summary>Exercises the same guarded proxy style on a real hidden DFM window, including console test hosts without an Application HWND.</summary>
 
- Procedure TTerminalTests.TrayOnlyStyleRejectsVclMutation;
-  Var
-   Window : TfrmAbout;
-  Begin
-   Window := TfrmAbout.Create(Nil);
-   Try
-    Window.HandleNeeded;
-    ConfigureTrayOnlyWindow(Window.Handle, True);
-    Assert.IsTrue((GetWindowLongPtr(Window.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'Initial proxy TOOLWINDOW');
-    SetWindowLongPtr(Window.Handle, GWL_EXSTYLE,
-    (GetWindowLongPtr(Window.Handle, GWL_EXSTYLE) And Not WS_EX_TOOLWINDOW) Or WS_EX_APPWINDOW);
-    Assert.IsTrue((GetWindowLongPtr(Window.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'Proxy style guard did not reject TOOLWINDOW removal');
-    Assert.IsTrue((GetWindowLongPtr(Window.Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = 0, 'Proxy style guard allowed APPWINDOW');
-   Finally
-    Window.Free;
-   End;
-  End;
+  Procedure TTerminalTests.TrayOnlyStyleRejectsVclMutation;
+    Var
+      Window : TfrmAbout;
+    Begin
+      Window := TfrmAbout.Create(Nil);
+      Try
+        Window.HandleNeeded;
+        ConfigureTrayOnlyWindow(Window.Handle, True);
+        Assert.IsTrue((GetWindowLongPtr(Window.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'Initial proxy TOOLWINDOW');
+        SetWindowLongPtr(Window.Handle, GWL_EXSTYLE,
+        (GetWindowLongPtr(Window.Handle, GWL_EXSTYLE) And Not WS_EX_TOOLWINDOW) Or WS_EX_APPWINDOW);
+        Assert.IsTrue((GetWindowLongPtr(Window.Handle, GWL_EXSTYLE) And WS_EX_TOOLWINDOW) <> 0, 'Proxy style guard did not reject TOOLWINDOW removal');
+        Assert.IsTrue((GetWindowLongPtr(Window.Handle, GWL_EXSTYLE) And WS_EX_APPWINDOW) = 0, 'Proxy style guard allowed APPWINDOW');
+      Finally
+        Window.Free;
+      End;
+    End;
 
 Initialization
- TDUnitX.RegisterTestFixture(TTerminalTests);
+  TDUnitX.RegisterTestFixture(TTerminalTests);
 
 End.

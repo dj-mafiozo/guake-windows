@@ -91,3 +91,7 @@ Programy terminalowe mogą zapisywać i przywracać tytuł okna przez `CSI 22;2 
 Miękki reset `DECSTR` (`CSI ! p`) przywraca obsługiwane tryby i atrybuty bez usuwania treści ani historii terminala. Zachowuje pozycję, tabulatory i stos tytułów; `RIS` pozostaje twardym resetem.
 
 Obsługiwane są `DECSCA` oraz selektywne kasowanie `DECSEL`/`DECSED` (0–2): chronione znaki pozostają na ekranie, również po reflow. Zwykłe kasowanie i nadpisywanie nadal działają; ochrona obejmuje cały szeroki znak.
+
+Schowek obsługuje także stałe aliasy: `Ctrl+Insert` i `Ctrl+Shift+Insert` kopiują zaznaczenie, a `Shift+Insert` wkleja. Operatory klawiatury numerycznej `/`, `*`, `-`, `+`, Enter i separator dziesiętny działają w trybie zwykłym i aplikacyjnym; separator odpowiada ustawieniom Windows (np. przecinek).
+
+Zapis sesji pobiera bieżący katalog powłoki po `cd`/`Set-Location`, a odtwarzanie uruchamia w nim nowy proces. CMD i powłoki Git SDK korzystają z odczytu katalogu procesu, PowerShell dodatkowo zgłasza lokalizację przez OSC 7 z promptu. Otwarte okno zachowuje swój monitor; wybór monitora według myszy następuje przy kolejnym pokazaniu.

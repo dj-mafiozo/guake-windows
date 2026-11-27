@@ -1,6 +1,6 @@
 ﻿# Pokrycie emulatora VT
 
-Stan: 1.0.62.95. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
+Stan: 1.0.63.96. To macierz aktualnej implementacji, nie deklaracja pełnej zgodności z VTE ani xterm. Źródło: `Src/Terminal/Guake.VT.pas`; scenariusze DUnitX: `Src/Tests/Guake.Terminal.Tests.pas`. Normatywny punkt odniesienia dla nazw i parametrów: [XTerm Control Sequences](https://invisible-island.net/xterm/ctlseqs/ctlseqs.html). Ostateczna zgodność z VTE wymaga także porównania z jego zachowaniem.
 
 | Grupa | Aktualny zakres | Braki i ograniczenia |
 | --- | --- | --- |
@@ -13,7 +13,7 @@ Stan: 1.0.62.95. To macierz aktualnej implementacji, nie deklaracja pełnej zgod
 | Kursor | Widoczność DECTCEM, DECSCUSR 0–6: preferencje lub blok/podkreślenie/pionowa kreska, warianty migające i stałe; odczyt przez DECRQSS | Dalsza zgodność geometrii z VTE, w tym zewnętrzny obrys i szerokość wystających glifów; wariant xterm 7 nie jest obsługiwany |
 | Ekrany | DECALN (ESC # 8), ekran główny i alternatywny, 47/1047/1049, historia i reflow ekranu głównego | Osobna macierz wariantów przełączania i zapisów kursora, przypadki brzegowe reflow |
 | SGR | Reset, bold/faint, italic, conceal, strike, overline, inverse; pięć stylów podkreślenia i jego kolor 58/59; miganie 5/6/25; ANSI 16/256 i RGB przez średniki i dwukropki | Dalsze warianty SGR, integracja systemowych preferencji migania i porównanie geometrii dekoracji z VTE |
-| Odpowiedzi | DSR 5, CPR 6, DECXCPR ?6 ze stroną 1, raporty DEC ?15/?25/?55/?56; wiersz względem regionu przy DECOM; DA/DECID, DA2 i DA3, DECRQM/DECRPM dla obsługiwanych trybów, rozmiar w znakach CSI 18 t, DECRQSS SGR, marginesów pionowych i pełnego zakresu kolumn, stylu kursora i ochrony komórek | Pozostałe DECRQSS, raporty rozmiaru w pikselach/monitora i pozostałe zapytania |
+| Odpowiedzi | DSR 5, CPR 6, DECXCPR ?6 ze stroną 1, raporty DEC ?15/?25/?55/?56; wiersz względem regionu przy DECOM; DA/DECID, DA2 i DA3, DECREQTPARM 0/1, DECRQM/DECRPM dla obsługiwanych trybów, rozmiar w znakach CSI 18 t, DECRQSS SGR, marginesów pionowych i pełnego zakresu kolumn, stylu kursora i ochrony komórek | Pozostałe DECRQSS, raporty rozmiaru w pikselach/monitora i pozostałe zapytania |
 | OSC i tytuł | 0/2: tytuł, 7: katalog, 8: odnośniki; CSI 22/23 t: stos tytułów okna dla 0/2; CSI 20/21 t: puste raporty tytułu ikony/okna jak w VTE | Paleta i zapytania kolorów, osobny tytuł ikony i indeksowane sloty stosu, pozostałe OSC; polityka dostępu do schowka |
 | DCS/APC/PM | DCS DECRQSS dla SGR, marginesów, stylu kursora i ochrony komórek; pozostałe DCS/APC/PM/SOS są konsumowane | Pozostałe DCS i dalsze porównania ciągów z VTE |
 | Zestawy znaków | UTF-8, ASCII B, brytyjski A, DEC Special Graphics 0 w G0–G3; SI/SO, LS2/LS3, SS2/SS3 | Pozostałe zestawy narodowe, GR i 96-znakowe zestawy, warianty ESC z bajtami pośrednimi |
@@ -394,3 +394,15 @@ Punkt odniesienia: [DECRQSS DECSLRM w VTE 0.76.0](https://github.com/GNOME/vte/b
 Port przyjmuje pojedynczy parametr 20 lub 21; dodatkowe parametry, prywatne prefiksy i podparametry nie uruchamiają raportu. Testy obejmują fragmentację, niepusty tytuł, przywrócenie ze stosu, dalsze drukowanie po pełnym wierszu i nieobsługiwane postacie zapytania. Natywny odbiornik ConPTY porównuje dokładne odpowiedzi obu zapytań.
 
 Punkt odniesienia: [raporty tytułów w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L8510). Osobny tytuł ikony, indeksowane sloty stosu i pozostałe operacje okienne nadal pozostają poza tym zakresem.
+
+## DECREQTPARM — parametry terminala — 1.0.63.96
+
+`CSI x` i `CSI 0 x` otrzymują `CSI 2;1;1;120;120;1;0 x`, a `CSI 1 x` — `CSI 3;1;1;120;120;1;0 x` (spacje przed końcowym x są tu tylko zapisem czytelnym). Są to stałe parametry emulowane zgodnie z VTE: brak parzystości, osiem bitów i historyczne kody szybkości 120. Nie opisują pomiaru przepustowości ConPTY ani ustawień fizycznego portu szeregowego.
+
+Raport nie zmienia kursora, tekstu, atrybutów ani oczekującego zawinięcia. Odpowiedzi 2/3, pozostałe wartości, dodatkowe parametry, prefiksy i podparametry są ignorowane. Nie jest włączane samoczynne wysyłanie raportów. Wieloparametrowe polecenie WYCDIR o tym samym znaku końcowym pozostaje nieobsługiwane.
+
+Testy sprawdzają podawanie sekwencji znak po znaku, obie odpowiedzi, pobranie odpowiedzi tylko raz, dalsze drukowanie i brak pętli po odebraniu raportu. Natywny odbiornik ConPTY porównuje obie sekwencje dostarczone procesowi potomnemu. Punkt odniesienia: [DECREQTPARM w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L3164). Pozostałe raporty stanu i pełne pokrycie VTE/xterm nadal wymagają dalszych prac.
+
+## Klawiatura numeryczna i znaki po skrótach — 1.0.63.96
+
+Operatory numpada /, *, -, +, separator oraz Enter są wysyłane raz przez KeyDown, a odpowiadający WM_CHAR jest pomijany. W trybie aplikacyjnym pozostają SS3 o/j/m/k/n/M; w zwykłym są to znaki i CR lub CRLF zależnie od LNM. Separator zwykły jest zgodny z ustawieniami regionalnymi Windows. Flaga tłumienia nie przechodzi na kolejny KeyDown. Natywny odbiornik ConPTY weryfikuje oba tryby i następny znak po klawiszu bez WM_CHAR. Dalsza macierz modyfikatorów pozostaje otwarta.

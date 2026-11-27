@@ -1,6 +1,6 @@
 ﻿# Stan portu Guake dla Windows
 
-Stan kodu na 18 listopada 2026, wersja 1.0.62.95. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
+Stan kodu na 27 listopada 2026, wersja 1.0.63.96. Punkt odniesienia: lokalny `../guake`, rewizja `0911ddfe25a0c4019d2516b90982854d192e91cd`, oraz [zrzuty Manjaro](visual-reference.md). [Inwentarz źródłowy](guake-contract.json) opisuje oryginał, nie zakres ukończonego portu. Pełna zgodność funkcjonalna i wizualna pozostaje do osiągnięcia.
 
 ## Co działa, a co jeszcze wymaga implementacji
 
@@ -112,7 +112,7 @@ Ctrl+klik rozpoznaje plik przed przekazaniem zdarzenia do programu w terminalu; 
 
 Polecenie edytora zastępuje %(file_path)s i %(line_number)s; port dodaje %(column_number)s. Ścieżki są cytowane dla CMD, PowerShell albo Bash/Zsh i uwzględniają istniejące cudzysłowy w szablonie. Uruchomienie osobno korzysta z CMD bez dodatkowego okna konsoli; tryb bieżącego terminala wysyła polecenie do aktywnej powłoki. Należy skonfigurować edytor dostępny w Windows, np. notepad.exe %(file_path)s lub code -g %(file_path)s:%(line_number)s. Domyślna wartość gedit ze źródłowego schematu pozostaje zachowana, podobnie jak domyślne wyłączenie funkcji.
 
-Parser ogranicza tekst do 8192 jednostek UTF-16, a odczyt źródła przy wyszukiwaniu funkcji pytest do 8 MiB. Nie otwiera nieistniejących plików i nie wznawia pracy procesów. Od wersji 1.0.24.57 rozpoznawanie pod kursorem łączy automatycznie zawinięte wiersze; jawne końce linii pozostają granicą. Wiarygodność ścieżek względnych zależy od aktualizacji katalogu sesji przez powłokę/OSC 7. Dodano polski komunikat błędu otwierania pliku.
+Parser ogranicza tekst do 8192 jednostek UTF-16, a odczyt źródła przy wyszukiwaniu funkcji pytest do 8 MiB. Nie otwiera nieistniejących plików i nie wznawia pracy procesów. Od wersji 1.0.24.57 rozpoznawanie pod kursorem łączy automatycznie zawinięte wiersze; jawne końce linii pozostają granicą. Ścieżki względne korzystają z bieżącego katalogu sesji; od 1.0.63.96 jest on odświeżany z procesu Win64 i przez OSC 7 PowerShella. Dodano polski komunikat błędu otwierania pliku.
 
 Weryfikacja Quick Open: 80/80 testów DUnitX, cztery projekty Debug i grupa Release. Scenariusze sprawdzają numery wierszy i kolumn, pytest, ścieżki ze spacjami i polskimi znakami, mapowanie Git SDK, cytowanie dla czterech powłok, kliknięcie i menu zaznaczenia oraz rzeczywiste wykonanie polecenia w bieżącej powłoce i osobnym procesie. Poprawiono też granice rozpoznawania URL: indeks TMatch w Delphi 10.2 jest liczony od 1, a indeks komórki od 0. Build nie zmienił wersji 1.0.15.48.
 
@@ -584,3 +584,28 @@ Port przyjmuje pojedynczy parametr 20 lub 21; dodatkowe parametry, prywatne pref
 Punkt odniesienia: [raporty tytułów w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L8510). Osobny tytuł ikony, indeksowane sloty stosu i pozostałe operacje okienne nadal pozostają poza tym zakresem.
 
 Weryfikacja 1.0.62.95: formatter bez błędów, sprawdzony diff i integralność źródeł; 190/190 scenariuszy DUnitX, bez błędów i wycieków. Natywny odbiornik ConPTY potwierdził obie puste odpowiedzi OSC na zapytania o tytuły. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie. Budowanie nie zmieniło DPROJ. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.62.95-Win64.zip z pasującymi EXE/PDB. Weryfikacja lokalna.
+
+## DECREQTPARM — parametry terminala — 1.0.63.96
+
+`CSI x` i `CSI 0 x` otrzymują `CSI 2;1;1;120;120;1;0 x`, a `CSI 1 x` — `CSI 3;1;1;120;120;1;0 x` (spacje przed końcowym x są tu tylko zapisem czytelnym). Są to stałe parametry emulowane zgodnie z VTE: brak parzystości, osiem bitów i historyczne kody szybkości 120. Nie opisują pomiaru przepustowości ConPTY ani ustawień fizycznego portu szeregowego.
+
+Raport nie zmienia kursora, tekstu, atrybutów ani oczekującego zawinięcia. Odpowiedzi 2/3, pozostałe wartości, dodatkowe parametry, prefiksy i podparametry są ignorowane. Nie jest włączane samoczynne wysyłanie raportów. Wieloparametrowe polecenie WYCDIR o tym samym znaku końcowym pozostaje nieobsługiwane.
+
+Testy sprawdzają podawanie sekwencji znak po znaku, obie odpowiedzi, pobranie odpowiedzi tylko raz, dalsze drukowanie i brak pętli po odebraniu raportu. Natywny odbiornik ConPTY porównuje obie sekwencje dostarczone procesowi potomnemu. Punkt odniesienia: [DECREQTPARM w VTE 0.76.0](https://github.com/GNOME/vte/blob/0.76.0/src/vteseq.cc#L3164). Pozostałe raporty stanu i pełne pokrycie VTE/xterm nadal wymagają dalszych prac.
+
+## Klawiatura, bieżący katalog sesji i monitor — 1.0.63.96
+
+- Schowek: Ctrl+Insert i Ctrl+Shift+Insert kopiują zaznaczenie; Shift+Insert wkleja. Są dodatkowymi aliasami obok konfigurowanych Ctrl+Shift+C/V. Fizyczny Insert klawiatury numerycznej nie jest przechwytywany jako alias.
+- Numpad: operatory /, *, -, +, separator dziesiętny i rozszerzony Enter są kodowane jawnie. Tryb aplikacyjny zachowuje sekwencje SS3, tryb zwykły wysyła tekst; separator pochodzi z ustawień Windows. Wygenerowany WM_CHAR jest tłumiony tylko dla obsłużonego klawisza. Każdy kolejny KeyDown zeruje poprzednią flagę, co usuwa gubienie pierwszego znaku po klawiszu bez WM_CHAR.
+- Katalog: przed serializacją odbierane są oczekujące dane, a właściwość Directory odświeża katalog żywego procesu Win64. Dla wrappera git-zsh odczytywany jest proces zsh.exe należący do tego samego zadania. Odczyt jest bez zapisu do pamięci procesu; niepowodzenie zachowuje ostatnią znaną lokalizację. Bash/Zsh synchronizują katalog Windows dla zwykłych ścieżek systemu plików.
+- PowerShell: domyślny profil zachowuje istniejącą funkcję prompt i dołącza raport OSC 7 dla dostawcy FileSystem. Starsze sesje ze standardowym argumentem -NoLogo otrzymują tę integrację przy odtwarzaniu. Własne argumenty/powłoki i wirtualne katalogi MSYS wymagają dalszych integracji. Plik URI zachowuje znak + zamiast zamieniać go w spację.
+- Odtwarzanie: zapamiętany katalog jest katalogiem startowym nowego procesu. Nie są przywracane procesy ani pamięć terminala.
+- Monitor: ApplySettings wybiera monitor otwartego okna zamiast aktualnej pozycji myszy. Wybór według myszy jest ponawiany przy pokazaniu ukrytego okna, również bez animacji.
+
+Testy obejmują rzeczywiste kopiowanie i wklejenie komendy do CMD, dokładny strumień numpada odebrany przez ConPTY, brak utraty znaku po braku WM_CHAR, odczyt katalogów CMD/PowerShell/Bash/Zsh oraz zapis i odtworzenie CMD/PowerShell w ścieżce ze spacją i +. Sprawdzenie utrzymania monitora wykonuje wariant między ekranami, jeżeli środowisko udostępnia co najmniej dwa monitory. Test przekazywania fokusu zachowuje asercje i jawnie przygotowuje kolejki wejścia Windows.
+
+Odczyt katalogu korzysta z wewnętrznego układu PEB/parametrów procesu Win64 i jest sprawdzany na bieżącym Windows; zmiana tego układu w przyszłym systemie może wymagać dostosowania. Odnośniki: [NtQueryInformationProcess](https://learn.microsoft.com/en-us/windows/win32/api/winternl/nf-winternl-ntqueryinformationprocess), [synchronizacja CWD w Git for Windows/MSYS](https://github.com/git-for-windows/msys2-runtime/blob/main/winsup/cygwin/path.cc#L4780).
+
+Zmienione jednostki zostały sformatowane bieżącym profilem doFormat.bat. Profil zmienił również wcięcia w tych plikach; kontrola diffu bez białych znaków oddziela te zmiany od implementacji. Pozostałych jednostek nie formatowano.
+
+Weryfikacja końcowa 1.0.63.96 (27 listopada 2026): 196/196 scenariuszy DUnitX, bez błędów i wycieków. Sprawdzono katalogi CMD, PowerShell, Bash i Zsh, zapis/odtworzenie CMD i PowerShella, skróty schowka oraz dokładny strumień numpada w ConPTY. Środowisko udostępniało trzy monitory; test utrzymania otwartego okna na wybranym ekranie wykonał wariant między monitorami. Cztery projekty Win64 Debug oraz aplikacja i wrapper Win64 Release zbudowane poprawnie, bez zmiany DPROJ podczas budowania. Formatter bez błędów; sprawdzony diff, w tym bez zmian białych znaków. Raport: bin/tests/test-results.xml. Pakiet: bin/guake-1.0.63.96-Win64.zip z pasującymi EXE/PDB.
